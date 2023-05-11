@@ -1,52 +1,35 @@
 package main
 
 import (
-	"augustin/database"
-	"augustin/handlers"
-
 	"flag"
+	"fmt"
 	"log"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
+	"net/http"
 )
 
 var (
 	port = flag.String("port", ":3000", "Port to listen on")
-	prod = flag.Bool("prod", false, "Enable prefork in Production")
 )
 
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+    if r.URL.Path != "/hello" {
+        http.Error(w, "404 not found.", http.StatusNotFound)
+        return
+    }
+
+    if r.Method != "GET" {
+        http.Error(w, "Method is not supported.", http.StatusNotFound)
+        return
+    }
+
+    fmt.Fprintf(w, "Hello World!")
+}
+
 func main() {
-	// Parse command-line flags
-	flag.Parse()
+	http.HandleFunc("/hello", helloHandler)
 
-	// Connected with database
-	database.Connect()
-
-	// Create fiber app
-	app := fiber.New(fiber.Config{
-		Prefork: *prod, // go run app.go -prod
-	})
-
-	// Middleware
-	app.Use(recover.New())
-	app.Use(logger.New())
-
-	// Create a /api/v1 endpoint
-	v1 := app.Group("/api/v1")
-
-	// Bind handlers
-	v1.Get("/helloworld", handlers.HelloWorld)
-	v1.Get("/users", handlers.UserList)
-	v1.Post("/users", handlers.UserCreate)
-
-	// Setup static files
-	app.Static("/", "./static/public")
-
-	// Handle not founds
-	app.Use(handlers.NotFound)
-
-	// Listen on port 3000
-	log.Fatal(app.Listen(*port)) // go run app.go -port=:3000
+	fmt.Printf("Starting server at port %s\n", *port)
+	if err := http.ListenAndServe(*port, nil); err != nil {
+        log.Fatal(err)
+    }
 }

@@ -19,8 +19,8 @@ FROM alpine:latest as release
 WORKDIR /app
 
 # Create the `public` dir and copy all the assets into it
-RUN mkdir ./static
-COPY ./app/static ./static
+# RUN mkdir ./static
+# COPY ./app/static ./static
 
 COPY --from=build /go/src/augustin/app .
 
