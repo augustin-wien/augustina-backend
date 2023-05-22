@@ -2,13 +2,13 @@
 
 ## Development
 
-Start the application locally
+Start the application locally:
 
 ```bash
 go run app/app.go
 ```
 
-Start the application with Docker
+Start the application with Docker:
 
 ```bash
 docker compose build
@@ -16,3 +16,10 @@ docker compose up -d
 ```
 
 Go to http://localhost:3000 or http://localhost:3000/api/v1/helloworld
+
+Run tests from within the Docker container:
+
+```bash
+docker compose exec container_name sh
+go test ./... -v -cover
+```
