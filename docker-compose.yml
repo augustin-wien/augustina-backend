@@ -30,7 +30,11 @@ services:
       - ./app:/app
     command: "go run main.go"
     environment:
-      DATABASE_URL: postgres://${DB_USER}:${DB_PASS}@augustin-db:5432/${DB_NAME}?sslmode=disable
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: augustin-db
+      DB_PORT: 5432
     depends_on:
       augustin-db:
         condition: service_healthy
