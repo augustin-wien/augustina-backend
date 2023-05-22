@@ -1,23 +1,20 @@
 version: "3.8"
 
 services:
-  # Possible postgres implementation
-  # augustin-db:
-  #   container_name: augustin-db
-  #   image: postgres:14.2
-  #   environment:
-  #     POSTGRES_USER: ${DB_USER}
-  #     POSTGRES_PASSWORD: ${DB_PASS}
-  #     POSTGRES_DB: ${DB_NAME}
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - dbdata:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  augustin-db:
+    container_name: augustin-db
+    image: postgres:14.2
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   augustin:
     container_name: augustin
@@ -25,9 +22,11 @@ services:
       context: .
       dockerfile: Dockerfile.production
     command: "./app -prod"
-    # depends_on:
-    #   augustin-db:
-    #     condition: service_healthy
+    depends_on:
+      augustin-db:
+        condition: service_healthy
+    links:
+      - augustin-db
     ports:
       - "3000:3000"
 
