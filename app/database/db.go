@@ -8,13 +8,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Database struct
 type Database struct {
 	// Db, config can be added here
 	Dbpool *pgxpool.Pool
 }
 
+// Db is the global database connection pool that is used by all handlers
 var Db Database
 
+// InitDb initializes the database connection pool and stores it in the global Db variable
 func InitDb() {
 	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
@@ -32,6 +35,7 @@ func InitDb() {
 	log.Infof("InitDb succesfull: %v", greeting)
 }
 
+// CloseDbPool closes the database connection pool
 func (db *Database) CloseDbPool() {
 	db.Dbpool.Close()
 }
