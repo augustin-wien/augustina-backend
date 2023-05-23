@@ -1,0 +1,26 @@
+{
+  "realm" : "master",
+  "users" : [ {
+    "id" : "e6120972-b94f-4e36-8123-ff16055dd6f6",
+    "createdTimestamp" : 1684791794566,
+    "username" : "admin",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "credentials" : [ {
+      "id" : "cb694bb8-adc9-4191-aa19-09d82ec5d309",
+      "type" : "password",
+      "createdDate" : 1684791794763,
+      "secretData" : "{\"value\":\"uvD4IJeZSMHrwqqsuYi/a+87TOTI/x2iwdKrvlz6lFw=\",\"salt\":\"rP9Z5SI2NICZkCPSFNtY6w==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-master", "admin" ],
+    "clientRoles" : {
+      "augustin-realm" : [ "manage-realm", "create-client", "manage-events", "query-groups", "view-identity-providers", "query-realms", "view-users", "manage-identity-providers", "manage-users", "manage-clients", "manage-authorization", "view-events", "query-clients", "view-authorization", "query-users", "view-realm", "view-clients" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  } ]
+}
