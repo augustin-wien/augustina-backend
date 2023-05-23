@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// HelloWorld api Handler
+// HelloWorld API Handler fetching data from database
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	greeting, err := database.Db.GetHelloWorld()
 	if err != nil {
@@ -19,19 +19,23 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(greeting))
 }
 
-func Setting(w http.ResponseWriter, r *http.Request) {
-	marshal_struct, err := json.Marshal(setting{Color: "red", Logo: "/img/Augustin-Logo-Rechteck.jpg", Price: 3.14})
+// Setting API Handler fetching data without database
+func Settings(w http.ResponseWriter, r *http.Request) {
+	marshal_struct, err := json.Marshal(settings{Color: "red", Logo: "/img/Augustin-Logo-Rechteck.jpg", Price: 3.14})
 	if err != nil {
-		log.Info(err)
+		log.Errorf("QueryRow failed: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte(marshal_struct))
 }
 
+// Vendor API Handler fetching data without database
 func Vendor(w http.ResponseWriter, r *http.Request) {
 	marshal_struct, err := json.Marshal(vendor{Credit: 1.61, QRcode: "/img/Augustin-QR-Code.png", IDnumber: "123456789"})
 	if err != nil {
-		log.Info(err)
+		log.Errorf("QueryRow failed: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte(marshal_struct))

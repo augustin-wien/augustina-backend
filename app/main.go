@@ -44,10 +44,11 @@ func (s *Server) MountHandlers() {
 	// Mount all handlers here
 	s.Router.Get("/hello", handlers.HelloWorld)
 
-	s.Router.Get("/settings", handlers.Setting)
+	s.Router.Get("/settings", handlers.Settings)
 
 	s.Router.Get("/vendor", handlers.Vendor)
 
+	// Mount static file server in img folder
 	fs := http.FileServer(http.Dir("img"))
 	s.Router.Handle("/img/*", http.StripPrefix("/img/", fs))
 

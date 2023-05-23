@@ -46,3 +46,41 @@ func TestHelloWorld(t *testing.T) {
 	// We can use testify/require to assert values, as it is more convenient
 	require.Equal(t, "Hello World!", response.Body.String())
 }
+
+func TestSettings(t *testing.T) {
+	// Create a New Server Struct
+	s := CreateNewServer()
+	// Mount Handlers
+	s.MountHandlers()
+
+	// Create a New Request
+	req, _ := http.NewRequest("GET", "/settings", nil)
+
+	// Execute Request
+	response := executeRequest(req, s)
+
+	// Check the response code
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	// We can use testify/require to assert values, as it is more convenient
+	require.Equal(t, `{Color: "red", Logo: "/img/Augustin-Logo-Rechteck.jpg", Price: 3.14}`, response.Body.String())
+}
+
+func TestVendor(t *testing.T) {
+	// Create a New Server Struct
+	s := CreateNewServer()
+	// Mount Handlers
+	s.MountHandlers()
+
+	// Create a New Request
+	req, _ := http.NewRequest("GET", "/vendor", nil)
+
+	// Execute Request
+	response := executeRequest(req, s)
+
+	// Check the response code
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	// We can use testify/require to assert values, as it is more convenient
+	require.Equal(t, `{Credit: 1.61, QRcode: "/img/Augustin-QR-Code.png", IDnumber: "123456789"}`, response.Body.String())
+}

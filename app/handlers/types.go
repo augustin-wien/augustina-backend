@@ -1,6 +1,6 @@
 package handlers
 
-type setting struct {
+type settings struct {
 	Color string  `json:"color"`
 	Logo  string  `json:"logo"`
 	Price float64 `json:"price"`
