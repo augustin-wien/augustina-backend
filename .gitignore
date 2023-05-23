@@ -23,3 +23,4 @@
 go.work
 /app/augustin
 build/*
+docker/keycloak/export/*.json

@@ -1,3 +1,9 @@
 *_test.go
 
 build/*
+docker/keycloak/*
+docker-compose.yml
+docker-compose.production.yml
+.env
+.env.example
+.github/*
