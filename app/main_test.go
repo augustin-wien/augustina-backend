@@ -2,6 +2,8 @@
 package main
 
 import (
+	"augustin/handlers"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -63,7 +65,7 @@ func TestSettings(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, `{Color: "red", Logo: "/img/Augustin-Logo-Rechteck.jpg", Price: 3.14}`, response.Body.String())
+	require.Equal(t, `{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14}`, response.Body.String())
 }
 
 func TestVendor(t *testing.T) {
@@ -80,7 +82,8 @@ func TestVendor(t *testing.T) {
 
 	// Check the response code
 	checkResponseCode(t, http.StatusOK, response.Code)
+	marshal_struct, _ := json.Marshal(&handlers.Vendor{Credit: 1.61, QRcode: "/img/Augustin-QR-Code.png", IDnumber: "123456789"})
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, `{Credit: 1.61, QRcode: "/img/Augustin-QR-Code.png", IDnumber: "123456789"}`, response.Body.String())
+	require.Equal(t, string(marshal_struct), response.Body.String())
 }

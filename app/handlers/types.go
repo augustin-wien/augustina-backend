@@ -1,12 +1,12 @@
 package handlers
 
-type settings struct {
+type Setting struct {
 	Color string  `json:"color"`
 	Logo  string  `json:"logo"`
 	Price float64 `json:"price"`
 }
 
-type vendor struct {
+type Vendor struct {
 	Credit   float64 `json:"credit"`
 	QRcode   string  `json:"qrcode"`
 	IDnumber string  `json:"id-number"`
