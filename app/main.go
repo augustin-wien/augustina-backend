@@ -1,3 +1,23 @@
+// @title           Swagger Example API
+// @version         0.0.1
+// @description     This is a sample server celler server.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8081
+// @BasePath  /api/v1
+
+// @securityDefinitions.basic  BasicAuth
+
+// @externalDocs.description  OpenAPI
+// @externalDocs.url          https://swagger.io/resources/open-api/
+
 package main
 
 import (
@@ -9,6 +29,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	log "github.com/sirupsen/logrus"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func initLog() {
@@ -47,6 +69,10 @@ func (s *Server) MountHandlers() {
 	s.Router.Get("/settings", handlers.Settings)
 
 	s.Router.Get("/vendor", handlers.Vendors)
+
+	s.Router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:3000/swagger/doc.json"), //The url pointing to API definition
+	))
 
 	// Mount static file server in img folder
 	fs := http.FileServer(http.Dir("img"))
