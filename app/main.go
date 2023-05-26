@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"net/http"
 
+	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	log "github.com/sirupsen/logrus"
@@ -48,9 +50,49 @@ func CreateNewServer() *Server {
 	return s
 }
 
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Initialize Keycloak client
+		keycloakClient := gocloak.NewClient("https://your-keycloak-url/auth")
+		ctx := context.Background()
+
+		// Authenticate the user
+		token, err := keycloakClient.LoginAdmin(ctx, "admin-username", "admin-password", "your-realm")
+		if err != nil {
+			http.Error(w, "Failed to authenticate", http.StatusInternalServerError)
+			log.Errorf("Failed to authenticate: %v", err.Error())
+			return
+		}
+
+		// Get the user by username
+		user, err := keycloakClient.GetUserByID(ctx, token.AccessToken, "your-realm", "user001")
+		if err != nil {
+			http.Error(w, "User not found", http.StatusUnauthorized)
+			return
+		}
+
+		// Check if the user has the required role
+		hasRole, err := keycloakClient.GetRoleMappingByUserID(ctx, token.AccessToken, "your-realm", *user.ID)
+		if err != nil {
+			http.Error(w, "Failed to check user roles", http.StatusInternalServerError)
+			return
+		}
+		log.Info("Check MappingsRepresentation type", hasRole)
+
+		// TODO
+		// If the user has the required role, proceed to the next handler
+		// if hasRole == "go-admin" {
+		// 	next.ServeHTTP(w, r)
+		// } else {
+		// 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		// }
+	})
+}
+
 func (s *Server) MountHandlers() {
 	// Mount all Middleware here
 	s.Router.Use(middleware.Logger)
+	s.Router.Use(AuthMiddleware)
 
 	// Mount all handlers here
 	s.Router.Get("/hello", HelloWorld)
