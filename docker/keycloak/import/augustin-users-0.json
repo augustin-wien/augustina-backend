@@ -1,0 +1,105 @@
+{
+  "realm" : "augustin",
+  "users" : [ {
+    "id" : "39677e36-f9da-4a23-a6c6-ab7549c84e79",
+    "createdTimestamp" : 1684823230275,
+    "username" : "test_nouser",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "test_nouser@example.com",
+    "attributes" : {
+      "wp_user_role" : [ "blub" ]
+    },
+    "credentials" : [ {
+      "id" : "d21773f8-c335-48ac-90b0-d7c1091cf866",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1684823318996,
+      "secretData" : "{\"value\":\"vbE4IOjW9T6XZhFrn5KtsoA9qhR7MhTJbS0Izab/7LM=\",\"salt\":\"ai2EiptXXvSMD+M4yzJsVQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-augustin" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "966c4da6-a63a-42cb-840b-b852e031d51f",
+    "createdTimestamp" : 1684822395334,
+    "username" : "test_superuser",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "test_superuser@example.com",
+    "attributes" : {
+      "wp_user_role" : [ "admininstrator" ]
+    },
+    "credentials" : [ {
+      "id" : "55b96980-3110-408b-8d7a-07e2a5075363",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1684822416074,
+      "secretData" : "{\"value\":\"9DMIsbmQHDHHcByLtuD7RZ50O3mejXvU5BNkeci+/ew=\",\"salt\":\"LI0cl3hlzgtUOKBYQmKnKQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-augustin", "admin" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "1e91e75d-6982-4ca2-aed5-a1975d9015aa",
+    "createdTimestamp" : 1684822368783,
+    "username" : "test_user",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "test_user@example.com",
+    "attributes" : {
+      "wp_user_role" : [ "blub" ]
+    },
+    "credentials" : [ {
+      "id" : "e8e595a9-24d6-46a7-b180-9ff06dca43de",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1684825113486,
+      "secretData" : "{\"value\":\"7Xa3IDUkK+Fr1ur2oj1T2tBPWETii/p1cD1BaG2DY18=\",\"salt\":\"AWM1fmFuduNADscHrXEIeQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "magazin-1", "default-roles-augustin" ],
+    "notBefore" : 1684826088,
+    "groups" : [ "/magazin-1" ]
+  }, {
+    "id" : "1ee55028-3325-4443-9810-06855e62cdff",
+    "createdTimestamp" : 1684832161837,
+    "username" : "test_user_all",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "test_user_all@example.com",
+    "credentials" : [ {
+      "id" : "dd7b0bc0-4fed-4484-ac97-fe01cd6af574",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1684832190701,
+      "secretData" : "{\"value\":\"14u+zaJw70W82GYh/8QMIUiAxugSep3KKI6dIg7ngNw=\",\"salt\":\"tEI0OIazciLwu4SpxQpr3Q==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-augustin" ],
+    "notBefore" : 0,
+    "groups" : [ "/magazin-1", "/magazin-2", "/magazin-3" ]
+  } ]
+}
