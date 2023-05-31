@@ -44,14 +44,14 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Logger)
 
 	// Mount all handlers here
-	s.Router.Get("/hello", handlers.HelloWorld)
+	s.Router.Get("/api/hello", handlers.HelloWorld)
 
-	s.Router.Get("/settings", handlers.Settings)
+	s.Router.Get("/api/settings", handlers.Settings)
 
-	s.Router.Get("/vendor", handlers.Vendors)
+	s.Router.Get("/api/vendor", handlers.Vendors)
 
 	s.Router.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:3000/docs/swagger.json"), //The url pointing to API definition
+		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
 	))
 
 	// Mount static file server in img folder

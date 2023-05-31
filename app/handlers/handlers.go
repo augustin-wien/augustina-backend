@@ -11,7 +11,7 @@
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
 //	@host		localhost:3000
-//	@BasePath	/swagger/
+//	@BasePath	/api/
 
 //	@securityDefinitions.basic	BasicAuth
 
