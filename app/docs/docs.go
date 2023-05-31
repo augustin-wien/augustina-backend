@@ -5,8 +5,8 @@ package docs
 import "github.com/swaggo/swag"
 
 const docTemplate = `{
-    "swagger": "2.0",
     "schemes": {{ marshal .Schemes }},
+    "swagger": "2.0",
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",

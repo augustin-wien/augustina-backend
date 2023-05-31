@@ -51,7 +51,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Get("/vendor", handlers.Vendors)
 
 	s.Router.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:3000/docs/docs.go"), //The url pointing to API definition
+		httpSwagger.URL("http://localhost:3000/docs/swagger.json"), //The url pointing to API definition
 	))
 
 	// Mount static file server in img folder
