@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
@@ -57,12 +58,17 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		ctx := context.Background()
 
 		// Authenticate the user
-		token, err := keycloakClient.LoginAdmin(ctx, "GoClient", "9OGqiDdguQHhPQ90MgPV7hEKFEE5A5jB", "augustin")
+		token, err := keycloakClient.LoginClient(ctx, "go-client", "9OGqiDdguQHhPQ90MgPV7hEKFEE5A5jB", "augustin")
 		if err != nil {
 			http.Error(w, "Failed to authenticate", http.StatusInternalServerError)
 			log.Errorf("Failed to authenticate: %v", err.Error())
 			return
 		}
+		user_token := strings.Split(r.Header.Get("Authorization"), " ")[1]
+		log.Info("get user token ", user_token)
+
+		// Validate the token
+		// Todo
 
 		// Get the user by username
 		user, err := keycloakClient.GetUserByID(ctx, token.AccessToken, "augustin", "user001")
