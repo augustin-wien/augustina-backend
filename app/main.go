@@ -53,11 +53,11 @@ func CreateNewServer() *Server {
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Initialize Keycloak client
-		keycloakClient := gocloak.NewClient("https://your-keycloak-url/auth")
+		keycloakClient := gocloak.NewClient("http://keycloak:8080/")
 		ctx := context.Background()
 
 		// Authenticate the user
-		token, err := keycloakClient.LoginAdmin(ctx, "admin-username", "admin-password", "your-realm")
+		token, err := keycloakClient.LoginAdmin(ctx, "GoClient", "9OGqiDdguQHhPQ90MgPV7hEKFEE5A5jB", "augustin")
 		if err != nil {
 			http.Error(w, "Failed to authenticate", http.StatusInternalServerError)
 			log.Errorf("Failed to authenticate: %v", err.Error())
@@ -65,14 +65,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Get the user by username
-		user, err := keycloakClient.GetUserByID(ctx, token.AccessToken, "your-realm", "user001")
+		user, err := keycloakClient.GetUserByID(ctx, token.AccessToken, "augustin", "user001")
 		if err != nil {
 			http.Error(w, "User not found", http.StatusUnauthorized)
 			return
 		}
 
 		// Check if the user has the required role
-		hasRole, err := keycloakClient.GetRoleMappingByUserID(ctx, token.AccessToken, "your-realm", *user.ID)
+		hasRole, err := keycloakClient.GetRoleMappingByUserID(ctx, token.AccessToken, "augustin", *user.ID)
 		if err != nil {
 			http.Error(w, "Failed to check user roles", http.StatusInternalServerError)
 			return
