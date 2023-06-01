@@ -25,9 +25,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/settings": {
+        "/hello/": {
             "get": {
-                "description": "get settings",
+                "description": "Return HelloWorld as sample API call",
                 "consumes": [
                     "application/json"
                 ],
@@ -35,18 +35,25 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "settings"
+                    "core"
                 ],
-                "summary": "List settings",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "name search by q",
-                        "name": "q",
-                        "in": "query"
-                    }
+                "summary": "Return HelloWorld",
+                "responses": {}
+            }
+        },
+        "/settings/": {
+            "get": {
+                "description": "Return settings about the web-shop",
+                "consumes": [
+                    "application/json"
                 ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Return settings",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -54,6 +61,32 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/handlers.Setting"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor/": {
+            "get": {
+                "description": "Return information for the vendor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Return vendor information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.Vendor"
                             }
                         }
                     }
@@ -75,6 +108,20 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
+        },
+        "handlers.Vendor": {
+            "type": "object",
+            "properties": {
+                "credit": {
+                    "type": "number"
+                },
+                "id-number": {
+                    "type": "string"
+                },
+                "qrcode": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {
@@ -92,7 +139,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.0.1",
 	Host:             "localhost:3000",
-	BasePath:         "/swagger/",
+	BasePath:         "/api/",
 	Schemes:          []string{},
 	Title:            "Swagger Example API",
 	Description:      "This is a sample server celler server.",

@@ -31,6 +31,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ReturnHelloWorld godoc
+//
+//	 	@Summary 		Return HelloWorld
+//		@Description	Return HelloWorld as sample API call
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Router			/hello/ [get]
+//
 // HelloWorld API Handler fetching data from database
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	greeting, err := database.Db.GetHelloWorld()
@@ -42,16 +51,15 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(greeting))
 }
 
-// ListAccounts godoc
+// ReturnSettings godoc
 //
-//	@Summary		List settings
-//	@Description	get settings
-//	@Tags			settings
-//	@Accept			json
-//	@Produce		json
-//	@Param			q	query	string	false	"name search by q"	Format(email)
-//	@Success		200	{array}	handlers.Setting
-//	@Router			/settings [get]
+//	 	@Summary 		Return settings
+//		@Description	Return settings about the web-shop
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	handlers.Setting
+//		@Router			/settings/ [get]
 //
 // Setting API Handler fetching data without database
 func Settings(w http.ResponseWriter, r *http.Request) {
@@ -64,6 +72,16 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(marshal_struct))
 }
 
+// ReturnVendorInformation godoc
+//
+//	 	@Summary 		Return vendor information
+//		@Description	Return information for the vendor
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	handlers.Vendor
+//		@Router			/vendor/ [get]
+//
 // Vendor API Handler fetching data without database
 func Vendors(w http.ResponseWriter, r *http.Request) {
 	marshal_struct, err := json.Marshal(Vendor{Credit: 1.61, QRcode: "/img/Augustin-QR-Code.png", IDnumber: "123456789"})
