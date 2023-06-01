@@ -2,6 +2,7 @@
 package main
 
 import (
+	"augustin/database"
 	"augustin/handlers"
 	"encoding/json"
 	"net/http"
@@ -31,8 +32,13 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 }
 
 func TestHelloWorld(t *testing.T) {
+	// Initialize database
+	// TODO: This is not a test database, but the real one!
+	database.InitDb()
+
 	// Create a New Server Struct
 	s := CreateNewServer()
+
 	// Mount Handlers
 	s.MountHandlers()
 
@@ -46,7 +52,7 @@ func TestHelloWorld(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, "Hello World!", response.Body.String())
+	require.Equal(t, "Hello, world!", response.Body.String())
 }
 
 func TestSettings(t *testing.T) {
