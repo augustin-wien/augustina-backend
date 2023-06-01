@@ -27,10 +27,32 @@ services:
     depends_on:
       augustin-db:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
     links:
       - augustin-db
+      - keycloak
     ports:
       - "3000:3000"
-
+  keycloak:
+    build: ./docker/keycloak
+    container_name: augustin-keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_SERVER_URL}
+      ROOT_LOGLEVEL: ALL
+      KEYCLOAK_LOGLEVEL: DEBUG
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/realms/master"]
+      interval: 5s
+      timeout: 2s
+      retries: 15
+    volumes:
+      - ./docker/keycloak/import:/opt/keycloak/data/import:ro
+      - ./docker/keycloak/export:/tmp/export
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
 volumes:
   dbdata:

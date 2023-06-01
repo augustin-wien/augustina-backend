@@ -13,24 +13,28 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func initLog() {
-	customFormatter := new(log.TextFormatter)
-	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
-	log.SetFormatter(customFormatter)
-}
 func main() {
 	initLog()
-	log.Info("Starting Augustin Server v0.0.1")
+	log.Info("Starting Augustin Backend Server v0.0.1")
 	go database.InitDb()
 	s := CreateNewServer()
 	s.MountHandlers()
 	log.Info("Server started on port 3000")
-	http.ListenAndServe(":3000", s.Router)
+	err := http.ListenAndServe(":3000", s.Router)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 type Server struct {
 	Router *chi.Mux
 	// Db, config can be added here
+}
+
+func initLog() {
+	customFormatter := new(log.TextFormatter)
+	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	log.SetFormatter(customFormatter)
 }
 
 func CreateNewServer() *Server {
@@ -42,6 +46,7 @@ func CreateNewServer() *Server {
 func (s *Server) MountHandlers() {
 	// Mount all Middleware here
 	s.Router.Use(middleware.Logger)
+	s.Router.Use(middleware.Recoverer)
 
 	// Mount all handlers here
 	s.Router.Get("/api/hello/", handlers.HelloWorld)
