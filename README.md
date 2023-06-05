@@ -57,7 +57,7 @@ Go to http://localhost:3000/api/swagger
 
 To add API calls to Swagger, download [Swaggo](https://github.com/swaggo/swag) via `go install github.com/swaggo/swag/cmd/swag@latest`
 
-In the app folder type `swag init -g handlers/handlers.go`
+To update the swagger documentation for a changed api call run the following command `swag init -g handlers/handlers.go`
 
 ## Keycloak
 
