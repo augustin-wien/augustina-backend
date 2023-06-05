@@ -17,8 +17,8 @@ const docTemplate = `{
             "email": "support@swagger.io"
         },
         "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+            "name": "GNU Affero General Public License",
+            "url": "https://www.gnu.org/licenses/agpl-3.0.txt"
         },
         "version": "{{.Version}}"
     },
@@ -141,8 +141,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:3000",
 	BasePath:         "/api/",
 	Schemes:          []string{},
-	Title:            "Swagger Example API",
-	Description:      "This is a sample server celler server.",
+	Title:            "Augustin Swagger",
+	Description:      "This swagger describes every endpoint of this project.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

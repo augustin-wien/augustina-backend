@@ -27,12 +27,12 @@ info:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: This is a sample server celler server.
+  description: This swagger describes every endpoint of this project.
   license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
+    name: GNU Affero General Public License
+    url: https://www.gnu.org/licenses/agpl-3.0.txt
   termsOfService: http://swagger.io/terms/
-  title: Swagger Example API
+  title: Augustin Swagger
   version: 0.0.1
 paths:
   /hello/:
