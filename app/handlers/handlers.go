@@ -22,7 +22,6 @@ package handlers
 
 import (
 	"augustin/database"
-	"encoding/json"
 	"net/http"
 
 	_ "github.com/swaggo/files"        // swagger embed files
@@ -63,13 +62,13 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 //
 // Setting API Handler fetching data without database
 func Settings(w http.ResponseWriter, r *http.Request) {
-	marshal_struct, err := json.Marshal(Setting{Color: "red", Logo: "/img/Augustin-Logo-Rechteck.jpg", Price: 3.14})
+	settings, err := database.Db.GetSettings()
 	if err != nil {
 		log.Errorf("QueryRow failed: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(marshal_struct))
+	w.Write([]byte(settings))
 }
 
 // ReturnVendorInformation godoc
@@ -84,11 +83,11 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 //
 // Vendor API Handler fetching data without database
 func Vendors(w http.ResponseWriter, r *http.Request) {
-	marshal_struct, err := json.Marshal(Vendor{Credit: 1.61, QRcode: "/img/Augustin-QR-Code.png", IDnumber: "123456789"})
+	vendors, err := database.Db.GetVendorSettings()
 	if err != nil {
 		log.Errorf("QueryRow failed: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(marshal_struct))
+	w.Write([]byte(vendors))
 }
