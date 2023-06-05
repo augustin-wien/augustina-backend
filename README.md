@@ -26,7 +26,7 @@ docker compose exec augustin bash
 Run tests within the augustin shell:
 
 ```bash
-go test ./... -v -cover
+go test -v -cover
 ```
 
 Run migrations within the augustin shell (see [tern](https://github.com/jackc/tern)):
