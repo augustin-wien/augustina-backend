@@ -43,7 +43,7 @@ func TestHelloWorld(t *testing.T) {
 	s.MountHandlers()
 
 	// Create a New Request
-	req, _ := http.NewRequest("GET", "/hello", nil)
+	req, _ := http.NewRequest("GET", "/api/hello/", nil)
 
 	// Execute Request
 	response := executeRequest(req, s)
@@ -62,7 +62,7 @@ func TestSettings(t *testing.T) {
 	s.MountHandlers()
 
 	// Create a New Request
-	req, _ := http.NewRequest("GET", "/settings", nil)
+	req, _ := http.NewRequest("GET", "/api/settings/", nil)
 
 	// Execute Request
 	response := executeRequest(req, s)
@@ -81,7 +81,7 @@ func TestVendor(t *testing.T) {
 	s.MountHandlers()
 
 	// Create a New Request
-	req, _ := http.NewRequest("GET", "/vendor", nil)
+	req, _ := http.NewRequest("GET", "/api/vendor/", nil)
 
 	// Execute Request
 	response := executeRequest(req, s)

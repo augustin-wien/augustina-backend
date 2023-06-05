@@ -1,0 +1,129 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This swagger describes every endpoint of this project.",
+        "title": "Augustin Swagger",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "GNU Affero General Public License",
+            "url": "https://www.gnu.org/licenses/agpl-3.0.txt"
+        },
+        "version": "0.0.1"
+    },
+    "host": "localhost:3000",
+    "basePath": "/api/",
+    "paths": {
+        "/hello/": {
+            "get": {
+                "description": "Return HelloWorld as sample API call",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Return HelloWorld",
+                "responses": {}
+            }
+        },
+        "/settings/": {
+            "get": {
+                "description": "Return settings about the web-shop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Return settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.Setting"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vendor/": {
+            "get": {
+                "description": "Return information for the vendor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Return vendor information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.Vendor"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.Setting": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.Vendor": {
+            "type": "object",
+            "properties": {
+                "credit": {
+                    "type": "number"
+                },
+                "id-number": {
+                    "type": "string"
+                },
+                "qrcode": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    },
+    "externalDocs": {
+        "description": "OpenAPI",
+        "url": "https://swagger.io/resources/open-api/"
+    }
+}

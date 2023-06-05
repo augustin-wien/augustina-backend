@@ -1,0 +1,86 @@
+basePath: /api/
+definitions:
+  handlers.Setting:
+    properties:
+      color:
+        type: string
+      logo:
+        type: string
+      price:
+        type: number
+    type: object
+  handlers.Vendor:
+    properties:
+      credit:
+        type: number
+      id-number:
+        type: string
+      qrcode:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:3000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This swagger describes every endpoint of this project.
+  license:
+    name: GNU Affero General Public License
+    url: https://www.gnu.org/licenses/agpl-3.0.txt
+  termsOfService: http://swagger.io/terms/
+  title: Augustin Swagger
+  version: 0.0.1
+paths:
+  /hello/:
+    get:
+      consumes:
+      - application/json
+      description: Return HelloWorld as sample API call
+      produces:
+      - application/json
+      responses: {}
+      summary: Return HelloWorld
+      tags:
+      - core
+  /settings/:
+    get:
+      consumes:
+      - application/json
+      description: Return settings about the web-shop
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.Setting'
+            type: array
+      summary: Return settings
+      tags:
+      - core
+  /vendor/:
+    get:
+      consumes:
+      - application/json
+      description: Return information for the vendor
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.Vendor'
+            type: array
+      summary: Return vendor information
+      tags:
+      - core
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
