@@ -52,7 +52,15 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(greeting))
 }
 
-// GetPayments API Handler fetching data from database
+// CreatePayments godoc
+//
+//	 	@Summary 		Get all payments
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	handlers.GetPayments
+//		@Router			/api/payments [get]
+//
 func GetPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.GetPayments()
 	if err != nil {
@@ -69,7 +77,16 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(marshal_struct))
 }
 
-// CreatePayments API Handler creating multiple payments
+// CreatePayments godoc
+//
+//	 	@Summary 		Create a set of payments
+// 		@Description    {"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00]}
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	handlers.CreatePayments
+//		@Router			/api/payments [post]
+//
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch structs.PaymentBatch
 	err := json.NewDecoder(r.Body).Decode(&paymentBatch)
