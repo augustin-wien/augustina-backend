@@ -105,14 +105,14 @@ func TestPayments(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	req, _ := http.NewRequest("POST", "/payments", &body)
+	req, _ := http.NewRequest("POST", "/api/payments", &body)
 	response := executeRequest(req, s)
 
 	// Check the response
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// Get payments via API
-	req2, err := http.NewRequest("GET", "/payments", nil)
+	req2, err := http.NewRequest("GET", "/api/payments", nil)
 	response2 := executeRequest(req2, s)
 	if err != nil {
 		log.Fatal(err)
