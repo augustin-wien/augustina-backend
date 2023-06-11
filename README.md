@@ -2,12 +2,6 @@
 
 ## Development
 
-Start the application locally:
-
-```bash
-go run app/app.go
-```
-
 Start the application with Docker:
 
 ```bash
@@ -15,7 +9,9 @@ docker compose build
 docker compose up -d
 ```
 
-Go to http://localhost:3000 or http://localhost:3000/api/v1/helloworld
+Go to http://localhost:3000/api/hello
+
+### Tests
 
 Open the augustin shell in the container:
 
@@ -34,6 +30,8 @@ Run tests within the augustin shell:
 ```bash
 go test -v -cover
 ```
+
+### Migrations
 
 Run migrations within the augustin shell (see [tern](https://github.com/jackc/tern)):
 
@@ -58,6 +56,14 @@ Revert last migration:
 ```bash
 tern migrate --destination -1
 ```
+
+### Swagger
+
+Go to http://localhost:3000/api/swagger
+
+To add API calls to Swagger, download [Swaggo](https://github.com/swaggo/swag) via `go install github.com/swaggo/swag/cmd/swag@latest`
+
+To update the swagger documentation for a changed api call run the following command `swag init -g handlers/handlers.go`
 
 ## Keycloak
 

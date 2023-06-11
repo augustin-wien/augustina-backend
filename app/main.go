@@ -9,6 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	log "github.com/sirupsen/logrus"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -47,17 +49,24 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Recoverer)
 
 	// Mount all handlers here
-	s.Router.Get("/hello", handlers.HelloWorld)
+	s.Router.Get("/api/hello/", handlers.HelloWorld)
 
 	s.Router.Get("/payments", handlers.GetPayments)
 	s.Router.Post("/payments", handlers.CreatePayments)
 
-	s.Router.Get("/settings", handlers.Settings)
+	s.Router.Get("/api/settings/", handlers.Settings)
 
-	s.Router.Get("/vendor", handlers.Vendors)
+	s.Router.Get("/api/vendor/", handlers.Vendors)
+
+	s.Router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
+	))
 
 	// Mount static file server in img folder
 	fs := http.FileServer(http.Dir("img"))
 	s.Router.Handle("/img/*", http.StripPrefix("/img/", fs))
+
+	fs = http.FileServer(http.Dir("docs"))
+	s.Router.Handle("/docs/*", http.StripPrefix("/docs/", fs))
 
 }
