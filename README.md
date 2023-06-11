@@ -23,6 +23,12 @@ Open the augustin shell in the container:
 docker compose exec augustin bash
 ```
 
+Run linter within the augustin shell:
+
+```bash
+golint ./...
+```
+
 Run tests within the augustin shell:
 
 ```bash

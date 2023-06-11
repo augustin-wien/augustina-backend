@@ -21,6 +21,7 @@
 
 # Go workspace file
 go.work
+go.work.sum
 /app/augustin
 build/*
 docker/keycloak/export/*.json

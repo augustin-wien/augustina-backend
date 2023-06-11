@@ -49,6 +49,9 @@ func (s *Server) MountHandlers() {
 	// Mount all handlers here
 	s.Router.Get("/hello", handlers.HelloWorld)
 
+	s.Router.Get("/payments", handlers.GetPayments)
+	s.Router.Post("/payments", handlers.CreatePayments)
+
 	s.Router.Get("/settings", handlers.Settings)
 
 	s.Router.Get("/vendor", handlers.Vendors)

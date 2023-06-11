@@ -1,10 +1,11 @@
 package database
 
 import (
-	"augustin/types"
+	"augustin/structs"
 	"context"
 	"os"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,14 +21,14 @@ func (db *Database) GetHelloWorld() (string, error) {
 }
 
 // GetPayments returns the payments from the database
-func (db *Database) GetPayments() ([]types.Payment, error) {
-	var payments []types.Payment
+func (db *Database) GetPayments() ([]structs.Payment, error) {
+	var payments []structs.Payment
 	rows, err := db.Dbpool.Query(context.Background(), "select * from payments")
 	if err != nil {
 		return payments, err
 	}
 	for rows.Next() {
-		var payment types.Payment
+		var payment structs.Payment
 		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Type, &payment.Amount)
 		if err != nil {
 			return payments, err
@@ -37,10 +38,23 @@ func (db *Database) GetPayments() ([]types.Payment, error) {
 	return payments, nil
 }
 
-// Create new payment rows
-func (db *Database) CreatePayments(payments []types.Payment) (err error) {
+// Create payment type
+func (db *Database) CreatePaymentType(pt structs.PaymentType)(id pgtype.Int4, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into PaymentTypes (Name) values ($1) RETURNING ID", pt.Name).Scan(&id)
+	return id, err
+}
 
-	// Create a transaction
+// Create account
+func (db *Database) CreateAccount(account structs.Account)(id pgtype.Int4, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Accounts (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
+	return id, err
+}
+
+
+// Create multiple payments
+func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
+
+	// Create a transaction to insert all payments at once
 	tx, err := db.Dbpool.Begin(context.Background())
 	if err != nil {
 		return err
@@ -64,7 +78,7 @@ func (db *Database) CreatePayments(payments []types.Payment) (err error) {
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
-		_, err := tx.Exec(context.Background(), "insert into payments (timestamp, sender, receiver, type, amount) values ($1, $2, $3, $4, $5)", payment.Timestamp, payment.Sender, payment.Receiver, payment.Type, payment.Amount)
+		_, err := tx.Exec(context.Background(), "insert into payments ( sender, receiver, type, amount) values ($1, $2, $3, $4)", payment.Sender, payment.Receiver, payment.Type, payment.Amount)
 		if err != nil {
 			return err
 		}

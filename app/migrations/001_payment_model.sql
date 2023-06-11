@@ -1,19 +1,21 @@
 CREATE TABLE Accounts (
-    id integer PRIMARY KEY
+    ID serial PRIMARY KEY,
+    Name varchar(255) NOT NULL
 );
 
 CREATE TABLE PaymentTypes (
-    id serial PRIMARY KEY,
-    name varchar(255) NOT NULL
+    ID serial PRIMARY KEY,
+    Name varchar(255) NOT NULL
 );
 
+-- TODO: All NOT NULL
 CREATE TABLE Payments (
-    id serial PRIMARY KEY,
-    timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    sender integer REFERENCES Accounts,
-    receiver integer REFERENCES Accounts,
-    type integer REFERENCES PaymentTypes,
-    amount real NOT NULL
+    ID bigserial PRIMARY KEY,
+    Timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Sender integer REFERENCES Accounts,
+    Receiver integer REFERENCES Accounts,
+    Type integer REFERENCES PaymentTypes,
+    Amount real NOT NULL
 );
 
 ---- create above / drop below ----
