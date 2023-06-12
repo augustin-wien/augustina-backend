@@ -30,7 +30,7 @@ services:
       - ./app:/app
     command: "go run main.go"
     environment:
-      DATABASE_URL: postgres://${DB_USER}:${DB_PASS}@augustin-db:5432/${DB_NAME}?sslmode=disable
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:5432/${DB_NAME}?sslmode=disable
     depends_on:
       augustin-db:
         condition: service_healthy
@@ -45,7 +45,7 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_SERVER_URL}
+      KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_HOST}
       ROOT_LOGLEVEL: ALL
       KEYCLOAK_LOGLEVEL: DEBUG
     healthcheck:

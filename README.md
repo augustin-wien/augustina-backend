@@ -61,3 +61,11 @@ Install the [`OpenID Connect Generic`](https://wordpress.org/plugins/daggerhart-
 
 #### Optional Setup to have a role -> capability mapping
 Install the plugin [`Groups`](https://wordpress.org/plugins/groups/) and the plugin [`Augustin`](https://github.com/augustin-wien/augustin-wp-papers) and it should work automatically.
+
+### Generate token with curl
+
+```bash
+curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/openid-connect/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'client_id=frontend' --data-urlencode 'grant_type=password' --data-urlencode 'username=user001' --data-urlencode 'password=Test123!' --data-urlencode 'scope=openid'
+```
+curl -d 'client_id=xxx' -d 'username=xxx' -d 'password=xxx' -d 'grant_type=password' \ 
+  'http://localhost:8080/realms/YOUR_REALM_NAME/protocol/openid-connect/token'

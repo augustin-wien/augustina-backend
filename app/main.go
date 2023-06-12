@@ -1,16 +1,18 @@
 package main
 
 import (
-	"context"
 	"net/http"
-	"strings"
+	"os"
 
-	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 
 	"augustin/database"
+	"augustin/keycloack"
+	"augustin/middlewares"
 )
 
 func initLog() {
@@ -20,13 +22,21 @@ func initLog() {
 	log.SetFormatter(customFormatter)
 }
 func main() {
+	// load .env file
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Error("Error loading .env file")
+	}
 	initLog()
 	log.Info("Starting Augustin Server v0.0.1")
+	// Initialize Keycloak client
+	keycloack.InitializeOauthServer()
 	go database.InitDb()
 	s := CreateNewServer()
 	s.MountHandlers()
 	log.Info("Server started on port 3000")
-	http.ListenAndServe(":3000", s.Router)
+	err = http.ListenAndServe(":3000", s.Router)
+	log.Error("Server stopped ", err)
 }
 
 // HelloWorld api Handler
@@ -51,54 +61,20 @@ func CreateNewServer() *Server {
 	return s
 }
 
-func AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Initialize Keycloak client
-		keycloakClient := gocloak.NewClient("http://keycloak:8080/")
-		ctx := context.Background()
-
-		// Authenticate the user
-		token, err := keycloakClient.LoginClient(ctx, "go-client", "9OGqiDdguQHhPQ90MgPV7hEKFEE5A5jB", "augustin")
-		if err != nil {
-			http.Error(w, "Failed to authenticate", http.StatusInternalServerError)
-			log.Errorf("Failed to authenticate: %v", err.Error())
-			return
-		}
-		user_token := strings.Split(r.Header.Get("Authorization"), " ")[1]
-		log.Info("get user token ", user_token)
-
-		// Validate the token
-		// Todo
-
-		// Get the user by username
-		user, err := keycloakClient.GetUserByID(ctx, token.AccessToken, "augustin", "user001")
-		if err != nil {
-			http.Error(w, "User not found", http.StatusUnauthorized)
-			return
-		}
-
-		// Check if the user has the required role
-		hasRole, err := keycloakClient.GetRoleMappingByUserID(ctx, token.AccessToken, "augustin", *user.ID)
-		if err != nil {
-			http.Error(w, "Failed to check user roles", http.StatusInternalServerError)
-			return
-		}
-		log.Info("Check MappingsRepresentation type", hasRole)
-
-		// TODO
-		// If the user has the required role, proceed to the next handler
-		// if hasRole == "go-admin" {
-		// 	next.ServeHTTP(w, r)
-		// } else {
-		// 	http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		// }
-	})
-}
-
 func (s *Server) MountHandlers() {
 	// Mount all Middleware here
 	s.Router.Use(middleware.Logger)
-	s.Router.Use(AuthMiddleware)
+	s.Router.Use(middlewares.AuthMiddleware)
+	s.Router.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://localhost*", "http://localhost*", os.Getenv("FRONTEND_URL")},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
 
 	// Mount all handlers here
 	s.Router.Get("/hello", HelloWorld)
