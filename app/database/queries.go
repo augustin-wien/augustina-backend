@@ -17,3 +17,23 @@ func (db *Database) GetHelloWorld() (string, error) {
 	}
 	return greeting, nil
 }
+
+func (db *Database) GetSettings() (string, error) {
+	var settings string
+	err := db.Dbpool.QueryRow(context.Background(), `select '{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14}'`).Scan(&settings)
+	if err != nil {
+		log.Error(os.Stderr, "QueryRow failed: %v\n", err)
+		return "", err
+	}
+	return settings, nil
+}
+
+func (db *Database) GetVendorSettings() (string, error) {
+	var settings string
+	err := db.Dbpool.QueryRow(context.Background(), `select '{"credit":1.61,"qrcode":"/img/Augustin-QR-Code.png","id-number":"123456789"}'`).Scan(&settings)
+	if err != nil {
+		log.Error(os.Stderr, "QueryRow failed: %v\n", err)
+		return "", err
+	}
+	return settings, nil
+}

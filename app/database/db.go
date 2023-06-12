@@ -19,7 +19,21 @@ var Db Database
 
 // InitDb initializes the database connection pool and stores it in the global Db variable
 func InitDb() {
-	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+	dbpool, err := pgxpool.New(
+		context.Background(),
+		"postgres://" +
+		os.Getenv("DB_USER") +
+		":" +
+		os.Getenv("DB_PASS") +
+		"@"  +
+		os.Getenv("DB_HOST") +
+		":" +
+		os.Getenv("DB_PORT") +
+		"/" +
+		os.Getenv("DB_NAME") +
+		"?sslmode=disable",
+	)
+
 	if err != nil {
 		log.Error(os.Stderr, "Unable to create connection pool:", err)
 		os.Exit(1)

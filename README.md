@@ -2,12 +2,6 @@
 
 ## Development
 
-Start the application locally:
-
-```bash
-go run app/app.go
-```
-
 Start the application with Docker:
 
 ```bash
@@ -15,21 +9,61 @@ docker compose build
 docker compose up -d
 ```
 
-Go to http://localhost:3000 or http://localhost:3000/api/v1/helloworld
+Go to http://localhost:3000/api/hello
 
-Run tests from within the Docker container:
+### Tests
+
+Open the augustin shell in the container:
 
 ```bash
-docker compose exec container_name sh
-go test ./... -v -cover
+docker compose exec augustin bash
 ```
 
+Run tests within the augustin shell:
+
+```bash
+go test -v -cover
+```
+
+### Migrations
+
+Run migrations within the augustin shell (see [tern](https://github.com/jackc/tern)):
+
+```bash
+cd migrations
+```
+
+Create a new migration:
+
+```bash
+tern create <migration_name>
+```
+
+Apply all pending migrations:
+
+```bash
+tern migrate
+```
+
+Revert last migration:
+
+```bash
+tern migrate --destination -1
+```
+
+### Swagger
+
+Go to http://localhost:3000/api/swagger
+
+To add API calls to Swagger, download [Swaggo](https://github.com/swaggo/swag) via `go install github.com/swaggo/swag/cmd/swag@latest`
+
+To update the swagger documentation for a changed api call run the following command `swag init -g handlers/handlers.go`
 
 ## Keycloak
 
 The keycloak server is available at http://localhost:8080 and the admin console at http://localhost:8080/auth/admin
 
-The admin user for the `master` realm is `admin` and the password is `admin` 
+The admin user for the `master` realm is `admin` and the password is `admin`
 Additionaly there are the following users for the `augustin` realm:
 
 | Username | Password | Role |

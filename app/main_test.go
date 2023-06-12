@@ -2,6 +2,9 @@
 package main
 
 import (
+	"augustin/database"
+	"augustin/handlers"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -29,13 +32,18 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 }
 
 func TestHelloWorld(t *testing.T) {
+	// Initialize database
+	// TODO: This is not a test database, but the real one!
+	database.InitDb()
+
 	// Create a New Server Struct
 	s := CreateNewServer()
+
 	// Mount Handlers
 	s.MountHandlers()
 
 	// Create a New Request
-	req, _ := http.NewRequest("GET", "/hello", nil)
+	req, _ := http.NewRequest("GET", "/api/hello/", nil)
 
 	// Execute Request
 	response := executeRequest(req, s)
@@ -44,5 +52,44 @@ func TestHelloWorld(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, "Hello World!", response.Body.String())
+	require.Equal(t, "Hello, world!", response.Body.String())
+}
+
+func TestSettings(t *testing.T) {
+	// Create a New Server Struct
+	s := CreateNewServer()
+	// Mount Handlers
+	s.MountHandlers()
+
+	// Create a New Request
+	req, _ := http.NewRequest("GET", "/api/settings/", nil)
+
+	// Execute Request
+	response := executeRequest(req, s)
+
+	// Check the response code
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	// We can use testify/require to assert values, as it is more convenient
+	require.Equal(t, `{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14}`, response.Body.String())
+}
+
+func TestVendor(t *testing.T) {
+	// Create a New Server Struct
+	s := CreateNewServer()
+	// Mount Handlers
+	s.MountHandlers()
+
+	// Create a New Request
+	req, _ := http.NewRequest("GET", "/api/vendor/", nil)
+
+	// Execute Request
+	response := executeRequest(req, s)
+
+	// Check the response code
+	checkResponseCode(t, http.StatusOK, response.Code)
+	marshal_struct, _ := json.Marshal(&handlers.Vendor{Credit: 1.61, QRcode: "/img/Augustin-QR-Code.png", IDnumber: "123456789"})
+
+	// We can use testify/require to assert values, as it is more convenient
+	require.Equal(t, string(marshal_struct), response.Body.String())
 }
