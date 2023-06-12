@@ -41,6 +41,55 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/payments": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Get all payments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/structs.Payment"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "{\"Payments\":[{\"Sender\": 1, \"Receiver\":1, \"Type\":1,\"Amount\":1.00]}",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Create a set of payments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/structs.PaymentType"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/settings/": {
             "get": {
                 "description": "Return settings about the web-shop",
@@ -60,7 +109,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.Setting"
+                                "$ref": "#/definitions/structs.Setting"
                             }
                         }
                     }
@@ -86,7 +135,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.Vendor"
+                                "$ref": "#/definitions/structs.Vendor"
                             }
                         }
                     }
@@ -95,7 +144,113 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.Setting": {
+        "pgtype.Float4": {
+            "type": "object",
+            "properties": {
+                "float32": {
+                    "type": "number"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "pgtype.InfinityModifier": {
+            "type": "integer",
+            "enum": [
+                1,
+                0,
+                -1
+            ],
+            "x-enum-varnames": [
+                "Infinity",
+                "Finite",
+                "NegativeInfinity"
+            ]
+        },
+        "pgtype.Int4": {
+            "type": "object",
+            "properties": {
+                "int32": {
+                    "type": "integer"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "pgtype.Int8": {
+            "type": "object",
+            "properties": {
+                "int64": {
+                    "type": "integer"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "pgtype.Text": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "pgtype.Timestamp": {
+            "type": "object",
+            "properties": {
+                "infinityModifier": {
+                    "$ref": "#/definitions/pgtype.InfinityModifier"
+                },
+                "time": {
+                    "description": "Time zone will be ignored when encoding to PostgreSQL.",
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "structs.Payment": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "$ref": "#/definitions/pgtype.Float4"
+                },
+                "id": {
+                    "$ref": "#/definitions/pgtype.Int8"
+                },
+                "receiver": {
+                    "$ref": "#/definitions/pgtype.Int4"
+                },
+                "sender": {
+                    "$ref": "#/definitions/pgtype.Int4"
+                },
+                "timestamp": {
+                    "$ref": "#/definitions/pgtype.Timestamp"
+                },
+                "type": {
+                    "$ref": "#/definitions/pgtype.Int4"
+                }
+            }
+        },
+        "structs.PaymentType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "$ref": "#/definitions/pgtype.Int4"
+                },
+                "name": {
+                    "$ref": "#/definitions/pgtype.Text"
+                }
+            }
+        },
+        "structs.Setting": {
             "type": "object",
             "properties": {
                 "color": {
@@ -109,7 +264,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.Vendor": {
+        "structs.Vendor": {
             "type": "object",
             "properties": {
                 "credit": {
