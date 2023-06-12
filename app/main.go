@@ -6,6 +6,7 @@ import (
 
 	"augustin/database"
 	"augustin/handlers"
+	"augustin/middlewares"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -14,7 +15,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"augustin/keycloack"
-	"augustin/middlewares"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -34,9 +34,16 @@ func main() {
 	s.MountHandlers()
 	log.Info("Server started on port 3000")
 	err = http.ListenAndServe(":3000", s.Router)
+	log.Error("Server stopped ", err)
+}
+
+// HelloWorld api Handler
+func HelloWorld(w http.ResponseWriter, r *http.Request) {
+	greeting, err := database.Db.GetHelloWorld()
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Info("HelloWorld ", greeting)
 }
 
 type Server struct {
@@ -59,7 +66,6 @@ func CreateNewServer() *Server {
 func (s *Server) MountHandlers() {
 	// Mount all Middleware here
 	s.Router.Use(middleware.Logger)
-
 	s.Router.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
 		AllowedOrigins: []string{"https://localhost*", "http://localhost*", os.Getenv("FRONTEND_URL")},
@@ -71,14 +77,10 @@ func (s *Server) MountHandlers() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 	s.Router.Use(middleware.Recoverer)
+	s.Router.Use(middlewares.AuthMiddleware)
 
 	// Mount all handlers here
-
-	// Protected routes
-	s.Router.Group(func(r chi.Router) {
-		r.Use(middlewares.AuthMiddleware)
-		r.Get("/api/hello/", handlers.HelloWorld)
-	})
+	s.Router.Get("/api/hello/", handlers.HelloWorld)
 
 	s.Router.Get("/api/settings/", handlers.Settings)
 

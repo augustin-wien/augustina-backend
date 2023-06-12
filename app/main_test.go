@@ -9,6 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,6 +36,10 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 func TestHelloWorld(t *testing.T) {
 	// Initialize database
 	// TODO: This is not a test database, but the real one!
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Error("Error loading .env file")
+	}
 	database.InitDb()
 
 	// Create a New Server Struct
@@ -55,6 +61,33 @@ func TestHelloWorld(t *testing.T) {
 	require.Equal(t, "Hello, world!", response.Body.String())
 }
 
+func TestHelloWorldAuth(t *testing.T) {
+	// Initialize database
+	// TODO: This is not a test database, but the real one!
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Error("Error loading .env file")
+	}
+	database.InitDb()
+
+	// Create a New Server Struct
+	s := CreateNewServer()
+
+	// Mount Handlers
+	s.MountHandlers()
+
+	// Create a New Request
+	req, _ := http.NewRequest("GET", "/api/auth/", nil)
+
+	// Execute Request
+	response := executeRequest(req, s)
+
+	// Check the response code
+	checkResponseCode(t, 401, response.Code)
+
+	// We can use testify/require to assert values, as it is more convenient
+	require.Equal(t, "Hello, world!", response.Body.String())
+}
 func TestSettings(t *testing.T) {
 	// Create a New Server Struct
 	s := CreateNewServer()
