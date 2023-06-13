@@ -3,14 +3,21 @@ package main
 
 import (
 	"augustin/database"
-	"augustin/handlers"
+	"augustin/structs"
+	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
+
+// WARNING: The tests use the main database, do not run tests in production
 
 // executeRequest, creates a new ResponseRecorder
 // then executes the request by calling ServeHTTP in the router
@@ -33,7 +40,6 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 
 func TestHelloWorld(t *testing.T) {
 	// Initialize database
-	// TODO: This is not a test database, but the real one!
 	database.InitDb()
 
 	// Create a New Server Struct
@@ -53,6 +59,84 @@ func TestHelloWorld(t *testing.T) {
 
 	// We can use testify/require to assert values, as it is more convenient
 	require.Equal(t, "Hello, world!", response.Body.String())
+}
+
+func TestPayments(t *testing.T) {
+	// Initialize test case
+	database.InitDb()
+	s := CreateNewServer()
+	s.MountHandlers()
+
+	// Reset tables
+	_, err := database.Db.Dbpool.Query(context.Background(), "truncate Payments, PaymentTypes, Accounts")
+	if err != nil {
+		log.Errorf("Truncate payments failed: %v\n", err)
+	}
+
+	// Set up a payment type
+	payment_type_id, err := database.Db.CreatePaymentType(
+		structs.PaymentType{Name: pgtype.Text{String:"Test type", Valid: true}},
+	)
+	if err != nil {
+		log.Errorf("CreatePaymentType failed: %v\n", err)
+	}
+
+	// Set up a payment account
+	account_id, err := database.Db.CreateAccount(
+		structs.Account{Name: pgtype.Text{String:"Test account", Valid: true}},
+	)
+	if err != nil {
+		log.Errorf("CreateAccount failed: %v\n", err)
+	}
+
+	// Create payments via API
+	f := structs.PaymentBatch{
+		Payments: []structs.Payment{
+			{
+				Sender: account_id,
+				Receiver: account_id,
+				Type: payment_type_id,
+				Amount:  pgtype.Float4{Float32: 3.14, Valid: true},
+			},
+		},
+	}
+	var body bytes.Buffer
+	err = json.NewEncoder(&body).Encode(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+	req, _ := http.NewRequest("POST", "/api/payments", &body)
+	response := executeRequest(req, s)
+
+	// Check the response
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	// Get payments via API
+	req2, err := http.NewRequest("GET", "/api/payments", nil)
+	response2 := executeRequest(req2, s)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check the response
+	checkResponseCode(t, http.StatusOK, response2.Code)
+
+	// Unmarshal response
+    var payments []structs.Payment
+    err = json.Unmarshal(response2.Body.Bytes(), &payments)
+    if err != nil {
+        panic(err)
+    }
+
+	// Test payments response
+	require.Equal(t, payments[0].Amount.Float32, float32(3.14))
+	require.Equal(t, payments[0].Sender, account_id)
+	require.Equal(t, payments[0].Receiver, account_id)
+	require.Equal(t, payments[0].Type, payment_type_id)
+	require.Equal(t, payments[0].Timestamp.Time.Day(), time.Now().Day())
+	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().Hour())
+	require.Equal(t, len(payments), 1)
+
 }
 
 func TestSettings(t *testing.T) {
@@ -88,7 +172,7 @@ func TestVendor(t *testing.T) {
 
 	// Check the response code
 	checkResponseCode(t, http.StatusOK, response.Code)
-	marshal_struct, _ := json.Marshal(&handlers.Vendor{Credit: 1.61, QRcode: "/img/Augustin-QR-Code.png", IDnumber: "123456789"})
+	marshal_struct, _ := json.Marshal(&structs.Vendor{Credit: 1.61, QRcode: "/img/Augustin-QR-Code.png", IDnumber: "123456789"})
 
 	// We can use testify/require to assert values, as it is more convenient
 	require.Equal(t, string(marshal_struct), response.Body.String())

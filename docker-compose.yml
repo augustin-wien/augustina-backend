@@ -28,7 +28,8 @@ services:
       context: .
     volumes:
       - ./app:/app
-    command: "go run main.go"
+    command: >
+      sh -c "cd migrations && tern migrate && cd .. && go run main.go"
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
