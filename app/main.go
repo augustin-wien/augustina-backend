@@ -77,9 +77,13 @@ func (s *Server) MountHandlers() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 	s.Router.Use(middleware.Recoverer)
-	s.Router.Use(middlewares.AuthMiddleware)
 
 	// Mount all handlers here
+	s.Router.Group(func(r chi.Router) {
+		r.Use(middleware.Timeout(60 * 1000000000)) // 60 seconds
+		r.Use(middlewares.AuthMiddleware)
+		r.Get("/api/auth/hello", handlers.HelloWorld)
+	})
 	s.Router.Get("/api/hello/", handlers.HelloWorld)
 
 	s.Router.Get("/api/payments", handlers.GetPayments)

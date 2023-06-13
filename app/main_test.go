@@ -78,7 +78,7 @@ func TestHelloWorldAuth(t *testing.T) {
 	s.MountHandlers()
 
 	// Create a New Request
-	req, _ := http.NewRequest("GET", "/api/auth/", nil)
+	req, _ := http.NewRequest("GET", "/api/auth/hello", nil)
 
 	// Execute Request
 	response := executeRequest(req, s)
@@ -87,7 +87,7 @@ func TestHelloWorldAuth(t *testing.T) {
 	checkResponseCode(t, 401, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, "Hello, world!", response.Body.String())
+	require.Equal(t, "Unauthorized\n", response.Body.String())
 }
 func TestPayments(t *testing.T) {
 	// Initialize test case
