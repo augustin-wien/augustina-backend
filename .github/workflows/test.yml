@@ -40,7 +40,9 @@ jobs:
           go-version: "1.20"
 
       - name: Build
-        run: cd app && go build -o ../build/
+        run:
+          go install github.com/jackc/tern/v2@latest && cd app && go build -o
+          ../build/
 
       - name: Test
-        run: cd app && go test
+        run: cd app && cd migrations && tern migrate && cd .. && go test

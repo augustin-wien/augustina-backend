@@ -22,6 +22,8 @@ package handlers
 
 import (
 	"augustin/database"
+	"augustin/structs"
+	"encoding/json"
 	"net/http"
 
 	_ "github.com/swaggo/files"        // swagger embed files
@@ -50,6 +52,55 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(greeting))
 }
 
+// CreatePayments godoc
+//
+//	 	@Summary 		Get all payments
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	structs.Payment
+//		@Router			/payments [get]
+func GetPayments(w http.ResponseWriter, r *http.Request) {
+	payments, err := database.Db.GetPayments()
+	if err != nil {
+		log.Errorf("GetPayments DB Error: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	marshal_struct, err := json.Marshal(payments)
+	if err != nil {
+		log.Errorf("JSON conversion failed: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(marshal_struct))
+}
+
+// CreatePayments godoc
+//
+//	 	@Summary 		Create a set of payments
+//		@Description    {"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00]}
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	structs.PaymentType
+//		@Router			/payments [post]
+func CreatePayments(w http.ResponseWriter, r *http.Request) {
+	var paymentBatch structs.PaymentBatch
+	err := json.NewDecoder(r.Body).Decode(&paymentBatch)
+	if err != nil {
+		log.Errorf("JSON conversion failed: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = database.Db.CreatePayments(paymentBatch.Payments)
+	if err != nil {
+		log.Errorf("CreatePayments query failed: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
 // ReturnSettings godoc
 //
 //	 	@Summary 		Return settings
@@ -57,7 +108,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
-//		@Success		200	{array}	handlers.Setting
+//		@Success		200	{array}	structs.Setting
 //		@Router			/settings/ [get]
 //
 // Setting API Handler fetching data without database
@@ -78,7 +129,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
-//		@Success		200	{array}	handlers.Vendor
+//		@Success		200	{array}	structs.Vendor
 //		@Router			/vendor/ [get]
 //
 // Vendor API Handler fetching data without database
