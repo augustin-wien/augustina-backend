@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
@@ -61,6 +62,33 @@ func TestHelloWorld(t *testing.T) {
 	require.Equal(t, "Hello, world!", response.Body.String())
 }
 
+func TestHelloWorldAuth(t *testing.T) {
+	// Initialize database
+	// TODO: This is not a test database, but the real one!
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Error("Error loading .env file")
+	}
+	database.InitDb()
+
+	// Create a New Server Struct
+	s := CreateNewServer()
+
+	// Mount Handlers
+	s.MountHandlers()
+
+	// Create a New Request
+	req, _ := http.NewRequest("GET", "/api/auth/hello", nil)
+
+	// Execute Request
+	response := executeRequest(req, s)
+
+	// Check the response code
+	checkResponseCode(t, 401, response.Code)
+
+	// We can use testify/require to assert values, as it is more convenient
+	require.Equal(t, "Unauthorized\n", response.Body.String())
+}
 func TestPayments(t *testing.T) {
 	// Initialize test case
 	database.InitDb()
@@ -75,7 +103,7 @@ func TestPayments(t *testing.T) {
 
 	// Set up a payment type
 	payment_type_id, err := database.Db.CreatePaymentType(
-		structs.PaymentType{Name: pgtype.Text{String:"Test type", Valid: true}},
+		structs.PaymentType{Name: pgtype.Text{String: "Test type", Valid: true}},
 	)
 	if err != nil {
 		log.Errorf("CreatePaymentType failed: %v\n", err)
@@ -83,7 +111,7 @@ func TestPayments(t *testing.T) {
 
 	// Set up a payment account
 	account_id, err := database.Db.CreateAccount(
-		structs.Account{Name: pgtype.Text{String:"Test account", Valid: true}},
+		structs.Account{Name: pgtype.Text{String: "Test account", Valid: true}},
 	)
 	if err != nil {
 		log.Errorf("CreateAccount failed: %v\n", err)
@@ -93,10 +121,10 @@ func TestPayments(t *testing.T) {
 	f := structs.PaymentBatch{
 		Payments: []structs.Payment{
 			{
-				Sender: account_id,
+				Sender:   account_id,
 				Receiver: account_id,
-				Type: payment_type_id,
-				Amount:  pgtype.Float4{Float32: 3.14, Valid: true},
+				Type:     payment_type_id,
+				Amount:   pgtype.Float4{Float32: 3.14, Valid: true},
 			},
 		},
 	}
@@ -122,11 +150,11 @@ func TestPayments(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response2.Code)
 
 	// Unmarshal response
-    var payments []structs.Payment
-    err = json.Unmarshal(response2.Body.Bytes(), &payments)
-    if err != nil {
-        panic(err)
-    }
+	var payments []structs.Payment
+	err = json.Unmarshal(response2.Body.Bytes(), &payments)
+	if err != nil {
+		panic(err)
+	}
 
 	// Test payments response
 	require.Equal(t, payments[0].Amount.Float32, float32(3.14))

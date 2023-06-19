@@ -1,6 +1,23 @@
 {
   "realm" : "augustin",
   "users" : [ {
+    "id" : "6c8802af-080e-4a60-88c8-57f5227b94f3",
+    "createdTimestamp" : 1685542197292,
+    "username" : "service-account-goclient",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "serviceAccountClientId" : "GoClient",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-augustin" ],
+    "clientRoles" : {
+      "GoClient" : [ "uma_protection" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
     "id" : "39677e36-f9da-4a23-a6c6-ab7549c84e79",
     "createdTimestamp" : 1684823230275,
     "username" : "test_nouser",
@@ -101,5 +118,57 @@
     "realmRoles" : [ "default-roles-augustin" ],
     "notBefore" : 0,
     "groups" : [ "/magazin-1", "/magazin-2", "/magazin-3" ]
+  }, {
+    "id" : "d5d8beb0-cb8e-4f14-807f-5cb7b4a9988d",
+    "createdTimestamp" : 1685542370875,
+    "username" : "user001",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "user001@example.com",
+    "credentials" : [ {
+      "id" : "4ecb9eaa-1f01-446b-903b-a1e7990cc80e",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1685542393107,
+      "secretData" : "{\"value\":\"QkSc2NG0t2sW7ZrPAAzaTPIH5Pz4NYGI2X7WGrPsR/c=\",\"salt\":\"Eij3guCZxELvoqPA0Nlz9Q==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-augustin" ],
+    "clientRoles" : {
+      "GoClient" : [ "go-admin" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "d3f8a2fc-e911-4418-8bf1-68cb4424522e",
+    "createdTimestamp" : 1685542433313,
+    "username" : "user002",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "user002@example.com",
+    "credentials" : [ {
+      "id" : "12d967e8-2dd9-40c1-b3e4-35c71889eea6",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1685542446654,
+      "secretData" : "{\"value\":\"4q6KF9Tem8CfjZWy2jI4IeaDWAfaMUjAB7Y/+g6zghc=\",\"salt\":\"Z41d0p0AlNOXsWtK8h6vwQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-augustin" ],
+    "clientRoles" : {
+      "GoClient" : [ "go-customer" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
   } ]
 }
