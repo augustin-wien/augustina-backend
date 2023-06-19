@@ -73,7 +73,7 @@ func (s *Server) MountHandlers() {
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 	s.Router.Use(middleware.Recoverer)
@@ -82,7 +82,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Group(func(r chi.Router) {
 		r.Use(middleware.Timeout(60 * 1000000000)) // 60 seconds
 		r.Use(middlewares.AuthMiddleware)
-		r.Get("/api/auth/hello", handlers.HelloWorld)
+		r.Get("/api/auth/hello/", handlers.HelloWorld)
 	})
 	s.Router.Get("/api/hello/", handlers.HelloWorld)
 
