@@ -183,7 +183,7 @@ func TestSettings(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, `{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14}`, response.Body.String())
+	require.Equal(t, `{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14, "calendar":2.69, "cards":13.12}`, response.Body.String())
 }
 
 func TestVendor(t *testing.T) {
