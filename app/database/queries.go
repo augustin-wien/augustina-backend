@@ -87,7 +87,7 @@ func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
 
 func (db *Database) GetSettings() (string, error) {
 	var settings string
-	err := db.Dbpool.QueryRow(context.Background(), `select '{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14, "calendar":2.69, "cards":13.12}'`).Scan(&settings)
+	err := db.Dbpool.QueryRow(context.Background(), `select '{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14, items:[{"name":"calendar","price":2.69},{"name":"cards","price":13.12}]}'`).Scan(&settings)
 	if err != nil {
 		log.Error(os.Stderr, "QueryRow failed: %v\n", err)
 		return "", err

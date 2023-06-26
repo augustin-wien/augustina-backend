@@ -8,11 +8,15 @@ import (
 // TODO: I would avoid using different json names
 
 type Setting struct {
-	Color    string  `json:"color"`
-	Logo     string  `json:"logo"`
-	Price    float64 `json:"price"`
-	Calendar float64 `json:"calendar"`
-	Cards    float64 `json:"cards"`
+	Color string  `json:"color"`
+	Logo  string  `json:"logo"`
+	Price float64 `json:"price"`
+	Item  []Item  `json:"item"`
+}
+
+type Item struct {
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
 }
 
 type Vendor struct {
