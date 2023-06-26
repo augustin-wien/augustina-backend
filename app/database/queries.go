@@ -39,17 +39,16 @@ func (db *Database) GetPayments() ([]structs.Payment, error) {
 }
 
 // Create payment type
-func (db *Database) CreatePaymentType(pt structs.PaymentType)(id pgtype.Int4, err error) {
+func (db *Database) CreatePaymentType(pt structs.PaymentType) (id pgtype.Int4, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "insert into PaymentTypes (Name) values ($1) RETURNING ID", pt.Name).Scan(&id)
 	return id, err
 }
 
 // Create account
-func (db *Database) CreateAccount(account structs.Account)(id pgtype.Int4, err error) {
+func (db *Database) CreateAccount(account structs.Account) (id pgtype.Int4, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "insert into Accounts (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
 	return id, err
 }
-
 
 // Create multiple payments
 func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
@@ -88,7 +87,7 @@ func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
 
 func (db *Database) GetSettings() (string, error) {
 	var settings string
-	err := db.Dbpool.QueryRow(context.Background(), `select '{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14}'`).Scan(&settings)
+	err := db.Dbpool.QueryRow(context.Background(), `select '{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14, "calendar":2.69, "cards":13.12}'`).Scan(&settings)
 	if err != nil {
 		log.Error(os.Stderr, "QueryRow failed: %v\n", err)
 		return "", err
@@ -98,7 +97,7 @@ func (db *Database) GetSettings() (string, error) {
 
 func (db *Database) GetVendorSettings() (string, error) {
 	var settings string
-	err := db.Dbpool.QueryRow(context.Background(), `select '{"credit":1.61,"qrcode":"/img/Augustin-QR-Code.png","id-number":"123456789"}'`).Scan(&settings)
+	err := db.Dbpool.QueryRow(context.Background(), `select '{"credit":1.61,"qrcode":"/img/Augustin-QR-Code.png","idnumber":"123456789"}'`).Scan(&settings)
 	if err != nil {
 		log.Error(os.Stderr, "QueryRow failed: %v\n", err)
 		return "", err
