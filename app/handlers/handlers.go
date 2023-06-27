@@ -119,7 +119,7 @@ func GetSettings(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	log.Info(settings)
+
 	marshal_struct, err := json.Marshal(settings)
 	if err != nil {
 		log.Errorf("JSON conversion failed: %v\n", err)

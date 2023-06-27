@@ -86,8 +86,8 @@ func (s *Server) MountHandlers() {
 	})
 	s.Router.Get("/api/hello/", handlers.HelloWorld)
 
-	s.Router.Get("/api/payments", handlers.GetPayments)
-	s.Router.Post("/api/payments", handlers.CreatePayments)
+	s.Router.Get("/api/payments/", handlers.GetPayments)
+	s.Router.Post("/api/payments/", handlers.CreatePayments)
 
 	s.Router.Get("/api/settings/", handlers.GetSettings)
 
