@@ -85,14 +85,56 @@ func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
 	return nil
 }
 
-func (db *Database) GetSettings() (string, error) {
-	var settings string
-	err := db.Dbpool.QueryRow(context.Background(), `select '{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14, items:[{"name":"calendar","price":2.69},{"name":"cards","price":13.12}]}'`).Scan(&settings)
+func (db *Database) UpdateSettings(settings structs.Settings) (err error) {
+	_, err = db.Dbpool.Query(context.Background(), `
+	INSERT INTO Settings (Color, Logo) VALUES ($1, $2)
+	ON CONFLICT (ID)
+	DO UPDATE SET Color = $1, Logo = $2
+	`, settings.Color, settings.Logo)
 	if err != nil {
-		log.Error(os.Stderr, "QueryRow failed: %v\n", err)
-		return "", err
+		log.Error(os.Stderr, "SetSettings failed: %v\n", err)
 	}
-	return settings, nil
+
+	// Set items
+	for _, item := range settings.Items {
+		_, err = db.Dbpool.Query(context.Background(), `
+		INSERT INTO Items (Name, Price) VALUES ($1, $2)
+		ON CONFLICT (Name)
+		DO UPDATE SET Name = $1, Price = $2
+		`, item.Name, item.Price)
+		if err != nil {
+			log.Error(os.Stderr, "SetSettings failed: %v\n", err)
+		}
+	}
+	return err
+}
+
+func (db *Database) GetItems() ([]structs.Item, error) {
+	var items []structs.Item
+	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
+	if err != nil {
+		return items, err
+	}
+	for rows.Next() {
+		var item structs.Item
+		err = rows.Scan(&item.ID, &item.Name, &item.Price)
+		if err != nil {
+			return items, err
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func (db *Database) GetSettings() (structs.Settings, error) {
+	var settings structs.Settings
+	err := db.Dbpool.QueryRow(context.Background(), `select * from Settings LIMIT 1`).Scan(&settings.ID, &settings.Color, &settings.Logo)
+	if err != nil {
+		log.Error(os.Stderr, "GetSettings: %v\n", err)
+	}
+	items, err := db.GetItems()
+	settings.Items = items
+	return settings, err
 }
 
 func (db *Database) GetVendorSettings() (string, error) {

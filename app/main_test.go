@@ -39,6 +39,7 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 	}
 }
 
+
 func TestHelloWorld(t *testing.T) {
 	// Initialize database
 	database.InitDb()
@@ -168,10 +169,26 @@ func TestPayments(t *testing.T) {
 }
 
 func TestSettings(t *testing.T) {
-	// Create a New Server Struct
+	database.InitDb()
 	s := CreateNewServer()
-	// Mount Handlers
 	s.MountHandlers()
+
+	// Set settings
+	database.Db.UpdateSettings(structs.Settings{
+		Color: "red",
+		Logo:  "/img/Augustin-Logo-Rechteck.jpg",
+		Items: []structs.Item{
+			{
+				Name:  "calendar",
+				Price: 2.69,
+			},
+			{
+				Name:  "cards",
+				Price: 13.12,
+			},
+		},
+	},
+	)
 
 	// Create a New Request
 	req, _ := http.NewRequest("GET", "/api/settings/", nil)
@@ -183,7 +200,7 @@ func TestSettings(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, `{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14, items:[{"name":"calendar","price":2.69},{"name":"cards","price":13.12}]}`, response.Body.String())
+	require.Equal(t, `{"ID":1,"Color":"red","Logo":"/img/Augustin-Logo-Rechteck.jpg","Items":[{"ID":1,"Name":"testItem","Price":1},{"ID":4,"Name":"calendar","Price":2.690000057220459},{"ID":5,"Name":"cards","Price":13.119999885559082}]}`, response.Body.String())
 }
 
 func TestVendor(t *testing.T) {

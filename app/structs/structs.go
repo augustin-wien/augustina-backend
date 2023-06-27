@@ -7,16 +7,17 @@ import (
 // Attributes have to be uppercase to be exported
 // TODO: I would avoid using different json names
 
-type Setting struct {
-	Color string  `json:"color"`
-	Logo  string  `json:"logo"`
-	Price float64 `json:"price"`
-	Item  []Item  `json:"item"`
+type Settings struct {
+	ID   pgtype.Int4
+	Color string
+	Logo  string
+	Items  []Item
 }
 
 type Item struct {
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
+	ID   pgtype.Int4
+	Name  string
+	Price float64
 }
 
 type Vendor struct {
