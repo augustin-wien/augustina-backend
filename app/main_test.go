@@ -173,18 +173,18 @@ func TestSettings(t *testing.T) {
 	s := CreateNewServer()
 	s.MountHandlers()
 
-	// Set settings
+	// Define settings
 	database.Db.UpdateSettings(structs.Settings{
 		Color: "red",
 		Logo:  "/img/Augustin-Logo-Rechteck.jpg",
 		Items: []structs.Item{
 			{
 				Name:  "calendar",
-				Price: 2.69,
+				Price: pgtype.Float4{Float32: 3.14, Valid: true},
 			},
 			{
 				Name:  "cards",
-				Price: 13.12,
+				Price: pgtype.Float4{Float32: 12.12, Valid: true},
 			},
 		},
 	},
@@ -199,8 +199,20 @@ func TestSettings(t *testing.T) {
 	// Check the response code
 	checkResponseCode(t, http.StatusOK, response.Code)
 
-	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, `{"ID":1,"Color":"red","Logo":"/img/Augustin-Logo-Rechteck.jpg","Items":[{"ID":1,"Name":"testItem","Price":1},{"ID":4,"Name":"calendar","Price":2.690000057220459},{"ID":5,"Name":"cards","Price":13.119999885559082}]}`, response.Body.String())
+	// Unmarshal response
+	var settings structs.Settings
+	err := json.Unmarshal(response.Body.Bytes(), &settings)
+	if err != nil {
+		panic(err)
+	}
+
+	// Test payments response
+	require.Equal(t, settings.Color, "red")
+	require.Equal(t, settings.Logo, "/img/Augustin-Logo-Rechteck.jpg")
+	require.Equal(t, settings.Items[0].Name, "calendar")
+	require.Equal(t, settings.Items[0].Price, pgtype.Float4{Float32: 3.14, Valid: true})
+	require.Equal(t, settings.Items[1].Name, "cards")
+	require.Equal(t, settings.Items[1].Price, pgtype.Float4{Float32: 12.12, Valid: true})
 }
 
 func TestVendor(t *testing.T) {

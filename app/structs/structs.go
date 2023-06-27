@@ -17,7 +17,7 @@ type Settings struct {
 type Item struct {
 	ID   pgtype.Int4
 	Name  string
-	Price float64
+	Price pgtype.Float4
 }
 
 type Vendor struct {
