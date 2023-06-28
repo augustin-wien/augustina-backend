@@ -78,7 +78,7 @@ func TestHelloWorldAuth(t *testing.T) {
 	s.MountHandlers()
 
 	// Create a New Request
-	req, _ := http.NewRequest("GET", "/api/auth/hello", nil)
+	req, _ := http.NewRequest("GET", "/api/auth/hello/", nil)
 
 	// Execute Request
 	response := executeRequest(req, s)
@@ -133,14 +133,14 @@ func TestPayments(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	req, _ := http.NewRequest("POST", "/api/payments", &body)
+	req, _ := http.NewRequest("POST", "/api/payments/", &body)
 	response := executeRequest(req, s)
 
 	// Check the response
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// Get payments via API
-	req2, err := http.NewRequest("GET", "/api/payments", nil)
+	req2, err := http.NewRequest("GET", "/api/payments/", nil)
 	response2 := executeRequest(req2, s)
 	if err != nil {
 		log.Fatal(err)
