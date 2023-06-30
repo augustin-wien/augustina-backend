@@ -42,7 +42,7 @@ cd migrations
 Create a new migration:
 
 ```bash
-tern create <migration_name>
+tern new <migration_name>
 ```
 
 Apply all pending migrations:

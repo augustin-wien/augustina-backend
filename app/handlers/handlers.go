@@ -108,18 +108,25 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
-//		@Success		200	{array}	structs.Setting
+//		@Success		200	{array}	structs.Settings
 //		@Router			/settings/ [get]
 //
-// Setting API Handler fetching data without database
-func Settings(w http.ResponseWriter, r *http.Request) {
+// Get Settings API Handler fetching data without database
+func GetSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := database.Db.GetSettings()
 	if err != nil {
 		log.Errorf("QueryRow failed: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(settings))
+
+	marshal_struct, err := json.Marshal(settings)
+	if err != nil {
+		log.Errorf("JSON conversion failed: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(marshal_struct))
 }
 
 // ReturnVendorInformation godoc
