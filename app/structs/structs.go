@@ -8,16 +8,16 @@ import (
 // TODO: I would avoid using different json names
 
 type Settings struct {
-	ID   pgtype.Int4
+	ID   int32
 	Color string
 	Logo  string
 	Items  []Item
 }
 
 type Item struct {
-	ID   pgtype.Int4
+	ID   int32
 	Name  string
-	Price pgtype.Float4
+	Price float32
 }
 
 type Vendor struct {

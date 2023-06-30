@@ -180,11 +180,11 @@ func TestSettings(t *testing.T) {
 		Items: []structs.Item{
 			{
 				Name:  "calendar",
-				Price: pgtype.Float4{Float32: 3.14, Valid: true},
+				Price: 3.14,
 			},
 			{
 				Name:  "cards",
-				Price: pgtype.Float4{Float32: 12.12, Valid: true},
+				Price: 12.12,
 			},
 		},
 	},
@@ -210,9 +210,9 @@ func TestSettings(t *testing.T) {
 	require.Equal(t, settings.Color, "red")
 	require.Equal(t, settings.Logo, "/img/Augustin-Logo-Rechteck.jpg")
 	require.Equal(t, settings.Items[0].Name, "calendar")
-	require.Equal(t, settings.Items[0].Price, pgtype.Float4{Float32: 3.14, Valid: true})
+	require.Equal(t, settings.Items[0].Price, float32(3.14))
 	require.Equal(t, settings.Items[1].Name, "cards")
-	require.Equal(t, settings.Items[1].Price, pgtype.Float4{Float32: 12.12, Valid: true})
+	require.Equal(t, settings.Items[1].Price, float32(12.12))
 }
 
 func TestVendor(t *testing.T) {
