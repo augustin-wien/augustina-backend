@@ -91,6 +91,7 @@ func (db *Database) UpdateSettings(settings structs.Settings) (err error) {
 	ON CONFLICT (ID)
 	DO UPDATE SET Color = $1, Logo = $2
 	`, settings.Color, settings.Logo)
+
 	if err != nil {
 		log.Error(os.Stderr, "SetSettings failed: %v\n", err)
 	}
