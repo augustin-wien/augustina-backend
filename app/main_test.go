@@ -41,8 +41,8 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 	}
 }
 
-
 func TestHelloWorld(t *testing.T) {
+	godotenv.Load("../.env")
 	// Initialize database
 	database.InitDb()
 
@@ -66,15 +66,16 @@ func TestHelloWorld(t *testing.T) {
 }
 
 func lookupRole(roleName string, roles []*gocloak.Role) *gocloak.Role {
-    for _, role := range roles {
-        if (*role.Name ==  roleName) {
-            return role;
-        }
-    }
-    return nil;
+	for _, role := range roles {
+		if *role.Name == roleName {
+			return role
+		}
+	}
+	return nil
 }
 
 func TestKeycloak(t *testing.T) {
+	godotenv.Load("../.env")
 	// Test the keycloak functions
 	keycloak.InitializeOauthServer()
 	var err error
@@ -164,6 +165,7 @@ func TestHelloWorldAuth(t *testing.T) {
 }
 
 func TestPayments(t *testing.T) {
+	godotenv.Load("../.env")
 	// Initialize test case
 	database.InitDb()
 	s := CreateNewServer()
@@ -242,6 +244,7 @@ func TestPayments(t *testing.T) {
 }
 
 func TestSettings(t *testing.T) {
+	godotenv.Load("../.env")
 	database.InitDb()
 	s := CreateNewServer()
 	s.MountHandlers()
@@ -289,6 +292,7 @@ func TestSettings(t *testing.T) {
 }
 
 func TestVendor(t *testing.T) {
+	godotenv.Load("../.env")
 	// Create a New Server Struct
 	s := CreateNewServer()
 	// Mount Handlers
