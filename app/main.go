@@ -20,13 +20,13 @@ import (
 )
 
 func main() {
+	initLog()
+	log.Info("Starting Augustin Server v0.0.1")
 	// load .env file
 	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Error("Error loading .env file")
+		log.Debug(".env file not found")
 	}
-	initLog()
-	log.Info("Starting Augustin Server v0.0.1")
 	// Initialize Keycloak client
 	keycloack.InitializeOauthServer()
 	go database.InitDb()
