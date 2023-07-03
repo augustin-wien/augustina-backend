@@ -39,6 +39,7 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 	}
 }
 
+
 func TestHelloWorld(t *testing.T) {
 	// Initialize database
 	database.InitDb()
@@ -78,7 +79,7 @@ func TestHelloWorldAuth(t *testing.T) {
 	s.MountHandlers()
 
 	// Create a New Request
-	req, _ := http.NewRequest("GET", "/api/auth/hello", nil)
+	req, _ := http.NewRequest("GET", "/api/auth/hello/", nil)
 
 	// Execute Request
 	response := executeRequest(req, s)
@@ -133,14 +134,14 @@ func TestPayments(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	req, _ := http.NewRequest("POST", "/api/payments", &body)
+	req, _ := http.NewRequest("POST", "/api/payments/", &body)
 	response := executeRequest(req, s)
 
 	// Check the response
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// Get payments via API
-	req2, err := http.NewRequest("GET", "/api/payments", nil)
+	req2, err := http.NewRequest("GET", "/api/payments/", nil)
 	response2 := executeRequest(req2, s)
 	if err != nil {
 		log.Fatal(err)
@@ -168,10 +169,26 @@ func TestPayments(t *testing.T) {
 }
 
 func TestSettings(t *testing.T) {
-	// Create a New Server Struct
+	database.InitDb()
 	s := CreateNewServer()
-	// Mount Handlers
 	s.MountHandlers()
+
+	// Define settings
+	database.Db.UpdateSettings(structs.Settings{
+		Color: "red",
+		Logo:  "/img/Augustin-Logo-Rechteck.jpg",
+		Items: []structs.Item{
+			{
+				Name:  "calendar",
+				Price: 3.14,
+			},
+			{
+				Name:  "cards",
+				Price: 12.12,
+			},
+		},
+	},
+	)
 
 	// Create a New Request
 	req, _ := http.NewRequest("GET", "/api/settings/", nil)
@@ -182,8 +199,20 @@ func TestSettings(t *testing.T) {
 	// Check the response code
 	checkResponseCode(t, http.StatusOK, response.Code)
 
-	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, `{"color":"red","logo":"/img/Augustin-Logo-Rechteck.jpg","price":3.14}`, response.Body.String())
+	// Unmarshal response
+	var settings structs.Settings
+	err := json.Unmarshal(response.Body.Bytes(), &settings)
+	if err != nil {
+		panic(err)
+	}
+
+	// Test response
+	require.Equal(t, settings.Color, "red")
+	require.Equal(t, settings.Logo, "/img/Augustin-Logo-Rechteck.jpg")
+	require.Equal(t, settings.Items[0].Name, "calendar")
+	require.Equal(t, settings.Items[0].Price, float32(3.14))
+	require.Equal(t, settings.Items[1].Name, "cards")
+	require.Equal(t, settings.Items[1].Price, float32(12.12))
 }
 
 func TestVendor(t *testing.T) {
