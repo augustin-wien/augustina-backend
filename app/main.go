@@ -14,7 +14,7 @@ import (
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 
-	"augustin/keycloack"
+	"augustin/keycloak"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -28,7 +28,7 @@ func main() {
 		log.Debug(".env file not found")
 	}
 	// Initialize Keycloak client
-	keycloack.InitializeOauthServer()
+	keycloak.InitializeOauthServer()
 	go database.InitDb()
 	s := CreateNewServer()
 	s.MountHandlers()

@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"augustin/keycloack"
+	"augustin/keycloak"
 	"net/http"
 	"strings"
 
@@ -22,7 +22,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		user_token := strings.Split(r.Header.Get("Authorization"), " ")[1]
-		userinfo, err := keycloack.KeycloakClient.GetUserInfo(user_token)
+		userinfo, err := keycloak.KeycloakClient.GetUserInfo(user_token)
 		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
