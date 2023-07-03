@@ -102,7 +102,14 @@ Install the [`OpenID Connect Generic`](https://wordpress.org/plugins/daggerhart-
 #### Optional Setup to have a role -> capability mapping
 Install the plugin [`Groups`](https://wordpress.org/plugins/groups/) and the plugin [`Augustin`](https://github.com/augustin-wien/augustin-wp-papers) and it should work automatically.
 
-### Generate token with curl
+### Export Keycloak configs
+After running the application with docker compose, the keycloak configs can be exported with the following command:
+```bash
+docker compose exec keycloak  /opt/keycloak/bin/kc.sh export --dir /tmp/export
+```
+the exported configs are available in the `docker/keycloak/export` folder.
+
+### Generate keycloak token with curl
 
 ```bash
 curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/openid-connect/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'client_id=frontend' --data-urlencode 'grant_type=password' --data-urlencode 'username=user001' --data-urlencode 'password=Test123!' --data-urlencode 'scope=openid'
