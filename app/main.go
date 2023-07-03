@@ -20,13 +20,13 @@ import (
 )
 
 func main() {
+	initLog()
+	log.Info("Starting Augustin Server v0.0.1")
 	// load .env file
 	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Error("Error loading .env file")
+		log.Debug(".env file not found")
 	}
-	initLog()
-	log.Info("Starting Augustin Server v0.0.1")
 	// Initialize Keycloak client
 	keycloak.InitializeOauthServer()
 	go database.InitDb()
@@ -73,7 +73,7 @@ func (s *Server) MountHandlers() {
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 	s.Router.Use(middleware.Recoverer)
@@ -82,14 +82,14 @@ func (s *Server) MountHandlers() {
 	s.Router.Group(func(r chi.Router) {
 		r.Use(middleware.Timeout(60 * 1000000000)) // 60 seconds
 		r.Use(middlewares.AuthMiddleware)
-		r.Get("/api/auth/hello", handlers.HelloWorld)
+		r.Get("/api/auth/hello/", handlers.HelloWorld)
 	})
 	s.Router.Get("/api/hello/", handlers.HelloWorld)
 
-	s.Router.Get("/api/payments", handlers.GetPayments)
-	s.Router.Post("/api/payments", handlers.CreatePayments)
+	s.Router.Get("/api/payments/", handlers.GetPayments)
+	s.Router.Post("/api/payments/", handlers.CreatePayments)
 
-	s.Router.Get("/api/settings/", handlers.Settings)
+	s.Router.Get("/api/settings/", handlers.GetSettings)
 
 	s.Router.Get("/api/vendor/", handlers.Vendors)
 
