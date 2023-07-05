@@ -3,10 +3,10 @@ package database
 import (
 	"augustin/structs"
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	log "github.com/sirupsen/logrus"
 )
 
 // GetHelloWorld returns the string "Hello, world!" from the database and should be used as a template for other queries
@@ -14,7 +14,7 @@ func (db *Database) GetHelloWorld() (string, error) {
 	var greeting string
 	err := db.Dbpool.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
 	if err != nil {
-		log.Error(os.Stderr, "QueryRow failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return "", err
 	}
 	return greeting, nil
@@ -93,7 +93,7 @@ func (db *Database) UpdateSettings(settings structs.Settings) (err error) {
 	`, settings.Color, settings.Logo)
 
 	if err != nil {
-		log.Error(os.Stderr, "SetSettings failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "SetSettings failed: %v\n", err)
 	}
 
 	// Set items
@@ -104,7 +104,7 @@ func (db *Database) UpdateSettings(settings structs.Settings) (err error) {
 		DO UPDATE SET Name = $1, Price = $2
 		`, item.Name, item.Price)
 		if err != nil {
-			log.Error(os.Stderr, "SetSettings failed: %v\n", err)
+			fmt.Fprintf(os.Stderr, "SetSettings failed: %v\n", err)
 		}
 	}
 	return err
@@ -131,7 +131,7 @@ func (db *Database) GetSettings() (structs.Settings, error) {
 	var settings structs.Settings
 	err := db.Dbpool.QueryRow(context.Background(), `select * from Settings LIMIT 1`).Scan(&settings.ID, &settings.Color, &settings.Logo)
 	if err != nil {
-		log.Error(os.Stderr, "GetSettings: %v\n", err)
+		fmt.Fprintf(os.Stderr, "GetSettings failed: %v\n", err)
 	}
 	items, err := db.GetItems()
 	settings.Items = items
@@ -142,7 +142,7 @@ func (db *Database) GetVendorSettings() (string, error) {
 	var settings string
 	err := db.Dbpool.QueryRow(context.Background(), `select '{"credit":1.61,"qrcode":"/img/Augustin-QR-Code.png","idnumber":"123456789"}'`).Scan(&settings)
 	if err != nil {
-		log.Error(os.Stderr, "QueryRow failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return "", err
 	}
 	return settings, nil
