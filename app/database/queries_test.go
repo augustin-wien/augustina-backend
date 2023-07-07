@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -13,6 +14,7 @@ import (
 	_ "github.com/jackc/pgconn"
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 )
@@ -66,12 +68,16 @@ func TestMain(m *testing.M) {
 	// start the image and wait until it's ready
 	if err := pool.Retry(func() error {
 		var err error
-		testDB, err = sql.Open("pgx", fmt.Sprintf(dsn, host, port, user, password, dbName))
+		dbpool, err := pgxpool.New(
+			context.Background(),
+			fmt.Sprintf(dsn, host, port, user, password, dbName),
+		)
 		if err != nil {
 			log.Println("Error:", err)
 			return err
 		}
-		return testDB.Ping()
+		fmt.Println(dbpool.Ping(context.Background()))
+		return dbpool.Ping(context.Background())
 	}); err != nil {
 		_ = pool.Purge(resource)
 		log.Fatalf("could not connect to database: %s", err)
