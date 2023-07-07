@@ -66,6 +66,86 @@ services:
     command: start-dev --import-realm
     ports:
       - "8080:8080"
+  wordpress-db:
+    # We use a mariadb image which supports both amd64 & arm64 architecture
+    image: mariadb:10.6.4-focal
+    # If you really want to use MySQL, uncomment the following line
+    #image: mysql:8.0.27
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - wp_db_data:/var/lib/mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=somewordpress
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress
+    expose:
+      - 3306
+      - 33060
+  wordpress:
+    image: wordpress:latest
+    volumes:
+      - wp_data:/var/www/html
+      - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
+      - ./docker/wordpress/themes/wordpress-theme:/var/www/html/wp-content/themes/wordpress-theme
 
+    ports:
+      - 8090:80
+    restart: always
+    environment:
+      - WORDPRESS_DB_HOST=wordpress-db
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_NAME=wordpress
+    depends_on:
+      - wordpress-db
+      - keycloak
+  wpcli:
+    container_name: wp-cli
+    image: wordpress:cli
+    user: 0:0
+    command: >
+      sh -c "
+      chown xfs:xfs /var/www/html -R &&
+      mkdir -p /etc/X11/fs && chown xfs:xfs /etc/X11/fs -R &&
+      su -l xfs -s /bin/sh -c '
+      cd /var/www/html &&
+      wp config create --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=wordpress-db --force && 
+      wp db drop --yes || true &&
+      wp db create || true &&
+      wp core install --url=localhost:8090 --title="Augustin" --admin_user=test_superuser --admin_password=Test123! --admin_email=test_superuser@example.com &&
+      wp config set OIDC_LOGIN_TYPE auto &&
+      wp config set OIDC_CLIENT_ID wordpress &&
+      wp config set OIDC_CLIENT_SECRET 84uZmW6FlEPgvUd201QUsWRmHzUIamZB &&
+      wp config set OIDC_ENDPOINT_LOGIN_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/auth &&
+      wp config set OIDC_ENDPOINT_USERINFO_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/userinfo &&
+      wp config set OIDC_ENDPOINT_TOKEN_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/token &&
+      wp config set OIDC_ENDPOINT_LOGOUT_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/logout &&
+      wp config set OIDC_CLIENT_SCOPE \"email profile openid offline_access roles\" &&
+      wp config set OIDC_ENFORCE_PRIVACY true --raw &&
+      wp config set OIDC_CREATE_IF_DOES_NOT_EXIST true --raw &&
+      wp config set OIDC_LINK_EXISTING_USERS true --raw &&
+      wp config set OIDC_REDIRECT_USER_BACK false --raw &&
+      wp config set OIDC_REDIRECT_ON_LOGOUT false --raw &&
+      wp config set WP_DEBUG true --raw &&
+      wp plugin install --activate --force groups &&
+      wp plugin install --activate --force daggerhart-openid-connect-generic &&
+      wp plugin activate augustin-wp-papers &&
+      tail -f /dev/null'"
+    volumes:
+      - wp_data:/var/www/html
+      - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
+      - ./docker/wordpress/themes/wordpress-theme:/var/www/html/wp-content/themes/wordpress-theme
+
+    environment:
+      - WORDPRESS_DB_HOST=wordpress-db
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_NAME=wordpress
+    depends_on:
+      - wordpress
 volumes:
   dbdata:
+  wp_data:
+  wp_db_data:

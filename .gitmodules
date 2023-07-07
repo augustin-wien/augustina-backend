@@ -1,0 +1,6 @@
+[submodule "docker/wordpress/plugins/augustin-wp-papers"]
+	path = docker/wordpress/plugins/augustin-wp-papers
+	url = https://github.com/augustin-wien/augustin-wp-papers.git
+[submodule "docker/wordpress/wordpress-theme"]
+	path = docker/wordpress/wordpress-theme
+	url = https://github.com/augustin-wien/wordpress-theme.git
