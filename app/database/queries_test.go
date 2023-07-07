@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 
 	// "webapp/pkg/repository"
@@ -28,8 +29,6 @@ var (
 var resource *dockertest.Resource
 var pool *dockertest.Pool
 var testDB *sql.DB
-
-// var testRepo repository.DatabaseRepo
 
 func TestMain(m *testing.M) {
 	// connect to docker; fail if docker not running
@@ -84,8 +83,6 @@ func TestMain(m *testing.M) {
 		log.Fatalf("error creating tables: %s", err)
 	}
 
-	// testRepo = &PostgresDBRepo{DB: testDB}
-
 	// run tests
 	code := m.Run()
 
@@ -117,5 +114,16 @@ func Test_pingDB(t *testing.T) {
 	err := testDB.Ping()
 	if err != nil {
 		t.Error("can't ping database")
+	}
+}
+
+func Test_GetHelloWorld(t *testing.T) {
+	rows := testDB.QueryRow("select 'Hello, world!'")
+	if rows != nil {
+		t.Error("can't get hello world")
+	}
+
+	if reflect.TypeOf(rows.Scan()).Kind() != reflect.String {
+		t.Error("Hello World not of type string")
 	}
 }
