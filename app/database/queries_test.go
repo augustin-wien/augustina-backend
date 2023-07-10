@@ -35,13 +35,16 @@ var dbpool *pgxpool.Pool
 
 func TestMain(m *testing.M) {
 	// connect to docker; fail if docker not running
-	p, err := dockertest.NewPool("")
+	pool, err := dockertest.NewPool("")
 	if err != nil {
 		log.Fatalf("could not connect to docker; is it running? %s", err)
 	}
+	err = pool.Client.Ping()
+	if err != nil {
+		log.Fatalf("Could not connect to Docker: %s", err)
+	}
 
-	pool = p
-
+	log.Println("Starting PostgreSQL Docker container")
 	// set up our docker options, specifying the image and so forth
 	opts := dockertest.RunOptions{
 		Repository: "postgres",
@@ -50,26 +53,37 @@ func TestMain(m *testing.M) {
 			"POSTGRES_USER=" + user,
 			"POSTGRES_PASSWORD=" + password,
 			"POSTGRES_DB=" + dbName,
+			"listen_addresses = '*'",
 		},
-		ExposedPorts: []string{"5435"},
+		ExposedPorts: []string{"5432"},
 		PortBindings: map[docker.Port][]docker.PortBinding{
 			"5432": {
-				{HostIP: "0.0.0.0", HostPort: port},
+				{HostIP: "0.0.0.0", HostPort: "5435"},
 			},
 		},
 	}
 
 	// get a resource (docker image)
-	resource, err = pool.RunWithOptions(&opts)
+	resource, err = pool.RunWithOptions(&opts, func(config *docker.HostConfig) {
+		// set AutoRemove to true so that stopped container goes away by itself
+		config.AutoRemove = true
+		config.RestartPolicy = docker.RestartPolicy{
+			Name: "no",
+		}
+	})
 	if err != nil {
-		_ = pool.Purge(resource)
-		log.Fatalf("could not start resource: %s", err)
+		log.Printf("Error: could not start resource: %s", err)
+		err = pool.Purge(resource)
+		if err != nil {
+			log.Fatalf("could not purge resource: %s", err)
+		}
 	}
+	log.Println("PostgreSQL Docker container started")
 
 	// start the image and wait until it's ready
 	if err := pool.Retry(func() error {
 		var err error
-		dbpool, err := pgxpool.New(
+		dbpool, err = pgxpool.New(
 			context.Background(),
 			fmt.Sprintf(dsn, host, port, user, password, dbName),
 		)
@@ -85,7 +99,22 @@ func TestMain(m *testing.M) {
 	}
 
 	// populate the database with empty tables
-	err = createTables()
+	tableSQL, err := os.ReadFile("./testdata/testdata.sql")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer pool.Purge(resource)
+	if dbpool == nil {
+		fmt.Println("dbpool is nil")
+		return
+	}
+
+	_, err = dbpool.Exec(context.Background(), string(tableSQL))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	if err != nil {
 		log.Fatalf("error creating tables: %s", err)
 	}
@@ -103,9 +132,15 @@ func TestMain(m *testing.M) {
 
 func createTables() error {
 	tableSQL, err := os.ReadFile("./testdata/testdata.sql")
+	fmt.Println(string(tableSQL))
 	if err != nil {
 		fmt.Println(err)
 		return err
+	}
+	defer pool.Purge(resource)
+	if dbpool == nil {
+		fmt.Println("dbpool is nil")
+		return fmt.Errorf("dbpool is nil")
 	}
 
 	_, err = dbpool.Exec(context.Background(), string(tableSQL))
