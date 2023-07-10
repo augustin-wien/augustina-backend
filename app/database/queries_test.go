@@ -31,6 +31,7 @@ var (
 var resource *dockertest.Resource
 var pool *dockertest.Pool
 var testDB *sql.DB
+var dbpool *pgxpool.Pool
 
 func TestMain(m *testing.M) {
 	// connect to docker; fail if docker not running
@@ -50,7 +51,7 @@ func TestMain(m *testing.M) {
 			"POSTGRES_PASSWORD=" + password,
 			"POSTGRES_DB=" + dbName,
 		},
-		ExposedPorts: []string{"5432"},
+		ExposedPorts: []string{"5435"},
 		PortBindings: map[docker.Port][]docker.PortBinding{
 			"5432": {
 				{HostIP: "0.0.0.0", HostPort: port},
@@ -76,7 +77,7 @@ func TestMain(m *testing.M) {
 			log.Println("Error:", err)
 			return err
 		}
-		fmt.Println(dbpool.Ping(context.Background()))
+		fmt.Println("test1", dbpool.Ping(context.Background()))
 		return dbpool.Ping(context.Background())
 	}); err != nil {
 		_ = pool.Purge(resource)
@@ -107,7 +108,7 @@ func createTables() error {
 		return err
 	}
 
-	_, err = testDB.Exec(string(tableSQL))
+	_, err = dbpool.Exec(context.Background(), string(tableSQL))
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -117,7 +118,7 @@ func createTables() error {
 }
 
 func Test_pingDB(t *testing.T) {
-	err := testDB.Ping()
+	err := dbpool.Ping(context.Background())
 	if err != nil {
 		t.Error("can't ping database")
 	}
