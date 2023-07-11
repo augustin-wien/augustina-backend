@@ -2,18 +2,12 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"reflect"
 	"testing"
 
-	// "webapp/pkg/repository"
-
-	_ "github.com/jackc/pgconn"
-	_ "github.com/jackc/pgx/v4"
-	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -29,9 +23,10 @@ var (
 )
 
 var resource *dockertest.Resource
-var pool *dockertest.Pool
-var testDB *sql.DB
+
 var dbpool *pgxpool.Pool
+
+var TestDB Database
 
 func TestMain(m *testing.M) {
 	// connect to docker; fail if docker not running
@@ -100,13 +95,17 @@ func TestMain(m *testing.M) {
 
 	// populate the database with empty tables
 	tableSQL, err := os.ReadFile("./testdata/testdata.sql")
+
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
 	defer pool.Purge(resource)
+
 	if dbpool == nil {
-		fmt.Println("dbpool is nil")
+		log.Fatal("dbpool is nil")
+		log.Fatalf("Testdata.sql: %s", string(tableSQL))
 		return
 	}
 
@@ -119,6 +118,9 @@ func TestMain(m *testing.M) {
 		log.Fatalf("error creating tables: %s", err)
 	}
 
+	// initialize the database
+	TestDB = Database{Dbpool: dbpool}
+
 	// run tests
 	code := m.Run()
 
@@ -130,28 +132,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func createTables() error {
-	tableSQL, err := os.ReadFile("./testdata/testdata.sql")
-	fmt.Println(string(tableSQL))
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	defer pool.Purge(resource)
-	if dbpool == nil {
-		fmt.Println("dbpool is nil")
-		return fmt.Errorf("dbpool is nil")
-	}
-
-	_, err = dbpool.Exec(context.Background(), string(tableSQL))
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	return nil
-}
-
 func Test_pingDB(t *testing.T) {
 	err := dbpool.Ping(context.Background())
 	if err != nil {
@@ -159,13 +139,30 @@ func Test_pingDB(t *testing.T) {
 	}
 }
 
-func Test_GetHelloWorld(t *testing.T) {
-	rows := testDB.QueryRow("select 'Hello, world!'")
-	if rows != nil {
-		t.Error("can't get hello world")
+func Test_DatabaseTablesCreated(t *testing.T) {
+	var tableCount int
+	err := dbpool.QueryRow(context.Background(), "select count(*) from information_schema.tables where table_schema = 'public'").Scan(&tableCount)
+	if err != nil {
+		t.Error("can't get table count")
 	}
 
-	if reflect.TypeOf(rows.Scan()).Kind() != reflect.String {
+	// checks if there are 5 tables in the database, which is the number of tables in testdata.sql
+	if tableCount != 5 {
+		t.Error("table count not equal to 5")
+	}
+}
+
+func Test_GetHelloWorld(t *testing.T) {
+	var greeting string
+	greeting, err := TestDB.GetHelloWorld()
+	// err := dbpool.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
+	if err != nil {
+		t.Error("can't get hello world")
+	}
+	if reflect.TypeOf(greeting).Kind() != reflect.String {
 		t.Error("Hello World not of type string")
+	}
+	if string(greeting) == "'Hello, world!'" {
+		t.Errorf("Hello World not equal to 'Hello, world!', instead %s", greeting)
 	}
 }

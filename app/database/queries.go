@@ -17,7 +17,7 @@ func (db *Database) GetHelloWorld() (string, error) {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return "", err
 	}
-	return greeting, nil
+	return greeting, err
 }
 
 // GetPayments returns the payments from the database
