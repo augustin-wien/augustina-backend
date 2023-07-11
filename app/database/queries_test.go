@@ -1,6 +1,7 @@
 package database
 
 import (
+	"augustin/structs"
 	"context"
 	"fmt"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -162,7 +164,120 @@ func Test_GetHelloWorld(t *testing.T) {
 	if reflect.TypeOf(greeting).Kind() != reflect.String {
 		t.Error("Hello World not of type string")
 	}
-	if string(greeting) == "'Hello, world!'" {
-		t.Errorf("Hello World not equal to 'Hello, world!', instead %s", greeting)
+
+	require.Equal(t, string(greeting), "Hello, world!")
+}
+
+func Test_UpdateSettings(t *testing.T) {
+	// Define settings
+	err := TestDB.UpdateSettings(structs.Settings{
+		Color: "red",
+		Logo:  "/img/Augustin-Logo-Rechteck.jpg",
+		Items: []structs.Item{
+			{
+				Name:  "calendar",
+				Price: 3.14,
+			},
+			{
+				Name:  "cards",
+				Price: 12.12,
+			},
+		},
+	},
+	)
+
+	if err != nil {
+		t.Errorf("UpdateSettings failed: %v\n", err)
 	}
 }
+
+func Test_GetVendorSettings(t *testing.T) {
+	var vendorsettings string
+	vendorsettings, err := TestDB.GetVendorSettings()
+
+	if err != nil {
+		t.Error("can't select vendorsettings")
+	}
+	if reflect.TypeOf(vendorsettings).Kind() != reflect.String {
+		t.Error("Vendorsettings not of type string")
+	}
+
+	require.Equal(t, string(vendorsettings), `{"credit":1.61,"qrcode":"/img/Augustin-QR-Code.png","idnumber":"123456789"}`)
+}
+
+// func Test_Payments(t *testing.T) {
+// 	godotenv.Load("../.env")
+// 	// Initialize test case
+// 	s := handlers.CreateNewServer()
+// 	s.MountHandlers()
+
+// 	// Reset tables
+// 	_, err := dbpool.Query(context.Background(), "truncate Payments, PaymentTypes, Accounts")
+// 	if err != nil {
+// 		t.Errorf("Truncate payments failed: %v\n", err)
+// 	}
+
+// 	// Set up a payment type
+// 	payment_type_id, err := TestDB.CreatePaymentType(
+// 		structs.PaymentType{Name: pgtype.Text{String: "Test type", Valid: true}},
+// 	)
+// 	if err != nil {
+// 		t.Errorf("CreatePaymentType failed: %v\n", err)
+// 	}
+
+// 	// Set up a payment account
+// 	account_id, err := TestDB.CreateAccount(
+// 		structs.Account{Name: pgtype.Text{String: "Test account", Valid: true}},
+// 	)
+// 	if err != nil {
+// 		t.Errorf("CreateAccount failed: %v\n", err)
+// 	}
+
+// 	// Create payments via API
+// 	f := structs.PaymentBatch{
+// 		Payments: []structs.Payment{
+// 			{
+// 				Sender:   account_id,
+// 				Receiver: account_id,
+// 				Type:     payment_type_id,
+// 				Amount:   pgtype.Float4{Float32: 3.14, Valid: true},
+// 			},
+// 		},
+// 	}
+// 	var body bytes.Buffer
+// 	err = json.NewEncoder(&body).Encode(f)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	req, _ := http.NewRequest("POST", "/api/payments/", &body)
+// 	response := executeRequest(req, s)
+
+// 	// Check the response
+// 	checkResponseCode(t, http.StatusOK, response.Code)
+
+// 	// Get payments via API
+// 	req2, err := http.NewRequest("GET", "/api/payments/", nil)
+// 	response2 := executeRequest(req2, s)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+
+// 	// Check the response
+// 	checkResponseCode(t, http.StatusOK, response2.Code)
+
+// 	// Unmarshal response
+// 	var payments []structs.Payment
+// 	err = json.Unmarshal(response2.Body.Bytes(), &payments)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	// Test payments response
+// 	require.Equal(t, payments[0].Amount.Float32, float32(3.14))
+// 	require.Equal(t, payments[0].Sender, account_id)
+// 	require.Equal(t, payments[0].Receiver, account_id)
+// 	require.Equal(t, payments[0].Type, payment_type_id)
+// 	require.Equal(t, payments[0].Timestamp.Time.Day(), time.Now().Day())
+// 	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().Hour())
+// 	require.Equal(t, len(payments), 1)
+// }
