@@ -15,8 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// WARNING: The tests use the main database, do not run tests in production
-
 // executeRequest, creates a new ResponseRecorder
 // then executes the request by calling ServeHTTP in the router
 // after which the handler writes the response to the response recorder
@@ -28,8 +26,7 @@ func executeRequest(req *http.Request, s *handlers.Server) *httptest.ResponseRec
 	return rr
 }
 
-// checkResponseCode is a simple utility to check the response code
-// of the response
+// checkResponseCode is a simple utility to check the response code of the response
 func checkResponseCode(t *testing.T, expected, actual int) {
 	if expected != actual {
 		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
