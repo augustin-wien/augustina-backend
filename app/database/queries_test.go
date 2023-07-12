@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -11,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -86,7 +86,6 @@ func TestMain(m *testing.M) {
 			log.Println("Error:", err)
 			return err
 		}
-		fmt.Println("test1", dbpool.Ping(context.Background()))
 		return dbpool.Ping(context.Background())
 	}); err != nil {
 		_ = pool.Purge(resource)
@@ -97,7 +96,7 @@ func TestMain(m *testing.M) {
 	tableSQL, err := os.ReadFile("./testdata/testdata.sql")
 
 	if err != nil {
-		fmt.Println(err)
+		log.Errorf("Could not read sql file %v\n", err)
 		return
 	}
 
@@ -111,7 +110,7 @@ func TestMain(m *testing.M) {
 
 	_, err = dbpool.Exec(context.Background(), string(tableSQL))
 	if err != nil {
-		fmt.Println(err)
+		log.Errorf("Could not populate database with empty table %v\n", err)
 		return
 	}
 	if err != nil {

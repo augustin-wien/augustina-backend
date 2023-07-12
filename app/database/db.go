@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -36,7 +35,7 @@ func InitDb() {
 	)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
+		log.Errorf("Unable to create connection pool: %v\n", err)
 		os.Exit(1)
 	}
 	Db = Database{Dbpool: dbpool}
@@ -44,7 +43,7 @@ func InitDb() {
 	var greeting string
 	greeting, err = Db.GetHelloWorld()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "InitDb failed: %v\n", err)
+		log.Errorf("InitDb failed: %v\n", err)
 		os.Exit(1)
 	}
 	log.Infof("InitDb succesfull: %v", greeting)
