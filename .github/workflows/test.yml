@@ -12,7 +12,7 @@ jobs:
     env:
       DB_USER: postgres
       DB_PASS: postgres
-      DB_HOST: localhost # default host value for the database
+      DB_HOST_TEST: localhost # default host value for the database
       DB_NAME: djtesting
       DB_PORT: 5432
 
@@ -65,7 +65,7 @@ jobs:
               sleep 10
           done
       - name: Test
-        run: cd app && cd migrations && tern migrate && cd .. && go test ./... -v
+        run: cd app && cd migrations && tern migrate --config ./tern_test.conf && cd .. && go test ./... -v
 
       - name: Collect docker logs on failure
         if: failure()
