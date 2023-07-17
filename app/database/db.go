@@ -1,6 +1,7 @@
 package database
 
 import (
+	"augustin/utils"
 	"context"
 	"fmt"
 	"os"
@@ -23,15 +24,15 @@ func InitDb() {
 	dbpool, err := pgxpool.New(
 		context.Background(),
 		"postgres://"+
-			os.Getenv("DB_USER")+
+			utils.GetEnv("DB_USER", "user")+
 			":"+
-			os.Getenv("DB_PASS")+
+			utils.GetEnv("DB_PASS", "password")+
 			"@"+
-			os.Getenv("DB_HOST")+
+			utils.GetEnv("DB_HOST", "localhost")+
 			":"+
-			os.Getenv("DB_PORT")+
+			utils.GetEnv("DB_PORT", "5432")+
 			"/"+
-			os.Getenv("DB_NAME")+
+			utils.GetEnv("DB_NAME", "product_api")+
 			"?sslmode=disable",
 	)
 
@@ -53,4 +54,47 @@ func InitDb() {
 // CloseDbPool closes the database connection pool
 func (db *Database) CloseDbPool() {
 	db.Dbpool.Close()
+}
+
+// TestDbType is a struct that contains a database connection pool and a Database struct
+type TestDbType struct {
+	Dbpool *pgxpool.Pool
+	Db     Database
+}
+
+// CreateDbTestInstance creates a new database connection pool for testing purposes and includes some usefull functions
+func CreateDbTestInstance() TestDbType {
+	dbpool, err := pgxpool.New(
+		context.Background(),
+		"postgres://"+
+			utils.GetEnv("DB_USER", "user")+
+			":"+
+			utils.GetEnv("DB_PASS", "password")+
+			"@"+
+			utils.GetEnv("DB_HOST_TEST", "localhost")+
+			":"+
+			utils.GetEnv("DB_PORT", "5433")+
+			"/"+
+			utils.GetEnv("DB_NAME", "product_api")+
+			"?sslmode=disable",
+	)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
+		os.Exit(1)
+	}
+	TestDb := TestDbType{
+		Dbpool: dbpool,
+		Db:     Database{Dbpool: dbpool},
+	}
+	return TestDb
+}
+
+// EmptyDatabase truncates all tables in the database
+func (t *TestDbType) EmptyDatabase() error {
+	_, err := t.Dbpool.Exec(context.Background(), "truncate table accounts, items, paymenttypes, payments, settings cascade")
+	if err != nil {
+		log.Fatalf("Truncate failed: %v\n", err)
+	}
+	return err
 }
