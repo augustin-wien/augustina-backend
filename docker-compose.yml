@@ -10,7 +10,9 @@ services:
     volumes:
       - ./app:/app
     command: >
-      sh -c "tern migrate --migrations ./migrations --config ./migrations/tern.conf && tern migrate --migrations ./migrations --config ./migrations/tern_test.conf  && go run main.go"
+      sh -c "tern migrate --migrations ./migrations --config
+      ./migrations/tern.conf && tern migrate --migrations ./migrations --config
+      ./migrations/tern_test.conf  && go run main.go"
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
@@ -47,7 +49,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  
+
   augustin-db-test:
     container_name: augustin-db-test
     image: postgres:14.2
@@ -62,7 +64,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - dbdata-test:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
@@ -92,3 +94,4 @@ services:
 
 volumes:
   dbdata:
+  dbdata-test:
