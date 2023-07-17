@@ -49,15 +49,14 @@ func InitializeOauthServer() {
 	}
 }
 func (k *Keycloak) Login(username string, password string) (*gocloak.JWT, error) {
-	return k.Client.LoginAdmin(k.Context,username, password, "master")
+	return k.Client.LoginAdmin(k.Context, username, password, "master")
 }
 
 func (k *Keycloak) LoginClient() (*gocloak.JWT, error) {
 	return k.Client.LoginClient(k.Context, k.ClientId, k.ClientSecret, k.Realm)
 }
 
-
-//  User functions
+// User functions
 func (k *Keycloak) GetUserInfo(user_token string) (*gocloak.UserInfo, error) {
 	return k.Client.GetUserInfo(k.Context, user_token, k.Realm)
 }
@@ -69,7 +68,6 @@ func (k *Keycloak) GetUserByID(user_token string, id string) (*gocloak.User, err
 func (k *Keycloak) IntrospectToken(user_token string) (*gocloak.IntroSpectTokenResult, error) {
 	return k.Client.RetrospectToken(k.Context, user_token, k.ClientId, k.ClientSecret, k.Realm)
 }
-
 
 // Admin functions
 func (k *Keycloak) GetRoles() ([]*gocloak.Role, error) {
@@ -101,7 +99,7 @@ func (k *Keycloak) AssignRole(user_id string, role_name string) error {
 	if err != nil {
 		return err
 	}
-	return k.Client.AddRealmRoleToUser(k.Context, k.admin_token.AccessToken, k.Realm, user_id, []gocloak.Role{*role,})
+	return k.Client.AddRealmRoleToUser(k.Context, k.admin_token.AccessToken, k.Realm, user_id, []gocloak.Role{*role})
 }
 
 func (k *Keycloak) UnassignRole(user_id string, role_name string) error {
@@ -109,14 +107,14 @@ func (k *Keycloak) UnassignRole(user_id string, role_name string) error {
 	if err != nil {
 		return err
 	}
-	return k.Client.DeleteRealmRoleFromUser(k.Context, k.admin_token.AccessToken, k.Realm, user_id, []gocloak.Role{*role,})
+	return k.Client.DeleteRealmRoleFromUser(k.Context, k.admin_token.AccessToken, k.Realm, user_id, []gocloak.Role{*role})
 }
 
 func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 	exact := true
 	p := gocloak.GetUsersParams{
 		Username: &username,
-		Exact:   &exact,
+		Exact:    &exact,
 	}
 	users, err := k.Client.GetUsers(k.Context, k.admin_token.AccessToken, k.Realm, p)
 	// if length of users is 0, then user does not exist
@@ -132,7 +130,7 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 
 func (k *Keycloak) CreateUser(first_name string, last_name string, email string) (user_id string, err error) {
 	return k.Client.CreateUser(k.Context, k.admin_token.AccessToken, k.Realm, gocloak.User{
-		Username: &email,
+		Username:  &email,
 		FirstName: &first_name,
 		LastName:  &last_name,
 		Email:     &email,
