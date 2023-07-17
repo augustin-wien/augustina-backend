@@ -10,7 +10,7 @@ services:
     volumes:
       - ./app:/app
     command: >
-      sh -c "tern migrate --migrations ./migrations --config ./migrations/tern.conf && tern migrate --migrations ./migrations --config ./migrations/tern_test.conf && cd .. && go run main.go"
+      sh -c "tern migrate --migrations ./migrations --config ./migrations/tern.conf && tern migrate --migrations ./migrations --config ./migrations/tern_test.conf  && go run main.go"
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
