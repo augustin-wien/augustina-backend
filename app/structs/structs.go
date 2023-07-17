@@ -5,48 +5,58 @@ import (
 )
 
 // Attributes have to be uppercase to be exported
-// TODO: I would avoid using different json names
 
-type Settings struct {
-	ID    int32
-	Color string
-	Logo  string
-	Items []Item
-}
-
-type Item struct {
-	ID    int32
-	Name  string
-	Price float32
-}
-
-type Vendor struct {
-	Credit   float64 `json:"credit"`
-	QRcode   string  `json:"qrcode"`
-	IDnumber string  `json:"idnumber"`
+type Person struct {
+	ID	   	   int32
+	KeycloakID string
+	UrlID	   string  // This will be the QR code
+	LicenseID  string
+	FirstName  string
+	LastName   string
+	IsVendor   bool
+	IsAdmin    bool
 }
 
 type Account struct {
-	ID   pgtype.Int4
-	Name pgtype.Text
+	ID     int32
+	Name   string
+	Person Person
+	// TODO: Balance
+}
+
+type Item struct {
+	ID         int32
+	Name       string
+	Price      float32
+	IsEditable bool
+	Image      string
 }
 
 type PaymentType struct {
-	ID   pgtype.Int4
-	Name pgtype.Text
-}
-
-type Payment struct {
-	ID        pgtype.Int8
-	Timestamp pgtype.Timestamp
-	Sender    pgtype.Int4
-	Receiver  pgtype.Int4
-	Type      pgtype.Int4
-	Amount    pgtype.Float4
+	ID   int32
+	Name string
 }
 
 type PaymentBatch struct {
+	ID 	     int64
 	Payments []Payment
+}
+
+type Payment struct {
+	ID        int64
+	Timestamp pgtype.Timestamp
+	Sender    int32
+	Receiver  int32
+	Type      int32
+	Amount    float32
+}
+
+type Settings struct {
+	ID         int32
+	Color      string
+	Logo       string
+	Newspaper  Item
+	RefundFees bool
 }
 
 type DatabaseInterface interface {

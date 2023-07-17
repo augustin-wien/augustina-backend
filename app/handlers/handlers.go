@@ -24,12 +24,15 @@ import (
 	"augustin/database"
 	"augustin/structs"
 	"encoding/json"
+	"io"
 	"net/http"
+	"os"
+	"strings"
 
+	"github.com/mitchellh/mapstructure"
+	log "github.com/sirupsen/logrus"
 	_ "github.com/swaggo/files"        // swagger embed files
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
-
-	log "github.com/sirupsen/logrus"
 )
 
 // ReturnHelloWorld godoc
@@ -51,6 +54,53 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write([]byte(greeting))
 }
+
+
+// UpdateItem requires a multipart form
+// https://www.sobyte.net/post/2022-03/go-multipart-form-data/
+func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
+
+	// Read multipart form
+	r.ParseMultipartForm(32 << 20)
+	mForm := r.MultipartForm
+
+	// Handle normal fields
+	var item structs.Item
+	fields := mForm.Value
+	err = mapstructure.Decode(fields, &item)
+    if err != nil {
+        panic(err)
+    }
+
+    // Get file from image field
+    file, header, err := r.FormFile("Image")
+    if err != nil {
+        panic(err)
+    }
+    defer file.Close()
+
+	// Debugging
+    name := strings.Split(header.Filename, ".")
+	log.Info("Uploading %s\n", name[0])
+
+	// Save file
+	path := "/img/"+header.Filename
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
+	io.Copy(f, file)
+	item.Image = path
+
+	// Save item to database
+	err = database.Db.UpdateItem(item)
+	if err != nil {
+		panic(err)
+	}
+
+    return err
+}
+
 
 // CreatePayments godoc
 //

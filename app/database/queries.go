@@ -84,30 +84,7 @@ func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
 	return nil
 }
 
-func (db *Database) UpdateSettings(settings structs.Settings) (err error) {
-	_, err = db.Dbpool.Query(context.Background(), `
-	INSERT INTO Settings (Color, Logo) VALUES ($1, $2)
-	ON CONFLICT (ID)
-	DO UPDATE SET Color = $1, Logo = $2
-	`, settings.Color, settings.Logo)
 
-	if err != nil {
-		log.Errorf("SetSettings failed: %v\n", err)
-	}
-
-	// Set items
-	for _, item := range settings.Items {
-		_, err = db.Dbpool.Query(context.Background(), `
-		INSERT INTO Items (Name, Price) VALUES ($1, $2)
-		ON CONFLICT (Name)
-		DO UPDATE SET Name = $1, Price = $2
-		`, item.Name, item.Price)
-		if err != nil {
-			log.Errorf("SetSettings failed: %v\n", err)
-		}
-	}
-	return err
-}
 
 func (db *Database) GetItems() ([]structs.Item, error) {
 	var items []structs.Item
@@ -126,15 +103,65 @@ func (db *Database) GetItems() ([]structs.Item, error) {
 	return items, nil
 }
 
+func (db *Database) UpdateItem(item structs.Item) (err error) {
+
+	// TODO: Throw error if is_editable = False
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE Item
+	SET Name = $2, Price = $3, Image = $4
+	WHERE ID = $1
+	`, item.ID, item.Name, item.Price, item.Image)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Set items
+	// for _, item := range settings.Items {
+	// 	_, err = db.Dbpool.Query(context.Background(), `
+	// 	INSERT INTO Items (Name, Price) VALUES ($1, $2)
+	// 	ON CONFLICT (Name)
+	// 	DO UPDATE SET Name = $1, Price = $2
+	// 	`, item.Name, item.Price)
+	// 	if err != nil {
+	// 		log.Errorf("SetSettings failed: %v\n", err)
+	// 	}
+	// }
+	return err
+}
+
 func (db *Database) GetSettings() (structs.Settings, error) {
 	var settings structs.Settings
 	err := db.Dbpool.QueryRow(context.Background(), `select * from Settings LIMIT 1`).Scan(&settings.ID, &settings.Color, &settings.Logo)
 	if err != nil {
 		log.Errorf("GetSettings failed: %v\n", err)
 	}
-	items, err := db.GetItems()
-	settings.Items = items
 	return settings, err
+}
+
+func (db *Database) UpdateSettings(settings structs.Settings) (err error) {
+	_, err = db.Dbpool.Query(context.Background(), `
+	INSERT INTO Settings (Color, Logo) VALUES ($1, $2)
+	ON CONFLICT (ID)
+	DO UPDATE SET Color = $1, Logo = $2
+	`, settings.Color, settings.Logo)
+
+	if err != nil {
+		log.Errorf("SetSettings failed: %v\n", err)
+	}
+
+	// Set items
+	// for _, item := range settings.Items {
+	// 	_, err = db.Dbpool.Query(context.Background(), `
+	// 	INSERT INTO Items (Name, Price) VALUES ($1, $2)
+	// 	ON CONFLICT (Name)
+	// 	DO UPDATE SET Name = $1, Price = $2
+	// 	`, item.Name, item.Price)
+	// 	if err != nil {
+	// 		log.Errorf("SetSettings failed: %v\n", err)
+	// 	}
+	// }
+	return err
 }
 
 func (db *Database) GetVendorSettings() (string, error) {
