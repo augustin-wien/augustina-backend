@@ -21,21 +21,21 @@ var Db Database
 func InitDb() {
 	dbpool, err := pgxpool.New(
 		context.Background(),
-		"postgres://" +
-		os.Getenv("DB_USER") +
-		":" +
-		os.Getenv("DB_PASS") +
-		"@"  +
-		os.Getenv("DB_HOST") +
-		":" +
-		os.Getenv("DB_PORT") +
-		"/" +
-		os.Getenv("DB_NAME") +
-		"?sslmode=disable",
+		"postgres://"+
+			os.Getenv("DB_USER")+
+			":"+
+			os.Getenv("DB_PASS")+
+			"@"+
+			os.Getenv("DB_HOST")+
+			":"+
+			os.Getenv("DB_PORT")+
+			"/"+
+			os.Getenv("DB_NAME")+
+			"?sslmode=disable",
 	)
 
 	if err != nil {
-		log.Error(os.Stderr, "Unable to create connection pool:", err)
+		log.Errorf("Unable to create connection pool: %v\n", err)
 		os.Exit(1)
 	}
 	Db = Database{Dbpool: dbpool}
@@ -43,7 +43,7 @@ func InitDb() {
 	var greeting string
 	greeting, err = Db.GetHelloWorld()
 	if err != nil {
-		log.Error(os.Stderr, "InitDb failed: ", err)
+		log.Errorf("InitDb failed: %v\n", err)
 		os.Exit(1)
 	}
 	log.Infof("InitDb succesfull: %v", greeting)
