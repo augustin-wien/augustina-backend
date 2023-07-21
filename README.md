@@ -25,11 +25,19 @@ Run linter within the augustin shell:
 golint ./...
 ```
 
-Run tests within the augustin shell:
+Run tests within the augustin shell (sed is used to colorize the output):
 
 ```bash
-go test -v -cover
+go test ./... -v -cover | sed ''/PASS/s//$(printf "\033[32mPASS\033[0m")/'' | sed ''/FAIL/s//$(printf "\033[31mFAIL\033[0m")/''  | sed ''/ERROR/s//$(printf "\033[31mERROR\033[0m")/''
 ```
+
+Open SQL shell in the container (assuming the variables from `.env.example` are used):
+
+```bash
+docker exec -it augustin-db-test  psql -U user -W product_api
+```
+
+And then enter `password` as password.
 
 ### Migrations
 

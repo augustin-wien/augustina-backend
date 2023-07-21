@@ -22,6 +22,7 @@ package handlers
 
 import (
 	"augustin/structs"
+	"augustin/utils"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -29,7 +30,6 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
-	log "github.com/sirupsen/logrus"
 	_ "github.com/swaggo/files"        // swagger embed files
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
 
@@ -44,6 +44,8 @@ import (
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
+
+var log = utils.InitLog()
 
 type Server struct {
 	Router *chi.Mux
@@ -145,7 +147,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 
 	// Debugging
     name := strings.Split(header.Filename, ".")
-	log.Info("Uploading %s\n", name[0])
+	log.Infof("Uploading %s\n", name[0])
 
 	// Save file
 	path := "/img/"+header.Filename

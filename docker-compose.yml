@@ -61,8 +61,9 @@ services:
       POSTGRES_DB: ${DB_NAME}
       TZ: "UTC"
       PGTZ: "UTC"
+    command: -p 5433
     ports:
-      - "5433:5432"
+      - "5433:5433"
     volumes:
       - dbdata-test:/var/lib/postgresql/data
     healthcheck:

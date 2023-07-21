@@ -5,6 +5,7 @@ import (
 )
 
 // Attributes have to be uppercase to be exported
+// Pgtype types are required if a field is nullable
 
 type Person struct {
 	ID	   	   int32
@@ -43,12 +44,15 @@ type PaymentBatch struct {
 }
 
 type Payment struct {
-	ID        int64
-	Timestamp pgtype.Timestamp
-	Sender    int32
-	Receiver  int32
-	Type      int32
-	Amount    float32
+	ID        	 int64
+	Timestamp 	 pgtype.Timestamp
+	Sender    	 int32
+	Receiver  	 int32
+	Type      	 int32
+	Amount    	 float32
+	AuthorizedBy pgtype.Int4
+	Item	     pgtype.Int4
+	PaymentBatch pgtype.Int8
 }
 
 type Settings struct {

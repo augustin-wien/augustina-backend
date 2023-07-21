@@ -5,15 +5,16 @@ import (
 
 	"augustin/database"
 	"augustin/handlers"
+	"augustin/keycloak"
+	"augustin/utils"
 
 	"github.com/joho/godotenv"
-	log "github.com/sirupsen/logrus"
-
-	"augustin/keycloak"
+	"go.uber.org/zap"
 )
 
+var log = utils.InitLog()
+
 func main() {
-	initLog()
 	log.Info("Starting Augustin Server v0.0.1")
 	// load .env file
 	err := godotenv.Load("../.env")
@@ -27,11 +28,5 @@ func main() {
 	s.MountHandlers()
 	log.Info("Server started on port 3000")
 	err = http.ListenAndServe(":3000", s.Router)
-	log.Error("Server stopped ", err)
-}
-
-func initLog() {
-	customFormatter := new(log.TextFormatter)
-	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
-	log.SetFormatter(customFormatter)
+	log.Error("Server stopped ", zap.Error(err))
 }

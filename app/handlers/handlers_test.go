@@ -5,15 +5,14 @@ import (
 	"augustin/structs"
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/jackc/pgtype"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // executeRequest, creates a new ResponseRecorder
@@ -35,22 +34,21 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 	}
 }
 
-var TestDB database.TestDbType
-
 func TestMain(m *testing.M) {
-	// Initialize database
-	TestDB = database.CreateDbTestInstance()
+	// Connect to testing database
+	database.InitTestDb()
 
 	// Run tests
 	code := m.Run()
 
-	// Clean up
-	TestDB.EmptyDatabase()
+	// Connect back to production database
+	database.InitDb()
+
+	// Exit with the code from the tests
 	os.Exit(code)
 }
 
 func TestHelloWorld(t *testing.T) {
-	// Initialize database
 	// Create a New Server Struct
 	s := CreateNewServer()
 
@@ -75,18 +73,10 @@ func Test_Payments(t *testing.T) {
 	s := CreateNewServer()
 	s.MountHandlers()
 
-	// Reset tables
-	err := TestDB.EmptyDatabase()
-	if err != nil {
-		t.Errorf("Truncate payments failed: %v\n", err)
-	}
-
 	// Set up a payment type
-	payment_type_id, err := TestDB.Db.CreatePaymentType(
+	payment_type_id, err := database.Db.CreatePaymentType(
 		structs.PaymentType{
-			Name: pgtype.Text{String: "Test type",
-				Valid: true,
-			},
+			Name: "Test type",
 		},
 	)
 	if err != nil {
@@ -94,8 +84,8 @@ func Test_Payments(t *testing.T) {
 	}
 
 	// Set up a payment account
-	account_id, err := TestDB.Db.CreateAccount(
-		structs.Account{Name: pgtype.Text{String: "Test account", Valid: true}},
+	account_id, err := database.Db.CreateAccount(
+		structs.Account{Name: "Test account"},
 	)
 	if err != nil {
 		t.Errorf("CreateAccount failed: %v\n", err)
@@ -108,14 +98,14 @@ func Test_Payments(t *testing.T) {
 				Sender:   account_id,
 				Receiver: account_id,
 				Type:     payment_type_id,
-				Amount:   pgtype.Float4{Float32: 3.14, Valid: true},
+				Amount:   float32(3.14),
 			},
 		},
 	}
 	var body bytes.Buffer
 	err = json.NewEncoder(&body).Encode(f)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("smth", zap.Error(err))
 	}
 	req, _ := http.NewRequest("POST", "/api/payments/", &body)
 	response := executeRequest(req, s)
@@ -127,7 +117,7 @@ func Test_Payments(t *testing.T) {
 	req2, err := http.NewRequest("GET", "/api/payments/", nil)
 	response2 := executeRequest(req2, s)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("smth", zap.Error(err))
 	}
 
 	// Check the response
@@ -139,13 +129,17 @@ func Test_Payments(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	require.Equal(t, 1, len(payments))
+	if t.Failed() {
+		return
+	}
 
 	// Test payments response
-	require.Equal(t, payments[0].Amount.Float32, float32(3.14))
+	require.Equal(t, payments[0].Amount, float32(3.14))
 	require.Equal(t, payments[0].Sender, account_id)
 	require.Equal(t, payments[0].Receiver, account_id)
 	require.Equal(t, payments[0].Type, payment_type_id)
 	require.Equal(t, payments[0].Timestamp.Time.Day(), time.Now().Day())
 	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().Hour())
-	require.Equal(t, len(payments), 1)
+
 }
