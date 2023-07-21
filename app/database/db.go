@@ -27,7 +27,7 @@ func InitDb() {
 }
 
 // Connect to testing database and store it in the global Db variable
-func InitTestDb() {
+func InitEmptyTestDb() {
 	initDb(false)
 	err := EmptyDatabase()
 	if err != nil {

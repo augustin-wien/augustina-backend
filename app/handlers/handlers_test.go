@@ -36,7 +36,7 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 
 func TestMain(m *testing.M) {
 	// Connect to testing database
-	database.InitTestDb()
+	database.InitEmptyTestDb()
 
 	// Run tests
 	code := m.Run()

@@ -13,7 +13,7 @@ import (
 // TestMain is the main function for the database tests and initializes the database
 func TestMain(m *testing.M) {
 	// Connect to testing database
-	InitTestDb()
+	InitEmptyTestDb()
 
 	// Run tests
 	code := m.Run()
