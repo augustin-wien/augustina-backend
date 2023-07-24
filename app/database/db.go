@@ -3,7 +3,6 @@ package database
 import (
 	"augustin/utils"
 	"context"
-	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -13,7 +12,6 @@ var log = utils.InitLog()
 
 // Database struct
 type Database struct {
-	// Db, config can be added here
 	Dbpool *pgxpool.Pool
 	IsProduction bool
 }
@@ -22,22 +20,25 @@ type Database struct {
 var Db Database
 
 // Connect to production database and store it in the global Db variable
-func InitDb() {
-	initDb(true)
+func InitDb() (err error) {
+	err = initDb(true, true)
+	return err
 }
 
 // Connect to testing database and store it in the global Db variable
-func InitEmptyTestDb() {
-	initDb(false)
-	err := EmptyDatabase()
+func InitEmptyTestDb() (err error) {
+	err = initDb(false, false)
 	if err != nil {
-		log.Error("Unable to empty database: %v\n", zap.Error(err))
-		os.Exit(1)
+		return err
 	}
+	err = EmptyDatabase()
+	return err
 }
 
 // initDb initializes the database connection pool and stores it in the global Db variable
-func initDb(production bool) {
+func initDb(production bool, info bool) (err error) {
+
+	// Create connection pool
 	var extra_key string
 	if !production {
 		extra_key = "_TEST"
@@ -56,20 +57,26 @@ func initDb(production bool) {
 			utils.GetEnv("DB_NAME", "product_api")+
 			"?sslmode=disable",
 	)
-	log.Info("Actually received", utils.GetEnv("DB_PORT" + extra_key, "5432"))
 	if err != nil {
 		log.Error("Unable to create connection pool", zap.Error(err))
-		os.Exit(1)
+		return
 	}
-	Db = Database{Dbpool: dbpool, IsProduction: production}
+
+	// Store connection pool in global Db variable
+	Db.Dbpool = dbpool
+	Db.IsProduction = production
+
+	// Check if database is reachable
 	var greeting string
 	greeting, err = Db.GetHelloWorld()
 	if err != nil {
-		log.Errorf("InitDb failed: %v\n", err)
-		os.Exit(1)
+		log.Error("InitDb failed", zap.Error(err))
+		return
 	}
-	log.Info("InitDb succesfull: ", greeting)
-
+	if info {
+		log.Info("InitDb succesfull: ", greeting)
+	}
+	return
 }
 
 // CloseDbPool closes the database connection pool
@@ -78,11 +85,11 @@ func (db *Database) CloseDbPool() {
 }
 
 // EmptyDatabase truncates all tables in the database
-func EmptyDatabase() error {
+func EmptyDatabase() (err error) {
 	if Db.IsProduction {
 		log.Fatal("Cannot empty production database")
+		return
 	}
-	_, err := Db.Dbpool.Exec(context.Background(), "SELECT truncate_tables('user');")
-	return err
-
+	_, err = Db.Dbpool.Exec(context.Background(), "SELECT truncate_tables('user');")
+	return
 }

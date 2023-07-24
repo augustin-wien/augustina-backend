@@ -73,19 +73,18 @@ func (s *Server) MountHandlers() {
 	}))
 	s.Router.Use(middleware.Recoverer)
 
-	// Mount all handlers here
+	// Protected routes
 	s.Router.Group(func(r chi.Router) {
 		r.Use(middleware.Timeout(60 * 1000000000)) // 60 seconds
 		r.Use(middlewares.AuthMiddleware)
 		r.Get("/api/auth/hello/", HelloWorld)
 	})
-	s.Router.Get("/api/hello/", HelloWorld)
 
+	// Public routes
+	s.Router.Get("/api/hello/", HelloWorld)
 	s.Router.Get("/api/payments/", GetPayments)
 	s.Router.Post("/api/payments/", CreatePayments)
-
-	s.Router.Get("/api/settings/", GetSettings)
-
+	s.Router.Get("/api/settings/", getSettings)
 	s.Router.Get("/api/vendor/", Vendors)
 
 	s.Router.Get("/swagger/*", httpSwagger.Handler(
@@ -112,13 +111,12 @@ func (s *Server) MountHandlers() {
 //
 // HelloWorld API Handler fetching data from database
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
-	// greeting, err := database.Db.GetHelloWorld()
-	// if err != nil {
-	// 	log.Errorf("QueryRow failed: %v\n", err)
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
-	w.Write([]byte("Hello, world!"))
+	greeting, err := database.Db.GetHelloWorld()
+	if err != nil {
+		errorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusOK, greeting)
 }
 
 
@@ -203,21 +201,20 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 //		@Router			/payments [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch structs.PaymentBatch
-	err := json.NewDecoder(r.Body).Decode(&paymentBatch)
+	err := readJSON(w, r, &paymentBatch)
 	if err != nil {
-		log.Errorf("JSON conversion failed: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		errorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+
 	err = database.Db.CreatePayments(paymentBatch.Payments)
 	if err != nil {
-		log.Errorf("CreatePayments query failed: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		errorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 }
 
-// ReturnSettings godoc
+// getSettings godoc
 //
 //	 	@Summary 		Return settings
 //		@Description	Return settings about the web-shop
@@ -227,22 +224,13 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 //		@Success		200	{array}	structs.Settings
 //		@Router			/settings/ [get]
 //
-// Get Settings API Handler fetching data without database
-func GetSettings(w http.ResponseWriter, r *http.Request) {
+func getSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := database.Db.GetSettings()
 	if err != nil {
-		log.Errorf("QueryRow failed: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		errorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-
-	marshal_struct, err := json.Marshal(settings)
-	if err != nil {
-		log.Errorf("JSON conversion failed: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write([]byte(marshal_struct))
+	writeJSON(w, http.StatusOK, settings)
 }
 
 // ReturnVendorInformation godoc

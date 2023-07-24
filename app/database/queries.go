@@ -9,9 +9,6 @@ import (
 
 // GetHelloWorld returns the string "Hello, world!" from the database and should be used as a template for other queries
 func (db *Database) GetHelloWorld() (string, error) {
-
-	log.Info("init queries")
-
 	var greeting string
 	err := db.Dbpool.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
 	if err != nil {

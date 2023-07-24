@@ -41,12 +41,11 @@ func TestMain(m *testing.M) {
 	// Run tests
 	code := m.Run()
 
-	// Connect back to production database
-	database.InitDb()
-
 	// Exit with the code from the tests
 	os.Exit(code)
 }
+
+// TESTS START HERE -------------------------------------------------------- //
 
 func TestHelloWorld(t *testing.T) {
 	// Create a New Server Struct
@@ -65,10 +64,10 @@ func TestHelloWorld(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, "Hello, world!", response.Body.String())
+	require.Equal(t, "\"Hello, world!\"", response.Body.String())
 }
 
-func Test_Payments(t *testing.T) {
+func TestPayments(t *testing.T) {
 	// Initialize test case
 	s := CreateNewServer()
 	s.MountHandlers()
