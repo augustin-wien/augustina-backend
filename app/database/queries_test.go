@@ -1,7 +1,6 @@
 package database
 
 import (
-	"augustin/structs"
 	"context"
 	"os"
 	"reflect"
@@ -56,7 +55,7 @@ func Test_GetHelloWorld(t *testing.T) {
 
 func Test_UpdateSettings(t *testing.T) {
 	// Define settings
-	err := Db.UpdateSettings(structs.Settings{
+	err := Db.UpdateSettings(Settings{
 		Color: "red",
 		Logo:  "/img/Augustin-Logo-Rechteck.jpg",
 	},

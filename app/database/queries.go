@@ -1,7 +1,6 @@
 package database
 
 import (
-	"augustin/structs"
 	"context"
 
 	"go.uber.org/zap"
@@ -19,15 +18,15 @@ func (db *Database) GetHelloWorld() (string, error) {
 }
 
 // GetPayments returns the payments from the database
-func (db *Database) GetPayments() ([]structs.Payment, error) {
-	var payments []structs.Payment
+func (db *Database) GetPayments() ([]Payment, error) {
+	var payments []Payment
 	rows, err := db.Dbpool.Query(context.Background(), "select * from payment")
 	if err != nil {
 		log.Error("GetPayments failed", zap.Error(err))
 		return payments, err
 	}
 	for rows.Next() {
-		var payment structs.Payment
+		var payment Payment
 		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Type, &payment.Amount, &payment.AuthorizedBy, &payment.Item, &payment.PaymentBatch)
 		if err != nil {
 			return payments, err
@@ -38,19 +37,19 @@ func (db *Database) GetPayments() ([]structs.Payment, error) {
 }
 
 // Create payment type
-func (db *Database) CreatePaymentType(pt structs.PaymentType) (id int32, err error) {
+func (db *Database) CreatePaymentType(pt PaymentType) (id int32, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "insert into PaymentType (Name) values ($1) RETURNING ID", pt.Name).Scan(&id)
 	return id, err
 }
 
 // Create account
-func (db *Database) CreateAccount(account structs.Account) (id int32, err error) {
+func (db *Database) CreateAccount(account Account) (id int32, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
 	return id, err
 }
 
 // Create multiple payments
-func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
+func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 	log.Info("CreatePayments called")
 
@@ -88,14 +87,14 @@ func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
 
 
 
-func (db *Database) GetItems() ([]structs.Item, error) {
-	var items []structs.Item
+func (db *Database) GetItems() ([]Item, error) {
+	var items []Item
 	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
 	if err != nil {
 		return items, err
 	}
 	for rows.Next() {
-		var item structs.Item
+		var item Item
 		err = rows.Scan(&item.ID, &item.Name, &item.Price)
 		if err != nil {
 			return items, err
@@ -105,7 +104,7 @@ func (db *Database) GetItems() ([]structs.Item, error) {
 	return items, nil
 }
 
-func (db *Database) UpdateItem(item structs.Item) (err error) {
+func (db *Database) UpdateItem(item Item) (err error) {
 
 	// TODO: Throw error if is_editable = False
 	_, err = db.Dbpool.Exec(context.Background(), `
@@ -132,8 +131,8 @@ func (db *Database) UpdateItem(item structs.Item) (err error) {
 	return err
 }
 
-func (db *Database) GetSettings() (structs.Settings, error) {
-	var settings structs.Settings
+func (db *Database) GetSettings() (Settings, error) {
+	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `select * from Settings LIMIT 1`).Scan(&settings.ID, &settings.Color, &settings.Logo)
 	if err != nil {
 		log.Error("GetSettings failed", zap.Error(err))
@@ -141,7 +140,7 @@ func (db *Database) GetSettings() (structs.Settings, error) {
 	return settings, err
 }
 
-func (db *Database) UpdateSettings(settings structs.Settings) (err error) {
+func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `
 	INSERT INTO Settings (Color, Logo) VALUES ($1, $2)

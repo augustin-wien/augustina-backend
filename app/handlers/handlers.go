@@ -21,7 +21,6 @@
 package handlers
 
 import (
-	"augustin/structs"
 	"augustin/utils"
 	"encoding/json"
 	"io"
@@ -70,7 +69,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	mForm := r.MultipartForm
 
 	// Handle normal fields
-	var item structs.Item
+	var item database.Item
 	fields := mForm.Value
 	err = mapstructure.Decode(fields, &item)
     if err != nil {
@@ -141,7 +140,7 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 //		@Success		200	{array}	structs.PaymentType
 //		@Router			/payments [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
-	var paymentBatch structs.PaymentBatch
+	var paymentBatch database.PaymentBatch
 	err := readJSON(w, r, &paymentBatch)
 	if err != nil {
 		errorJSON(w, err, http.StatusBadRequest)

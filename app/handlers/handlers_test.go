@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"augustin/database"
-	"augustin/structs"
 	"augustin/utils"
 	"bytes"
 	"encoding/json"
@@ -41,7 +40,7 @@ func TestPayments(t *testing.T) {
 
 	// Set up a payment type
 	payment_type_id, err := database.Db.CreatePaymentType(
-		structs.PaymentType{
+		database.PaymentType{
 			Name: "Test type",
 		},
 	)
@@ -51,15 +50,15 @@ func TestPayments(t *testing.T) {
 
 	// Set up a payment account
 	account_id, err := database.Db.CreateAccount(
-		structs.Account{Name: "Test account"},
+		database.Account{Name: "Test account"},
 	)
 	if err != nil {
 		t.Errorf("CreateAccount failed: %v\n", err)
 	}
 
 	// Create payments via API
-	f := structs.PaymentBatch{
-		Payments: []structs.Payment{
+	f := database.PaymentBatch{
+		Payments: []database.Payment{
 			{
 				Sender:   account_id,
 				Receiver: account_id,
@@ -90,7 +89,7 @@ func TestPayments(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response2.Code)
 
 	// Unmarshal response
-	var payments []structs.Payment
+	var payments []database.Payment
 	err = json.Unmarshal(response2.Body.Bytes(), &payments)
 	if err != nil {
 		panic(err)
