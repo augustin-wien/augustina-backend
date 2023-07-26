@@ -18,8 +18,10 @@ services:
       DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME}
       DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
       DB_HOST_TEST: ${DB_HOST_TEST}
-      DB_PORT: 5432
+      DB_PORT_TEST: ${DB_PORT_TEST}
+      DEVELOPMENT: true
     depends_on:
       augustin-db:
         condition: service_healthy
@@ -40,8 +42,9 @@ services:
       POSTGRES_DB: ${DB_NAME}
       TZ: "UTC"
       PGTZ: "UTC"
+    command: -p ${DB_PORT}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
     volumes:
       - dbdata:/var/lib/postgresql/data
     healthcheck:
@@ -61,8 +64,9 @@ services:
       POSTGRES_DB: ${DB_NAME}
       TZ: "UTC"
       PGTZ: "UTC"
+    command: -p ${DB_PORT_TEST}
     ports:
-      - "5433:5432"
+      - "${DB_PORT_TEST}:${DB_PORT_TEST}"
     volumes:
       - dbdata-test:/var/lib/postgresql/data
     healthcheck:

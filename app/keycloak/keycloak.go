@@ -1,13 +1,14 @@
 package keycloak
 
 import (
+	"augustin/utils"
 	"context"
 	"os"
 
 	"github.com/Nerzal/gocloak/v13"
-	log "github.com/sirupsen/logrus"
 )
 
+var log = utils.GetLogger()
 var KeycloakClient Keycloak
 
 type Keycloak struct {
@@ -23,9 +24,7 @@ type Keycloak struct {
 
 // InitializeOauthServer initializes the Keycloak client
 // and stores it in the global variable KeycloakClient
-func InitializeOauthServer() {
-	log.Info("Initializing Keycloak client")
-	var err error
+func InitializeOauthServer() (err error) {
 	KeycloakClient = Keycloak{
 		Hostname:     os.Getenv("KEYCLOAK_HOST"),
 		ClientId:     os.Getenv("KEYCLOAK_CLIENT_ID"),
@@ -47,7 +46,9 @@ func InitializeOauthServer() {
 	if err != nil {
 		log.Error("Error logging in Keycloak client ", err)
 	}
+	return err
 }
+
 func (k *Keycloak) Login(username string, password string) (*gocloak.JWT, error) {
 	return k.Client.LoginAdmin(k.Context, username, password, "master")
 }

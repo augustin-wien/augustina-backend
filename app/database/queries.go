@@ -1,11 +1,9 @@
 package database
 
 import (
-	"augustin/structs"
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
-	log "github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 // GetHelloWorld returns the string "Hello, world!" from the database and should be used as a template for other queries
@@ -13,22 +11,23 @@ func (db *Database) GetHelloWorld() (string, error) {
 	var greeting string
 	err := db.Dbpool.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
 	if err != nil {
-		log.Errorf("QueryRow failed: %v\n", err)
+		log.Error("QueryRow failed: %v\n", zap.Error(err))
 		return "", err
 	}
 	return greeting, err
 }
 
 // GetPayments returns the payments from the database
-func (db *Database) GetPayments() ([]structs.Payment, error) {
-	var payments []structs.Payment
-	rows, err := db.Dbpool.Query(context.Background(), "select * from payments")
+func (db *Database) GetPayments() ([]Payment, error) {
+	var payments []Payment
+	rows, err := db.Dbpool.Query(context.Background(), "select * from payment")
 	if err != nil {
+		log.Error("GetPayments failed", zap.Error(err))
 		return payments, err
 	}
 	for rows.Next() {
-		var payment structs.Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Type, &payment.Amount)
+		var payment Payment
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Type, &payment.Amount, &payment.AuthorizedBy, &payment.Item, &payment.PaymentBatch)
 		if err != nil {
 			return payments, err
 		}
@@ -38,19 +37,21 @@ func (db *Database) GetPayments() ([]structs.Payment, error) {
 }
 
 // Create payment type
-func (db *Database) CreatePaymentType(pt structs.PaymentType) (id pgtype.Int4, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into PaymentTypes (Name) values ($1) RETURNING ID", pt.Name).Scan(&id)
+func (db *Database) CreatePaymentType(pt PaymentType) (id int32, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into PaymentType (Name) values ($1) RETURNING ID", pt.Name).Scan(&id)
 	return id, err
 }
 
 // Create account
-func (db *Database) CreateAccount(account structs.Account) (id pgtype.Int4, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Accounts (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
+func (db *Database) CreateAccount(account Account) (id int32, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
 	return id, err
 }
 
 // Create multiple payments
-func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
+func (db *Database) CreatePayments(payments []Payment) (err error) {
+
+	log.Info("CreatePayments called")
 
 	// Create a transaction to insert all payments at once
 	tx, err := db.Dbpool.Begin(context.Background())
@@ -76,7 +77,7 @@ func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
-		_, err := tx.Exec(context.Background(), "insert into payments ( sender, receiver, type, amount) values ($1, $2, $3, $4)", payment.Sender, payment.Receiver, payment.Type, payment.Amount)
+		_, err := tx.Exec(context.Background(), "INSERT INTO Payment ( Sender, Receiver, Type, Amount) values ($1, $2, $3, $4)", payment.Sender, payment.Receiver, payment.Type, payment.Amount)
 		if err != nil {
 			return err
 		}
@@ -84,39 +85,16 @@ func (db *Database) CreatePayments(payments []structs.Payment) (err error) {
 	return nil
 }
 
-func (db *Database) UpdateSettings(settings structs.Settings) (err error) {
-	_, err = db.Dbpool.Query(context.Background(), `
-	INSERT INTO Settings (Color, Logo) VALUES ($1, $2)
-	ON CONFLICT (ID)
-	DO UPDATE SET Color = $1, Logo = $2
-	`, settings.Color, settings.Logo)
 
-	if err != nil {
-		log.Errorf("SetSettings failed: %v\n", err)
-	}
 
-	// Set items
-	for _, item := range settings.Items {
-		_, err = db.Dbpool.Query(context.Background(), `
-		INSERT INTO Items (Name, Price) VALUES ($1, $2)
-		ON CONFLICT (Name)
-		DO UPDATE SET Name = $1, Price = $2
-		`, item.Name, item.Price)
-		if err != nil {
-			log.Errorf("SetSettings failed: %v\n", err)
-		}
-	}
-	return err
-}
-
-func (db *Database) GetItems() ([]structs.Item, error) {
-	var items []structs.Item
+func (db *Database) GetItems() ([]Item, error) {
+	var items []Item
 	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
 	if err != nil {
 		return items, err
 	}
 	for rows.Next() {
-		var item structs.Item
+		var item Item
 		err = rows.Scan(&item.ID, &item.Name, &item.Price)
 		if err != nil {
 			return items, err
@@ -126,22 +104,73 @@ func (db *Database) GetItems() ([]structs.Item, error) {
 	return items, nil
 }
 
-func (db *Database) GetSettings() (structs.Settings, error) {
-	var settings structs.Settings
+func (db *Database) UpdateItem(item Item) (err error) {
+
+	// TODO: Throw error if is_editable = False
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE Item
+	SET Name = $2, Price = $3, Image = $4
+	WHERE ID = $1
+	`, item.ID, item.Name, item.Price, item.Image)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Set items
+	// for _, item := range settings.Items {
+	// 	_, err = db.Dbpool.Query(context.Background(), `
+	// 	INSERT INTO Items (Name, Price) VALUES ($1, $2)
+	// 	ON CONFLICT (Name)
+	// 	DO UPDATE SET Name = $1, Price = $2
+	// 	`, item.Name, item.Price)
+	// 	if err != nil {
+	// 		log.Errorf("SetSettings failed: %v\n", err)
+	// 	}
+	// }
+	return err
+}
+
+func (db *Database) GetSettings() (Settings, error) {
+	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `select * from Settings LIMIT 1`).Scan(&settings.ID, &settings.Color, &settings.Logo)
 	if err != nil {
-		log.Errorf("GetSettings failed: %v\n", err)
+		log.Error("GetSettings failed", zap.Error(err))
 	}
-	items, err := db.GetItems()
-	settings.Items = items
 	return settings, err
+}
+
+func (db *Database) UpdateSettings(settings Settings) (err error) {
+
+	_, err = db.Dbpool.Query(context.Background(), `
+	INSERT INTO Settings (Color, Logo) VALUES ($1, $2)
+	ON CONFLICT (ID)
+	DO UPDATE SET Color = $1, Logo = $2
+	`, settings.Color, settings.Logo)
+
+	if err != nil {
+		log.Error("SetSettings failed:", zap.Error(err))
+	}
+
+	// Set items
+	// for _, item := range settings.Items {
+	// 	_, err = db.Dbpool.Query(context.Background(), `
+	// 	INSERT INTO Items (Name, Price) VALUES ($1, $2)
+	// 	ON CONFLICT (Name)
+	// 	DO UPDATE SET Name = $1, Price = $2
+	// 	`, item.Name, item.Price)
+	// 	if err != nil {
+	// 		log.Errorf("SetSettings failed: %v\n", err)
+	// 	}
+	// }
+	return err
 }
 
 func (db *Database) GetVendorSettings() (string, error) {
 	var settings string
 	err := db.Dbpool.QueryRow(context.Background(), `select '{"credit":1.61,"qrcode":"/img/Augustin-QR-Code.png","idnumber":"123456789"}'`).Scan(&settings)
 	if err != nil {
-		log.Errorf("QueryRow failed: %v\n", err)
+		log.Error("QueryRow failed:", zap.Error(err))
 		return "", err
 	}
 	return settings, nil
