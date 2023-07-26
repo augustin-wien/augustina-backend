@@ -29,16 +29,14 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
+
 	_ "github.com/swaggo/files"        // swagger embed files
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
-
-	_ "github.com/swaggo/files" // swagger embed files
 
 	"augustin/database"
 )
 
 var log = utils.GetLogger()
-
 
 // ReturnHelloWorld godoc
 //
@@ -59,7 +57,6 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, greeting)
 }
 
-
 // UpdateItem requires a multipart form
 // https://www.sobyte.net/post/2022-03/go-multipart-form-data/
 func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
@@ -72,23 +69,23 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	var item database.Item
 	fields := mForm.Value
 	err = mapstructure.Decode(fields, &item)
-    if err != nil {
-        panic(err)
-    }
+	if err != nil {
+		panic(err)
+	}
 
-    // Get file from image field
-    file, header, err := r.FormFile("Image")
-    if err != nil {
-        panic(err)
-    }
-    defer file.Close()
+	// Get file from image field
+	file, header, err := r.FormFile("Image")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
 
 	// Debugging
-    name := strings.Split(header.Filename, ".")
+	name := strings.Split(header.Filename, ".")
 	log.Infof("Uploading %s\n", name[0])
 
 	// Save file
-	path := "/img/"+header.Filename
+	path := "/img/" + header.Filename
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
@@ -102,9 +99,8 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 		panic(err)
 	}
 
-    return err
+	return err
 }
-
 
 // CreatePayments godoc
 //
@@ -163,7 +159,6 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Success		200	{array}	structs.Settings
 //		@Router			/settings/ [get]
-//
 func getSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := database.Db.GetSettings()
 	if err != nil {

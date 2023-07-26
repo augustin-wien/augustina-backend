@@ -24,7 +24,6 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-
 func TestHelloWorld(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/hello/", nil)
 	response := utils.SubmitRequest(req, router)
@@ -105,6 +104,6 @@ func TestPayments(t *testing.T) {
 	require.Equal(t, payments[0].Receiver, account_id)
 	require.Equal(t, payments[0].Type, payment_type_id)
 	require.Equal(t, payments[0].Timestamp.Time.Day(), time.Now().Day())
-	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().Hour())
+	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().UTC().Hour())
 
 }
