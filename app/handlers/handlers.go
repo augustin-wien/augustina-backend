@@ -102,7 +102,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	return err
 }
 
-// CreatePayments godoc
+// GetPayments godoc
 //
 //	 	@Summary 		Get all payments
 //		@Tags			core

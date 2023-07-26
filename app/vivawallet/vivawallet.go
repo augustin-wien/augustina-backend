@@ -1,14 +1,17 @@
 package main
 
 import (
+	"augustin/utils"
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
+
 	"net/http"
 	"net/url"
 	"time"
 )
+
+var log = utils.GetLogger()
 
 type PaymentOrder struct {
 	Amount              int      `json:"amount"`
@@ -36,17 +39,33 @@ type Customer struct {
 	requestLang string `json:"requestLang"`
 }
 
+type AuthenticationResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+	Scope       string `json:"scope"`
+}
+
+type PaymentOrderResponse struct {
+	OrderCode int `json:"orderCode"`
+}
+
 func main() {
 
-	body, err := authenticateToVivaWallet()
+	access_token, err := authenticateToVivaWallet()
 	if err != nil {
 		log.Fatalf("Authentication failed: %s", err)
 	}
-	log.Printf("res body: %s", string(body))
+	log.Info("Access token: %s", access_token)
 
+	orderCode, err := createPaymentOrder(access_token)
+	if err != nil {
+		log.Fatalf("Creating payment order failed: %s", err)
+	}
+	log.Info("Order code: ", orderCode)
 }
 
-func authenticateToVivaWallet() ([]byte, error) {
+func authenticateToVivaWallet() (string, error) {
 	apiURL := "https://demo-accounts.vivapayments.com"
 	resource := "/connect/token"
 	jsonPost := []byte(`grant_type=client_credentials`)
@@ -70,19 +89,27 @@ func authenticateToVivaWallet() ([]byte, error) {
 	if err != nil {
 		log.Fatalf("impossible to send request: %s", err)
 	}
-	log.Printf("status Code: %d", res.StatusCode)
+	log.Info("status Code: %d", res.StatusCode)
 
 	// closes the body after the function returns
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body) // Log the request body
 	if err != nil {
-		log.Printf("Reading body failed: %s", err)
-		return nil, err
+		log.Info("Reading body failed: %s", err)
+		return "", err
 	}
-	return body, nil
+
+	var authResponse AuthenticationResponse
+	err = json.Unmarshal(body, &authResponse)
+	if err != nil {
+		log.Info("Unmarshalling body failed: %s", err)
+		return "", err
+	}
+
+	return authResponse.AccessToken, nil
 }
 
-func createPaymentOrder(accessToken string) (orderCode string) {
+func createPaymentOrder(accessToken string) (int, error) {
 	apiURL := "https://demo-api.vivapayments.com"
 	resource := "/checkout/v2/orders"
 	u, _ := url.ParseRequestURI(apiURL)
@@ -116,6 +143,9 @@ func createPaymentOrder(accessToken string) (orderCode string) {
 	}
 
 	jsonPost, err := json.Marshal(paymentOrder)
+	if err != nil {
+		log.Fatalf("Marshalling payment order failed: %s", err)
+	}
 
 	req, err := http.NewRequest("POST", urlStr, bytes.NewReader(jsonPost))
 	if err != nil {
@@ -124,5 +154,32 @@ func createPaymentOrder(accessToken string) (orderCode string) {
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	// Create a new client with a 10 second timeout
+	// do not forget to set timeout; otherwise, no timeout!
+	client := http.Client{Timeout: 10 * time.Second}
+	// send the request
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("impossible to send request: %s", err)
+	}
+	log.Info("status Code: %d", res.StatusCode)
+
+	// closes the body after the function returns
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body) // Log the request body
+	if err != nil {
+		log.Info("Reading body failed: %s", err)
+		return 0, err
+	}
+
+	var orderCode PaymentOrderResponse
+	err = json.Unmarshal(body, &orderCode)
+	if err != nil {
+		log.Info("Unmarshalling body failed: %s", err)
+		return 0, err
+	}
+
+	return int(orderCode.OrderCode), nil
 
 }
