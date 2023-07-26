@@ -36,69 +36,10 @@ import (
 	_ "github.com/swaggo/files" // swagger embed files
 
 	"augustin/database"
-	"augustin/middlewares"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
-
-	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-var log = utils.InitLog()
+var log = utils.GetLogger()
 
-type Server struct {
-	Router *chi.Mux
-	// Db, config can be added here
-}
-
-func CreateNewServer() *Server {
-	s := &Server{}
-	s.Router = chi.NewRouter()
-	return s
-}
-
-func (s *Server) MountHandlers() {
-	// Mount all Middleware here
-	s.Router.Use(middleware.Logger)
-	s.Router.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://localhost*", "http://localhost*", os.Getenv("FRONTEND_URL")},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	}))
-	s.Router.Use(middleware.Recoverer)
-
-	// Protected routes
-	s.Router.Group(func(r chi.Router) {
-		r.Use(middleware.Timeout(60 * 1000000000)) // 60 seconds
-		r.Use(middlewares.AuthMiddleware)
-		r.Get("/api/auth/hello/", HelloWorld)
-	})
-
-	// Public routes
-	s.Router.Get("/api/hello/", HelloWorld)
-	s.Router.Get("/api/payments/", GetPayments)
-	s.Router.Post("/api/payments/", CreatePayments)
-	s.Router.Get("/api/settings/", getSettings)
-	s.Router.Get("/api/vendor/", Vendors)
-
-	s.Router.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
-	))
-
-	// Mount static file server in img folder
-	fs := http.FileServer(http.Dir("img"))
-	s.Router.Handle("/img/*", http.StripPrefix("/img/", fs))
-
-	fs = http.FileServer(http.Dir("docs"))
-	s.Router.Handle("/docs/*", http.StripPrefix("/docs/", fs))
-
-}
 
 // ReturnHelloWorld godoc
 //

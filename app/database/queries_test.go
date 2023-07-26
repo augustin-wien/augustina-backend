@@ -12,17 +12,8 @@ import (
 
 // TestMain is the main function for the database tests and initializes the database
 func TestMain(m *testing.M) {
-	// Connect to testing database
-	InitEmptyTestDb()
-
-	// Run tests
-	code := m.Run()
-
-	// Connect back to production database
-	InitDb()
-
-	// Exit with the code from the tests
-	os.Exit(code)
+	Db.InitEmptyTestDb()
+	os.Exit(m.Run())
 }
 
 // Test_pingDB tests if the database can be pinged

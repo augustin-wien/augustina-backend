@@ -1,40 +1,30 @@
 package main
 
 import (
-	"net/http"
-
+	"augustin/config"
 	"augustin/database"
 	"augustin/handlers"
 	"augustin/keycloak"
 	"augustin/utils"
-
-	"github.com/joho/godotenv"
-	"go.uber.org/zap"
+	"net/http"
 )
 
-var log = utils.InitLog()
+var log = utils.GetLogger()
+var conf = config.Config
 
 func main() {
-	log.Info("Starting Augustin Server v0.0.1")
-
-	// load .env file
-	err := godotenv.Load("../.env")
-	if err != nil {
-		log.Debug(".env file not found")
-	}
+	log.Info("Starting Augustin Server v", conf.Version)
 
 	// Initialize Keycloak client
 	keycloak.InitializeOauthServer()
 
 	// Initialize database
-	go database.InitDb()
+	go database.Db.InitDb()
 
 	// Initialize server
-	s := handlers.CreateNewServer()
-	s.MountHandlers()
-	log.Info("Server started on port 3000")
-	err = http.ListenAndServe(":3000", s.Router)
+	log.Info("Listening on port ", conf.Port)
+	err := http.ListenAndServe(":" + conf.Port, handlers.GetRouter())
 	if err != nil {
-		log.Fatal("Server stopped", zap.Error(err))
+		log.Fatal(err)
 	}
 }

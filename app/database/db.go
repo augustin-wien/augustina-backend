@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var log = utils.InitLog()
+var log = utils.GetLogger()
 
 // Database struct
 type Database struct {
@@ -20,27 +20,27 @@ type Database struct {
 var Db Database
 
 // Connect to production database and store it in the global Db variable
-func InitDb() (err error) {
-	err = initDb(true, true)
+func (db *Database) InitDb() (err error) {
+	err = db.initDb(true, true)
 	return err
 }
 
-// Connect to testing database and store it in the global Db variable
-func InitEmptyTestDb() (err error) {
-	err = initDb(false, false)
+// Connect to an empty testing database and store it in the global Db variable
+func (db *Database) InitEmptyTestDb() (err error) {
+	err = db.initDb(false, false)
 	if err != nil {
 		return err
 	}
-	err = EmptyDatabase()
+	err = db.EmptyDatabase()
 	return err
 }
 
 // initDb initializes the database connection pool and stores it in the global Db variable
-func initDb(production bool, info bool) (err error) {
+func (db *Database) initDb(isProduction bool, logInfo bool) (err error) {
 
 	// Create connection pool
 	var extra_key string
-	if !production {
+	if !isProduction {
 		extra_key = "_TEST"
 	}
 	dbpool, err := pgxpool.New(
@@ -63,17 +63,17 @@ func initDb(production bool, info bool) (err error) {
 	}
 
 	// Store connection pool in global Db variable
-	Db.Dbpool = dbpool
-	Db.IsProduction = production
+	db.Dbpool = dbpool
+	db.IsProduction = isProduction
 
 	// Check if database is reachable
 	var greeting string
-	greeting, err = Db.GetHelloWorld()
+	greeting, err = db.GetHelloWorld()
 	if err != nil {
-		log.Error("InitDb failed", zap.Error(err))
+		log.Error("InitDb failed", err)
 		return
 	}
-	if info {
+	if logInfo {
 		log.Info("InitDb succesfull: ", greeting)
 	}
 	return
@@ -85,11 +85,11 @@ func (db *Database) CloseDbPool() {
 }
 
 // EmptyDatabase truncates all tables in the database
-func EmptyDatabase() (err error) {
-	if Db.IsProduction {
+func (db *Database) EmptyDatabase() (err error) {
+	if db.IsProduction {
 		log.Fatal("Cannot empty production database")
 		return
 	}
-	_, err = Db.Dbpool.Exec(context.Background(), "SELECT truncate_tables('user');")
+	_, err = db.Dbpool.Exec(context.Background(), "SELECT truncate_tables('user');")
 	return
 }

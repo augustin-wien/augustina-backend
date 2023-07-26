@@ -3,74 +3,41 @@ package handlers
 import (
 	"augustin/database"
 	"augustin/structs"
+	"augustin/utils"
 	"bytes"
 	"encoding/json"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
-// executeRequest, creates a new ResponseRecorder
-// then executes the request by calling ServeHTTP in the router
-// after which the handler writes the response to the response recorder
-// which we can then inspect.
-func executeRequest(req *http.Request, s *Server) *httptest.ResponseRecorder {
-	rr := httptest.NewRecorder()
-	s.Router.ServeHTTP(rr, req)
+var router *chi.Mux
 
-	return rr
-}
-
-// checkResponseCode is a simple utility to check the response code
-// of the response
-func checkResponseCode(t *testing.T, expected, actual int) {
-	if expected != actual {
-		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-	}
-}
-
+// TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
-	// Connect to testing database
-	database.InitEmptyTestDb()
-
-	// Run tests
-	code := m.Run()
-
-	// Exit with the code from the tests
-	os.Exit(code)
+	database.Db.InitEmptyTestDb()
+	router = GetRouter()
+	os.Exit(m.Run())
 }
 
-// TESTS START HERE -------------------------------------------------------- //
 
 func TestHelloWorld(t *testing.T) {
-	// Create a New Server Struct
-	s := CreateNewServer()
-
-	// Mount Handlers
-	s.MountHandlers()
-
-	// Create a New Request
 	req, _ := http.NewRequest("GET", "/api/hello/", nil)
-
-	// Execute Request
-	response := executeRequest(req, s)
+	response := utils.SubmitRequest(req, router)
 
 	// Check the response code
-	checkResponseCode(t, http.StatusOK, response.Code)
+	utils.CheckResponse(t, http.StatusOK, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
 	require.Equal(t, "\"Hello, world!\"", response.Body.String())
 }
 
 func TestPayments(t *testing.T) {
-	// Initialize test case
-	s := CreateNewServer()
-	s.MountHandlers()
 
 	// Set up a payment type
 	payment_type_id, err := database.Db.CreatePaymentType(
@@ -107,14 +74,14 @@ func TestPayments(t *testing.T) {
 		log.Fatal("smth", zap.Error(err))
 	}
 	req, _ := http.NewRequest("POST", "/api/payments/", &body)
-	response := executeRequest(req, s)
+	response := executeRequest(req, router)
 
 	// Check the response
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// Get payments via API
 	req2, err := http.NewRequest("GET", "/api/payments/", nil)
-	response2 := executeRequest(req2, s)
+	response2 := executeRequest(req2, router)
 	if err != nil {
 		log.Fatal("smth", zap.Error(err))
 	}

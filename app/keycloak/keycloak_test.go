@@ -5,8 +5,8 @@ import (
 	"augustin/database"
 	"augustin/handlers"
 	"augustin/keycloak"
+	"augustin/utils"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -15,23 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// executeRequest, creates a new ResponseRecorder
-// then executes the request by calling ServeHTTP in the router
-// after which the handler writes the response to the response recorder
-// which we can then inspect.
-func executeRequest(req *http.Request, s *handlers.Server) *httptest.ResponseRecorder {
-	rr := httptest.NewRecorder()
-	s.Router.ServeHTTP(rr, req)
-
-	return rr
-}
-
-// checkResponseCode is a simple utility to check the response code of the response
-func checkResponseCode(t *testing.T, expected, actual int) {
-	if expected != actual {
-		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-	}
-}
 
 func lookupRole(roleName string, roles []*gocloak.Role) *gocloak.Role {
 	for _, role := range roles {
@@ -111,22 +94,18 @@ func TestHelloWorldAuth(t *testing.T) {
 	if err != nil {
 		log.Error("Error loading .env file")
 	}
-	database.InitDb()
+	database.Db.InitDb()
 
-	// Create a New Server Struct
-	s := handlers.CreateNewServer()
-
-	// Mount Handlers
-	s.MountHandlers()
+	router := handlers.GetRouter()
 
 	// Create a New Request
 	req, _ := http.NewRequest("GET", "/api/auth/hello/", nil)
 
 	// Execute Request
-	response := executeRequest(req, s)
+	response := utils.SubmitRequest(req, router)
 
 	// Check the response code
-	checkResponseCode(t, 401, response.Code)
+	utils.CheckResponse(t, 401, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
 	require.Equal(t, "Unauthorized\n", response.Body.String())

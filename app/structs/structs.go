@@ -53,6 +53,7 @@ type Payment struct {
 	AuthorizedBy pgtype.Int4
 	Item	     pgtype.Int4
 	PaymentBatch pgtype.Int8
+
 }
 
 type Settings struct {
