@@ -3,7 +3,6 @@ package handlers
 import (
 	"augustin/database"
 	"augustin/utils"
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -12,28 +11,34 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 )
 
-var router *chi.Mux
+var r *chi.Mux
+
+
 
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
 	database.Db.InitEmptyTestDb()
-	router = GetRouter()
+	r = GetRouter()
 	os.Exit(m.Run())
 }
 
 
 func TestHelloWorld(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/hello/", nil)
-	response := utils.SubmitRequest(req, router)
+	response := utils.SubmitRequest(req, r)
 
 	// Check the response code
 	utils.CheckResponse(t, http.StatusOK, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
 	require.Equal(t, "\"Hello, world!\"", response.Body.String())
+}
+
+// TestItems tests CRUD operations on items (including images)
+func TestItems(t *testing.T) {
+
 }
 
 func TestPayments(t *testing.T) {
@@ -44,17 +49,13 @@ func TestPayments(t *testing.T) {
 			Name: "Test type",
 		},
 	)
-	if err != nil {
-		t.Errorf("CreatePaymentType failed: %v\n", err)
-	}
+	utils.CheckError(t, err)
 
 	// Set up a payment account
 	account_id, err := database.Db.CreateAccount(
 		database.Account{Name: "Test account"},
 	)
-	if err != nil {
-		t.Errorf("CreateAccount failed: %v\n", err)
-	}
+	utils.CheckError(t, err)
 
 	// Create payments via API
 	f := database.PaymentBatch{
@@ -67,33 +68,13 @@ func TestPayments(t *testing.T) {
 			},
 		},
 	}
-	var body bytes.Buffer
-	err = json.NewEncoder(&body).Encode(f)
-	if err != nil {
-		log.Fatal("smth", zap.Error(err))
-	}
-	req, _ := http.NewRequest("POST", "/api/payments/", &body)
-	response := utils.SubmitRequest(req, router)
-
-	// Check the response
-	utils.CheckResponse(t, http.StatusOK, response.Code)
-
-	// Get payments via API
-	req2, err := http.NewRequest("GET", "/api/payments/", nil)
-	response2 := utils.SubmitRequest(req2, router)
-	if err != nil {
-		log.Fatal("smth", zap.Error(err))
-	}
-
-	// Check the response
-	utils.CheckResponse(t, http.StatusOK, response2.Code)
+	utils.TestRequest(t, r, "POST", "/api/payments/", f, 200)
+	response2 := utils.TestRequest(t, r, "GET", "/api/payments/", nil, 200)
 
 	// Unmarshal response
 	var payments []database.Payment
 	err = json.Unmarshal(response2.Body.Bytes(), &payments)
-	if err != nil {
-		panic(err)
-	}
+	utils.CheckError(t, err)
 	require.Equal(t, 1, len(payments))
 	if t.Failed() {
 		return
