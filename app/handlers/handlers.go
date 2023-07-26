@@ -53,10 +53,10 @@ var log = utils.GetLogger()
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	greeting, err := database.Db.GetHelloWorld()
 	if err != nil {
-		errorJSON(w, err, http.StatusBadRequest)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, http.StatusOK, greeting)
+	utils.WriteJSON(w, http.StatusOK, greeting)
 }
 
 
@@ -141,15 +141,15 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 //		@Router			/payments [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch database.PaymentBatch
-	err := readJSON(w, r, &paymentBatch)
+	err := utils.ReadJSON(w, r, &paymentBatch)
 	if err != nil {
-		errorJSON(w, err, http.StatusBadRequest)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	err = database.Db.CreatePayments(paymentBatch.Payments)
 	if err != nil {
-		errorJSON(w, err, http.StatusBadRequest)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 }
@@ -167,10 +167,10 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 func getSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := database.Db.GetSettings()
 	if err != nil {
-		errorJSON(w, err, http.StatusBadRequest)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	writeJSON(w, http.StatusOK, settings)
+	utils.WriteJSON(w, http.StatusOK, settings)
 }
 
 // ReturnVendorInformation godoc

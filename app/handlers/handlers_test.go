@@ -73,20 +73,20 @@ func TestPayments(t *testing.T) {
 		log.Fatal("smth", zap.Error(err))
 	}
 	req, _ := http.NewRequest("POST", "/api/payments/", &body)
-	response := executeRequest(req, router)
+	response := utils.SubmitRequest(req, router)
 
 	// Check the response
-	checkResponseCode(t, http.StatusOK, response.Code)
+	utils.CheckResponse(t, http.StatusOK, response.Code)
 
 	// Get payments via API
 	req2, err := http.NewRequest("GET", "/api/payments/", nil)
-	response2 := executeRequest(req2, router)
+	response2 := utils.SubmitRequest(req2, router)
 	if err != nil {
 		log.Fatal("smth", zap.Error(err))
 	}
 
 	// Check the response
-	checkResponseCode(t, http.StatusOK, response2.Code)
+	utils.CheckResponse(t, http.StatusOK, response2.Code)
 
 	// Unmarshal response
 	var payments []database.Payment
