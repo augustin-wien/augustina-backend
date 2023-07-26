@@ -60,6 +60,31 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 }
 
 
+// ItemViewSet
+func ListItems(w http.ResponseWriter, r *http.Request) {
+	items, err := database.Db.ListItems()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, items)
+}
+func CreateItem(w http.ResponseWriter, r *http.Request) {
+	var item database.Item
+	err := utils.ReadJSON(w, r, &item)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	id, err := database.Db.CreateItem(item)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, id)
+}
+
+
 // UpdateItem requires a multipart form
 // https://www.sobyte.net/post/2022-03/go-multipart-form-data/
 func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {

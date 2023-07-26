@@ -38,7 +38,12 @@ func TestHelloWorld(t *testing.T) {
 
 // TestItems tests CRUD operations on items (including images)
 func TestItems(t *testing.T) {
-
+	f := `{
+		"Name": "Test item",
+		"Price": 3.14,
+		"IsEditable": true
+	}`
+	utils.TestRequest(t, r, "POST", "/api/item/", f, 200)
 }
 
 func TestPayments(t *testing.T) {

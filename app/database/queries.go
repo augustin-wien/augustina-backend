@@ -87,7 +87,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 
 
-func (db *Database) GetItems() ([]Item, error) {
+func (db *Database) ListItems() ([]Item, error) {
 	var items []Item
 	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
 	if err != nil {
@@ -103,7 +103,10 @@ func (db *Database) GetItems() ([]Item, error) {
 	}
 	return items, nil
 }
-
+func (db *Database) CreateItem(item Item) (id int32, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Item (Name, Price) values ($1, $2) RETURNING ID", item.Name, item.Price).Scan(&id)
+	return id, err
+}
 func (db *Database) UpdateItem(item Item) (err error) {
 
 	// TODO: Throw error if is_editable = False
