@@ -44,6 +44,7 @@ func GetRouter() (r *chi.Mux) {
 	r.Get("/api/hello/", HelloWorld)
 	r.Get("/api/payments/", GetPayments)
 	r.Post("/api/payments/", CreatePayments)
+	r.Post("/api/transaction/", CreateTransaction)
 	r.Get("/api/settings/", getSettings)
 	r.Get("/api/vendor/", Vendors)
 

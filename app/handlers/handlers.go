@@ -21,11 +21,13 @@
 package handlers
 
 import (
+	"augustin/config"
 	"augustin/utils"
 	"encoding/json"
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -34,7 +36,16 @@ import (
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
 
 	"augustin/database"
+	"augustin/vivawallet"
 )
+
+type Transaction struct {
+	Amount int
+}
+
+type TransactionResponse struct {
+	SmartCheckoutURL string
+}
 
 var log = utils.GetLogger()
 
@@ -129,7 +140,7 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 // CreatePayments godoc
 //
 //	 	@Summary 		Create a set of payments
-//		@Description    {"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00]}
+//		@Description    {"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00}]}
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
@@ -148,6 +159,48 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+}
+
+// CreateTransaction godoc
+//
+//	 	@Summary 		Create a transaction
+//		@Description    {"Amount":100} equals 100 cents
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	structs.Transaction
+//		@Router			/transaction [post]
+func CreateTransaction(w http.ResponseWriter, r *http.Request) {
+	var transaction Transaction
+	err := utils.ReadJSON(w, r, &transaction)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	switch config.Config.PaymentServiceProvider {
+	case "VivaWallet":
+		// Create a new payment order
+		accessToken, err := vivawallet.AuthenticateToVivaWallet()
+		if err != nil {
+			log.Fatalf("Authentication failed: ", err)
+		}
+		orderCode, err := vivawallet.CreatePaymentOrder(accessToken, transaction.Amount)
+		if err != nil {
+			log.Fatalf("Creating payment order failed: ", err)
+		}
+		log.Info("Order code: ", orderCode)
+
+		// Create response
+		url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)
+		response := TransactionResponse{
+			SmartCheckoutURL: url,
+		}
+		utils.WriteJSON(w, http.StatusOK, response)
+
+	case "Stripe":
+		// Create a new payment order
+	}
+
 }
 
 // getSettings godoc
