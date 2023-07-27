@@ -4,6 +4,7 @@ import (
 	"augustin/utils"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 
 	"net/http"
@@ -48,6 +49,27 @@ type AuthenticationResponse struct {
 
 type PaymentOrderResponse struct {
 	OrderCode int `json:"orderCode"`
+}
+
+type TransactionVerification struct {
+	Email               string `json:"email"`
+	Amount              int    `json:"amount"`
+	OrderCode           int    `json:"orderCode"`
+	StatusId            string `json:"statusId"`
+	FullName            string `json:"fullName"`
+	InsDate             string `json:"insDate"`
+	CardNumber          string `json:"cardNumber"`
+	CurrencyCode        string `json:"currencyCode"`
+	CustomerTrns        string `json:"customerTrns"`
+	MerchantTrns        string `json:"merchantTrns"`
+	CardUniqueReference string `json:"cardUniqueReference"`
+	TransactionTypeId   int    `json:"transactionTypeId"`
+	RecurringSupport    bool   `json:"recurringSupport"`
+	TotalInstallments   int    `json:"totalInstallments"`
+	CardCountryCode     string `json:"cardCountryCode"`
+	CardIssuingBank     string `json:"cardIssuingBank"`
+	CurrentInstallment  int    `json:"currentInstallment"`
+	CardTypeId          int    `json:"cardTypeId"`
 }
 
 func AuthenticateToVivaWallet() (string, error) {
@@ -166,4 +188,49 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 
 	return int(orderCode.OrderCode), nil
 
+}
+
+func VerifyTransactionID(accessToken string, transactionID string) (success bool, err error) {
+	apiURL := "https://demo-api.vivapayments.com"
+	resource := "/checkout/v2/transactions/" + transactionID
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{transactionId}"
+
+	req, err := http.NewRequest("POST", urlStr, nil)
+	if err != nil {
+		log.Fatalf("Building request failed: ", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	// Create a new client with a 10 second timeout
+	// do not forget to set timeout; otherwise, no timeout!
+	client := http.Client{Timeout: 10 * time.Second}
+	// send the request
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("impossible to send request: ", err)
+	}
+	log.Info("status Code of Verification: ", res.StatusCode)
+	if res.StatusCode != 200 {
+		return false, errors.New("transaction not found")
+	}
+
+	// closes the body after the function returns
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body) // Log the request body
+	if err != nil {
+		log.Info("Reading body failed: ", err)
+		return false, err
+	}
+
+	var transactionVerification TransactionVerification
+	err = json.Unmarshal(body, &transactionVerification)
+	if err != nil {
+		log.Info("Unmarshalling body failed: ", err)
+		return false, err
+	}
+	return true, nil
 }

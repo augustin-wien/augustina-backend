@@ -47,6 +47,14 @@ type TransactionResponse struct {
 	SmartCheckoutURL string
 }
 
+type TransactionVerification struct {
+	TransactionID string
+}
+
+type TransactionVerificationResponse struct {
+	Verification bool
+}
+
 var log = utils.GetLogger()
 
 // ReturnHelloWorld godoc
@@ -184,6 +192,7 @@ func CreateTransaction(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatalf("Authentication failed: ", err)
 		}
+		log.Info("Access token: ", accessToken)
 		orderCode, err := vivawallet.CreatePaymentOrder(accessToken, transaction.Amount)
 		if err != nil {
 			log.Fatalf("Creating payment order failed: ", err)
@@ -199,6 +208,48 @@ func CreateTransaction(w http.ResponseWriter, r *http.Request) {
 
 	case "Stripe":
 		// Create a new payment order
+	}
+
+}
+
+// VerifyTransaction godoc
+//
+//	 	@Summary 		Verify a transaction
+//		@Description    {"TransactionID":"1234567890"}
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	structs.Transaction
+//		@Router			/verification [post]
+func VerifyTransaction(w http.ResponseWriter, r *http.Request) {
+	var transactionVerification TransactionVerification
+	err := utils.ReadJSON(w, r, &transactionVerification)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	switch config.Config.PaymentServiceProvider {
+	case "VivaWallet":
+		// Get access token
+		accessToken, err := vivawallet.AuthenticateToVivaWallet()
+		if err != nil {
+			log.Fatalf("Authentication failed: ", err)
+		}
+
+		// Verify transaction
+		verification, err := vivawallet.VerifyTransactionID(accessToken, transactionVerification.TransactionID)
+		if err != nil {
+			log.Fatalf("Creating payment order failed: ", err)
+		}
+
+		// Create response
+		response := TransactionVerificationResponse{
+			Verification: verification,
+		}
+		utils.WriteJSON(w, http.StatusOK, response)
+
+	case "Stripe":
+		// Verify transaction
 	}
 
 }
