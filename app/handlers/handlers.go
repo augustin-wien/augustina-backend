@@ -239,7 +239,8 @@ func VerifyTransaction(w http.ResponseWriter, r *http.Request) {
 		// Verify transaction
 		verification, err := vivawallet.VerifyTransactionID(accessToken, transactionVerification.TransactionID)
 		if err != nil {
-			log.Fatalf("Creating payment order failed: ", err)
+			log.Info("Verifying transaction failed: ", err)
+			return
 		}
 
 		// Create response

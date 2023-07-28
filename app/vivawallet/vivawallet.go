@@ -82,7 +82,7 @@ func AuthenticateToVivaWallet() (string, error) {
 
 	req, err := http.NewRequest("POST", urlStr, bytes.NewReader(jsonPost))
 	if err != nil {
-		log.Fatalf("Building request failed: ", err)
+		log.Info("Building request failed: ", err)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -94,7 +94,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	// send the request
 	res, err := client.Do(req)
 	if err != nil {
-		log.Fatalf("impossible to send request: ", err)
+		log.Info("impossible to send request: ", err)
 	}
 
 	// closes the body after the function returns
@@ -150,12 +150,12 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 
 	jsonPost, err := json.Marshal(paymentOrder)
 	if err != nil {
-		log.Fatalf("Marshalling payment order failed: ", err)
+		log.Info("Marshalling payment order failed: ", err)
 	}
 
 	req, err := http.NewRequest("POST", urlStr, bytes.NewReader(jsonPost))
 	if err != nil {
-		log.Fatalf("Building request failed: ", err)
+		log.Info("Building request failed: ", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -167,9 +167,12 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 	// send the request
 	res, err := client.Do(req)
 	if err != nil {
-		log.Fatalf("impossible to send request: ", err)
+		log.Info("impossible to send request: ", err)
 	}
 	log.Info("status Code: ", res.StatusCode)
+	if res.StatusCode != 200 {
+		return 0, errors.New("transaction not found")
+	}
 
 	// closes the body after the function returns
 	defer res.Body.Close()
@@ -196,14 +199,17 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
 	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{transactionId}"
+	log.Info("urlStr: ", urlStr)
 
 	req, err := http.NewRequest("POST", urlStr, nil)
 	if err != nil {
-		log.Fatalf("Building request failed: ", err)
+		log.Info("Building request failed: ", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	log.Info("Headers: ", req.Header)
 
 	// Create a new client with a 10 second timeout
 	// do not forget to set timeout; otherwise, no timeout!
@@ -211,7 +217,7 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 	// send the request
 	res, err := client.Do(req)
 	if err != nil {
-		log.Fatalf("impossible to send request: ", err)
+		log.Info("Sending request failed: ", err)
 	}
 	log.Info("status Code of Verification: ", res.StatusCode)
 	if res.StatusCode != 200 {
