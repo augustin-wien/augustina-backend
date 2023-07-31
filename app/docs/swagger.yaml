@@ -1,10 +1,79 @@
-basePath: /api/
+basePath: /api
+consumes:
+- application/json
 definitions:
-  pgtype.Float4:
+  database.Item:
     properties:
-      float32:
+      id:
+        type: integer
+      image:
+        type: string
+      isEditable:
+        type: boolean
+      name:
+        type: string
+      price:
         type: number
-      valid:
+    type: object
+  database.Payment:
+    properties:
+      amount:
+        type: number
+      authorizedBy:
+        $ref: '#/definitions/pgtype.Int4'
+      id:
+        type: integer
+      item:
+        $ref: '#/definitions/pgtype.Int4'
+      paymentBatch:
+        $ref: '#/definitions/pgtype.Int8'
+      receiver:
+        type: integer
+      sender:
+        type: integer
+      timestamp:
+        $ref: '#/definitions/pgtype.Timestamp'
+      type:
+        type: integer
+    type: object
+  database.PaymentType:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  database.Settings:
+    properties:
+      color:
+        type: string
+      id:
+        type: integer
+      logo:
+        type: string
+      newspaper:
+        $ref: '#/definitions/database.Item'
+      refundFees:
+        type: boolean
+    type: object
+  handlers.Transaction:
+    properties:
+      amount:
+        type: integer
+    type: object
+  handlers.TransactionResponse:
+    properties:
+      smartCheckoutURL:
+        type: string
+    type: object
+  handlers.TransactionVerification:
+    properties:
+      transactionID:
+        type: string
+    type: object
+  handlers.TransactionVerificationResponse:
+    properties:
+      verification:
         type: boolean
     type: object
   pgtype.InfinityModifier:
@@ -31,13 +100,6 @@ definitions:
       valid:
         type: boolean
     type: object
-  pgtype.Text:
-    properties:
-      string:
-        type: string
-      valid:
-        type: boolean
-    type: object
   pgtype.Timestamp:
     properties:
       infinityModifier:
@@ -47,46 +109,6 @@ definitions:
         type: string
       valid:
         type: boolean
-    type: object
-  structs.Payment:
-    properties:
-      amount:
-        $ref: '#/definitions/pgtype.Float4'
-      id:
-        $ref: '#/definitions/pgtype.Int8'
-      receiver:
-        $ref: '#/definitions/pgtype.Int4'
-      sender:
-        $ref: '#/definitions/pgtype.Int4'
-      timestamp:
-        $ref: '#/definitions/pgtype.Timestamp'
-      type:
-        $ref: '#/definitions/pgtype.Int4'
-    type: object
-  structs.PaymentType:
-    properties:
-      id:
-        $ref: '#/definitions/pgtype.Int4'
-      name:
-        $ref: '#/definitions/pgtype.Text'
-    type: object
-  structs.Setting:
-    properties:
-      color:
-        type: string
-      logo:
-        type: string
-      price:
-        type: number
-    type: object
-  structs.Vendor:
-    properties:
-      credit:
-        type: number
-      id-number:
-        type: string
-      qrcode:
-        type: string
     type: object
 externalDocs:
   description: OpenAPI
@@ -116,7 +138,7 @@ paths:
       summary: Return HelloWorld
       tags:
       - core
-  /payments:
+  /payments/:
     get:
       consumes:
       - application/json
@@ -127,7 +149,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.Payment'
+              $ref: '#/definitions/database.Payment'
             type: array
       summary: Get all payments
       tags:
@@ -135,7 +157,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: '{"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00]}'
+      description: '{"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00}]}'
       produces:
       - application/json
       responses:
@@ -143,7 +165,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.PaymentType'
+              $ref: '#/definitions/database.PaymentType'
             type: array
       summary: Create a set of payments
       tags:
@@ -160,16 +182,23 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.Setting'
+              $ref: '#/definitions/database.Settings'
             type: array
       summary: Return settings
       tags:
       - core
-  /vendor/:
-    get:
+  /transaction/:
+    post:
       consumes:
       - application/json
-      description: Return information for the vendor
+      description: Post your amount like {"Amount":100}, which equals 100 cents
+      parameters:
+      - description: Amount in cents
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Transaction'
       produces:
       - application/json
       responses:
@@ -177,9 +206,34 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.Vendor'
+              $ref: '#/definitions/handlers.TransactionResponse'
             type: array
-      summary: Return vendor information
+      summary: Create a transaction
+      tags:
+      - core
+  /verification/:
+    post:
+      consumes:
+      - application/json
+      description: Accepts {"TransactionID":"1234567890"} and returns {"Verfication":true},
+        if successful
+      parameters:
+      - description: Transaction ID
+        in: body
+        name: transactionID
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TransactionVerification'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.TransactionVerificationResponse'
+            type: array
+      summary: Verify a transaction
       tags:
       - core
 securityDefinitions:

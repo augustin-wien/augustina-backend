@@ -11,7 +11,8 @@
 //	@license.url	https://www.gnu.org/licenses/agpl-3.0.txt
 
 //	@host		localhost:3000
-//	@BasePath	/api/
+//	@BasePath	/api
+// @accept json
 
 //	@securityDefinitions.basic	BasicAuth
 
@@ -59,12 +60,12 @@ var log = utils.GetLogger()
 
 // ReturnHelloWorld godoc
 //
-//	 	@Summary 		Return HelloWorld
-//		@Description	Return HelloWorld as sample API call
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Router			/hello/ [get]
+//	@Summary		Return HelloWorld
+//	@Description	Return HelloWorld as sample API call
+//	@Tags			core
+//	@Accept			json
+//	@Produce		json
+//	@Router			/hello/ [get]
 //
 // HelloWorld API Handler fetching data from database
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
@@ -123,12 +124,12 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 
 // GetPayments godoc
 //
-//	 	@Summary 		Get all payments
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.Payment
-//		@Router			/payments [get]
+//	@Summary	Get all payments
+//	@Tags		core
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{array}	database.Payment
+//	@Router		/payments/ [get]
 func GetPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.GetPayments()
 	if err != nil {
@@ -147,13 +148,13 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 
 // CreatePayments godoc
 //
-//	 	@Summary 		Create a set of payments
-//		@Description    {"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00}]}
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.PaymentType
-//		@Router			/payments [post]
+//	@Summary		Create a set of payments
+//	@Description	{"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00}]}
+//	@Tags			core
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}	database.PaymentType
+//	@Router			/payments/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch database.PaymentBatch
 	err := utils.ReadJSON(w, r, &paymentBatch)
@@ -171,13 +172,14 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 
 // CreateTransaction godoc
 //
-//	 	@Summary 		Create a transaction
-//		@Description    {"Amount":100} equals 100 cents
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.Transaction
-//		@Router			/transaction [post]
+//	@Summary		Create a transaction
+//	@Description	Post your amount like {"Amount":100}, which equals 100 cents
+//	@Tags			core
+//	@accept			json
+//	@Produce		json
+//	@Param			amount body Transaction true "Amount in cents"
+//	@Success		200	{array}	TransactionResponse
+//	@Router			/transaction/ [post]
 func CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	var transaction Transaction
 	err := utils.ReadJSON(w, r, &transaction)
@@ -214,13 +216,14 @@ func CreateTransaction(w http.ResponseWriter, r *http.Request) {
 
 // VerifyTransaction godoc
 //
-//	 	@Summary 		Verify a transaction
-//		@Description    {"TransactionID":"1234567890"}
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.Transaction
-//		@Router			/verification [post]
+//	@Summary		Verify a transaction
+//	@Description	Accepts {"TransactionID":"1234567890"} and returns {"Verfication":true}, if successful
+//	@Tags			core
+//	@accept			json
+//	@Produce		json
+//	@Param			transactionID body TransactionVerification true "Transaction ID"
+//	@Success		200	{array}	TransactionVerificationResponse
+//	@Router			/verification/ [post]
 func VerifyTransaction(w http.ResponseWriter, r *http.Request) {
 	var transactionVerification TransactionVerification
 	err := utils.ReadJSON(w, r, &transactionVerification)
@@ -257,13 +260,13 @@ func VerifyTransaction(w http.ResponseWriter, r *http.Request) {
 
 // getSettings godoc
 //
-//	 	@Summary 		Return settings
-//		@Description	Return settings about the web-shop
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.Settings
-//		@Router			/settings/ [get]
+//	@Summary		Return settings
+//	@Description	Return settings about the web-shop
+//	@Tags			core
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}	database.Settings
+//	@Router			/settings/ [get]
 func getSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := database.Db.GetSettings()
 	if err != nil {
@@ -271,25 +274,4 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, settings)
-}
-
-// ReturnVendorInformation godoc
-//
-//	 	@Summary 		Return vendor information
-//		@Description	Return information for the vendor
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.Vendor
-//		@Router			/vendor/ [get]
-//
-// Vendor API Handler fetching data without database
-func Vendors(w http.ResponseWriter, r *http.Request) {
-	vendors, err := database.Db.GetVendorSettings()
-	if err != nil {
-		log.Errorf("QueryRow failed: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write([]byte(vendors))
 }

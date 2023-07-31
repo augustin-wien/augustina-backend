@@ -6,6 +6,9 @@ import "github.com/swaggo/swag"
 
 const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
+    "consumes": [
+        "application/json"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "{{escape .Description}}",
@@ -41,7 +44,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/payments": {
+        "/payments/": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -59,14 +62,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.Payment"
+                                "$ref": "#/definitions/database.Payment"
                             }
                         }
                     }
                 }
             },
             "post": {
-                "description": "{\"Payments\":[{\"Sender\": 1, \"Receiver\":1, \"Type\":1,\"Amount\":1.00]}",
+                "description": "{\"Payments\":[{\"Sender\": 1, \"Receiver\":1, \"Type\":1,\"Amount\":1.00}]}",
                 "consumes": [
                     "application/json"
                 ],
@@ -83,7 +86,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.PaymentType"
+                                "$ref": "#/definitions/database.PaymentType"
                             }
                         }
                     }
@@ -109,16 +112,16 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.Setting"
+                                "$ref": "#/definitions/database.Settings"
                             }
                         }
                     }
                 }
             }
         },
-        "/vendor/": {
-            "get": {
-                "description": "Return information for the vendor",
+        "/transaction/": {
+            "post": {
+                "description": "Post your amount like {\"Amount\":100}, which equals 100 cents",
                 "consumes": [
                     "application/json"
                 ],
@@ -128,14 +131,62 @@ const docTemplate = `{
                 "tags": [
                     "core"
                 ],
-                "summary": "Return vendor information",
+                "summary": "Create a transaction",
+                "parameters": [
+                    {
+                        "description": "Amount in cents",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Transaction"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.Vendor"
+                                "$ref": "#/definitions/handlers.TransactionResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/verification/": {
+            "post": {
+                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verfication\":true}, if successful",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Verify a transaction",
+                "parameters": [
+                    {
+                        "description": "Transaction ID",
+                        "name": "transactionID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TransactionVerification"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.TransactionVerificationResponse"
                             }
                         }
                     }
@@ -144,13 +195,117 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "pgtype.Float4": {
+        "database.Item": {
             "type": "object",
             "properties": {
-                "float32": {
+                "id": {
+                    "type": "integer"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "isEditable": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "database.Payment": {
+            "type": "object",
+            "properties": {
+                "amount": {
                     "type": "number"
                 },
-                "valid": {
+                "authorizedBy": {
+                    "$ref": "#/definitions/pgtype.Int4"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "item": {
+                    "$ref": "#/definitions/pgtype.Int4"
+                },
+                "paymentBatch": {
+                    "$ref": "#/definitions/pgtype.Int8"
+                },
+                "receiver": {
+                    "type": "integer"
+                },
+                "sender": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "$ref": "#/definitions/pgtype.Timestamp"
+                },
+                "type": {
+                    "type": "integer"
+                }
+            }
+        },
+        "database.PaymentType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.Settings": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "newspaper": {
+                    "$ref": "#/definitions/database.Item"
+                },
+                "refundFees": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "handlers.Transaction": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.TransactionResponse": {
+            "type": "object",
+            "properties": {
+                "smartCheckoutURL": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TransactionVerification": {
+            "type": "object",
+            "properties": {
+                "transactionID": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TransactionVerificationResponse": {
+            "type": "object",
+            "properties": {
+                "verification": {
                     "type": "boolean"
                 }
             }
@@ -190,17 +345,6 @@ const docTemplate = `{
                 }
             }
         },
-        "pgtype.Text": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
         "pgtype.Timestamp": {
             "type": "object",
             "properties": {
@@ -213,68 +357,6 @@ const docTemplate = `{
                 },
                 "valid": {
                     "type": "boolean"
-                }
-            }
-        },
-        "structs.Payment": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "$ref": "#/definitions/pgtype.Float4"
-                },
-                "id": {
-                    "$ref": "#/definitions/pgtype.Int8"
-                },
-                "receiver": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                },
-                "sender": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                },
-                "timestamp": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
-                },
-                "type": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                }
-            }
-        },
-        "structs.PaymentType": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                },
-                "name": {
-                    "$ref": "#/definitions/pgtype.Text"
-                }
-            }
-        },
-        "structs.Setting": {
-            "type": "object",
-            "properties": {
-                "color": {
-                    "type": "string"
-                },
-                "logo": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                }
-            }
-        },
-        "structs.Vendor": {
-            "type": "object",
-            "properties": {
-                "credit": {
-                    "type": "number"
-                },
-                "id-number": {
-                    "type": "string"
-                },
-                "qrcode": {
-                    "type": "string"
                 }
             }
         }
@@ -294,7 +376,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.0.1",
 	Host:             "localhost:3000",
-	BasePath:         "/api/",
+	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Augustin Swagger",
 	Description:      "This swagger describes every endpoint of this project.",

@@ -47,7 +47,6 @@ func GetRouter() (r *chi.Mux) {
 	r.Post("/api/transaction/", CreateTransaction)
 	r.Post("/api/verification/", VerifyTransaction)
 	r.Get("/api/settings/", getSettings)
-	r.Get("/api/vendor/", Vendors)
 
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
