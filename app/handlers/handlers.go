@@ -78,7 +78,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 //		@Tags			users
 //		@Accept			json
 //		@Produce		json
-//		@Router			/users/ [get]
+//		@Router			/api/users/ [get]
 //
 func ListUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := database.Db.ListUsers()
