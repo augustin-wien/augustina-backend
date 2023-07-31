@@ -90,6 +90,17 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/users/:
+    get:
+      consumes:
+      - application/json
+      description: List Users from database
+      produces:
+      - application/json
+      responses: {}
+      summary: List Users
+      tags:
+      - users
   /hello/:
     get:
       consumes:
@@ -150,15 +161,4 @@ paths:
       summary: Return settings
       tags:
       - core
-  /users/:
-    get:
-      consumes:
-      - application/json
-      description: List Users from database
-      produces:
-      - application/json
-      responses: {}
-      summary: List Users
-      tags:
-      - users
 swagger: "2.0"

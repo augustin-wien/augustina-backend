@@ -16,6 +16,22 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/users/": {
+            "get": {
+                "description": "List Users from database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "List Users",
+                "responses": {}
+            }
+        },
         "/hello/": {
             "get": {
                 "description": "Return HelloWorld as sample API call",
@@ -105,22 +121,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/users/": {
-            "get": {
-                "description": "List Users from database",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "List Users",
-                "responses": {}
             }
         }
     },
