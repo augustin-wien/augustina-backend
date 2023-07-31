@@ -49,8 +49,8 @@ func GetRouter() (r *chi.Mux) {
 	r.Post("/api/payments/", CreatePayments)
 	r.Get("/api/settings/", getSettings)
 
-	r.Route("/api/users", func(r chi.Router) {
-		r.Get("/", ListUsers)
+	r.Route("/api/vendors", func(r chi.Router) {
+		r.Get("/", ListVendors)
 		// r.Post("/", CreateItem)
 		// r.Route("/{itemID}", func(r chi.Router) {
 		// 	r.Get("/", RetrieveItem)
@@ -58,7 +58,6 @@ func GetRouter() (r *chi.Mux) {
 		// 	r.Delete("/", DestroyItem)
 		// })
 	})
-
 
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),

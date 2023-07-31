@@ -7,23 +7,22 @@ import (
 // Attributes have to be uppercase to be exported
 // Pgtype types are required if a field is nullable
 
-type User struct {
+type Vendor struct {
 	ID	   	   int32
 	KeycloakID string
 	UrlID	   string  // This will be the QR code
 	LicenseID  string
 	FirstName  string
 	LastName   string
-	IsVendor   bool
-	IsAdmin    bool
-
+    Email	   string
+	LastPayout pgtype.Timestamp
+	Account    int32
 }
 
 type Account struct {
-	ID     int32
-	Name   string
-	Person User
-	// TODO: Balance
+	ID      int32
+	Name    string
+	Balance float32
 }
 
 type Item struct {

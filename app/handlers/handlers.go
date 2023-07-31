@@ -71,17 +71,17 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 
 // Users ----------------------------------------------------------------------
 
-// ListUsers godoc
+// ListVendors godoc
 //
 //	 	@Summary 		List Users
 //		@Description	List Users from database
 //		@Tags			users
 //		@Accept			json
 //		@Produce		json
-//		@Router			/api/users/ [get]
+//		@Router			/api/vendors/ [get]
 //
-func ListUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := database.Db.ListUsers()
+func ListVendors(w http.ResponseWriter, r *http.Request) {
+	users, err := database.Db.ListVendors()
 	respond(w, err, users)
 }
 

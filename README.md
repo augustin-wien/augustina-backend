@@ -22,6 +22,7 @@ go install github.com/swaggo/swag/cmd/swag@latest
 Rebuild swagger
 
 ```bash
+cd app
 swag init --parseDependency --parseInternal --parseDepth 1
 ```
 

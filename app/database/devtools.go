@@ -10,19 +10,19 @@ func (db *Database) CreateDevData() (err error) {
 }
 
 func (db *Database) createDevUsers() (err error) {
-	user := User{
+	vendor := Vendor{
 		KeycloakID: "keycloakid1",
 		UrlID: "urlid1",
 		LicenseID: "licenseid1",
 		FirstName: "firstname1",
 		LastName: "lastname1",
-		IsVendor: true,
-		IsAdmin: true,
+		Email: "email1",
 	}
-	db.CreateUser(user)
+	_, err = db.CreateVendor(vendor)
 	if err != nil {
-		log.Error("Dev data user failed", zap.Error(err))
+		log.Error("Dev data user creation failed ", zap.Error(err))
 	}
+	log.Info("Dev data user creation succeeded")
 	return nil
 }
 

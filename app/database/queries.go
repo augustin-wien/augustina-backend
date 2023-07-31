@@ -20,26 +20,34 @@ func (db *Database) GetHelloWorld() (string, error) {
 // Users ----------------------------------------------------------------------
 
 // ListUsers returns the users from the database
-func (db *Database) ListUsers() (users []User, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "select * from UserAccount")
+func (db *Database) ListVendors() (vendors []Vendor, err error) {
+	rows, err := db.Dbpool.Query(context.Background(), "select * from Vendor")
 	if err != nil {
-		return users, err
+		return vendors, err
 	}
 	for rows.Next() {
-		var user User
-		err = rows.Scan(&user.ID, &user.KeycloakID, &user.UrlID, &user.LicenseID, &user.FirstName, &user.LastName, &user.IsVendor, &user.IsAdmin)
+		var vendor Vendor
+		err = rows.Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.Account)
 		if err != nil {
-			return users, err
+			return vendors, err
 		}
-		users = append(users, user)
+		vendors = append(vendors, vendor)
 	}
-	return users, nil
+	return vendors, nil
 }
 
 // CreateUser creates a user in the database
-func (db *Database) CreateUser(user User) (id int32, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into UserAccount (KeycloakID, UrlID, LicenseID, FirstName, LastName, IsVendor, IsAdmin) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", user.KeycloakID, user.UrlID, user.LicenseID, user.FirstName, user.LastName, user.IsVendor, user.IsAdmin).Scan(&id)
-	return id, err
+func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
+	// Create vendor account
+	var accountID int32
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Balance) values (0) RETURNING ID").Scan(&accountID)
+	if err != nil {
+		return 0, err
+	}
+
+	// Create vendor
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (KeycloakID, UrlID, LicenseID, FirstName, LastName, Email, Account) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, accountID).Scan(&vendorID)
+	return vendorID, err
 }
 
 

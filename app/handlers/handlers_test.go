@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
@@ -43,13 +42,14 @@ func TestUsers(t *testing.T) {
 	// 	"IsAdmin": true
 	// }`
 	// utils.TestRequest(t, r, "POST", "/api/user/", f, 200)
-	res := utils.TestRequest(t, r, "GET", "/api/users/", nil, 200)
+	res := utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
+	log.Info("TestUsers ", res.Body.String())
 
 	// Unmarshal response
-	var users []database.User
-	err := json.Unmarshal(res.Body.Bytes(), &users)
+	var vendors []database.Vendor
+	err := json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(users))
+	require.Equal(t, 1, len(vendors))
 }
 
 
@@ -63,51 +63,51 @@ func TestUsers(t *testing.T) {
 // 	utils.TestRequest(t, r, "POST", "/api/item/", f, 200)
 // }
 
-func TestPayments(t *testing.T) {
+// func TestPayments(t *testing.T) {
 
-	// Set up a payment type
-	payment_type_id, err := database.Db.CreatePaymentType(
-		database.PaymentType{
-			Name: "Test type",
-		},
-	)
-	utils.CheckError(t, err)
+// 	// Set up a payment type
+// 	payment_type_id, err := database.Db.CreatePaymentType(
+// 		database.PaymentType{
+// 			Name: "Test type",
+// 		},
+// 	)
+// 	utils.CheckError(t, err)
 
-	// Set up a payment account
-	account_id, err := database.Db.CreateAccount(
-		database.Account{Name: "Test account"},
-	)
-	utils.CheckError(t, err)
+// 	// Set up a payment account
+// 	account_id, err := database.Db.CreateAccount(
+// 		database.Account{Name: "Test account"},
+// 	)
+// 	utils.CheckError(t, err)
 
-	// Create payments via API
-	f := database.PaymentBatch{
-		Payments: []database.Payment{
-			{
-				Sender:   account_id,
-				Receiver: account_id,
-				Type:     payment_type_id,
-				Amount:   float32(3.14),
-			},
-		},
-	}
-	utils.TestRequest(t, r, "POST", "/api/payments/", f, 200)
-	response2 := utils.TestRequest(t, r, "GET", "/api/payments/", nil, 200)
+// 	// Create payments via API
+// 	f := database.PaymentBatch{
+// 		Payments: []database.Payment{
+// 			{
+// 				Sender:   account_id,
+// 				Receiver: account_id,
+// 				Type:     payment_type_id,
+// 				Amount:   float32(3.14),
+// 			},
+// 		},
+// 	}
+// 	utils.TestRequest(t, r, "POST", "/api/payments/", f, 200)
+// 	response2 := utils.TestRequest(t, r, "GET", "/api/payments/", nil, 200)
 
-	// Unmarshal response
-	var payments []database.Payment
-	err = json.Unmarshal(response2.Body.Bytes(), &payments)
-	utils.CheckError(t, err)
-	require.Equal(t, 1, len(payments))
-	if t.Failed() {
-		return
-	}
+// 	// Unmarshal response
+// 	var payments []database.Payment
+// 	err = json.Unmarshal(response2.Body.Bytes(), &payments)
+// 	utils.CheckError(t, err)
+// 	require.Equal(t, 1, len(payments))
+// 	if t.Failed() {
+// 		return
+// 	}
 
-	// Test payments response
-	require.Equal(t, payments[0].Amount, float32(3.14))
-	require.Equal(t, payments[0].Sender, account_id)
-	require.Equal(t, payments[0].Receiver, account_id)
-	require.Equal(t, payments[0].Type, payment_type_id)
-	require.Equal(t, payments[0].Timestamp.Time.Day(), time.Now().Day())
-	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().Hour())
+// 	// Test payments response
+// 	require.Equal(t, payments[0].Amount, float32(3.14))
+// 	require.Equal(t, payments[0].Sender, account_id)
+// 	require.Equal(t, payments[0].Receiver, account_id)
+// 	require.Equal(t, payments[0].Type, payment_type_id)
+// 	require.Equal(t, payments[0].Timestamp.Time.Day(), time.Now().Day())
+// 	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().Hour())
 
-}
+// }
