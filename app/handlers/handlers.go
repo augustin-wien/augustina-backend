@@ -73,11 +73,11 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 
 // ListVendors godoc
 //
-//	 	@Summary 		List Users
-//		@Description	List Users from database
-//		@Tags			users
+//	 	@Summary 		List Vendors
+//		@Tags			vendors
 //		@Accept			json
 //		@Produce		json
+//		@Success		200	{array}	database.Vendor
 //		@Router			/api/vendors/ [get]
 //
 func ListVendors(w http.ResponseWriter, r *http.Request) {
@@ -85,6 +85,8 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, users)
 }
 
+
+//	    @Param		    data body database.Vendor true "TEST"
 
 
 // ItemViewSet

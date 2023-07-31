@@ -53,6 +53,28 @@ definitions:
       refundFees:
         type: boolean
     type: object
+  database.Vendor:
+    properties:
+      account:
+        type: integer
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: integer
+      keycloakID:
+        type: string
+      lastName:
+        type: string
+      lastPayout:
+        $ref: '#/definitions/pgtype.Timestamp'
+      licenseID:
+        type: string
+      urlID:
+        description: This will be the QR code
+        type: string
+    type: object
   pgtype.InfinityModifier:
     enum:
     - 1
@@ -90,17 +112,22 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/users/:
+  /api/vendors/:
     get:
       consumes:
       - application/json
-      description: List Users from database
       produces:
       - application/json
-      responses: {}
-      summary: List Users
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Vendor'
+            type: array
+      summary: List Vendors
       tags:
-      - users
+      - vendors
   /hello/:
     get:
       consumes:

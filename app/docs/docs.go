@@ -16,9 +16,8 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/users/": {
+        "/api/vendors/": {
             "get": {
-                "description": "List Users from database",
                 "consumes": [
                     "application/json"
                 ],
@@ -26,10 +25,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "vendors"
                 ],
-                "summary": "List Users",
-                "responses": {}
+                "summary": "List Vendors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Vendor"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/hello/": {
@@ -205,6 +214,39 @@ const docTemplate = `{
                 },
                 "refundFees": {
                     "type": "boolean"
+                }
+            }
+        },
+        "database.Vendor": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "keycloakID": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "lastPayout": {
+                    "$ref": "#/definitions/pgtype.Timestamp"
+                },
+                "licenseID": {
+                    "type": "string"
+                },
+                "urlID": {
+                    "description": "This will be the QR code",
+                    "type": "string"
                 }
             }
         },
