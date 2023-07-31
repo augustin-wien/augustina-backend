@@ -39,6 +39,14 @@ import (
 
 var log = utils.GetLogger()
 
+func respond(w http.ResponseWriter, err error, payload interface{}) {
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, payload)
+}
+
 
 // ReturnHelloWorld godoc
 //
@@ -58,6 +66,25 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.WriteJSON(w, http.StatusOK, greeting)
 }
+
+
+
+// Users ----------------------------------------------------------------------
+
+// ListUsers godoc
+//
+//	 	@Summary 		List Users
+//		@Description	List Users from database
+//		@Tags			users
+//		@Accept			json
+//		@Produce		json
+//		@Router			/users/ [get]
+//
+func ListUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := database.Db.ListUsers()
+	respond(w, err, users)
+}
+
 
 
 // ItemViewSet

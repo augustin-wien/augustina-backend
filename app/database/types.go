@@ -7,7 +7,7 @@ import (
 // Attributes have to be uppercase to be exported
 // Pgtype types are required if a field is nullable
 
-type Person struct {
+type User struct {
 	ID	   	   int32
 	KeycloakID string
 	UrlID	   string  // This will be the QR code
@@ -16,12 +16,13 @@ type Person struct {
 	LastName   string
 	IsVendor   bool
 	IsAdmin    bool
+
 }
 
 type Account struct {
 	ID     int32
 	Name   string
-	Person Person
+	Person User
 	// TODO: Balance
 }
 

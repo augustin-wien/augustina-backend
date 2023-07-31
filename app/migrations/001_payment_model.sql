@@ -1,4 +1,7 @@
-CREATE TABLE Person (
+-- First migration file for augustin backend, corresponds to v0.0.1
+-- User cannot be used as a table name, so we use UserAccount instead
+
+CREATE TABLE UserAccount (
     ID serial PRIMARY KEY,
     KeycloakID varchar(255) UNIQUE,
     UrlID varchar(255) UNIQUE,
@@ -12,7 +15,7 @@ CREATE TABLE Person (
 CREATE TABLE Account (
     ID serial PRIMARY KEY,
     Name varchar(255),
-    Person integer REFERENCES Person
+    UserAccount integer REFERENCES UserAccount
 );
 
 CREATE TABLE Item (
@@ -39,7 +42,7 @@ CREATE TABLE Payment (
     Receiver integer NOT NULL REFERENCES Account,
     Type integer NOT NULL REFERENCES PaymentType,
     Amount real NOT NULL,
-    AuthorizedBy integer REFERENCES Person,
+    AuthorizedBy integer REFERENCES UserAccount,
     Item integer REFERENCES Item,
     PaymentBatch integer REFERENCES PaymentBatch
 );
@@ -67,4 +70,4 @@ $$ LANGUAGE plpgsql;
 ---- create above / drop below ----
 
 
-DROP TABLE Person, Account, Item, PaymentType, PaymentBatch, Payment, Settings;
+DROP TABLE UserAccount, Account, Item, PaymentType, PaymentBatch, Payment, Settings;

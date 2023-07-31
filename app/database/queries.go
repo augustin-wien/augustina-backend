@@ -17,6 +17,34 @@ func (db *Database) GetHelloWorld() (string, error) {
 	return greeting, err
 }
 
+// Users ----------------------------------------------------------------------
+
+// ListUsers returns the users from the database
+func (db *Database) ListUsers() (users []User, err error) {
+	rows, err := db.Dbpool.Query(context.Background(), "select * from UserAccount")
+	if err != nil {
+		return users, err
+	}
+	for rows.Next() {
+		var user User
+		err = rows.Scan(&user.ID, &user.KeycloakID, &user.UrlID, &user.LicenseID, &user.FirstName, &user.LastName, &user.IsVendor, &user.IsAdmin)
+		if err != nil {
+			return users, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
+// CreateUser creates a user in the database
+func (db *Database) CreateUser(user User) (id int32, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into UserAccount (KeycloakID, UrlID, LicenseID, FirstName, LastName, IsVendor, IsAdmin) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", user.KeycloakID, user.UrlID, user.LicenseID, user.FirstName, user.LastName, user.IsVendor, user.IsAdmin).Scan(&id)
+	return id, err
+}
+
+
+// Payments -------------------------------------------------------------------
+
 // GetPayments returns the payments from the database
 func (db *Database) GetPayments() ([]Payment, error) {
 	var payments []Payment

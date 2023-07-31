@@ -4,7 +4,6 @@ import (
 	"augustin/database"
 	"augustin/utils"
 	"encoding/json"
-	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -26,25 +25,43 @@ func TestMain(m *testing.M) {
 
 
 func TestHelloWorld(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/hello/", nil)
-	response := utils.SubmitRequest(req, r)
-
-	// Check the response code
-	utils.CheckResponse(t, http.StatusOK, response.Code)
-
-	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, "\"Hello, world!\"", response.Body.String())
+	res := utils.TestRequest(t, r, "GET", "/api/hello/", nil, 200)
+	require.Equal(t, "\"Hello, world!\"", res.Body.String())
 }
+
+// Users ----------------------------------------------------------------------
+
+// TestUsers tests CRUD operations on users
+func TestUsers(t *testing.T) {
+	// f := `{
+	// 	"KeycloakID": "test",
+	// 	"UrlID": "test",
+	// 	"LicenseID": "test",
+	// 	"FirstName": "test",
+	// 	"LastName": "test",
+	// 	"IsVendor": true,
+	// 	"IsAdmin": true
+	// }`
+	// utils.TestRequest(t, r, "POST", "/api/user/", f, 200)
+	res := utils.TestRequest(t, r, "GET", "/api/users/", nil, 200)
+
+	// Unmarshal response
+	var users []database.User
+	err := json.Unmarshal(res.Body.Bytes(), &users)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(users))
+}
+
 
 // TestItems tests CRUD operations on items (including images)
-func TestItems(t *testing.T) {
-	f := `{
-		"Name": "Test item",
-		"Price": 3.14,
-		"IsEditable": true
-	}`
-	utils.TestRequest(t, r, "POST", "/api/item/", f, 200)
-}
+// func TestItems(t *testing.T) {
+// 	f := `{
+// 		"Name": "Test item",
+// 		"Price": 3.14,
+// 		"IsEditable": true
+// 	}`
+// 	utils.TestRequest(t, r, "POST", "/api/item/", f, 200)
+// }
 
 func TestPayments(t *testing.T) {
 

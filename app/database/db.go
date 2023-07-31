@@ -1,6 +1,7 @@
 package database
 
 import (
+	"augustin/config"
 	"augustin/utils"
 	"context"
 
@@ -22,6 +23,12 @@ var Db Database
 // Connect to production database and store it in the global Db variable
 func (db *Database) InitDb() (err error) {
 	err = db.initDb(true, true)
+	if err != nil {
+		return err
+	}
+	if config.Config.Development {
+		err = db.CreateTestData()
+	}
 	return err
 }
 
@@ -32,6 +39,12 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		return err
 	}
 	err = db.EmptyDatabase()
+	if err != nil {
+		return err
+	}
+	if config.Config.Development {
+		err = db.CreateTestData()
+	}
 	return err
 }
 

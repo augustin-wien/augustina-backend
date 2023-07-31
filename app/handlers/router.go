@@ -50,9 +50,9 @@ func GetRouter() (r *chi.Mux) {
 	r.Get("/api/settings/", getSettings)
 	r.Get("/api/vendor/", Vendors)
 
-	r.Route("api/items", func(r chi.Router) {
-		r.Get("/", ListItems)
-		r.Post("/", CreateItem)
+	r.Route("/api/users", func(r chi.Router) {
+		r.Get("/", ListUsers)
+		// r.Post("/", CreateItem)
 		// r.Route("/{itemID}", func(r chi.Router) {
 		// 	r.Get("/", RetrieveItem)
 		// 	r.Put("/", UpdateItem)
