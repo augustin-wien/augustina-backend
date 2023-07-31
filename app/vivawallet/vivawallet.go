@@ -52,24 +52,24 @@ type PaymentOrderResponse struct {
 }
 
 type TransactionVerification struct {
-	Email               string `json:"email"`
-	Amount              int    `json:"amount"`
-	OrderCode           int    `json:"orderCode"`
-	StatusId            string `json:"statusId"`
-	FullName            string `json:"fullName"`
-	InsDate             string `json:"insDate"`
-	CardNumber          string `json:"cardNumber"`
-	CurrencyCode        string `json:"currencyCode"`
-	CustomerTrns        string `json:"customerTrns"`
-	MerchantTrns        string `json:"merchantTrns"`
-	CardUniqueReference string `json:"cardUniqueReference"`
-	TransactionTypeId   int    `json:"transactionTypeId"`
-	RecurringSupport    bool   `json:"recurringSupport"`
-	TotalInstallments   int    `json:"totalInstallments"`
-	CardCountryCode     string `json:"cardCountryCode"`
-	CardIssuingBank     string `json:"cardIssuingBank"`
-	CurrentInstallment  int    `json:"currentInstallment"`
-	CardTypeId          int    `json:"cardTypeId"`
+	Email               string  `json:"email"`
+	Amount              float64 `json:"amount"`
+	OrderCode           int     `json:"orderCode"`
+	StatusId            string  `json:"statusId"`
+	FullName            string  `json:"fullName"`
+	InsDate             string  `json:"insDate"`
+	CardNumber          string  `json:"cardNumber"`
+	CurrencyCode        string  `json:"currencyCode"`
+	CustomerTrns        string  `json:"customerTrns"`
+	MerchantTrns        string  `json:"merchantTrns"`
+	TransactionTypeId   int     `json:"transactionTypeId"`
+	RecurringSupport    bool    `json:"recurringSupport"`
+	TotalInstallments   int     `json:"totalInstallments"`
+	CardCountryCode     string  `json:"cardCountryCode"`
+	CardIssuingBank     string  `json:"cardIssuingBank"`
+	CurrentInstallment  int     `json:"currentInstallment"`
+	CardUniqueReference string  `json:"cardUniqueReference"`
+	CardTypeId          int     `json:"cardTypeId"`
 }
 
 func AuthenticateToVivaWallet() (string, error) {
@@ -201,15 +201,13 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{transactionId}"
 	log.Info("urlStr: ", urlStr)
 
-	req, err := http.NewRequest("POST", urlStr, nil)
+	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
 		log.Info("Building request failed: ", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
-
-	log.Info("Headers: ", req.Header)
 
 	// Create a new client with a 10 second timeout
 	// do not forget to set timeout; otherwise, no timeout!
