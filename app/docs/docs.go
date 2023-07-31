@@ -10,16 +10,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "GNU Affero General Public License",
-            "url": "https://www.gnu.org/licenses/agpl-3.0.txt"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -59,7 +50,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.Payment"
+                                "$ref": "#/definitions/database.Payment"
                             }
                         }
                     }
@@ -83,7 +74,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.PaymentType"
+                                "$ref": "#/definitions/database.PaymentType"
                             }
                         }
                     }
@@ -109,16 +100,16 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.Setting"
+                                "$ref": "#/definitions/database.Settings"
                             }
                         }
                     }
                 }
             }
         },
-        "/vendor/": {
+        "/users/": {
             "get": {
-                "description": "Return information for the vendor",
+                "description": "List Users from database",
                 "consumes": [
                     "application/json"
                 ],
@@ -126,31 +117,93 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "users"
                 ],
-                "summary": "Return vendor information",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/structs.Vendor"
-                            }
-                        }
-                    }
-                }
+                "summary": "List Users",
+                "responses": {}
             }
         }
     },
     "definitions": {
-        "pgtype.Float4": {
+        "database.Item": {
             "type": "object",
             "properties": {
-                "float32": {
+                "id": {
+                    "type": "integer"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "isEditable": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "database.Payment": {
+            "type": "object",
+            "properties": {
+                "amount": {
                     "type": "number"
                 },
-                "valid": {
+                "authorizedBy": {
+                    "$ref": "#/definitions/pgtype.Int4"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "item": {
+                    "$ref": "#/definitions/pgtype.Int4"
+                },
+                "paymentBatch": {
+                    "$ref": "#/definitions/pgtype.Int8"
+                },
+                "receiver": {
+                    "type": "integer"
+                },
+                "sender": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "$ref": "#/definitions/pgtype.Timestamp"
+                },
+                "type": {
+                    "type": "integer"
+                }
+            }
+        },
+        "database.PaymentType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.Settings": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "newspaper": {
+                    "$ref": "#/definitions/database.Item"
+                },
+                "refundFees": {
                     "type": "boolean"
                 }
             }
@@ -190,17 +243,6 @@ const docTemplate = `{
                 }
             }
         },
-        "pgtype.Text": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
         "pgtype.Timestamp": {
             "type": "object",
             "properties": {
@@ -215,89 +257,18 @@ const docTemplate = `{
                     "type": "boolean"
                 }
             }
-        },
-        "structs.Payment": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "$ref": "#/definitions/pgtype.Float4"
-                },
-                "id": {
-                    "$ref": "#/definitions/pgtype.Int8"
-                },
-                "receiver": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                },
-                "sender": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                },
-                "timestamp": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
-                },
-                "type": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                }
-            }
-        },
-        "structs.PaymentType": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                },
-                "name": {
-                    "$ref": "#/definitions/pgtype.Text"
-                }
-            }
-        },
-        "structs.Setting": {
-            "type": "object",
-            "properties": {
-                "color": {
-                    "type": "string"
-                },
-                "logo": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                }
-            }
-        },
-        "structs.Vendor": {
-            "type": "object",
-            "properties": {
-                "credit": {
-                    "type": "number"
-                },
-                "id-number": {
-                    "type": "string"
-                },
-                "qrcode": {
-                    "type": "string"
-                }
-            }
         }
-    },
-    "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
-        }
-    },
-    "externalDocs": {
-        "description": "OpenAPI",
-        "url": "https://swagger.io/resources/open-api/"
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "0.0.1",
-	Host:             "localhost:3000",
-	BasePath:         "/api/",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Augustin Swagger",
-	Description:      "This swagger describes every endpoint of this project.",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

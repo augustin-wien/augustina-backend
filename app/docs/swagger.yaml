@@ -1,10 +1,56 @@
-basePath: /api/
 definitions:
-  pgtype.Float4:
+  database.Item:
     properties:
-      float32:
+      id:
+        type: integer
+      image:
+        type: string
+      isEditable:
+        type: boolean
+      name:
+        type: string
+      price:
         type: number
-      valid:
+    type: object
+  database.Payment:
+    properties:
+      amount:
+        type: number
+      authorizedBy:
+        $ref: '#/definitions/pgtype.Int4'
+      id:
+        type: integer
+      item:
+        $ref: '#/definitions/pgtype.Int4'
+      paymentBatch:
+        $ref: '#/definitions/pgtype.Int8'
+      receiver:
+        type: integer
+      sender:
+        type: integer
+      timestamp:
+        $ref: '#/definitions/pgtype.Timestamp'
+      type:
+        type: integer
+    type: object
+  database.PaymentType:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  database.Settings:
+    properties:
+      color:
+        type: string
+      id:
+        type: integer
+      logo:
+        type: string
+      newspaper:
+        $ref: '#/definitions/database.Item'
+      refundFees:
         type: boolean
     type: object
   pgtype.InfinityModifier:
@@ -31,13 +77,6 @@ definitions:
       valid:
         type: boolean
     type: object
-  pgtype.Text:
-    properties:
-      string:
-        type: string
-      valid:
-        type: boolean
-    type: object
   pgtype.Timestamp:
     properties:
       infinityModifier:
@@ -48,62 +87,8 @@ definitions:
       valid:
         type: boolean
     type: object
-  structs.Payment:
-    properties:
-      amount:
-        $ref: '#/definitions/pgtype.Float4'
-      id:
-        $ref: '#/definitions/pgtype.Int8'
-      receiver:
-        $ref: '#/definitions/pgtype.Int4'
-      sender:
-        $ref: '#/definitions/pgtype.Int4'
-      timestamp:
-        $ref: '#/definitions/pgtype.Timestamp'
-      type:
-        $ref: '#/definitions/pgtype.Int4'
-    type: object
-  structs.PaymentType:
-    properties:
-      id:
-        $ref: '#/definitions/pgtype.Int4'
-      name:
-        $ref: '#/definitions/pgtype.Text'
-    type: object
-  structs.Setting:
-    properties:
-      color:
-        type: string
-      logo:
-        type: string
-      price:
-        type: number
-    type: object
-  structs.Vendor:
-    properties:
-      credit:
-        type: number
-      id-number:
-        type: string
-      qrcode:
-        type: string
-    type: object
-externalDocs:
-  description: OpenAPI
-  url: https://swagger.io/resources/open-api/
-host: localhost:3000
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: This swagger describes every endpoint of this project.
-  license:
-    name: GNU Affero General Public License
-    url: https://www.gnu.org/licenses/agpl-3.0.txt
-  termsOfService: http://swagger.io/terms/
-  title: Augustin Swagger
-  version: 0.0.1
+  contact: {}
 paths:
   /hello/:
     get:
@@ -127,7 +112,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.Payment'
+              $ref: '#/definitions/database.Payment'
             type: array
       summary: Get all payments
       tags:
@@ -143,7 +128,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.PaymentType'
+              $ref: '#/definitions/database.PaymentType'
             type: array
       summary: Create a set of payments
       tags:
@@ -160,29 +145,20 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.Setting'
+              $ref: '#/definitions/database.Settings'
             type: array
       summary: Return settings
       tags:
       - core
-  /vendor/:
+  /users/:
     get:
       consumes:
       - application/json
-      description: Return information for the vendor
+      description: List Users from database
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/structs.Vendor'
-            type: array
-      summary: Return vendor information
+      responses: {}
+      summary: List Users
       tags:
-      - core
-securityDefinitions:
-  BasicAuth:
-    type: basic
+      - users
 swagger: "2.0"

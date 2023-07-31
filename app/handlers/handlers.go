@@ -164,7 +164,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
-//		@Success		200	{array}	structs.Payment
+//		@Success		200	{array}	database.Payment
 //		@Router			/payments [get]
 func GetPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.GetPayments()
@@ -189,7 +189,7 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
-//		@Success		200	{array}	structs.PaymentType
+//		@Success		200	{array}	database.PaymentType
 //		@Router			/payments [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch database.PaymentBatch
@@ -213,7 +213,7 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
-//		@Success		200	{array}	structs.Settings
+//		@Success		200	{array}	database.Settings
 //		@Router			/settings/ [get]
 //
 func getSettings(w http.ResponseWriter, r *http.Request) {
@@ -223,25 +223,4 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, settings)
-}
-
-// ReturnVendorInformation godoc
-//
-//	 	@Summary 		Return vendor information
-//		@Description	Return information for the vendor
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.Vendor
-//		@Router			/vendor/ [get]
-//
-// Vendor API Handler fetching data without database
-func Vendors(w http.ResponseWriter, r *http.Request) {
-	vendors, err := database.Db.GetVendorSettings()
-	if err != nil {
-		log.Errorf("QueryRow failed: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write([]byte(vendors))
 }

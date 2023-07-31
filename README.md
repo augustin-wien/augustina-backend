@@ -11,6 +11,22 @@ docker compose up -d
 
 Go to http://localhost:3000/api/hello
 
+### Swagger
+
+To update swagger, install swagger
+
+```bash
+go install github.com/swaggo/swag/cmd/swag@latest
+```
+
+Rebuild swagger
+
+```bash
+swag init --parseDependency --parseInternal --parseDepth 1
+```
+
+Note: If the update does not show in your browser, reset cache.
+
 ### Tests
 
 Open the augustin shell in the container:

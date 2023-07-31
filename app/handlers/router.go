@@ -48,7 +48,6 @@ func GetRouter() (r *chi.Mux) {
 	r.Get("/api/payments/", GetPayments)
 	r.Post("/api/payments/", CreatePayments)
 	r.Get("/api/settings/", getSettings)
-	r.Get("/api/vendor/", Vendors)
 
 	r.Route("/api/users", func(r chi.Router) {
 		r.Get("/", ListUsers)

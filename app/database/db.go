@@ -27,7 +27,7 @@ func (db *Database) InitDb() (err error) {
 		return err
 	}
 	if config.Config.Development {
-		err = db.CreateTestData()
+		err = db.CreateDevData()
 	}
 	return err
 }
@@ -43,7 +43,7 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		return err
 	}
 	if config.Config.Development {
-		err = db.CreateTestData()
+		err = db.CreateDevData()
 	}
 	return err
 }
