@@ -1,6 +1,7 @@
 package vivawallet
 
 import (
+	"augustin/config"
 	"augustin/utils"
 	"bytes"
 	"encoding/json"
@@ -73,6 +74,7 @@ type TransactionVerification struct {
 }
 
 func AuthenticateToVivaWallet() (string, error) {
+	// Create a new request URL using http
 	apiURL := "https://demo-accounts.vivapayments.com"
 	resource := "/connect/token"
 	jsonPost := []byte(`grant_type=client_credentials`)
@@ -85,26 +87,29 @@ func AuthenticateToVivaWallet() (string, error) {
 		log.Info("Building request failed: ", err)
 	}
 
+	// Create Header
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", "Basic ZTc2cnBldnR1cmZma3RuZTduMTh2MG94eWozbTZzNTMycjFxNHk0azR4eDEzLmFwcHMudml2YXBheW1lbnRzLmNvbTpxaDA4RmtVMGRGOHZNd0g3NmpHQXVCbVdpYjlXc1A=")
+	req.Header.Set("Authorization", "Basic "+config.Config.VivaWalletClientCredentials)
 
 	// Create a new client with a 10 second timeout
-	// do not forget to set timeout; otherwise, no timeout!
 	client := http.Client{Timeout: 10 * time.Second}
-	// send the request
+	// Send the request
+
 	res, err := client.Do(req)
 	if err != nil {
 		log.Info("impossible to send request: ", err)
 	}
 
-	// closes the body after the function returns
+	// Close the body after the function returns
 	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body) // Log the request body
+	// Log the request body
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Info("Reading body failed: ", err)
 		return "", err
 	}
 
+	// Unmarshal response body to struct
 	var authResponse AuthenticationResponse
 	err = json.Unmarshal(body, &authResponse)
 	if err != nil {
@@ -116,20 +121,25 @@ func AuthenticateToVivaWallet() (string, error) {
 }
 
 func CreatePaymentOrder(accessToken string, amount int) (int, error) {
+	// Create a new request URL using http
 	apiURL := "https://demo-api.vivapayments.com"
 	resource := "/checkout/v2/orders"
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
 	urlStr := u.String() // "https://demo-accounts.vivapayments.com/connect/token"
 
+	// Create a new sample customer
+	// TODO: Change this to a real customer
 	customer := Customer{
 		Email:       "test@example.com",
-		Fullname:    "Mira Mendel",
+		Fullname:    "Test Customer",
 		Phone:       "1234567890",
 		CountryCode: "GR",
 		RequestLang: "en-GB",
 	}
 
+	// Create a new sample payment order
+	// TODO: Change this to a real payment order
 	paymentOrder := PaymentOrder{
 		Amount:              amount,
 		CustomerTrns:        "testCustomerTrns",
@@ -139,15 +149,16 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 		AllowRecurring:      false,
 		MaxInstallments:     0,
 		PaymentNotification: true,
-		TipAmount:           100,
+		TipAmount:           0,
 		DisableExactAmount:  false,
 		DisableCash:         true,
 		DisableWallet:       true,
-		SourceCode:          "6343",
+		SourceCode:          config.Config.VivaWalletSourceCode,
 		MerchantTrns:        "testMerchantTrns",
 		Tags:                []string{"testTag1", "testTag2"},
 	}
 
+	// Create a new post request
 	jsonPost, err := json.Marshal(paymentOrder)
 	if err != nil {
 		log.Info("Marshalling payment order failed: ", err)
@@ -157,14 +168,13 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 	if err != nil {
 		log.Info("Building request failed: ", err)
 	}
-
+	// Create Header
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 
 	// Create a new client with a 10 second timeout
-	// do not forget to set timeout; otherwise, no timeout!
 	client := http.Client{Timeout: 10 * time.Second}
-	// send the request
+	// Send the request
 	res, err := client.Do(req)
 	if err != nil {
 		log.Info("impossible to send request: ", err)
@@ -174,14 +184,16 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 		return 0, errors.New("transaction not found")
 	}
 
-	// closes the body after the function returns
+	// Close the body after the function returns
 	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body) // Log the request body
+	// Log the request body
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Info("Reading body failed: ", err)
 		return 0, err
 	}
 
+	// Unmarshal response body to struct
 	var orderCode PaymentOrderResponse
 	err = json.Unmarshal(body, &orderCode)
 	if err != nil {
@@ -194,42 +206,43 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 }
 
 func VerifyTransactionID(accessToken string, transactionID string) (success bool, err error) {
+	// Create a new request URL using http
 	apiURL := "https://demo-api.vivapayments.com"
 	resource := "/checkout/v2/transactions/" + transactionID
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
 	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{transactionId}"
-	log.Info("urlStr: ", urlStr)
 
+	// Create a new get request
 	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
 		log.Info("Building request failed: ", err)
 	}
-
+	// Create Header
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 
 	// Create a new client with a 10 second timeout
-	// do not forget to set timeout; otherwise, no timeout!
 	client := http.Client{Timeout: 10 * time.Second}
-	// send the request
+	// Send the request
 	res, err := client.Do(req)
 	if err != nil {
 		log.Info("Sending request failed: ", err)
 	}
-	log.Info("status Code of Verification: ", res.StatusCode)
 	if res.StatusCode != 200 {
 		return false, errors.New("transaction not found")
 	}
 
-	// closes the body after the function returns
+	// Close the body after the function returns
 	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body) // Log the request body
+	// Log the request body
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Info("Reading body failed: ", err)
 		return false, err
 	}
 
+	// Unmarshal response body to struct
 	var transactionVerification TransactionVerification
 	err = json.Unmarshal(body, &transactionVerification)
 	if err != nil {
