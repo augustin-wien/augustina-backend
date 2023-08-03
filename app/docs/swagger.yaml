@@ -57,6 +57,9 @@ definitions:
     properties:
       account:
         type: integer
+      balance:
+        description: This is joined in from the account
+        type: number
       email:
         type: string
       firstName:
@@ -68,11 +71,11 @@ definitions:
       lastName:
         type: string
       lastPayout:
-        $ref: '#/definitions/pgtype.Timestamp'
+        type: string
       licenseID:
         type: string
       urlID:
-        description: This will be the QR code
+        description: This is used for the QR code
         type: string
     type: object
   pgtype.InfinityModifier:
@@ -126,6 +129,65 @@ paths:
               $ref: '#/definitions/database.Vendor'
             type: array
       summary: List Vendors
+      tags:
+      - vendors
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Vendor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Create Vendor
+      tags:
+      - vendors
+  /api/vendors/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete Vendor
+      tags:
+      - vendors
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Vendor Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Vendor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Update Vendor
       tags:
       - vendors
   /hello/:

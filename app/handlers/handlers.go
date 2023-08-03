@@ -26,8 +26,10 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/mitchellh/mapstructure"
 	_ "github.com/swaggo/files"        // swagger embed files
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
@@ -62,6 +64,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	greeting, err := database.Db.GetHelloWorld()
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, greeting)
@@ -85,8 +88,89 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, users)
 }
 
+// CreateVendor godoc
+//
+//	 	@Summary 		Create Vendor
+//		@Tags			vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//	    @Param		    data body database.Vendor true "Vendor Representation"
+//		@Router			/api/vendors/ [post]
+//
+func CreateVendor(w http.ResponseWriter, r *http.Request) {
+	var vendor database.Vendor
+	err := utils.ReadJSON(w, r, &vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	log.Info("id ", vendor.ID, "fn ", vendor.FirstName, "bl ", vendor.Balance)
 
-//	    @Param		    data body database.Vendor true "TEST"
+	id, err := database.Db.CreateVendor(vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, id)
+}
+
+// UpdateVendor godoc
+//
+//	 	@Summary 		Update Vendor
+//		@Description	Warning: Unfilled fields will be set to default values
+//		@Tags			vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//      @Param          id   path int  true  "Vendor ID"
+//	    @Param		    data body database.Vendor true "Vendor Representation"
+//		@Router			/api/vendors/{id} [put]
+//
+func UpdateVendor(w http.ResponseWriter, r *http.Request) {
+	var vendor database.Vendor
+	err := utils.ReadJSON(w, r, &vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = database.Db.UpdateVendor(vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, vendor)
+}
+
+// DeleteVendor godoc
+//
+//	 	@Summary 		Delete Vendor
+//		@Tags			vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//      @Param          id   path int  true  "Vendor ID"
+//		@Router			/api/vendors/{id} [delete]
+//
+func DeleteVendor(w http.ResponseWriter, r *http.Request) {
+	log.Info("USER ID", chi.URLParam(r, "id"))
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = database.Db.DeleteVendor(vendorID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+
+
 
 
 // ItemViewSet

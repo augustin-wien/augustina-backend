@@ -2,13 +2,6 @@
 -- User cannot be used as a table name, so we use UserAccount instead
 
 
-
-CREATE TABLE Account (
-    ID serial PRIMARY KEY,
-    Name varchar(255) NOT NULL DEFAULT '',
-    Balance real NOT NULL DEFAULT 0
-);
-
 CREATE TABLE Vendor (
     ID serial PRIMARY KEY,
     KeycloakID varchar(255) NOT NULL DEFAULT '',
@@ -18,7 +11,13 @@ CREATE TABLE Vendor (
     LastName varchar(255) NOT NULL DEFAULT '',
     Email varchar(255) NOT NULL DEFAULT '',
     LastPayout timestamp,
-    Account integer REFERENCES Account
+    Account integer UNIQUE REFERENCES Account NOT NULL
+);
+
+CREATE TABLE Account (
+    ID serial PRIMARY KEY,
+    Name varchar(255) NOT NULL DEFAULT '',
+    Balance real NOT NULL DEFAULT 0
 );
 
 CREATE TABLE Item (

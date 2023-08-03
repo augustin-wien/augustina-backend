@@ -51,12 +51,12 @@ func GetRouter() (r *chi.Mux) {
 
 	r.Route("/api/vendors", func(r chi.Router) {
 		r.Get("/", ListVendors)
-		// r.Post("/", CreateItem)
-		// r.Route("/{itemID}", func(r chi.Router) {
+		r.Post("/", CreateVendor)
+		r.Route("/{id}", func(r chi.Router) {
 		// 	r.Get("/", RetrieveItem)
-		// 	r.Put("/", UpdateItem)
-		// 	r.Delete("/", DestroyItem)
-		// })
+			r.Put("/", UpdateVendor)
+			r.Delete("/", DeleteVendor)
+		 })
 	})
 
 	r.Get("/swagger/*", httpSwagger.Handler(

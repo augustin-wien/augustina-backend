@@ -39,6 +39,97 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "Create Vendor",
+                "parameters": [
+                    {
+                        "description": "Vendor Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Vendor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/vendors/{id}": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "Update Vendor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Vendor Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Vendor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "Delete Vendor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
             }
         },
         "/hello/": {
@@ -223,6 +314,10 @@ const docTemplate = `{
                 "account": {
                     "type": "integer"
                 },
+                "balance": {
+                    "description": "This is joined in from the account",
+                    "type": "number"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -239,13 +334,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "lastPayout": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
+                    "type": "string"
                 },
                 "licenseID": {
                     "type": "string"
                 },
                 "urlID": {
-                    "description": "This will be the QR code",
+                    "description": "This is used for the QR code",
                     "type": "string"
                 }
             }

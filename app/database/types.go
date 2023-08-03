@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
+	"gopkg.in/guregu/null.v4"
 )
 
 // Attributes have to be uppercase to be exported
@@ -10,13 +11,14 @@ import (
 type Vendor struct {
 	ID	   	   int32
 	KeycloakID string
-	UrlID	   string  // This will be the QR code
+	UrlID	   string  // This is used for the QR code
 	LicenseID  string
 	FirstName  string
 	LastName   string
     Email	   string
-	LastPayout pgtype.Timestamp
+	LastPayout null.Time
 	Account    int32
+	Balance    float32 // This is joined in from the account
 }
 
 type Account struct {

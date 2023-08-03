@@ -14,6 +14,7 @@ require (
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.1
 	go.uber.org/zap v1.24.0
+	gopkg.in/guregu/null.v4 v4.0.0
 )
 
 require (

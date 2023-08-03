@@ -19,16 +19,18 @@ func (db *Database) GetHelloWorld() (string, error) {
 
 // Users ----------------------------------------------------------------------
 
-// ListUsers returns the users from the database
+// ListVendors returns all users from the database
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "select * from Vendor")
+	rows, err := db.Dbpool.Query(context.Background(), "select vendor.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Account, Balance from Vendor JOIN account ON account = account.id")
 	if err != nil {
+		log.Error(err)
 		return vendors, err
 	}
 	for rows.Next() {
 		var vendor Vendor
-		err = rows.Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.Account)
+		err = rows.Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.Account, &vendor.Balance)
 		if err != nil {
+			log.Error(err)
 			return vendors, err
 		}
 		vendors = append(vendors, vendor)
@@ -36,18 +38,57 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 	return vendors, nil
 }
 
-// CreateUser creates a user in the database
+// CreateVendor creates a vendor and an associated account in the database
 func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 	// Create vendor account
 	var accountID int32
 	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Balance) values (0) RETURNING ID").Scan(&accountID)
 	if err != nil {
-		return 0, err
+		log.Error(err)
+		return
 	}
 
 	// Create vendor
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (KeycloakID, UrlID, LicenseID, FirstName, LastName, Email, Account) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, accountID).Scan(&vendorID)
-	return vendorID, err
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Account) values ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING ID", vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, accountID).Scan(&vendorID)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return
+}
+
+// UpdateVendor Updates a user in the database
+func (db *Database) UpdateVendor(vendor Vendor) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE Vendor
+	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7
+	WHERE ID = $8
+	`, vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.ID)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
+// DeleteVendor deletes a user in the database and the associated account
+func (db *Database) DeleteVendor(vendorID int) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	DELETE FROM Vendor
+	WHERE ID = $1
+	`, vendorID)
+	if err != nil {
+		log.Error(err)
+	}
+
+	_, err = db.Dbpool.Exec(context.Background(), `
+	DELETE FROM Account
+	WHERE ID = (SELECT Account FROM Vendor WHERE ID = $1)
+	`, vendorID)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return
 }
 
 

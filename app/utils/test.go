@@ -49,3 +49,14 @@ func TestRequest(t *testing.T, router *chi.Mux, method string, url string, body 
 	}
 	return res
 }
+
+func TestRequestStr(t *testing.T, router *chi.Mux, method string, url string, body string, expectedResponseCode int) (res *httptest.ResponseRecorder) {
+	req, err := http.NewRequest(method, url, bytes.NewBuffer([]byte(body)))
+	CheckError(t, err)
+	res = SubmitRequest(req, router)
+	if res.Code != expectedResponseCode {
+		log.Error("Expected status code ", expectedResponseCode, ", got ", res.Code, ": ", res.Body.String())
+		t.FailNow()
+	}
+	return res
+}
