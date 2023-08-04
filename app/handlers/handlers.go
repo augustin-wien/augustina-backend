@@ -22,7 +22,6 @@
 package handlers
 
 import (
-	"augustin/config"
 	"augustin/utils"
 	"encoding/json"
 	"io"
@@ -37,14 +36,14 @@ import (
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
 
 	"augustin/database"
-	"augustin/vivawallet"
+	"augustin/paymentprovider"
 )
 
-type Transaction struct {
+type TransactionOrder struct {
 	Amount int
 }
 
-type TransactionResponse struct {
+type TransactionOrderResponse struct {
 	SmartCheckoutURL string
 }
 
@@ -170,60 +169,55 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// CreateTransaction godoc
+// CreateTransactionOrder godoc
 //
-//	@Summary		Create a transaction
+//	@Summary		Create a transaction order
 //	@Description	Post your amount like {"Amount":100}, which equals 100 cents
 //	@Tags			core
 //	@accept			json
 //	@Produce		json
-//	@Param			amount body Transaction true "Amount in cents"
-//	@Success		200	{array}	TransactionResponse
-//	@Router			/transaction/ [post]
-func CreateTransaction(w http.ResponseWriter, r *http.Request) {
-	var transaction Transaction
-	err := utils.ReadJSON(w, r, &transaction)
+//	@Param			amount body TransactionOrder true "Amount in cents"
+//	@Success		200	{array}	TransactionOrderResponse
+//	@Router			/vivawallet/transaction_order/ [post]
+func CreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
+	var transactionOrder TransactionOrder
+	err := utils.ReadJSON(w, r, &transactionOrder)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	switch config.Config.PaymentServiceProvider {
-	case "VivaWallet":
-		// Create a new payment order
-		accessToken, err := vivawallet.AuthenticateToVivaWallet()
-		if err != nil {
-			log.Fatalf("Authentication failed: ", err)
-		}
-		log.Info("Access token: ", accessToken)
-		orderCode, err := vivawallet.CreatePaymentOrder(accessToken, transaction.Amount)
-		if err != nil {
-			log.Fatalf("Creating payment order failed: ", err)
-		}
-		log.Info("Order code: ", orderCode)
 
-		// Create response
-		url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)
-		response := TransactionResponse{
-			SmartCheckoutURL: url,
-		}
-		utils.WriteJSON(w, http.StatusOK, response)
-
-	case "Stripe":
-		// Create a new payment order
+	// Create a new payment order
+	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
 	}
+	log.Info("Access token: ", accessToken)
+	orderCode, err := paymentprovider.CreatePaymentOrder(accessToken, transactionOrder.Amount)
+	if err != nil {
+		log.Error("Creating payment order failed: ", err)
+	}
+	log.Info("Order code: ", orderCode)
+
+	// Create response
+	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)
+	response := TransactionOrderResponse{
+		SmartCheckoutURL: url,
+	}
+	utils.WriteJSON(w, http.StatusOK, response)
 
 }
 
 // VerifyTransaction godoc
 //
 //	@Summary		Verify a transaction
-//	@Description	Accepts {"TransactionID":"1234567890"} and returns {"Verfication":true}, if successful
+//	@Description	Accepts {"TransactionID":"1234567890"} and returns {"Verification":true}, if successful
 //	@Tags			core
 //	@accept			json
 //	@Produce		json
 //	@Param			transactionID body TransactionVerification true "Transaction ID"
 //	@Success		200	{array}	TransactionVerificationResponse
-//	@Router			/verification/ [post]
+//	@Router			/vivawallet/transaction_verification/ [post]
 func VerifyTransaction(w http.ResponseWriter, r *http.Request) {
 	var transactionVerification TransactionVerification
 	err := utils.ReadJSON(w, r, &transactionVerification)
@@ -231,30 +225,25 @@ func VerifyTransaction(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	switch config.Config.PaymentServiceProvider {
-	case "VivaWallet":
-		// Get access token
-		accessToken, err := vivawallet.AuthenticateToVivaWallet()
-		if err != nil {
-			log.Fatalf("Authentication failed: ", err)
-		}
 
-		// Verify transaction
-		verification, err := vivawallet.VerifyTransactionID(accessToken, transactionVerification.TransactionID)
-		if err != nil {
-			log.Info("Verifying transaction failed: ", err)
-			return
-		}
-
-		// Create response
-		response := TransactionVerificationResponse{
-			Verification: verification,
-		}
-		utils.WriteJSON(w, http.StatusOK, response)
-
-	case "Stripe":
-		// Verify transaction
+	// Get access token
+	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
 	}
+
+	// Verify transaction
+	verification, err := paymentprovider.VerifyTransactionID(accessToken, transactionVerification.TransactionID)
+	if err != nil {
+		log.Info("Verifying transaction failed: ", err)
+		return
+	}
+
+	// Create response
+	response := TransactionVerificationResponse{
+		Verification: verification,
+	}
+	utils.WriteJSON(w, http.StatusOK, response)
 
 }
 

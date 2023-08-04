@@ -119,7 +119,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/transaction/": {
+        "/vivawallet/transaction_order/": {
             "post": {
                 "description": "Post your amount like {\"Amount\":100}, which equals 100 cents",
                 "consumes": [
@@ -131,7 +131,7 @@ const docTemplate = `{
                 "tags": [
                     "core"
                 ],
-                "summary": "Create a transaction",
+                "summary": "Create a transaction order",
                 "parameters": [
                     {
                         "description": "Amount in cents",
@@ -139,7 +139,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.Transaction"
+                            "$ref": "#/definitions/handlers.TransactionOrder"
                         }
                     }
                 ],
@@ -149,16 +149,16 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.TransactionResponse"
+                                "$ref": "#/definitions/handlers.TransactionOrderResponse"
                             }
                         }
                     }
                 }
             }
         },
-        "/verification/": {
+        "/vivawallet/transaction_verification/": {
             "post": {
-                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verfication\":true}, if successful",
+                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
                 "consumes": [
                     "application/json"
                 ],
@@ -278,7 +278,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.Transaction": {
+        "handlers.TransactionOrder": {
             "type": "object",
             "properties": {
                 "amount": {
@@ -286,7 +286,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.TransactionResponse": {
+        "handlers.TransactionOrderResponse": {
             "type": "object",
             "properties": {
                 "smartCheckoutURL": {

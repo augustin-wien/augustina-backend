@@ -112,7 +112,7 @@
                 }
             }
         },
-        "/transaction/": {
+        "/vivawallet/transaction_order/": {
             "post": {
                 "description": "Post your amount like {\"Amount\":100}, which equals 100 cents",
                 "consumes": [
@@ -124,7 +124,7 @@
                 "tags": [
                     "core"
                 ],
-                "summary": "Create a transaction",
+                "summary": "Create a transaction order",
                 "parameters": [
                     {
                         "description": "Amount in cents",
@@ -132,7 +132,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.Transaction"
+                            "$ref": "#/definitions/handlers.TransactionOrder"
                         }
                     }
                 ],
@@ -142,16 +142,16 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.TransactionResponse"
+                                "$ref": "#/definitions/handlers.TransactionOrderResponse"
                             }
                         }
                     }
                 }
             }
         },
-        "/verification/": {
+        "/vivawallet/transaction_verification/": {
             "post": {
-                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verfication\":true}, if successful",
+                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
                 "consumes": [
                     "application/json"
                 ],
@@ -271,7 +271,7 @@
                 }
             }
         },
-        "handlers.Transaction": {
+        "handlers.TransactionOrder": {
             "type": "object",
             "properties": {
                 "amount": {
@@ -279,7 +279,7 @@
                 }
             }
         },
-        "handlers.TransactionResponse": {
+        "handlers.TransactionOrderResponse": {
             "type": "object",
             "properties": {
                 "smartCheckoutURL": {

@@ -56,12 +56,12 @@ definitions:
       refundFees:
         type: boolean
     type: object
-  handlers.Transaction:
+  handlers.TransactionOrder:
     properties:
       amount:
         type: integer
     type: object
-  handlers.TransactionResponse:
+  handlers.TransactionOrderResponse:
     properties:
       smartCheckoutURL:
         type: string
@@ -187,7 +187,7 @@ paths:
       summary: Return settings
       tags:
       - core
-  /transaction/:
+  /vivawallet/transaction_order/:
     post:
       consumes:
       - application/json
@@ -198,7 +198,7 @@ paths:
         name: amount
         required: true
         schema:
-          $ref: '#/definitions/handlers.Transaction'
+          $ref: '#/definitions/handlers.TransactionOrder'
       produces:
       - application/json
       responses:
@@ -206,16 +206,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.TransactionResponse'
+              $ref: '#/definitions/handlers.TransactionOrderResponse'
             type: array
-      summary: Create a transaction
+      summary: Create a transaction order
       tags:
       - core
-  /verification/:
+  /vivawallet/transaction_verification/:
     post:
       consumes:
       - application/json
-      description: Accepts {"TransactionID":"1234567890"} and returns {"Verfication":true},
+      description: Accepts {"TransactionID":"1234567890"} and returns {"Verification":true},
         if successful
       parameters:
       - description: Transaction ID

@@ -1,12 +1,12 @@
-package vivawallet
+package paymentprovider
 
 import (
-	"augustin/config"
 	"augustin/utils"
 	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
+	"strconv"
 
 	"net/http"
 	"net/url"
@@ -15,7 +15,7 @@ import (
 
 var log = utils.GetLogger()
 
-type PaymentOrder struct {
+type PaymentOrderRequest struct {
 	Amount              int      `json:"amount"`
 	CustomerTrns        string   `json:"customerTrns"`
 	Customer            Customer `json:"customer"`
@@ -52,7 +52,7 @@ type PaymentOrderResponse struct {
 	OrderCode int `json:"orderCode"`
 }
 
-type TransactionVerification struct {
+type TransactionVerificationRequest struct {
 	Email               string  `json:"email"`
 	Amount              float64 `json:"amount"`
 	OrderCode           int     `json:"orderCode"`
@@ -84,12 +84,12 @@ func AuthenticateToVivaWallet() (string, error) {
 
 	req, err := http.NewRequest("POST", urlStr, bytes.NewReader(jsonPost))
 	if err != nil {
-		log.Info("Building request failed: ", err)
+		log.Error("Building request failed: ", err)
 	}
 
 	// Create Header
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", "Basic "+config.Config.VivaWalletClientCredentials)
+	req.Header.Set("Authorization", "Basic "+utils.GetEnv("VIVA_WALLET_CLIENT_CREDENTIALS", ""))
 
 	// Create a new client with a 10 second timeout
 	client := http.Client{Timeout: 10 * time.Second}
@@ -97,7 +97,7 @@ func AuthenticateToVivaWallet() (string, error) {
 
 	res, err := client.Do(req)
 	if err != nil {
-		log.Info("impossible to send request: ", err)
+		log.Error("impossible to send request: ", err)
 	}
 
 	// Close the body after the function returns
@@ -105,7 +105,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	// Log the request body
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Info("Reading body failed: ", err)
+		log.Error("Reading body failed: ", err)
 		return "", err
 	}
 
@@ -113,7 +113,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	var authResponse AuthenticationResponse
 	err = json.Unmarshal(body, &authResponse)
 	if err != nil {
-		log.Info("Unmarshalling body failed: ", err)
+		log.Error("Unmarshalling body failed: ", err)
 		return "", err
 	}
 
@@ -140,7 +140,7 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 
 	// Create a new sample payment order
 	// TODO: Change this to a real payment order
-	paymentOrder := PaymentOrder{
+	paymentOrderRequest := PaymentOrderRequest{
 		Amount:              amount,
 		CustomerTrns:        "testCustomerTrns",
 		Customer:            customer,
@@ -153,20 +153,20 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 		DisableExactAmount:  false,
 		DisableCash:         true,
 		DisableWallet:       true,
-		SourceCode:          config.Config.VivaWalletSourceCode,
+		SourceCode:          utils.GetEnv("VIVA_WALLET_SOURCE_CODE", ""),
 		MerchantTrns:        "testMerchantTrns",
 		Tags:                []string{"testTag1", "testTag2"},
 	}
 
 	// Create a new post request
-	jsonPost, err := json.Marshal(paymentOrder)
+	jsonPost, err := json.Marshal(paymentOrderRequest)
 	if err != nil {
-		log.Info("Marshalling payment order failed: ", err)
+		log.Error("Marshalling payment order failed: ", err)
 	}
 
 	req, err := http.NewRequest("POST", urlStr, bytes.NewReader(jsonPost))
 	if err != nil {
-		log.Info("Building request failed: ", err)
+		log.Error("Building request failed: ", err)
 	}
 	// Create Header
 	req.Header.Set("Content-Type", "application/json")
@@ -177,11 +177,11 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 	// Send the request
 	res, err := client.Do(req)
 	if err != nil {
-		log.Info("impossible to send request: ", err)
+		log.Error("impossible to send request: ", err)
 	}
-	log.Info("status Code: ", res.StatusCode)
+
 	if res.StatusCode != 200 {
-		return 0, errors.New("transaction not found")
+		return 0, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode))
 	}
 
 	// Close the body after the function returns
@@ -189,7 +189,7 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 	// Log the request body
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Info("Reading body failed: ", err)
+		log.Error("Reading body failed: ", err)
 		return 0, err
 	}
 
@@ -197,7 +197,7 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 	var orderCode PaymentOrderResponse
 	err = json.Unmarshal(body, &orderCode)
 	if err != nil {
-		log.Info("Unmarshalling body failed: ", err)
+		log.Error("Unmarshalling body failed: ", err)
 		return 0, err
 	}
 
@@ -216,7 +216,7 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 	// Create a new get request
 	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
-		log.Info("Building request failed: ", err)
+		log.Error("Building request failed: ", err)
 	}
 	// Create Header
 	req.Header.Set("Content-Type", "application/json")
@@ -227,10 +227,11 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 	// Send the request
 	res, err := client.Do(req)
 	if err != nil {
-		log.Info("Sending request failed: ", err)
+		log.Error("Sending request failed: ", err)
 	}
+
 	if res.StatusCode != 200 {
-		return false, errors.New("transaction not found")
+		return false, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode))
 	}
 
 	// Close the body after the function returns
@@ -238,15 +239,15 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 	// Log the request body
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Info("Reading body failed: ", err)
+		log.Error("Reading body failed: ", err)
 		return false, err
 	}
 
 	// Unmarshal response body to struct
-	var transactionVerification TransactionVerification
-	err = json.Unmarshal(body, &transactionVerification)
+	var transactionVerificationRequest TransactionVerificationRequest
+	err = json.Unmarshal(body, &transactionVerificationRequest)
 	if err != nil {
-		log.Info("Unmarshalling body failed: ", err)
+		log.Error("Unmarshalling body failed: ", err)
 		return false, err
 	}
 	return true, nil

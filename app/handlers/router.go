@@ -44,8 +44,8 @@ func GetRouter() (r *chi.Mux) {
 	r.Get("/api/hello/", HelloWorld)
 	r.Get("/api/payments/", GetPayments)
 	r.Post("/api/payments/", CreatePayments)
-	r.Post("/api/transaction/", CreateTransaction)
-	r.Post("/api/verification/", VerifyTransaction)
+	r.Post("/api/vivawallet/transaction_order/", CreateTransactionOrder)
+	r.Post("/api/vivawallet/transaction_verification/", VerifyTransaction)
 	r.Get("/api/settings/", getSettings)
 
 	r.Get("/swagger/*", httpSwagger.Handler(

@@ -13,12 +13,10 @@ type config struct {
 
 // Config is the global configuration variable
 var Config = config{
-	Version:                     "0.0.1",
-	Port:                        getEnv("PORT", "3000"),
-	Development:                 (getEnv("DEVELOPMENT", "false") == "true"),
-	PaymentServiceProvider:      getEnv("PAYMENT_SERVICE_PROVIDER", "VivaWallet"),
-	VivaWalletSourceCode:        getEnv("VIVA_WALLET_SOURCE_CODE", "6343"),
-	VivaWalletClientCredentials: getEnv("VIVA_WALLET_CLIENT_CREDENTIALS", "ZTc2cnBldnR1cmZma3RuZTduMTh2MG94eWozbTZzNTMycjFxNHk0azR4eDEzLmFwcHMudml2YXBheW1lbnRzLmNvbTpxaDA4RmtVMGRGOHZNd0g3NmpHQXVCbVdpYjlXc1A="),
+	Version:                "0.0.1",
+	Port:                   getEnv("PORT", "3000"),
+	Development:            (getEnv("DEVELOPMENT", "false") == "true"),
+	PaymentServiceProvider: getEnv("PAYMENT_SERVICE_PROVIDER", "VivaWallet"),
 }
 
 // Local copy of utils.GetEnv to avoid circular dependency
