@@ -11,7 +11,8 @@
 //	@license.url	https://www.gnu.org/licenses/agpl-3.0.txt
 
 //	@host		localhost:3000
-//	@BasePath	/api/
+//	@BasePath	/api
+// @accept json
 
 //	@securityDefinitions.basic	BasicAuth
 
@@ -26,6 +27,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -34,18 +36,35 @@ import (
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
 
 	"augustin/database"
+	"augustin/paymentprovider"
 )
+
+type TransactionOrder struct {
+	Amount int
+}
+
+type TransactionOrderResponse struct {
+	SmartCheckoutURL string
+}
+
+type TransactionVerification struct {
+	TransactionID string
+}
+
+type TransactionVerificationResponse struct {
+	Verification bool
+}
 
 var log = utils.GetLogger()
 
 // ReturnHelloWorld godoc
 //
-//	 	@Summary 		Return HelloWorld
-//		@Description	Return HelloWorld as sample API call
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Router			/hello/ [get]
+//	@Summary		Return HelloWorld
+//	@Description	Return HelloWorld as sample API call
+//	@Tags			core
+//	@Accept			json
+//	@Produce		json
+//	@Router			/hello/ [get]
 //
 // HelloWorld API Handler fetching data from database
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
@@ -102,14 +121,14 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	return err
 }
 
-// CreatePayments godoc
+// GetPayments godoc
 //
-//	 	@Summary 		Get all payments
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.Payment
-//		@Router			/payments [get]
+//	@Summary	Get all payments
+//	@Tags		core
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{array}	database.Payment
+//	@Router		/payments/ [get]
 func GetPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.GetPayments()
 	if err != nil {
@@ -128,13 +147,13 @@ func GetPayments(w http.ResponseWriter, r *http.Request) {
 
 // CreatePayments godoc
 //
-//	 	@Summary 		Create a set of payments
-//		@Description    {"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00]}
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.PaymentType
-//		@Router			/payments [post]
+//	@Summary		Create a set of payments
+//	@Description	{"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00}]}
+//	@Tags			core
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}	database.PaymentType
+//	@Router			/payments/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch database.PaymentBatch
 	err := utils.ReadJSON(w, r, &paymentBatch)
@@ -150,15 +169,93 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// VivaWalletCreateTransactionOrder godoc
+//
+//	@Summary		Create a transaction order
+//	@Description	Post your amount like {"Amount":100}, which equals 100 cents
+//	@Tags			core
+//	@accept			json
+//	@Produce		json
+//	@Param			amount body TransactionOrder true "Amount in cents"
+//	@Success		200	{array}	TransactionOrderResponse
+//	@Router			/vivawallet/transaction_order/ [post]
+func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
+	var transactionOrder TransactionOrder
+	err := utils.ReadJSON(w, r, &transactionOrder)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Create a new payment order
+	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
+	}
+	log.Info("Access token: ", accessToken)
+	orderCode, err := paymentprovider.CreatePaymentOrder(accessToken, transactionOrder.Amount)
+	if err != nil {
+		log.Error("Creating payment order failed: ", err)
+	}
+	log.Info("Order code: ", orderCode)
+
+	// Create response
+	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)
+	response := TransactionOrderResponse{
+		SmartCheckoutURL: url,
+	}
+	utils.WriteJSON(w, http.StatusOK, response)
+
+}
+
+// VivaWalletVerifyTransaction godoc
+//
+//	@Summary		Verify a transaction
+//	@Description	Accepts {"TransactionID":"1234567890"} and returns {"Verification":true}, if successful
+//	@Tags			core
+//	@accept			json
+//	@Produce		json
+//	@Param			transactionID body TransactionVerification true "Transaction ID"
+//	@Success		200	{array}	TransactionVerificationResponse
+//	@Router			/vivawallet/transaction_verification/ [post]
+func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
+	var transactionVerification TransactionVerification
+	err := utils.ReadJSON(w, r, &transactionVerification)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Get access token
+	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
+	}
+
+	// Verify transaction
+	verification, err := paymentprovider.VerifyTransactionID(accessToken, transactionVerification.TransactionID)
+	if err != nil {
+		log.Info("Verifying transaction failed: ", err)
+		return
+	}
+
+	// Create response
+	response := TransactionVerificationResponse{
+		Verification: verification,
+	}
+	utils.WriteJSON(w, http.StatusOK, response)
+
+}
+
 // getSettings godoc
 //
-//	 	@Summary 		Return settings
-//		@Description	Return settings about the web-shop
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.Settings
-//		@Router			/settings/ [get]
+//	@Summary		Return settings
+//	@Description	Return settings about the web-shop
+//	@Tags			core
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}	database.Settings
+//	@Router			/settings/ [get]
 func getSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := database.Db.GetSettings()
 	if err != nil {
@@ -166,25 +263,4 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, settings)
-}
-
-// ReturnVendorInformation godoc
-//
-//	 	@Summary 		Return vendor information
-//		@Description	Return information for the vendor
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200	{array}	structs.Vendor
-//		@Router			/vendor/ [get]
-//
-// Vendor API Handler fetching data without database
-func Vendors(w http.ResponseWriter, r *http.Request) {
-	vendors, err := database.Db.GetVendorSettings()
-	if err != nil {
-		log.Errorf("QueryRow failed: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write([]byte(vendors))
 }
