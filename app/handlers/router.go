@@ -73,6 +73,14 @@ func GetRouter() (r *chi.Mux) {
 		r.Post("/", CreatePayments)
 	})
 
+
+	// Payment service providers
+	r.Post("/api/vivawallet/transaction_order/", VivaWalletCreateTransactionOrder)
+	r.Post("/api/vivawallet/transaction_verification/", VivaWalletVerifyTransaction)
+
+	// Settings
+	r.Get("/api/settings/", getSettings)
+
 	// Swagger documentation
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),

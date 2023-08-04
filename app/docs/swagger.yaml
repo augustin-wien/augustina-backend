@@ -1,3 +1,6 @@
+basePath: /api
+consumes:
+- application/json
 definitions:
   database.Item:
     properties:
@@ -53,30 +56,25 @@ definitions:
       refundFees:
         type: boolean
     type: object
-  database.Vendor:
+  handlers.TransactionOrder:
     properties:
-      account:
+      amount:
         type: integer
-      balance:
-        description: This is joined in from the account
-        type: number
-      email:
+    type: object
+  handlers.TransactionOrderResponse:
+    properties:
+      smartCheckoutURL:
         type: string
-      firstName:
+    type: object
+  handlers.TransactionVerification:
+    properties:
+      transactionID:
         type: string
-      id:
-        type: integer
-      keycloakID:
-        type: string
-      lastName:
-        type: string
-      lastPayout:
-        type: string
-      licenseID:
-        type: string
-      urlID:
-        description: This is used for the QR code
-        type: string
+    type: object
+  handlers.TransactionVerificationResponse:
+    properties:
+      verification:
+        type: boolean
     type: object
   pgtype.InfinityModifier:
     enum:
@@ -112,84 +110,23 @@ definitions:
       valid:
         type: boolean
     type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:3000
 info:
-  contact: {}
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This swagger describes every endpoint of this project.
+  license:
+    name: GNU Affero General Public License
+    url: https://www.gnu.org/licenses/agpl-3.0.txt
+  termsOfService: http://swagger.io/terms/
+  title: Augustin Swagger
+  version: 0.0.1
 paths:
-  /api/vendors/:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/database.Vendor'
-            type: array
-      summary: List Vendors
-      tags:
-      - vendors
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Vendor Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Vendor'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Create Vendor
-      tags:
-      - vendors
-  /api/vendors/{id}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: Vendor ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Delete Vendor
-      tags:
-      - vendors
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Vendor ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Vendor Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Vendor'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Update Vendor
-      tags:
-      - vendors
   /hello/:
     get:
       consumes:
@@ -201,7 +138,7 @@ paths:
       summary: Return HelloWorld
       tags:
       - core
-  /payments:
+  /payments/:
     get:
       consumes:
       - application/json
@@ -220,7 +157,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: '{"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00]}'
+      description: '{"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00}]}'
       produces:
       - application/json
       responses:
@@ -250,4 +187,56 @@ paths:
       summary: Return settings
       tags:
       - core
+  /vivawallet/transaction_order/:
+    post:
+      consumes:
+      - application/json
+      description: Post your amount like {"Amount":100}, which equals 100 cents
+      parameters:
+      - description: Amount in cents
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TransactionOrder'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.TransactionOrderResponse'
+            type: array
+      summary: Create a transaction order
+      tags:
+      - core
+  /vivawallet/transaction_verification/:
+    post:
+      consumes:
+      - application/json
+      description: Accepts {"TransactionID":"1234567890"} and returns {"Verification":true},
+        if successful
+      parameters:
+      - description: Transaction ID
+        in: body
+        name: transactionID
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TransactionVerification'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.TransactionVerificationResponse'
+            type: array
+      summary: Verify a transaction
+      tags:
+      - core
+securityDefinitions:
+  BasicAuth:
+    type: basic
 swagger: "2.0"

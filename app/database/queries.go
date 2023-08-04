@@ -163,7 +163,6 @@ func (db *Database) ListPayments() ([]Payment, error) {
 }
 
 
-
 // Create multiple payments
 func (db *Database) CreatePayments(payments []Payment) (err error) {
 

@@ -11,7 +11,8 @@
 //	@license.url	https://www.gnu.org/licenses/agpl-3.0.txt
 
 //	@host		localhost:3000
-//	@BasePath	/api/
+//	@BasePath	/api
+// @accept json
 
 //	@securityDefinitions.basic	BasicAuth
 
@@ -29,6 +30,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+
 	"github.com/mitchellh/mapstructure"
 	_ "github.com/swaggo/files"        // swagger embed files
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
@@ -36,6 +38,11 @@ import (
 	_ "github.com/swaggo/files" // swagger embed files
 
 	"augustin/database"
+
+	_ "github.com/swaggo/files"        // swagger embed files
+	_ "github.com/swaggo/http-swagger" // http-swagger middleware
+
+	"augustin/paymentprovider"
 )
 
 var log = utils.GetLogger()
@@ -49,21 +56,39 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 }
 
 
+
+type TransactionOrder struct {
+	Amount int
+}
+
+type TransactionOrderResponse struct {
+	SmartCheckoutURL string
+}
+
+type TransactionVerification struct {
+	TransactionID string
+}
+
+type TransactionVerificationResponse struct {
+	Verification bool
+}
+
+
+
 // ReturnHelloWorld godoc
 //
-//	 	@Summary 		Return HelloWorld
-//		@Description	Return HelloWorld as sample API call
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Router			/hello/ [get]
+//	@Summary		Return HelloWorld
+//	@Description	Return HelloWorld as sample API call
+//	@Tags			core
+//	@Accept			json
+//	@Produce		json
+//	@Router			/hello/ [get]
 //
 // HelloWorld API Handler fetching data from database
 func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	greeting, err := database.Db.GetHelloWorld()
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
-
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, greeting)
@@ -328,7 +353,7 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
-//		@Success		200	{array}	database.PaymentType
+//		@Success		200
 //		@Router			/payments [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch database.PaymentBatch
@@ -343,6 +368,85 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+}
+
+
+// VivaWalletCreateTransactionOrder godoc
+//
+//	@Summary		Create a transaction order
+//	@Description	Post your amount like {"Amount":100}, which equals 100 cents
+//	@Tags			core
+//	@accept			json
+//	@Produce		json
+//	@Param			amount body TransactionOrder true "Amount in cents"
+//	@Success		200	{array}	TransactionOrderResponse
+//	@Router			/vivawallet/transaction_order/ [post]
+func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
+	var transactionOrder TransactionOrder
+	err := utils.ReadJSON(w, r, &transactionOrder)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Create a new payment order
+	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
+	}
+	log.Info("Access token: ", accessToken)
+	orderCode, err := paymentprovider.CreatePaymentOrder(accessToken, transactionOrder.Amount)
+	if err != nil {
+		log.Error("Creating payment order failed: ", err)
+	}
+	log.Info("Order code: ", orderCode)
+
+	// Create response
+	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)
+	response := TransactionOrderResponse{
+		SmartCheckoutURL: url,
+	}
+	utils.WriteJSON(w, http.StatusOK, response)
+
+}
+
+// VivaWalletVerifyTransaction godoc
+//
+//	@Summary		Verify a transaction
+//	@Description	Accepts {"TransactionID":"1234567890"} and returns {"Verification":true}, if successful
+//	@Tags			core
+//	@accept			json
+//	@Produce		json
+//	@Param			transactionID body TransactionVerification true "Transaction ID"
+//	@Success		200	{array}	TransactionVerificationResponse
+//	@Router			/vivawallet/transaction_verification/ [post]
+func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
+	var transactionVerification TransactionVerification
+	err := utils.ReadJSON(w, r, &transactionVerification)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Get access token
+	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
+	}
+
+	// Verify transaction
+	verification, err := paymentprovider.VerifyTransactionID(accessToken, transactionVerification.TransactionID)
+	if err != nil {
+		log.Info("Verifying transaction failed: ", err)
+		return
+	}
+
+	// Create response
+	response := TransactionVerificationResponse{
+		Verification: verification,
+	}
+	utils.WriteJSON(w, http.StatusOK, response)
+
 }
 
 // Settings -------------------------------------------------------------------

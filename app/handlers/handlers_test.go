@@ -14,8 +14,6 @@ import (
 
 var r *chi.Mux
 
-
-
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
 	database.Db.InitEmptyTestDb()
@@ -105,12 +103,16 @@ func TestPayments(t *testing.T) {
 	if t.Failed() {
 		return
 	}
+	require.Equal(t, 1, len(payments))
+	if t.Failed() {
+		return
+	}
 
 	// Test payments response
 	require.Equal(t, payments[0].Amount, float32(3.14))
 	require.Equal(t, payments[0].Sender, account_id)
 	require.Equal(t, payments[0].Receiver, account_id)
 	require.Equal(t, payments[0].Timestamp.Time.Day(), time.Now().Day())
-	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().Hour())
+	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().UTC().Hour())
 
 }

@@ -1,125 +1,26 @@
 {
+    "consumes": [
+        "application/json"
+    ],
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "This swagger describes every endpoint of this project.",
+        "title": "Augustin Swagger",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "GNU Affero General Public License",
+            "url": "https://www.gnu.org/licenses/agpl-3.0.txt"
+        },
+        "version": "0.0.1"
     },
+    "host": "localhost:3000",
+    "basePath": "/api",
     "paths": {
-        "/api/vendors/": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "vendors"
-                ],
-                "summary": "List Vendors",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.Vendor"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "vendors"
-                ],
-                "summary": "Create Vendor",
-                "parameters": [
-                    {
-                        "description": "Vendor Representation",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Vendor"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/api/vendors/{id}": {
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "vendors"
-                ],
-                "summary": "Update Vendor",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Vendor ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Vendor Representation",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Vendor"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            },
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "vendors"
-                ],
-                "summary": "Delete Vendor",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Vendor ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/hello/": {
             "get": {
                 "description": "Return HelloWorld as sample API call",
@@ -136,7 +37,7 @@
                 "responses": {}
             }
         },
-        "/payments": {
+        "/payments/": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -161,7 +62,7 @@
                 }
             },
             "post": {
-                "description": "{\"Payments\":[{\"Sender\": 1, \"Receiver\":1, \"Type\":1,\"Amount\":1.00]}",
+                "description": "{\"Payments\":[{\"Sender\": 1, \"Receiver\":1, \"Type\":1,\"Amount\":1.00}]}",
                 "consumes": [
                     "application/json"
                 ],
@@ -205,6 +106,80 @@
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/database.Settings"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vivawallet/transaction_order/": {
+            "post": {
+                "description": "Post your amount like {\"Amount\":100}, which equals 100 cents",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Create a transaction order",
+                "parameters": [
+                    {
+                        "description": "Amount in cents",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TransactionOrder"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.TransactionOrderResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vivawallet/transaction_verification/": {
+            "post": {
+                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Verify a transaction",
+                "parameters": [
+                    {
+                        "description": "Transaction ID",
+                        "name": "transactionID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TransactionVerification"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.TransactionVerificationResponse"
                             }
                         }
                     }
@@ -296,40 +271,35 @@
                 }
             }
         },
-        "database.Vendor": {
+        "handlers.TransactionOrder": {
             "type": "object",
             "properties": {
-                "account": {
+                "amount": {
                     "type": "integer"
-                },
-                "balance": {
-                    "description": "This is joined in from the account",
-                    "type": "number"
-                },
-                "email": {
+                }
+            }
+        },
+        "handlers.TransactionOrderResponse": {
+            "type": "object",
+            "properties": {
+                "smartCheckoutURL": {
                     "type": "string"
-                },
-                "firstName": {
+                }
+            }
+        },
+        "handlers.TransactionVerification": {
+            "type": "object",
+            "properties": {
+                "transactionID": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "keycloakID": {
-                    "type": "string"
-                },
-                "lastName": {
-                    "type": "string"
-                },
-                "lastPayout": {
-                    "type": "string"
-                },
-                "licenseID": {
-                    "type": "string"
-                },
-                "urlID": {
-                    "description": "This is used for the QR code",
-                    "type": "string"
+                }
+            }
+        },
+        "handlers.TransactionVerificationResponse": {
+            "type": "object",
+            "properties": {
+                "verification": {
+                    "type": "boolean"
                 }
             }
         },
@@ -383,5 +353,14 @@
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    },
+    "externalDocs": {
+        "description": "OpenAPI",
+        "url": "https://swagger.io/resources/open-api/"
     }
 }

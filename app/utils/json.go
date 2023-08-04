@@ -58,7 +58,6 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) {
 		Message: err.Error(),
 	}
 
-
 	_ = WriteJSON(w, statusCode, theError, "error")
 }
 

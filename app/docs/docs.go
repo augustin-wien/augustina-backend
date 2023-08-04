@@ -6,6 +6,9 @@ import "github.com/swaggo/swag"
 
 const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
+    "consumes": [
+        "application/json"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "{{escape .Description}}",
@@ -148,7 +151,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/payments": {
+        "/payments/": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -173,7 +176,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "{\"Payments\":[{\"Sender\": 1, \"Receiver\":1, \"Type\":1,\"Amount\":1.00]}",
+                "description": "{\"Payments\":[{\"Sender\": 1, \"Receiver\":1, \"Type\":1,\"Amount\":1.00}]}",
                 "consumes": [
                     "application/json"
                 ],
@@ -217,6 +220,80 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/database.Settings"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vivawallet/transaction_order/": {
+            "post": {
+                "description": "Post your amount like {\"Amount\":100}, which equals 100 cents",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Create a transaction order",
+                "parameters": [
+                    {
+                        "description": "Amount in cents",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TransactionOrder"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.TransactionOrderResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vivawallet/transaction_verification/": {
+            "post": {
+                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Verify a transaction",
+                "parameters": [
+                    {
+                        "description": "Transaction ID",
+                        "name": "transactionID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TransactionVerification"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.TransactionVerificationResponse"
                             }
                         }
                     }
@@ -304,6 +381,38 @@ const docTemplate = `{
                     "$ref": "#/definitions/database.Item"
                 },
                 "refundFees": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "handlers.TransactionOrder": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.TransactionOrderResponse": {
+            "type": "object",
+            "properties": {
+                "smartCheckoutURL": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TransactionVerification": {
+            "type": "object",
+            "properties": {
+                "transactionID": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TransactionVerificationResponse": {
+            "type": "object",
+            "properties": {
+                "verification": {
                     "type": "boolean"
                 }
             }
@@ -400,9 +509,9 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "0.0.1",
+	Host:             "localhost:3000",
+	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "",
 	Description:      "",
