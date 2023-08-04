@@ -169,7 +169,7 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// CreateTransactionOrder godoc
+// VivaWalletCreateTransactionOrder godoc
 //
 //	@Summary		Create a transaction order
 //	@Description	Post your amount like {"Amount":100}, which equals 100 cents
@@ -179,7 +179,7 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 //	@Param			amount body TransactionOrder true "Amount in cents"
 //	@Success		200	{array}	TransactionOrderResponse
 //	@Router			/vivawallet/transaction_order/ [post]
-func CreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
+func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 	var transactionOrder TransactionOrder
 	err := utils.ReadJSON(w, r, &transactionOrder)
 	if err != nil {
@@ -208,7 +208,7 @@ func CreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// VerifyTransaction godoc
+// VivaWalletVerifyTransaction godoc
 //
 //	@Summary		Verify a transaction
 //	@Description	Accepts {"TransactionID":"1234567890"} and returns {"Verification":true}, if successful
@@ -218,7 +218,7 @@ func CreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 //	@Param			transactionID body TransactionVerification true "Transaction ID"
 //	@Success		200	{array}	TransactionVerificationResponse
 //	@Router			/vivawallet/transaction_verification/ [post]
-func VerifyTransaction(w http.ResponseWriter, r *http.Request) {
+func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 	var transactionVerification TransactionVerification
 	err := utils.ReadJSON(w, r, &transactionVerification)
 	if err != nil {
