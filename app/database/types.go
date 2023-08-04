@@ -5,7 +5,6 @@ import (
 )
 
 // Attributes have to be uppercase to be exported
-// Pgtype types are required if a field is nullable
 
 type Vendor struct {
 	ID	   	   int32
