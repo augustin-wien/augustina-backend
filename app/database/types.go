@@ -1,7 +1,6 @@
 package database
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -30,14 +29,9 @@ type Account struct {
 type Item struct {
 	ID         int32
 	Name       string
+	Description string
 	Price      float32
-	IsEditable bool
 	Image      string
-}
-
-type PaymentType struct {
-	ID   int32
-	Name string
 }
 
 type PaymentBatch struct {
@@ -47,15 +41,13 @@ type PaymentBatch struct {
 
 type Payment struct {
 	ID        	 int64
-	Timestamp 	 pgtype.Timestamp
+	Timestamp 	 null.Time
 	Sender    	 int32
 	Receiver  	 int32
-	Type      	 int32
 	Amount    	 float32
-	AuthorizedBy pgtype.Int4
-	Item	     pgtype.Int4
-	PaymentBatch pgtype.Int8
-
+	AuthorizedBy string
+	Item	     null.Int
+	Batch        null.Int
 }
 
 type Settings struct {
@@ -64,16 +56,4 @@ type Settings struct {
 	Logo       string
 	Newspaper  Item
 	RefundFees bool
-}
-
-type DatabaseInterface interface {
-	GetHelloWorld() (string, error)
-	GetPayments() ([]Payment, error)
-	CreatePaymentType(pt PaymentType) (pgtype.Int4, error)
-	CreateAccount(account Account) (pgtype.Int4, error)
-	CreatePayments(payments []Payment) error
-	UpdateSettings(settings Settings) error
-	GetItems() ([]Item, error)
-	GetSettings() (Settings, error)
-	GetVendorSettings() (string, error)
 }

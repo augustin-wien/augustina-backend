@@ -94,19 +94,66 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 }
 
 
+// Items ----------------------------------------------------------------------
+
+func (db *Database) ListItems() ([]Item, error) {
+	var items []Item
+	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
+	if err != nil {
+		return items, err
+	}
+	for rows.Next() {
+		var item Item
+		err = rows.Scan(&item.ID, &item.Name, &item.Price)
+		if err != nil {
+			return items, err
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func (db *Database) CreateItem(item Item) (id int32, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Item (Name, Description, Price) values ($1, $2, $3) RETURNING ID", item.Name, item.Description, item.Price).Scan(&id)
+	return id, err
+}
+
+func (db *Database) UpdateItem(item Item) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE Item
+	SET Name = $2, Price = $3, Image = $4
+	WHERE ID = $1
+	`, item.ID, item.Name, item.Price, item.Image)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
+func (db *Database) DeleteItem(id int) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	DELETE FROM Item
+	WHERE ID = $1
+	`, id)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 // Payments -------------------------------------------------------------------
 
 // GetPayments returns the payments from the database
-func (db *Database) GetPayments() ([]Payment, error) {
+func (db *Database) ListPayments() ([]Payment, error) {
 	var payments []Payment
 	rows, err := db.Dbpool.Query(context.Background(), "select * from payment")
 	if err != nil {
-		log.Error("GetPayments failed", zap.Error(err))
+		log.Error(err)
 		return payments, err
 	}
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Type, &payment.Amount, &payment.AuthorizedBy, &payment.Item, &payment.PaymentBatch)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Item, &payment.Batch)
 		if err != nil {
 			return payments, err
 		}
@@ -115,17 +162,7 @@ func (db *Database) GetPayments() ([]Payment, error) {
 	return payments, nil
 }
 
-// Create payment type
-func (db *Database) CreatePaymentType(pt PaymentType) (id int32, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into PaymentType (Name) values ($1) RETURNING ID", pt.Name).Scan(&id)
-	return id, err
-}
 
-// Create account
-func (db *Database) CreateAccount(account Account) (id int32, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
-	return id, err
-}
 
 // Create multiple payments
 func (db *Database) CreatePayments(payments []Payment) (err error) {
@@ -156,7 +193,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment ( Sender, Receiver, Type, Amount) values ($1, $2, $3, $4)", payment.Sender, payment.Receiver, payment.Type, payment.Amount)
+		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3)", payment.Sender, payment.Receiver, payment.Amount)
 		if err != nil {
 			return err
 		}
@@ -165,53 +202,16 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 }
 
 
+// Accounts -------------------------------------------------------------------
 
-func (db *Database) ListItems() ([]Item, error) {
-	var items []Item
-	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
-	if err != nil {
-		return items, err
-	}
-	for rows.Next() {
-		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Price)
-		if err != nil {
-			return items, err
-		}
-		items = append(items, item)
-	}
-	return items, nil
-}
-func (db *Database) CreateItem(item Item) (id int32, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Item (Name, Price) values ($1, $2) RETURNING ID", item.Name, item.Price).Scan(&id)
+
+func (db *Database) CreateAccount(account Account) (id int32, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
 	return id, err
 }
-func (db *Database) UpdateItem(item Item) (err error) {
 
-	// TODO: Throw error if is_editable = False
-	_, err = db.Dbpool.Exec(context.Background(), `
-	UPDATE Item
-	SET Name = $2, Price = $3, Image = $4
-	WHERE ID = $1
-	`, item.ID, item.Name, item.Price, item.Image)
 
-	if err != nil {
-		panic(err)
-	}
-
-	// Set items
-	// for _, item := range settings.Items {
-	// 	_, err = db.Dbpool.Query(context.Background(), `
-	// 	INSERT INTO Items (Name, Price) VALUES ($1, $2)
-	// 	ON CONFLICT (Name)
-	// 	DO UPDATE SET Name = $1, Price = $2
-	// 	`, item.Name, item.Price)
-	// 	if err != nil {
-	// 		log.Errorf("SetSettings failed: %v\n", err)
-	// 	}
-	// }
-	return err
-}
+// Settings (singleton) -------------------------------------------------------
 
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
@@ -234,26 +234,5 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 		log.Error("SetSettings failed:", zap.Error(err))
 	}
 
-	// Set items
-	// for _, item := range settings.Items {
-	// 	_, err = db.Dbpool.Query(context.Background(), `
-	// 	INSERT INTO Items (Name, Price) VALUES ($1, $2)
-	// 	ON CONFLICT (Name)
-	// 	DO UPDATE SET Name = $1, Price = $2
-	// 	`, item.Name, item.Price)
-	// 	if err != nil {
-	// 		log.Errorf("SetSettings failed: %v\n", err)
-	// 	}
-	// }
 	return err
-}
-
-func (db *Database) GetVendorSettings() (string, error) {
-	var settings string
-	err := db.Dbpool.QueryRow(context.Background(), `select '{"credit":1.61,"qrcode":"/img/Augustin-QR-Code.png","idnumber":"123456789"}'`).Scan(&settings)
-	if err != nil {
-		log.Error("QueryRow failed:", zap.Error(err))
-		return "", err
-	}
-	return settings, nil
 }

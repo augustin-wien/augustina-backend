@@ -22,7 +22,6 @@ package handlers
 
 import (
 	"augustin/utils"
-	"encoding/json"
 	"io"
 	"net/http"
 	"os"
@@ -174,10 +173,18 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 }
 
 
+// Items (that can be sold) ---------------------------------------------------
 
 
-
-// ItemViewSet
+// ListItems godoc
+//
+//	 	@Summary 		List Items
+//		@Tags			Items
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	database.Item
+//		@Router			/api/items/ [get]
+//
 func ListItems(w http.ResponseWriter, r *http.Request) {
 	items, err := database.Db.ListItems()
 	if err != nil {
@@ -186,6 +193,17 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.WriteJSON(w, http.StatusOK, items)
 }
+
+// CreateItem godoc
+//
+//	 	@Summary 		Create Item
+//		@Tags			Items
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    data body database.Item true "Item Representation"
+//		@Success		200	 {int}	id
+//		@Router			/api/items/ [post]
+//
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	var item database.Item
 	err := utils.ReadJSON(w, r, &item)
@@ -202,9 +220,20 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 }
 
 
+// UpdateItem godoc
+//
+//	 	@Summary 		Update Item
+//		@Description	Requires multipart form (for image)
+//		@Tags			Items
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    data body database.Item true "Item Representation"
+//		@Success		200
+//		@Router			/api/items/{id}/ [put]
+//
 // UpdateItem requires a multipart form
 // https://www.sobyte.net/post/2022-03/go-multipart-form-data/
-func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
+func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Read multipart form
 	r.ParseMultipartForm(32 << 20)
@@ -213,15 +242,15 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	// Handle normal fields
 	var item database.Item
 	fields := mForm.Value
-	err = mapstructure.Decode(fields, &item)
+	err := mapstructure.Decode(fields, &item)
     if err != nil {
-        panic(err)
+        log.Error(err)
     }
 
     // Get file from image field
     file, header, err := r.FormFile("Image")
     if err != nil {
-        panic(err)
+        log.Error(err)
     }
     defer file.Close()
 
@@ -233,7 +262,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	path := "/img/"+header.Filename
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		panic(err)
+		log.Error(err)
 	}
 	io.Copy(f, file)
 	item.Image = path
@@ -241,41 +270,61 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	// Save item to database
 	err = database.Db.UpdateItem(item)
 	if err != nil {
-		panic(err)
+		log.Error(err)
 	}
 
-    return err
+}
+
+// DeleteItem godoc
+//
+//	 	@Summary 		Delete Item
+//		@Tags			Items
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//      @Param          id   path int  true  "Item ID"
+//		@Router			/api/Items/{id} [delete]
+//
+func DeleteItem(w http.ResponseWriter, r *http.Request) {
+	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = database.Db.DeleteItem(ItemID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 
-// CreatePayments godoc
+// Payments (from one account to another account) -----------------------------
+
+// ListPayments godoc
 //
-//	 	@Summary 		Get all payments
+//	 	@Summary 		Get list of all payments
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Payment
 //		@Router			/payments [get]
-func GetPayments(w http.ResponseWriter, r *http.Request) {
-	payments, err := database.Db.GetPayments()
+func ListPayments(w http.ResponseWriter, r *http.Request) {
+	payments, err := database.Db.ListPayments()
 	if err != nil {
-		log.Errorf("GetPayments DB Error: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	marshal_struct, err := json.Marshal(payments)
-	if err != nil {
-		log.Errorf("JSON conversion failed: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write([]byte(marshal_struct))
+	utils.WriteJSON(w, http.StatusOK, payments)
 }
+
 
 // CreatePayments godoc
 //
 //	 	@Summary 		Create a set of payments
-//		@Description    {"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00]}
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
@@ -296,10 +345,12 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Settings -------------------------------------------------------------------
+
 // getSettings godoc
 //
 //	 	@Summary 		Return settings
-//		@Description	Return settings about the web-shop
+//		@Description	Return configuration data of the system
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json

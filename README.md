@@ -139,3 +139,8 @@ the exported configs are available in the `docker/keycloak/export` folder.
 ```bash
 curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/openid-connect/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'client_id=frontend' --data-urlencode 'grant_type=password' --data-urlencode 'username=user001' --data-urlencode 'password=Test123!' --data-urlencode 'scope=openid'
 ```
+
+## Troubleshooting
+
+```"invalid character '}' looking for beginning of object key string```
+-> you might have a false comme at the end of your json
