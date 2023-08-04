@@ -42,9 +42,6 @@ func (db *Database) InitEmptyTestDb() (err error) {
 	if err != nil {
 		return err
 	}
-	if config.Config.Development {
-		err = db.CreateDevData()
-	}
 	return err
 }
 

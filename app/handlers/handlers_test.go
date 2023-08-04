@@ -28,10 +28,9 @@ func TestHelloWorld(t *testing.T) {
 	require.Equal(t, "\"Hello, world!\"", res.Body.String())
 }
 
-// Users ----------------------------------------------------------------------
-
 // TestUsers tests CRUD operations on users
 func TestUsers(t *testing.T) {
+	// Create
 	json_vendor := `{
 		"keycloakID": "test",
 		"urlID": "test",
@@ -40,40 +39,31 @@ func TestUsers(t *testing.T) {
 		"lastName": "test"
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/vendors/", json_vendor, 200)
-	var x []uint8
-	require.IsType(t, x, res.Body.Bytes())
 	vendorID := res.Body.String()
-
-	// Create
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
 	var vendors []database.Vendor
 	err := json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-	require.Equal(t, 2, len(vendors))
-	require.Equal(t, "test1234", vendors[1].FirstName)
+	require.Equal(t, 1, len(vendors))
+	require.Equal(t, "test1234", vendors[0].FirstName)
 
 	// Update
-	json_vendor = `{"firstName": "test2"}`
+	json_vendor = `{"firstName": "nameAfterUpdate"}`
 	utils.TestRequestStr(t, r, "PUT", "/api/vendors/"+vendorID+"/", json_vendor, 200)
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-	require.Equal(t, 2, len(vendors))
-	require.Equal(t, "test2", vendors[1].FirstName)
+	require.Equal(t, 1, len(vendors))
+	require.Equal(t, "nameAfterUpdate", vendors[0].FirstName)
 
 	// Delete
 	utils.TestRequest(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204)
-
-	// Check if deleted
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(vendors))
-
+	require.Equal(t, 0, len(vendors))
 }
 
-
-// TODO ITEMS -----------------------------------------------------------------
 
 // TestItems tests CRUD operations on items (including images)
 // func TestItems(t *testing.T) {

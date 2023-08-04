@@ -128,13 +128,18 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 //		@Router			/api/vendors/{id} [put]
 //
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
-	var vendor database.Vendor
-	err := utils.ReadJSON(w, r, &vendor)
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = database.Db.UpdateVendor(vendor)
+	var vendor database.Vendor
+	err = utils.ReadJSON(w, r, &vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = database.Db.UpdateVendor(vendorID, vendor)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -153,7 +158,6 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 //		@Router			/api/vendors/{id} [delete]
 //
 func DeleteVendor(w http.ResponseWriter, r *http.Request) {
-	log.Info("USER ID", chi.URLParam(r, "id"))
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

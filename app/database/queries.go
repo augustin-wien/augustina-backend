@@ -58,15 +58,17 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 }
 
 // UpdateVendor Updates a user in the database
-func (db *Database) UpdateVendor(vendor Vendor) (err error) {
+func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
+	log.Info("updating")
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Vendor
 	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7
 	WHERE ID = $8
-	`, vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.ID)
+	`, vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, id)
 	if err != nil {
 		log.Error(err)
 	}
+
 	return
 }
 

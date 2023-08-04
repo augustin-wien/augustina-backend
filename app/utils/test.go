@@ -36,7 +36,7 @@ func CheckError(t *testing.T, err error) {
 	}
 }
 
-func TestRequest(t *testing.T, router *chi.Mux, method string, url string, body any, expectedResponseCode int) (res *httptest.ResponseRecorder) {
+func TestRequest(t *testing.T, router *chi.Mux, method string, url string, body interface{}, expectedResponseCode int) (res *httptest.ResponseRecorder) {
 	var bodyJSON bytes.Buffer
 	err := json.NewEncoder(&bodyJSON).Encode(body)
 	CheckError(t, err)
