@@ -14,7 +14,7 @@ type Vendor struct {
 	FirstName  string
 	LastName   string
     Email	   string
-	LastPayout null.Time
+	LastPayout null.Time `swaggertype:"string" format:"date-time"`
 	Account    int32
 	Balance    float32 // This is joined in from the account
 }
@@ -40,13 +40,13 @@ type PaymentBatch struct {
 
 type Payment struct {
 	ID        	 int64
-	Timestamp 	 null.Time
+	Timestamp 	 null.Time `swaggertype:"string" format:"date-time"`
 	Sender    	 int32
 	Receiver  	 int32
 	Amount    	 float32
 	AuthorizedBy string
-	Item	     null.Int
-	Batch        null.Int
+	Item	     null.Int `swaggertype:"string"`
+	Batch        null.Int `swaggertype:"string"`
 }
 
 type Settings struct {

@@ -105,7 +105,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Vendor
-//		@Router			/api/vendors/ [get]
+//		@Router			/vendors/ [get]
 //
 func ListVendors(w http.ResponseWriter, r *http.Request) {
 	users, err := database.Db.ListVendors()
@@ -120,7 +120,7 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Success		200
 //	    @Param		    data body database.Vendor true "Vendor Representation"
-//		@Router			/api/vendors/ [post]
+//		@Router			/vendors/ [post]
 //
 func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	var vendor database.Vendor
@@ -149,7 +149,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 //		@Success		200
 //      @Param          id   path int  true  "Vendor ID"
 //	    @Param		    data body database.Vendor true "Vendor Representation"
-//		@Router			/api/vendors/{id} [put]
+//		@Router			/vendors/{id} [put]
 //
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -179,7 +179,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Success		200
 //      @Param          id   path int  true  "Vendor ID"
-//		@Router			/api/vendors/{id} [delete]
+//		@Router			/vendors/{id} [delete]
 //
 func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -208,7 +208,7 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Item
-//		@Router			/api/items/ [get]
+//		@Router			/items/ [get]
 //
 func ListItems(w http.ResponseWriter, r *http.Request) {
 	items, err := database.Db.ListItems()
@@ -227,7 +227,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //	    @Param		    data body database.Item true "Item Representation"
 //		@Success		200	 {int}	id
-//		@Router			/api/items/ [post]
+//		@Router			/items/ [post]
 //
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	var item database.Item
@@ -254,7 +254,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //	    @Param		    data body database.Item true "Item Representation"
 //		@Success		200
-//		@Router			/api/items/{id}/ [put]
+//		@Router			/items/{id}/ [put]
 //
 // UpdateItem requires a multipart form
 // https://www.sobyte.net/post/2022-03/go-multipart-form-data/
@@ -308,7 +308,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Success		200
 //      @Param          id   path int  true  "Item ID"
-//		@Router			/api/Items/{id} [delete]
+//		@Router			/items/{id} [delete]
 //
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))

@@ -143,4 +143,4 @@ curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/o
 ## Troubleshooting
 
 ```"invalid character '}' looking for beginning of object key string```
--> you might have a false comme at the end of your json
+-> You might have a false commY at the end of your json

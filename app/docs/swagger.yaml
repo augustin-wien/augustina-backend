@@ -4,12 +4,12 @@ consumes:
 definitions:
   database.Item:
     properties:
+      description:
+        type: string
       id:
         type: integer
       image:
         type: string
-      isEditable:
-        type: boolean
       name:
         type: string
       price:
@@ -20,27 +20,19 @@ definitions:
       amount:
         type: number
       authorizedBy:
-        $ref: '#/definitions/pgtype.Int4'
+        type: string
+      batch:
+        type: string
       id:
         type: integer
       item:
-        $ref: '#/definitions/pgtype.Int4'
-      paymentBatch:
-        $ref: '#/definitions/pgtype.Int8'
+        type: string
       receiver:
         type: integer
       sender:
         type: integer
       timestamp:
-        $ref: '#/definitions/pgtype.Timestamp'
-      type:
-        type: integer
-    type: object
-  database.PaymentType:
-    properties:
-      id:
-        type: integer
-      name:
+        format: date-time
         type: string
     type: object
   database.Settings:
@@ -55,6 +47,32 @@ definitions:
         $ref: '#/definitions/database.Item'
       refundFees:
         type: boolean
+    type: object
+  database.Vendor:
+    properties:
+      account:
+        type: integer
+      balance:
+        description: This is joined in from the account
+        type: number
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: integer
+      keycloakID:
+        type: string
+      lastName:
+        type: string
+      lastPayout:
+        format: date-time
+        type: string
+      licenseID:
+        type: string
+      urlID:
+        description: This is used for the QR code
+        type: string
     type: object
   handlers.TransactionOrder:
     properties:
@@ -74,40 +92,6 @@ definitions:
   handlers.TransactionVerificationResponse:
     properties:
       verification:
-        type: boolean
-    type: object
-  pgtype.InfinityModifier:
-    enum:
-    - 1
-    - 0
-    - -1
-    type: integer
-    x-enum-varnames:
-    - Infinity
-    - Finite
-    - NegativeInfinity
-  pgtype.Int4:
-    properties:
-      int32:
-        type: integer
-      valid:
-        type: boolean
-    type: object
-  pgtype.Int8:
-    properties:
-      int64:
-        type: integer
-      valid:
-        type: boolean
-    type: object
-  pgtype.Timestamp:
-    properties:
-      infinityModifier:
-        $ref: '#/definitions/pgtype.InfinityModifier'
-      time:
-        description: Time zone will be ignored when encoding to PostgreSQL.
-        type: string
-      valid:
         type: boolean
     type: object
 externalDocs:
@@ -138,7 +122,81 @@ paths:
       summary: Return HelloWorld
       tags:
       - core
-  /payments/:
+  /items/:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Item'
+            type: array
+      summary: List Items
+      tags:
+      - Items
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Item Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Item'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: int
+      summary: Create Item
+      tags:
+      - Items
+  /items/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete Item
+      tags:
+      - Items
+  /items/{id}/:
+    put:
+      consumes:
+      - application/json
+      description: Requires multipart form (for image)
+      parameters:
+      - description: Item Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Item'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Update Item
+      tags:
+      - Items
+  /payments:
     get:
       consumes:
       - application/json
@@ -151,22 +209,17 @@ paths:
             items:
               $ref: '#/definitions/database.Payment'
             type: array
-      summary: Get all payments
+      summary: Get list of all payments
       tags:
       - core
     post:
       consumes:
       - application/json
-      description: '{"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00}]}'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            items:
-              $ref: '#/definitions/database.PaymentType'
-            type: array
       summary: Create a set of payments
       tags:
       - core
@@ -174,7 +227,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Return settings about the web-shop
+      description: Return configuration data of the system
       produces:
       - application/json
       responses:
@@ -187,6 +240,82 @@ paths:
       summary: Return settings
       tags:
       - core
+  /vendors/:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Vendor'
+            type: array
+      summary: List Vendors
+      tags:
+      - vendors
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Vendor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Create Vendor
+      tags:
+      - vendors
+  /vendors/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete Vendor
+      tags:
+      - vendors
+    put:
+      consumes:
+      - application/json
+      description: 'Warning: Unfilled fields will be set to default values'
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Vendor Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Vendor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Update Vendor
+      tags:
+      - vendors
   /vivawallet/transaction_order/:
     post:
       consumes:
