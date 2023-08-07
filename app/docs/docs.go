@@ -6,11 +6,23 @@ import "github.com/swaggo/swag"
 
 const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
+    "consumes": [
+        "application/json"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "GNU Affero General Public License",
+            "url": "https://www.gnu.org/licenses/agpl-3.0.txt"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -548,17 +560,26 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    },
+    "externalDocs": {
+        "description": "OpenAPI",
+        "url": "https://swagger.io/resources/open-api/"
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "0.0.1",
+	Host:             "localhost:3000",
+	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Augustin Swagger",
+	Description:      "This swagger describes every endpoint of this project.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
