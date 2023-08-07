@@ -70,7 +70,6 @@ jobs:
           done
       - name: Test
         run:
-          cp .env.example .env &&
           cp .env.example ./app/.env &&
           ls -lah &&
           cd app && cd migrations && tern migrate --config ./tern_test.conf &&
