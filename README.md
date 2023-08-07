@@ -23,7 +23,7 @@ Rebuild swagger
 
 ```bash
 cd app
-swag init -g handlers/handlers.go --parseDependency --parseInternal --parseDepth 1
+swag init -g handlers/swagger.go --parseDependency --parseInternal --parseDepth 1
 ```
 
 Note: If the update does not show in your browser, reset cache.

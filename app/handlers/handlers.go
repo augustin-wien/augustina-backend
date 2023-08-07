@@ -1,24 +1,3 @@
-//	@title			Augustin Swagger
-//	@version		0.0.1
-//	@description	This swagger describes every endpoint of this project.
-//	@termsOfService	http://swagger.io/terms/
-
-//	@contact.name	API Support
-//	@contact.url	http://www.swagger.io/support
-//	@contact.email	support@swagger.io
-
-//	@license.name	GNU Affero General Public License
-//	@license.url	https://www.gnu.org/licenses/agpl-3.0.txt
-
-//	@host		localhost:3000
-//	@BasePath	/api
-// @accept json
-
-//	@securityDefinitions.basic	BasicAuth
-
-//	@externalDocs.description	OpenAPI
-//	@externalDocs.url			https://swagger.io/resources/open-api/
-
 package handlers
 
 import (
@@ -32,10 +11,6 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/mitchellh/mapstructure"
-	_ "github.com/swaggo/files"        // swagger embed files
-	_ "github.com/swaggo/http-swagger" // http-swagger middleware
-
-	_ "github.com/swaggo/files" // swagger embed files
 
 	"augustin/database"
 
@@ -56,8 +31,6 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 	utils.WriteJSON(w, http.StatusOK, payload)
 }
 
-
-
 type TransactionOrder struct {
 	Amount int
 }
@@ -73,8 +46,6 @@ type TransactionVerification struct {
 type TransactionVerificationResponse struct {
 	Verification bool
 }
-
-
 
 // ReturnHelloWorld godoc
 //
@@ -95,8 +66,6 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, greeting)
 }
 
-
-
 // Users ----------------------------------------------------------------------
 
 // ListVendors godoc
@@ -107,7 +76,6 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Success		200	{array}	database.Vendor
 //		@Router			/vendors/ [get]
-//
 func ListVendors(w http.ResponseWriter, r *http.Request) {
 	users, err := database.Db.ListVendors()
 	respond(w, err, users)
@@ -122,7 +90,6 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 //		@Success		200
 //	    @Param		    data body database.Vendor true "Vendor Representation"
 //		@Router			/vendors/ [post]
-//
 func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	var vendor database.Vendor
 	err := utils.ReadJSON(w, r, &vendor)
@@ -138,16 +105,15 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 
 // UpdateVendor godoc
 //
-//	 	@Summary 		Update Vendor
-//		@Description	Warning: Unfilled fields will be set to default values
-//		@Tags			vendors
-//		@Accept			json
-//		@Produce		json
-//		@Success		200
-//      @Param          id   path int  true  "Vendor ID"
-//	    @Param		    data body database.Vendor true "Vendor Representation"
-//		@Router			/vendors/{id} [put]
-//
+//		 	@Summary 		Update Vendor
+//			@Description	Warning: Unfilled fields will be set to default values
+//			@Tags			vendors
+//			@Accept			json
+//			@Produce		json
+//			@Success		200
+//	     @Param          id   path int  true  "Vendor ID"
+//		    @Param		    data body database.Vendor true "Vendor Representation"
+//			@Router			/vendors/{id} [put]
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -166,14 +132,13 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 
 // DeleteVendor godoc
 //
-//	 	@Summary 		Delete Vendor
-//		@Tags			vendors
-//		@Accept			json
-//		@Produce		json
-//		@Success		200
-//      @Param          id   path int  true  "Vendor ID"
-//		@Router			/vendors/{id} [delete]
-//
+//		 	@Summary 		Delete Vendor
+//			@Tags			vendors
+//			@Accept			json
+//			@Produce		json
+//			@Success		200
+//	     @Param          id   path int  true  "Vendor ID"
+//			@Router			/vendors/{id} [delete]
 func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -190,9 +155,7 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-
 // Items (that can be sold) ---------------------------------------------------
-
 
 // ListItems godoc
 //
@@ -202,7 +165,6 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Success		200	{array}	database.Item
 //		@Router			/items/ [get]
-//
 func ListItems(w http.ResponseWriter, r *http.Request) {
 	items, err := database.Db.ListItems()
 	if err != nil {
@@ -221,7 +183,6 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 //	    @Param		    data body database.Item true "Item Representation"
 //		@Success		200	 {int}	id
 //		@Router			/items/ [post]
-//
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	var item database.Item
 	err := utils.ReadJSON(w, r, &item)
@@ -236,7 +197,6 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.WriteJSON(w, http.StatusOK, id)
 }
-
 
 // UpdateItem godoc
 //
@@ -261,23 +221,23 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	var item database.Item
 	fields := mForm.Value
 	err := mapstructure.Decode(fields, &item)
-    if err != nil {
-        log.Error(err)
-    }
+	if err != nil {
+		log.Error(err)
+	}
 
-    // Get file from image field
-    file, header, err := r.FormFile("Image")
-    if err != nil {
-        log.Error(err)
-    }
-    defer file.Close()
+	// Get file from image field
+	file, header, err := r.FormFile("Image")
+	if err != nil {
+		log.Error(err)
+	}
+	defer file.Close()
 
 	// Debugging
-    name := strings.Split(header.Filename, ".")
+	name := strings.Split(header.Filename, ".")
 	log.Infof("Uploading %s\n", name[0])
 
 	// Save file
-	path := "/img/"+header.Filename
+	path := "/img/" + header.Filename
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		log.Error(err)
@@ -295,14 +255,13 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 // DeleteItem godoc
 //
-//	 	@Summary 		Delete Item
-//		@Tags			Items
-//		@Accept			json
-//		@Produce		json
-//		@Success		200
-//      @Param          id   path int  true  "Item ID"
-//		@Router			/items/{id} [delete]
-//
+//		 	@Summary 		Delete Item
+//			@Tags			Items
+//			@Accept			json
+//			@Produce		json
+//			@Success		200
+//	     @Param          id   path int  true  "Item ID"
+//			@Router			/items/{id} [delete]
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -319,7 +278,6 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-
 // Payments (from one account to another account) -----------------------------
 
 // ListPayments godoc
@@ -334,7 +292,6 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.ListPayments()
 	respond(w, err, payments)
 }
-
 
 // CreatePayments godoc
 //
@@ -358,7 +315,6 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 
 // VivaWalletCreateTransactionOrder godoc
 //
@@ -447,7 +403,6 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Success		200	{array}	database.Settings
 //		@Router			/settings/ [get]
-//
 func getSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := database.Db.GetSettings()
 	if err != nil {

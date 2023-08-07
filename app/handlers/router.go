@@ -4,9 +4,6 @@ import (
 	"net/http"
 	"os"
 
-	_ "github.com/swaggo/files"        // swagger embed files
-	_ "github.com/swaggo/http-swagger" // http-swagger middleware
-
 	_ "github.com/swaggo/files" // swagger embed files
 
 	"augustin/middlewares"
@@ -54,7 +51,7 @@ func GetRouter() (r *chi.Mux) {
 		r.Route("/{id}", func(r chi.Router) {
 			r.Put("/", UpdateVendor)
 			r.Delete("/", DeleteVendor)
-		 })
+		})
 	})
 
 	// Items
@@ -64,7 +61,7 @@ func GetRouter() (r *chi.Mux) {
 		r.Route("/{id}", func(r chi.Router) {
 			r.Put("/", UpdateItem)
 			r.Delete("/", DeleteItem)
-		 })
+		})
 	})
 
 	// Payments
@@ -72,7 +69,6 @@ func GetRouter() (r *chi.Mux) {
 		r.Get("/", ListPayments)
 		r.Post("/", CreatePayments)
 	})
-
 
 	// Payment service providers
 	r.Post("/api/vivawallet/transaction_order/", VivaWalletCreateTransactionOrder)
