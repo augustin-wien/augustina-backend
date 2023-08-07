@@ -1,41 +1,36 @@
 package database
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
+	"gopkg.in/guregu/null.v4"
 )
 
 // Attributes have to be uppercase to be exported
-// Pgtype types are required if a field is nullable
 
-type Person struct {
+type Vendor struct {
 	ID	   	   int32
 	KeycloakID string
-	UrlID	   string  // This will be the QR code
+	UrlID	   string  // This is used for the QR code
 	LicenseID  string
 	FirstName  string
 	LastName   string
-	IsVendor   bool
-	IsAdmin    bool
+    Email	   string
+	LastPayout null.Time `swaggertype:"string" format:"date-time"`
+	Account    int32
+	Balance    float32 // This is joined in from the account
 }
 
 type Account struct {
-	ID     int32
-	Name   string
-	Person Person
-	// TODO: Balance
+	ID      int32
+	Name    string
+	Balance float32
 }
 
 type Item struct {
 	ID         int32
 	Name       string
+	Description string
 	Price      float32
-	IsEditable bool
 	Image      string
-}
-
-type PaymentType struct {
-	ID   int32
-	Name string
 }
 
 type PaymentBatch struct {
@@ -45,33 +40,19 @@ type PaymentBatch struct {
 
 type Payment struct {
 	ID        	 int64
-	Timestamp 	 pgtype.Timestamp
+	Timestamp 	 null.Time `swaggertype:"string" format:"date-time"`
 	Sender    	 int32
 	Receiver  	 int32
-	Type      	 int32
 	Amount    	 float32
-	AuthorizedBy pgtype.Int4
-	Item	     pgtype.Int4
-	PaymentBatch pgtype.Int8
-
+	AuthorizedBy string
+	Item	     null.Int `swaggertype:"integer"`
+	Batch        null.Int `swaggertype:"integer"`
 }
 
 type Settings struct {
 	ID         int32
 	Color      string
 	Logo       string
-	Newspaper  Item
+	MainItem   null.Int `swaggertype:"integer"`
 	RefundFees bool
-}
-
-type DatabaseInterface interface {
-	GetHelloWorld() (string, error)
-	GetPayments() ([]Payment, error)
-	CreatePaymentType(pt PaymentType) (pgtype.Int4, error)
-	CreateAccount(account Account) (pgtype.Int4, error)
-	CreatePayments(payments []Payment) error
-	UpdateSettings(settings Settings) error
-	GetItems() ([]Item, error)
-	GetSettings() (Settings, error)
-	GetVendorSettings() (string, error)
 }

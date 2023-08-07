@@ -1,43 +1,35 @@
-//	@title			Augustin Swagger
-//	@version		0.0.1
-//	@description	This swagger describes every endpoint of this project.
-//	@termsOfService	http://swagger.io/terms/
-
-//	@contact.name	API Support
-//	@contact.url	http://www.swagger.io/support
-//	@contact.email	support@swagger.io
-
-//	@license.name	GNU Affero General Public License
-//	@license.url	https://www.gnu.org/licenses/agpl-3.0.txt
-
-//	@host		localhost:3000
-//	@BasePath	/api
-// @accept json
-
-//	@securityDefinitions.basic	BasicAuth
-
-//	@externalDocs.description	OpenAPI
-//	@externalDocs.url			https://swagger.io/resources/open-api/
-
 package handlers
 
 import (
 	"augustin/utils"
-	"encoding/json"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/mitchellh/mapstructure"
+
+	"augustin/database"
 
 	_ "github.com/swaggo/files"        // swagger embed files
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
 
-	"augustin/database"
 	"augustin/paymentprovider"
 )
+
+var log = utils.GetLogger()
+
+// respond takes care of writing the response to the client
+func respond(w http.ResponseWriter, err error, payload interface{}) {
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, payload)
+}
 
 type TransactionOrder struct {
 	Amount int
@@ -54,8 +46,6 @@ type TransactionVerification struct {
 type TransactionVerificationResponse struct {
 	Verification bool
 }
-
-var log = utils.GetLogger()
 
 // ReturnHelloWorld godoc
 //
@@ -76,9 +66,152 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, greeting)
 }
 
+// Users ----------------------------------------------------------------------
+
+// ListVendors godoc
+//
+//	 	@Summary 		List Vendors
+//		@Tags			vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	database.Vendor
+//		@Router			/vendors/ [get]
+func ListVendors(w http.ResponseWriter, r *http.Request) {
+	users, err := database.Db.ListVendors()
+	respond(w, err, users)
+}
+
+// CreateVendor godoc
+//
+//	 	@Summary 		Create Vendor
+//		@Tags			vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//	    @Param		    data body database.Vendor true "Vendor Representation"
+//		@Router			/vendors/ [post]
+func CreateVendor(w http.ResponseWriter, r *http.Request) {
+	var vendor database.Vendor
+	err := utils.ReadJSON(w, r, &vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	log.Info("id ", vendor.ID, "fn ", vendor.FirstName, "bl ", vendor.Balance)
+
+	id, err := database.Db.CreateVendor(vendor)
+	respond(w, err, id)
+}
+
+// UpdateVendor godoc
+//
+//		 	@Summary 		Update Vendor
+//			@Description	Warning: Unfilled fields will be set to default values
+//			@Tags			vendors
+//			@Accept			json
+//			@Produce		json
+//			@Success		200
+//	     @Param          id   path int  true  "Vendor ID"
+//		    @Param		    data body database.Vendor true "Vendor Representation"
+//			@Router			/vendors/{id} [put]
+func UpdateVendor(w http.ResponseWriter, r *http.Request) {
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	var vendor database.Vendor
+	err = utils.ReadJSON(w, r, &vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = database.Db.UpdateVendor(vendorID, vendor)
+	respond(w, err, vendor)
+}
+
+// DeleteVendor godoc
+//
+//		 	@Summary 		Delete Vendor
+//			@Tags			vendors
+//			@Accept			json
+//			@Produce		json
+//			@Success		200
+//	     @Param          id   path int  true  "Vendor ID"
+//			@Router			/vendors/{id} [delete]
+func DeleteVendor(w http.ResponseWriter, r *http.Request) {
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = database.Db.DeleteVendor(vendorID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// Items (that can be sold) ---------------------------------------------------
+
+// ListItems godoc
+//
+//	 	@Summary 		List Items
+//		@Tags			Items
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	database.Item
+//		@Router			/items/ [get]
+func ListItems(w http.ResponseWriter, r *http.Request) {
+	items, err := database.Db.ListItems()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, items)
+}
+
+// CreateItem godoc
+//
+//	 	@Summary 		Create Item
+//		@Tags			Items
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    data body database.Item true "Item Representation"
+//		@Success		200	 {int}	id
+//		@Router			/items/ [post]
+func CreateItem(w http.ResponseWriter, r *http.Request) {
+	var item database.Item
+	err := utils.ReadJSON(w, r, &item)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	id, err := database.Db.CreateItem(item)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, id)
+}
+
+// UpdateItem godoc
+//
+//	 	@Summary 		Update Item
+//		@Description	Requires multipart form (for image)
+//		@Tags			Items
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    data body database.Item true "Item Representation"
+//		@Success		200
+//		@Router			/items/{id}/ [put]
+//
 // UpdateItem requires a multipart form
 // https://www.sobyte.net/post/2022-03/go-multipart-form-data/
-func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
+func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Read multipart form
 	r.ParseMultipartForm(32 << 20)
@@ -87,15 +220,15 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	// Handle normal fields
 	var item database.Item
 	fields := mForm.Value
-	err = mapstructure.Decode(fields, &item)
+	err := mapstructure.Decode(fields, &item)
 	if err != nil {
-		panic(err)
+		log.Error(err)
 	}
 
 	// Get file from image field
 	file, header, err := r.FormFile("Image")
 	if err != nil {
-		panic(err)
+		log.Error(err)
 	}
 	defer file.Close()
 
@@ -107,7 +240,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	path := "/img/" + header.Filename
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		panic(err)
+		log.Error(err)
 	}
 	io.Copy(f, file)
 	item.Image = path
@@ -115,45 +248,59 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) (err error) {
 	// Save item to database
 	err = database.Db.UpdateItem(item)
 	if err != nil {
-		panic(err)
+		log.Error(err)
 	}
 
-	return err
 }
 
-// GetPayments godoc
+// DeleteItem godoc
 //
-//	@Summary	Get all payments
-//	@Tags		core
-//	@Accept		json
-//	@Produce	json
-//	@Success	200	{array}	database.Payment
-//	@Router		/payments/ [get]
-func GetPayments(w http.ResponseWriter, r *http.Request) {
-	payments, err := database.Db.GetPayments()
+//		 	@Summary 		Delete Item
+//			@Tags			Items
+//			@Accept			json
+//			@Produce		json
+//			@Success		200
+//	     @Param          id   path int  true  "Item ID"
+//			@Router			/items/{id} [delete]
+func DeleteItem(w http.ResponseWriter, r *http.Request) {
+	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		log.Errorf("GetPayments DB Error: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	marshal_struct, err := json.Marshal(payments)
+
+	err = database.Db.DeleteItem(ItemID)
 	if err != nil {
-		log.Errorf("JSON conversion failed: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	w.Write([]byte(marshal_struct))
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// Payments (from one account to another account) -----------------------------
+
+// ListPayments godoc
+//
+//	 	@Summary 		Get list of all payments
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	database.Payment
+//		@Router			/payments [get]
+func ListPayments(w http.ResponseWriter, r *http.Request) {
+	payments, err := database.Db.ListPayments()
+	respond(w, err, payments)
 }
 
 // CreatePayments godoc
 //
-//	@Summary		Create a set of payments
-//	@Description	{"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00}]}
-//	@Tags			core
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{array}	database.PaymentType
-//	@Router			/payments/ [post]
+//	 	@Summary 		Create a set of payments
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//		@Router			/payments [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch database.PaymentBatch
 	err := utils.ReadJSON(w, r, &paymentBatch)
@@ -192,12 +339,10 @@ func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("Authentication failed: ", err)
 	}
-	log.Info("Access token: ", accessToken)
 	orderCode, err := paymentprovider.CreatePaymentOrder(accessToken, transactionOrder.Amount)
 	if err != nil {
 		log.Error("Creating payment order failed: ", err)
 	}
-	log.Info("Order code: ", orderCode)
 
 	// Create response
 	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)
@@ -247,15 +392,17 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Settings -------------------------------------------------------------------
+
 // getSettings godoc
 //
-//	@Summary		Return settings
-//	@Description	Return settings about the web-shop
-//	@Tags			core
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{array}	database.Settings
-//	@Router			/settings/ [get]
+//	 	@Summary 		Return settings
+//		@Description	Return configuration data of the system
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	database.Settings
+//		@Router			/settings/ [get]
 func getSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := database.Db.GetSettings()
 	if err != nil {

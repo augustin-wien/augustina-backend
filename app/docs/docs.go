@@ -44,7 +44,122 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/payments/": {
+        "/items/": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "List Items",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Item"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Create Item",
+                "parameters": [
+                    {
+                        "description": "Item Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Item"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "int"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/{id}": {
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Delete Item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/items/{id}/": {
+            "put": {
+                "description": "Requires multipart form (for image)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Update Item",
+                "parameters": [
+                    {
+                        "description": "Item Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Item"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/payments": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -55,7 +170,7 @@ const docTemplate = `{
                 "tags": [
                     "core"
                 ],
-                "summary": "Get all payments",
+                "summary": "Get list of all payments",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -69,7 +184,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "{\"Payments\":[{\"Sender\": 1, \"Receiver\":1, \"Type\":1,\"Amount\":1.00}]}",
                 "consumes": [
                     "application/json"
                 ],
@@ -82,20 +196,14 @@ const docTemplate = `{
                 "summary": "Create a set of payments",
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.PaymentType"
-                            }
-                        }
+                        "description": "OK"
                     }
                 }
             }
         },
         "/settings/": {
             "get": {
-                "description": "Return settings about the web-shop",
+                "description": "Return configuration data of the system",
                 "consumes": [
                     "application/json"
                 ],
@@ -115,6 +223,123 @@ const docTemplate = `{
                                 "$ref": "#/definitions/database.Settings"
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/vendors/": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "List Vendors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Vendor"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "Create Vendor",
+                "parameters": [
+                    {
+                        "description": "Vendor Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Vendor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/vendors/{id}": {
+            "put": {
+                "description": "Warning: Unfilled fields will be set to default values",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "Update Vendor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Vendor Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Vendor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "Delete Vendor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -198,14 +423,14 @@ const docTemplate = `{
         "database.Item": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "image": {
                     "type": "string"
-                },
-                "isEditable": {
-                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -222,16 +447,16 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "authorizedBy": {
-                    "$ref": "#/definitions/pgtype.Int4"
+                    "type": "string"
+                },
+                "batch": {
+                    "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
                 "item": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                },
-                "paymentBatch": {
-                    "$ref": "#/definitions/pgtype.Int8"
+                    "type": "integer"
                 },
                 "receiver": {
                     "type": "integer"
@@ -240,21 +465,8 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "timestamp": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
-                },
-                "type": {
-                    "type": "integer"
-                }
-            }
-        },
-        "database.PaymentType": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 }
             }
         },
@@ -270,11 +482,49 @@ const docTemplate = `{
                 "logo": {
                     "type": "string"
                 },
-                "newspaper": {
-                    "$ref": "#/definitions/database.Item"
+                "mainItem": {
+                    "type": "integer"
                 },
                 "refundFees": {
                     "type": "boolean"
+                }
+            }
+        },
+        "database.Vendor": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "integer"
+                },
+                "balance": {
+                    "description": "This is joined in from the account",
+                    "type": "number"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "keycloakID": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "lastPayout": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "licenseID": {
+                    "type": "string"
+                },
+                "urlID": {
+                    "description": "This is used for the QR code",
+                    "type": "string"
                 }
             }
         },
@@ -306,56 +556,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "verification": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "pgtype.InfinityModifier": {
-            "type": "integer",
-            "enum": [
-                1,
-                0,
-                -1
-            ],
-            "x-enum-varnames": [
-                "Infinity",
-                "Finite",
-                "NegativeInfinity"
-            ]
-        },
-        "pgtype.Int4": {
-            "type": "object",
-            "properties": {
-                "int32": {
-                    "type": "integer"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "pgtype.Int8": {
-            "type": "object",
-            "properties": {
-                "int64": {
-                    "type": "integer"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "pgtype.Timestamp": {
-            "type": "object",
-            "properties": {
-                "infinityModifier": {
-                    "$ref": "#/definitions/pgtype.InfinityModifier"
-                },
-                "time": {
-                    "description": "Time zone will be ignored when encoding to PostgreSQL.",
-                    "type": "string"
-                },
-                "valid": {
                     "type": "boolean"
                 }
             }

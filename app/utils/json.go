@@ -71,12 +71,14 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	// attempt to decode the data
 	err := dec.Decode(data)
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 
 	// make sure only one JSON value in payload
 	err = dec.Decode(&struct{}{})
 	if err != io.EOF {
+		log.Error(err)
 		return errors.New("body must only contain a single JSON value")
 	}
 

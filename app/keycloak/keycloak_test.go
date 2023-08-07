@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +25,6 @@ func lookupRole(roleName string, roles []*gocloak.Role) *gocloak.Role {
 }
 
 func TestKeycloak(t *testing.T) {
-	godotenv.Load("../.env")
 	// Test the keycloak functions
 	keycloak.InitializeOauthServer()
 	var err error
@@ -89,13 +87,7 @@ func TestKeycloak(t *testing.T) {
 
 func TestHelloWorldAuth(t *testing.T) {
 	// Initialize database
-	// TODO: This is not a test database, but the real one!
-	err := godotenv.Load("../.env")
-	if err != nil {
-		log.Error("Error loading .env file")
-	}
-	database.Db.InitDb()
-
+	database.Db.InitEmptyTestDb()
 	router := handlers.GetRouter()
 
 	// Create a New Request

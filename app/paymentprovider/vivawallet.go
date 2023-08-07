@@ -1,6 +1,7 @@
 package paymentprovider
 
 import (
+	"augustin/config"
 	"augustin/utils"
 	"bytes"
 	"encoding/json"
@@ -89,7 +90,12 @@ func AuthenticateToVivaWallet() (string, error) {
 
 	// Create Header
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", "Basic "+utils.GetEnv("VIVA_WALLET_CLIENT_CREDENTIALS", ""))
+	req.Header.Set("Authorization", "Basic "+config.Config.VivaWalletClientCredentials)
+	if config.Config.VivaWalletClientCredentials == "" {
+		err := errors.New("VivaWalletClientCredentials not in .env or empty")
+		log.Error(err)
+		return "", err
+	}
 
 	// Create a new client with a 10 second timeout
 	client := http.Client{Timeout: 10 * time.Second}

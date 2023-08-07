@@ -42,20 +42,49 @@ func GetRouter() (r *chi.Mux) {
 
 	// Public routes
 	r.Get("/api/hello/", HelloWorld)
-	r.Get("/api/payments/", GetPayments)
-	r.Post("/api/payments/", CreatePayments)
-	r.Post("/api/vivawallet/transaction_order/", VivaWalletCreateTransactionOrder)
-	r.Post("/api/vivawallet/transaction_verification/", VivaWalletVerifyTransaction)
 	r.Get("/api/settings/", getSettings)
 
+	// Vendors
+	r.Route("/api/vendors", func(r chi.Router) {
+		r.Get("/", ListVendors)
+		r.Post("/", CreateVendor)
+		r.Route("/{id}", func(r chi.Router) {
+			r.Put("/", UpdateVendor)
+			r.Delete("/", DeleteVendor)
+		})
+	})
+
+	// Items
+	r.Route("/api/items", func(r chi.Router) {
+		r.Get("/", ListItems)
+		r.Post("/", CreateItem)
+		r.Route("/{id}", func(r chi.Router) {
+			r.Put("/", UpdateItem)
+			r.Delete("/", DeleteItem)
+		})
+	})
+
+	// Payments
+	r.Route("/api/payments", func(r chi.Router) {
+		r.Get("/", ListPayments)
+		r.Post("/", CreatePayments)
+	})
+
+	// Payment service providers
+	r.Post("/api/vivawallet/transaction_order/", VivaWalletCreateTransactionOrder)
+	r.Post("/api/vivawallet/transaction_verification/", VivaWalletVerifyTransaction)
+
+	// Settings
+	r.Get("/api/settings/", getSettings)
+
+	// Swagger documentation
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
 	))
 
-	// Mount static file server in img folder
+	// Mount static file servers in img & docs folder
 	fs := http.FileServer(http.Dir("img"))
 	r.Handle("/img/*", http.StripPrefix("/img/", fs))
-
 	fs = http.FileServer(http.Dir("docs"))
 	r.Handle("/docs/*", http.StripPrefix("/docs/", fs))
 
