@@ -44,11 +44,12 @@ CREATE TABLE Payment (
 
 CREATE TABLE Settings (
     ID integer UNIQUE PRIMARY KEY CHECK (ID = 1) DEFAULT 1,
-    Color varchar(255),
-    Logo varchar(255),
-    Newspaper integer REFERENCES Item,
+    Color varchar(255) NOT NULL DEFAULT '',
+    Logo varchar(255) NOT NULL DEFAULT '',
+    MainItem integer REFERENCES Item,
     RefundFees bool NOT NULL DEFAULT FALSE
 );
+
 
 CREATE OR REPLACE FUNCTION truncate_tables(username IN VARCHAR) RETURNS void AS $$
 DECLARE

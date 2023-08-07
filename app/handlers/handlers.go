@@ -47,6 +47,7 @@ import (
 
 var log = utils.GetLogger()
 
+// respond takes care of writing the response to the client
 func respond(w http.ResponseWriter, err error, payload interface{}) {
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -132,11 +133,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	log.Info("id ", vendor.ID, "fn ", vendor.FirstName, "bl ", vendor.Balance)
 
 	id, err := database.Db.CreateVendor(vendor)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-	utils.WriteJSON(w, http.StatusOK, id)
+	respond(w, err, id)
 }
 
 // UpdateVendor godoc
@@ -164,11 +161,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = database.Db.UpdateVendor(vendorID, vendor)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-	utils.WriteJSON(w, http.StatusOK, vendor)
+	respond(w, err, vendor)
 }
 
 // DeleteVendor godoc
@@ -339,11 +332,7 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 //		@Router			/payments [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.ListPayments()
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-	utils.WriteJSON(w, http.StatusOK, payments)
+	respond(w, err, payments)
 }
 
 
@@ -394,12 +383,10 @@ func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("Authentication failed: ", err)
 	}
-	log.Info("Access token: ", accessToken)
 	orderCode, err := paymentprovider.CreatePaymentOrder(accessToken, transactionOrder.Amount)
 	if err != nil {
 		log.Error("Creating payment order failed: ", err)
 	}
-	log.Info("Order code: ", orderCode)
 
 	// Create response
 	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)

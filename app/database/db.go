@@ -26,6 +26,7 @@ func (db *Database) InitDb() (err error) {
 	if err != nil {
 		return err
 	}
+	db.InitiateSettings()
 	if config.Config.Development {
 		err = db.CreateDevData()
 	}
@@ -101,5 +102,9 @@ func (db *Database) EmptyDatabase() (err error) {
 		return
 	}
 	_, err = db.Dbpool.Exec(context.Background(), "SELECT truncate_tables('user');")
+	if err != nil {
+		log.Error(err)
+	}
+	db.InitiateSettings()
 	return
 }

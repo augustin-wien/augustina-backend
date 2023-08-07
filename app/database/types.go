@@ -45,14 +45,14 @@ type Payment struct {
 	Receiver  	 int32
 	Amount    	 float32
 	AuthorizedBy string
-	Item	     null.Int `swaggertype:"string"`
-	Batch        null.Int `swaggertype:"string"`
+	Item	     null.Int `swaggertype:"integer"`
+	Batch        null.Int `swaggertype:"integer"`
 }
 
 type Settings struct {
 	ID         int32
 	Color      string
 	Logo       string
-	Newspaper  Item
+	MainItem   null.Int `swaggertype:"integer"`
 	RefundFees bool
 }

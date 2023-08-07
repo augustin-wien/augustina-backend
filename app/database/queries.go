@@ -212,11 +212,24 @@ func (db *Database) CreateAccount(account Account) (id int32, err error) {
 
 // Settings (singleton) -------------------------------------------------------
 
+// Create default settings if they don't exist
+func (db *Database) InitiateSettings() (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	INSERT INTO Settings (ID) VALUES (1);
+	`)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
-	err := db.Dbpool.QueryRow(context.Background(), `select * from Settings LIMIT 1`).Scan(&settings.ID, &settings.Color, &settings.Logo)
+	err := db.Dbpool.QueryRow(context.Background(), `
+	SELECT * from Settings LIMIT 1
+	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees)
 	if err != nil {
-		log.Error("GetSettings failed", zap.Error(err))
+		log.Error(err)
 	}
 	return settings, err
 }
@@ -224,13 +237,13 @@ func (db *Database) GetSettings() (Settings, error) {
 func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `
-	INSERT INTO Settings (Color, Logo) VALUES ($1, $2)
-	ON CONFLICT (ID)
-	DO UPDATE SET Color = $1, Logo = $2
-	`, settings.Color, settings.Logo)
+	UPDATE Settings
+	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4
+	WHERE ID = 1
+	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees)
 
 	if err != nil {
-		log.Error("SetSettings failed:", zap.Error(err))
+		log.Error(err)
 	}
 
 	return err
