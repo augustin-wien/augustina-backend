@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +16,6 @@ var r *chi.Mux
 
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
-	godotenv.Load("../.env")
 	database.Db.InitEmptyTestDb()
 	r = GetRouter()
 	os.Exit(m.Run())
@@ -64,7 +62,6 @@ func TestUsers(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, 0, len(vendors))
 }
-
 
 // TestItems tests CRUD operations on items (including images)
 func TestItems(t *testing.T) {
@@ -118,7 +115,6 @@ func TestPayments(t *testing.T) {
 	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().UTC().Hour())
 
 }
-
 
 // TestSettings tests GET and PUT operations on settings
 func TestSettings(t *testing.T) {
