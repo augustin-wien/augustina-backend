@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Nerzal/gocloak/v13"
+	"github.com/joho/godotenv"
 )
 
 var log = utils.GetLogger()
@@ -25,6 +26,12 @@ type Keycloak struct {
 // InitializeOauthServer initializes the Keycloak client
 // and stores it in the global variable KeycloakClient
 func InitializeOauthServer() (err error) {
+	godotenv.Load("../.env")
+	log.Info("Initializing Keycloak client")
+	log.Info("Keycloak host: ", os.Getenv("KEYCLOAK_HOST"),
+		"ClientId: ", os.Getenv("KEYCLOAK_CLIENT_ID"),
+		"ClientSecret: ", os.Getenv("KEYCLOAK_CLIENT_SECRET"),
+	)
 	KeycloakClient = Keycloak{
 		Hostname:     os.Getenv("KEYCLOAK_HOST"),
 		ClientId:     os.Getenv("KEYCLOAK_CLIENT_ID"),
