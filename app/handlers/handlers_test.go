@@ -63,7 +63,6 @@ func TestUsers(t *testing.T) {
 	require.Equal(t, 0, len(vendors))
 }
 
-
 // TestItems tests CRUD operations on items (including images)
 func TestItems(t *testing.T) {
 	f := `{
@@ -116,7 +115,6 @@ func TestPayments(t *testing.T) {
 	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().UTC().Hour())
 
 }
-
 
 // TestSettings tests GET and PUT operations on settings
 func TestSettings(t *testing.T) {
