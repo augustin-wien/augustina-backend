@@ -9,7 +9,24 @@ docker compose build
 docker compose up -d
 ```
 
-Go to http://localhost:3000/api/hello
+Go to http://localhost:3000/api/hello/
+
+### Swagger
+
+To update swagger, install swagger
+
+```bash
+go install github.com/swaggo/swag/cmd/swag@latest
+```
+
+Rebuild swagger
+
+```bash
+cd app
+swag init -g handlers/swagger.go --parseDependency --parseInternal --parseDepth 1
+```
+
+Note: If the update does not show in your browser, reset cache.
 
 ### Tests
 
@@ -122,3 +139,8 @@ the exported configs are available in the `docker/keycloak/export` folder.
 ```bash
 curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/openid-connect/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'client_id=frontend' --data-urlencode 'grant_type=password' --data-urlencode 'username=user001' --data-urlencode 'password=Test123!' --data-urlencode 'scope=openid'
 ```
+
+## Troubleshooting
+
+```"invalid character '}' looking for beginning of object key string```
+-> You might have a false commY at the end of your json

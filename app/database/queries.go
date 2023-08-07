@@ -17,17 +17,143 @@ func (db *Database) GetHelloWorld() (string, error) {
 	return greeting, err
 }
 
+// Users ----------------------------------------------------------------------
+
+// ListVendors returns all users from the database
+func (db *Database) ListVendors() (vendors []Vendor, err error) {
+	rows, err := db.Dbpool.Query(context.Background(), "select vendor.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Account, Balance from Vendor JOIN account ON account = account.id")
+	if err != nil {
+		log.Error(err)
+		return vendors, err
+	}
+	for rows.Next() {
+		var vendor Vendor
+		err = rows.Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.Account, &vendor.Balance)
+		if err != nil {
+			log.Error(err)
+			return vendors, err
+		}
+		vendors = append(vendors, vendor)
+	}
+	return vendors, nil
+}
+
+// CreateVendor creates a vendor and an associated account in the database
+func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
+	// Create vendor account
+	var accountID int32
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Balance) values (0) RETURNING ID").Scan(&accountID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Create vendor
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Account) values ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING ID", vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, accountID).Scan(&vendorID)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return
+}
+
+// UpdateVendor Updates a user in the database
+func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
+	log.Info("updating")
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE Vendor
+	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7
+	WHERE ID = $8
+	`, vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, id)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return
+}
+
+// DeleteVendor deletes a user in the database and the associated account
+func (db *Database) DeleteVendor(vendorID int) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	DELETE FROM Vendor
+	WHERE ID = $1
+	`, vendorID)
+	if err != nil {
+		log.Error(err)
+	}
+
+	_, err = db.Dbpool.Exec(context.Background(), `
+	DELETE FROM Account
+	WHERE ID = (SELECT Account FROM Vendor WHERE ID = $1)
+	`, vendorID)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return
+}
+
+
+// Items ----------------------------------------------------------------------
+
+func (db *Database) ListItems() ([]Item, error) {
+	var items []Item
+	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
+	if err != nil {
+		return items, err
+	}
+	for rows.Next() {
+		var item Item
+		err = rows.Scan(&item.ID, &item.Name, &item.Price)
+		if err != nil {
+			return items, err
+		}
+		items = append(items, item)
+	}
+	return items, nil
+}
+
+func (db *Database) CreateItem(item Item) (id int32, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Item (Name, Description, Price) values ($1, $2, $3) RETURNING ID", item.Name, item.Description, item.Price).Scan(&id)
+	return id, err
+}
+
+func (db *Database) UpdateItem(item Item) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE Item
+	SET Name = $2, Price = $3, Image = $4
+	WHERE ID = $1
+	`, item.ID, item.Name, item.Price, item.Image)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
+func (db *Database) DeleteItem(id int) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	DELETE FROM Item
+	WHERE ID = $1
+	`, id)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
+// Payments -------------------------------------------------------------------
+
 // GetPayments returns the payments from the database
-func (db *Database) GetPayments() ([]Payment, error) {
+func (db *Database) ListPayments() ([]Payment, error) {
 	var payments []Payment
 	rows, err := db.Dbpool.Query(context.Background(), "select * from payment")
 	if err != nil {
-		log.Error("GetPayments failed", zap.Error(err))
+		log.Error(err)
 		return payments, err
 	}
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Type, &payment.Amount, &payment.AuthorizedBy, &payment.Item, &payment.PaymentBatch)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Item, &payment.Batch)
 		if err != nil {
 			return payments, err
 		}
@@ -36,17 +162,6 @@ func (db *Database) GetPayments() ([]Payment, error) {
 	return payments, nil
 }
 
-// Create payment type
-func (db *Database) CreatePaymentType(pt PaymentType) (id int32, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into PaymentType (Name) values ($1) RETURNING ID", pt.Name).Scan(&id)
-	return id, err
-}
-
-// Create account
-func (db *Database) CreateAccount(account Account) (id int32, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
-	return id, err
-}
 
 // Create multiple payments
 func (db *Database) CreatePayments(payments []Payment) (err error) {
@@ -77,7 +192,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment ( Sender, Receiver, Type, Amount) values ($1, $2, $3, $4)", payment.Sender, payment.Receiver, payment.Type, payment.Amount)
+		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3)", payment.Sender, payment.Receiver, payment.Amount)
 		if err != nil {
 			return err
 		}
@@ -86,56 +201,35 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 }
 
 
+// Accounts -------------------------------------------------------------------
 
-func (db *Database) GetItems() ([]Item, error) {
-	var items []Item
-	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
-	if err != nil {
-		return items, err
-	}
-	for rows.Next() {
-		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Price)
-		if err != nil {
-			return items, err
-		}
-		items = append(items, item)
-	}
-	return items, nil
+
+func (db *Database) CreateAccount(account Account) (id int32, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
+	return id, err
 }
 
-func (db *Database) UpdateItem(item Item) (err error) {
 
-	// TODO: Throw error if is_editable = False
+// Settings (singleton) -------------------------------------------------------
+
+// Create default settings if they don't exist
+func (db *Database) InitiateSettings() (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
-	UPDATE Item
-	SET Name = $2, Price = $3, Image = $4
-	WHERE ID = $1
-	`, item.ID, item.Name, item.Price, item.Image)
-
+	INSERT INTO Settings (ID) VALUES (1);
+	`)
 	if err != nil {
-		panic(err)
+		log.Error(err)
 	}
-
-	// Set items
-	// for _, item := range settings.Items {
-	// 	_, err = db.Dbpool.Query(context.Background(), `
-	// 	INSERT INTO Items (Name, Price) VALUES ($1, $2)
-	// 	ON CONFLICT (Name)
-	// 	DO UPDATE SET Name = $1, Price = $2
-	// 	`, item.Name, item.Price)
-	// 	if err != nil {
-	// 		log.Errorf("SetSettings failed: %v\n", err)
-	// 	}
-	// }
-	return err
+	return
 }
 
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
-	err := db.Dbpool.QueryRow(context.Background(), `select * from Settings LIMIT 1`).Scan(&settings.ID, &settings.Color, &settings.Logo)
+	err := db.Dbpool.QueryRow(context.Background(), `
+	SELECT * from Settings LIMIT 1
+	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees)
 	if err != nil {
-		log.Error("GetSettings failed", zap.Error(err))
+		log.Error(err)
 	}
 	return settings, err
 }
@@ -143,35 +237,14 @@ func (db *Database) GetSettings() (Settings, error) {
 func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `
-	INSERT INTO Settings (Color, Logo) VALUES ($1, $2)
-	ON CONFLICT (ID)
-	DO UPDATE SET Color = $1, Logo = $2
-	`, settings.Color, settings.Logo)
+	UPDATE Settings
+	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4
+	WHERE ID = 1
+	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees)
 
 	if err != nil {
-		log.Error("SetSettings failed:", zap.Error(err))
+		log.Error(err)
 	}
 
-	// Set items
-	// for _, item := range settings.Items {
-	// 	_, err = db.Dbpool.Query(context.Background(), `
-	// 	INSERT INTO Items (Name, Price) VALUES ($1, $2)
-	// 	ON CONFLICT (Name)
-	// 	DO UPDATE SET Name = $1, Price = $2
-	// 	`, item.Name, item.Price)
-	// 	if err != nil {
-	// 		log.Errorf("SetSettings failed: %v\n", err)
-	// 	}
-	// }
 	return err
-}
-
-func (db *Database) GetVendorSettings() (string, error) {
-	var settings string
-	err := db.Dbpool.QueryRow(context.Background(), `select '{"credit":1.61,"qrcode":"/img/Augustin-QR-Code.png","idnumber":"123456789"}'`).Scan(&settings)
-	if err != nil {
-		log.Error("QueryRow failed:", zap.Error(err))
-		return "", err
-	}
-	return settings, nil
 }
