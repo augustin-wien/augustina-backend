@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -19,6 +20,7 @@ var router *chi.Mux
 
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
+	godotenv.Load("../.env")
 	database.Db.InitEmptyTestDb()
 	router = GetRouter()
 	os.Exit(m.Run())
