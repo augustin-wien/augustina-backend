@@ -26,8 +26,10 @@ type Keycloak struct {
 // InitializeOauthServer initializes the Keycloak client
 // and stores it in the global variable KeycloakClient
 func InitializeOauthServer() (err error) {
-	godotenv.Load("../.env")
-	log.Info("Initializing Keycloak client")
+	err = godotenv.Load("../.env")
+	if err != nil {
+		log.Error("Error loading .env file", err)
+	}
 	log.Info("Keycloak host: ", os.Getenv("KEYCLOAK_HOST"),
 		"ClientId: ", os.Getenv("KEYCLOAK_CLIENT_ID"),
 		"ClientSecret: ", os.Getenv("KEYCLOAK_CLIENT_SECRET"),
