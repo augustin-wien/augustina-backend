@@ -149,6 +149,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 //		@Router			/vendors/{id} [put]
 //
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
+	// TODO: System for partial updating
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

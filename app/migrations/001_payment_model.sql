@@ -1,10 +1,13 @@
 -- First migration file for augustin backend, corresponds to v0.0.1
--- User cannot be used as a table name, so we use UserAccount instead
+
+CREATE TYPE AccountType AS ENUM ('', 'vendor', 'cash');
 
 CREATE TABLE Account (
     ID serial PRIMARY KEY,
     Name varchar(255) NOT NULL DEFAULT '',
-    Balance real NOT NULL DEFAULT 0
+    Balance real NOT NULL DEFAULT 0,
+    Type AccountType NOT NULL DEFAULT '',
+
 );
 
 CREATE TABLE Vendor (
