@@ -1,4 +1,11 @@
 -- First migration file for augustin backend, corresponds to v0.0.1
+-- User cannot be used as a table name, so we use UserAccount instead
+
+CREATE TABLE Account (
+    ID serial PRIMARY KEY,
+    Name varchar(255) NOT NULL DEFAULT '',
+    Balance real NOT NULL DEFAULT 0
+);
 
 CREATE TABLE Vendor (
     ID serial PRIMARY KEY,
@@ -8,17 +15,8 @@ CREATE TABLE Vendor (
     FirstName varchar(255) NOT NULL DEFAULT '',
     LastName varchar(255) NOT NULL DEFAULT '',
     Email varchar(255) NOT NULL DEFAULT '',
-    LastPayout timestamp
-);
-
-CREATE TYPE AccountType AS ENUM ('', 'vendor', 'cash');
-
-CREATE TABLE Account (
-    ID serial PRIMARY KEY,
-    Name varchar(255) NOT NULL DEFAULT '',
-    Balance real NOT NULL DEFAULT 0,
-    Type AccountType NOT NULL DEFAULT '',
-    Vendor integer REFERENCES Vendor ON DELETE SET NULL
+    LastPayout timestamp,
+    Account integer UNIQUE REFERENCES Account NOT NULL
 );
 
 CREATE TABLE Item (
@@ -26,13 +24,23 @@ CREATE TABLE Item (
     Name varchar(255) UNIQUE NOT NULL,
     Description varchar(255),
     Price real NOT NULL DEFAULT 0,
-    Image varchar(255) NOT NULL DEFAULT ''
+    Image varchar(255)
 );
 
-CREATE TABLE PaymentBatch (
-    ID bigserial PRIMARY KEY
-);
+CREATE TABLE Order (
+    ID bigserial PRIMARY KEY,
+    TransactionID varchar(255) NOT NULL DEFAULT '',
+    TransactionVerified bool NOT NULL DEFAULT FALSE,
+    Timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Vendor integer REFERENCES Vendor,
+)
 
+CREATE TABLE OrderItem (
+    ID bigserial PRIMARY KEY,
+    Item integer REFERENCES Item,
+    Quantity real NOT NULL DEFAULT 0
+    Order integer REFERENCES Order
+);
 
 CREATE TABLE Payment (
     ID bigserial PRIMARY KEY,
@@ -42,7 +50,7 @@ CREATE TABLE Payment (
     Amount real NOT NULL,
     AuthorizedBy varchar(255) NOT NULL DEFAULT '',
     Item integer REFERENCES Item,
-    PaymentBatch integer REFERENCES PaymentBatch
+    Order integer REFERENCES Order
 );
 
 CREATE TABLE Settings (
@@ -69,5 +77,5 @@ $$ LANGUAGE plpgsql;
 ---- create above / drop below ----
 
 
-DROP TABLE Vendor, Account, Item, PaymentBatch, Payment, Settings;
+DROP TABLE Vendor, Account, Item, Order, OrderItem, Payment, Settings;
 DROP TYPE AccountType;
