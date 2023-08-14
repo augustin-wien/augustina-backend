@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -32,22 +34,34 @@ type Item struct {
 	Description string
 	Price      	float32
 	Image      	string
+	Archived   	bool
 }
 
-type PaymentBatch struct {
-	ID 	     int64
-	Payments []Payment
+type OrderItem struct {
+	ID         	int64
+	ItemID     	int32
+	Quantity   	int32
+	Price      	float32  // Price at time of purchase
+}
+
+type Order struct {
+	ID         		int64
+	TransactionID 	string
+	Verified 		bool
+	Timestamp  		time.Time
+	Vendor	 		int32
+	Items      		[]Item
 }
 
 type Payment struct {
 	ID        	 int64
-	Timestamp 	 null.Time `swaggertype:"string" format:"date-time"`
+	Timestamp 	 time.Time
 	Sender    	 int32
 	Receiver  	 int32
 	Amount    	 float32
 	AuthorizedBy string
-	Item	     null.Int `swaggertype:"integer"`
-	Batch        null.Int `swaggertype:"integer"`
+	OrderItem    OrderItem
+	OrderID		 null.Int `swaggertype:"integer"`
 }
 
 type Settings struct {

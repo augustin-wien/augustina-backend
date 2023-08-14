@@ -24,7 +24,8 @@ CREATE TABLE Item (
     Name varchar(255) UNIQUE NOT NULL,
     Description varchar(255),
     Price real NOT NULL DEFAULT 0,
-    Image varchar(255)
+    Image varchar(255),
+    Archived bool NOT NULL DEFAULT FALSE,
 );
 
 CREATE TABLE Order (
@@ -38,6 +39,7 @@ CREATE TABLE Order (
 CREATE TABLE OrderItem (
     ID bigserial PRIMARY KEY,
     Item integer REFERENCES Item,
+    Price real NOT NULL DEFAULT 0 -- Price at time of purchase
     Quantity real NOT NULL DEFAULT 0
     Order integer REFERENCES Order
 );
