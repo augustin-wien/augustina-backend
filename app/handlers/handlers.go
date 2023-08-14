@@ -327,6 +327,23 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Orders ---------------------------------------------------------------------
+
+func CreateOrder(w http.ResponseWriter, r *http.Request) {
+	var order database.Order
+	err := utils.ReadJSON(w, r, &order)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	id, err := database.Db.CreateOrder(order)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, id)
+}
+
 // Payments (from one account to another account) -----------------------------
 
 // ListPayments godoc

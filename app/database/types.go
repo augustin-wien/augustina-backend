@@ -44,13 +44,13 @@ type OrderItem struct {
 	Price      	float32  // Price at time of purchase
 }
 
-type Order struct {
+type PaymentOrder struct {
 	ID         		int64
 	TransactionID 	string
 	Verified 		bool
 	Timestamp  		time.Time
 	Vendor	 		int32
-	Items      		[]Item
+	OrderItems     	[]OrderItem
 }
 
 type Payment struct {

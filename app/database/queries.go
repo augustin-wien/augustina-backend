@@ -143,6 +143,113 @@ func (db *Database) DeleteItem(id int) (err error) {
 	return
 }
 
+// PaymentOrders --------------------------------------------------------------
+
+// GetOrder returns Order by TransactionID
+func (db *Database) GetOrderByTransactionID(TransactionID string) (order PaymentOrder, err error) {
+
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE TransactionID = $1", TransactionID).Scan(&order.ID, &order.TransactionID, &order.Verified, &order.Timestamp, &order.Vendor)
+
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Add items to order
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price FROM OrderItem WHERE PaymentOrder = $1", order.ID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	for rows.Next() {
+		var orderItem OrderItem
+		err = rows.Scan(&orderItem.ID, &orderItem.ItemID, &orderItem.Quantity, &orderItem.Price)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		order.OrderItems = append(order.OrderItems, orderItem)
+	}
+
+	return
+}
+
+// 	// Create Order
+// 	err = db.Dbpool.QueryRow(context.Background(), "insert into Order (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", Order.KeycloakID, Order.UrlID, Order.LicenseID, Order.FirstName, Order.LastName, Order.Email, Order.LastPayout).Scan(&OrderID)
+// 	if err != nil {
+// 		log.Error(err)
+// 	}
+
+// 	// Create Order account
+// 	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Order) values (0, 'Order', $1) RETURNING ID", OrderID)
+// 	if err != nil {
+// 		log.Error(err)
+// 		return
+// 	}
+
+// 	return
+// }
+
+// // ListVendors returns all users from the database
+// func (db *Database) ListOrders() (Orders []Order, err error) {
+// 	rows, err := db.Dbpool.Query(context.Background(), "select Order.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Balance from Order JOIN account ON account.Order = Order.id")
+// 	if err != nil {
+// 		log.Error(err)
+// 		return Orders, err
+// 	}
+// 	for rows.Next() {
+// 		var Order Order
+// 		err = rows.Scan(&Order.ID, &Order.KeycloakID, &Order.UrlID, &Order.LicenseID, &Order.FirstName, &Order.LastName, &Order.Email, &Order.LastPayout, &Order.Balance)
+// 		if err != nil {
+// 			log.Error(err)
+// 			return Orders, err
+// 		}
+// 		Orders = append(Orders, Order)
+// 	}
+// 	return Orders, nil
+// }
+
+// // CreateOrder creates a Order and an associated account in the database
+// func (db *Database) CreateOrder(Order Order) (OrderID int32, err error) {
+
+
+
+// // UpdateOrder Updates a user in the database
+// func (db *Database) UpdateOrder(id int, Order Order) (err error) {
+// 	log.Info("updating")
+// 	_, err = db.Dbpool.Exec(context.Background(), `
+// 	UPDATE Order
+// 	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7
+// 	WHERE ID = $8
+// 	`, Order.KeycloakID, Order.UrlID, Order.LicenseID, Order.FirstName, Order.LastName, Order.Email, Order.LastPayout, id)
+// 	if err != nil {
+// 		log.Error(err)
+// 	}
+
+// 	return
+// }
+
+// // DeleteOrder deletes a user in the database and the associated account
+// func (db *Database) DeleteOrder(OrderID int) (err error) {
+// 	_, err = db.Dbpool.Exec(context.Background(), `
+// 	DELETE FROM Order
+// 	WHERE ID = $1
+// 	`, OrderID)
+// 	if err != nil {
+// 		log.Error(err)
+// 	}
+
+// 	_, err = db.Dbpool.Exec(context.Background(), `
+// 	DELETE FROM Account
+// 	WHERE Order = $1
+// 	`, OrderID)
+// 	if err != nil {
+// 		log.Error(err)
+// 	}
+
+// 	return
+// }
+
 // Payments -------------------------------------------------------------------
 
 // GetPayments returns the payments from the database
