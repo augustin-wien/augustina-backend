@@ -54,14 +54,14 @@ type Order struct {
 }
 
 type Payment struct {
-	ID        	 int64
-	Timestamp 	 time.Time
-	Sender    	 int32
-	Receiver  	 int32
-	Amount    	 float32
-	AuthorizedBy string
-	OrderItem    OrderItem
-	OrderID		 null.Int `swaggertype:"integer"`
+	ID        	 	int64
+	Timestamp 	 	time.Time
+	Sender    	 	int32
+	Receiver  	 	int32
+	Amount    	 	float32
+	AuthorizedBy 	string
+	PaymentOrderID	null.Int `swaggertype:"integer"`
+	OrderItemID  	null.Int `swaggertype:"integer"`
 }
 
 type Settings struct {

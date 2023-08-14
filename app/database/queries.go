@@ -155,7 +155,7 @@ func (db *Database) ListPayments() ([]Payment, error) {
 	}
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Item, &payment.Batch)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.PaymentOrderID, &payment.OrderItemID)
 		if err != nil {
 			return payments, err
 		}

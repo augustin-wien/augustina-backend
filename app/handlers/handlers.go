@@ -350,20 +350,20 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Success		200
 //		@Router			/payments [post]
-func CreatePayments(w http.ResponseWriter, r *http.Request) {
-	var paymentBatch database.PaymentBatch
-	err := utils.ReadJSON(w, r, &paymentBatch)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
+// func CreatePayments(w http.ResponseWriter, r *http.Request) {
+// 	var paymentBatch database.
+// 	err := utils.ReadJSON(w, r, &paymentBatch)
+// 	if err != nil {
+// 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+// 		return
+// 	}
 
-	err = database.Db.CreatePayments(paymentBatch.Payments)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-}
+// 	err = database.Db.CreatePayments(paymentBatch.Payments)
+// 	if err != nil {
+// 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+// 		return
+// 	}
+// }
 
 // VivaWalletCreateTransactionOrder godoc
 //
