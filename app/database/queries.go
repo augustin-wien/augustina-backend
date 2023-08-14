@@ -146,7 +146,7 @@ func (db *Database) DeleteItem(id int) (err error) {
 // PaymentOrders --------------------------------------------------------------
 
 // GetOrder returns Order by TransactionID
-func (db *Database) GetOrderByTransactionID(TransactionID string) (order PaymentOrder, err error) {
+func (db *Database) GetPaymentOrderByTransactionID(TransactionID string) (order PaymentOrder, err error) {
 
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE TransactionID = $1", TransactionID).Scan(&order.ID, &order.TransactionID, &order.Verified, &order.Timestamp, &order.Vendor)
 
@@ -174,21 +174,34 @@ func (db *Database) GetOrderByTransactionID(TransactionID string) (order Payment
 	return
 }
 
-// 	// Create Order
-// 	err = db.Dbpool.QueryRow(context.Background(), "insert into Order (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", Order.KeycloakID, Order.UrlID, Order.LicenseID, Order.FirstName, Order.LastName, Order.Email, Order.LastPayout).Scan(&OrderID)
-// 	if err != nil {
-// 		log.Error(err)
-// 	}
+// Create Payment Order
+func (db *Database) CreatePaymentOrder(order PaymentOrder) (orderID int, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (TransactionID, Vendor) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", order.TransactionID, order.Vendor).Scan(&orderID)
+	if err != nil {
+		log.Error(err)
+	}
 
-// 	// Create Order account
-// 	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Order) values (0, 'Order', $1) RETURNING ID", OrderID)
-// 	if err != nil {
-// 		log.Error(err)
-// 		return
-// 	}
+	// Create order items
+	for _, orderItem := range order.OrderItems {
 
-// 	return
-// }
+		// Get current item price
+		var item Item
+		err = db.Dbpool.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", orderItem.ItemID).Scan(&item.Price)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		// Create order item
+		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderItem (Item, Price, Quantity, PaymentOrder) values ($1, $2, $3, $4)", orderItem.ItemID, item.Price, orderItem.Quantity, orderID)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+	}
+
+	return
+}
 
 // // ListVendors returns all users from the database
 // func (db *Database) ListOrders() (Orders []Order, err error) {
