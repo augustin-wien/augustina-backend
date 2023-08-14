@@ -98,14 +98,16 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 
 func (db *Database) ListItems() ([]Item, error) {
 	var items []Item
-	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item")
 	if err != nil {
+		log.Error(err)
 		return items, err
 	}
 	for rows.Next() {
 		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Price)
+		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image)
 		if err != nil {
+			log.Error(err)
 			return items, err
 		}
 		items = append(items, item)
@@ -118,12 +120,12 @@ func (db *Database) CreateItem(item Item) (id int32, err error) {
 	return id, err
 }
 
-func (db *Database) UpdateItem(item Item) (err error) {
+func (db *Database) UpdateItem(id int, item Item) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Item
 	SET Name = $2, Price = $3, Image = $4
 	WHERE ID = $1
-	`, item.ID, item.Name, item.Price, item.Image)
+	`, id, item.Name, item.Price, item.Image)
 	if err != nil {
 		log.Error(err)
 	}

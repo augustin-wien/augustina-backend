@@ -3,7 +3,9 @@ package handlers
 import (
 	"augustin/database"
 	"augustin/utils"
+	"bytes"
 	"encoding/json"
+	"mime/multipart"
 	"os"
 	"testing"
 	"time"
@@ -65,11 +67,63 @@ func TestUsers(t *testing.T) {
 
 // TestItems tests CRUD operations on items (including images)
 func TestItems(t *testing.T) {
+
+	// Create
 	f := `{
 		"Name": "Test item",
 		"Price": 3.14
 	}`
-	utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
+	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
+	itemID := res.Body.String()
+
+	// Read
+	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
+	var resItems []database.Item
+	err := json.Unmarshal(res.Body.Bytes(), &resItems)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(resItems))
+	require.Equal(t, "Test item", resItems[0].Name)
+
+	// Update (multipart form!)
+	body := new(bytes.Buffer)
+    writer := multipart.NewWriter(body)
+    writer.WriteField("Name", "Updated item name")
+    writer.WriteField("nonexistingfieldname", "10")
+    image, _ := writer.CreateFormFile("Image", "test.jpg")
+    image.Write([]byte(`i am the content of a jpg file :D`))
+    writer.Close()
+	utils.TestRequestMultiPart(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200)
+
+	// Read
+	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
+	err = json.Unmarshal(res.Body.Bytes(), &resItems)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(resItems))
+	require.Equal(t, "Updated item name", resItems[0].Name)
+	require.Contains(t, resItems[0].Image, "test")
+	require.Contains(t, resItems[0].Image, ".jpg")
+
+	// Check file
+	file, err := os.ReadFile(".." + resItems[0].Image)
+	utils.CheckError(t, err)
+	require.Equal(t, `i am the content of a jpg file :D`, string(file))
+
+	// Update with image as field (not as a file)
+	body = new(bytes.Buffer)
+    writer = multipart.NewWriter(body)
+	writer.WriteField("Name", "Updated item name 2")
+	writer.WriteField("Image", "Test")
+    writer.Close()
+	utils.TestRequestMultiPart(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200)
+
+	// Read
+	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
+	err = json.Unmarshal(res.Body.Bytes(), &resItems)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(resItems))
+	require.Equal(t, "Updated item name 2", resItems[0].Name)
+	require.Equal(t, resItems[0].Image, "Test")
+
 }
 
 // TestPayments tests CRUD operations on payments

@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"augustin/utils"
+	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -198,6 +200,53 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, id)
 }
 
+
+func UpdateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
+		// Get file from image field
+		file, header, err := r.FormFile("Image")
+		if err != nil {
+			return  // No file passed, which is ok
+		}
+		defer file.Close()
+
+		// Debugging
+		name := strings.Split(header.Filename, ".")
+		if len(name) != 2 {
+			log.Error(err)
+			utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
+			return
+		}
+
+		buf := bytes.NewBuffer(nil)
+		if _, err = io.Copy(buf, file); err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		// Generate unique filename
+		i := 0
+		for {
+			path = "/img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
+			_, err = os.Stat(".." + path);
+			if errors.Is(err, os.ErrNotExist) {
+				break
+			}
+			i += 1
+			if i > 100 {
+				log.Error(err)
+				utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
+				return
+			}
+		}
+
+		// Save file with unique name
+		err = os.WriteFile(".." + path, buf.Bytes(), 0666)
+		if err != nil {
+			log.Error(err)
+		}
+		return
+	}
+
 // UpdateItem godoc
 //
 //	 	@Summary 		Update Item
@@ -212,43 +261,43 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 // UpdateItem requires a multipart form
 // https://www.sobyte.net/post/2022-03/go-multipart-form-data/
 func UpdateItem(w http.ResponseWriter, r *http.Request) {
+	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
 	// Read multipart form
 	r.ParseMultipartForm(32 << 20)
 	mForm := r.MultipartForm
+	if (mForm == nil) {
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+		return
+	}
+	log.Info("mForm: ", mForm)
 
 	// Handle normal fields
 	var item database.Item
-	fields := mForm.Value
-	err := mapstructure.Decode(fields, &item)
+	fields := mForm.Value  // Values are stored in []string
+	fields_clean := make(map[string]string)  // Values are stored in string
+	for key, value := range fields {
+		fields_clean[key] = value[0]
+	}
+	err = mapstructure.Decode(fields_clean, &item)
 	if err != nil {
 		log.Error(err)
 	}
 
-	// Get file from image field
-	file, header, err := r.FormFile("Image")
-	if err != nil {
-		log.Error(err)
+	path, _ := UpdateItemImage(w, r)
+	if path != "" {
+		item.Image = path
 	}
-	defer file.Close()
-
-	// Debugging
-	name := strings.Split(header.Filename, ".")
-	log.Infof("Uploading %s\n", name[0])
-
-	// Save file
-	path := "/img/" + header.Filename
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		log.Error(err)
-	}
-	io.Copy(f, file)
-	item.Image = path
 
 	// Save item to database
-	err = database.Db.UpdateItem(item)
+	err = database.Db.UpdateItem(ItemID, item)
 	if err != nil {
 		log.Error(err)
+		utils.ErrorJSON(w,err, http.StatusBadRequest)
 	}
 
 }

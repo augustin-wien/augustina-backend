@@ -27,11 +27,11 @@ type Account struct {
 }
 
 type Item struct {
-	ID         int32
-	Name       string
+	ID         	int32
+	Name       	string
 	Description string
-	Price      float32
-	Image      string
+	Price      	float32
+	Image      	string
 }
 
 type PaymentBatch struct {

@@ -26,7 +26,7 @@ CREATE TABLE Item (
     Name varchar(255) UNIQUE NOT NULL,
     Description varchar(255),
     Price real NOT NULL DEFAULT 0,
-    Image varchar(255)
+    Image varchar(255) NOT NULL DEFAULT ''
 );
 
 CREATE TABLE PaymentBatch (
