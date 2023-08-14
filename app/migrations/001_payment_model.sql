@@ -1,11 +1,4 @@
 -- First migration file for augustin backend, corresponds to v0.0.1
--- User cannot be used as a table name, so we use UserAccount instead
-
-CREATE TABLE Account (
-    ID serial PRIMARY KEY,
-    Name varchar(255) NOT NULL DEFAULT '',
-    Balance real NOT NULL DEFAULT 0
-);
 
 CREATE TABLE Vendor (
     ID serial PRIMARY KEY,
@@ -15,8 +8,17 @@ CREATE TABLE Vendor (
     FirstName varchar(255) NOT NULL DEFAULT '',
     LastName varchar(255) NOT NULL DEFAULT '',
     Email varchar(255) NOT NULL DEFAULT '',
-    LastPayout timestamp,
-    Account integer UNIQUE REFERENCES Account NOT NULL
+    LastPayout timestamp
+);
+
+CREATE TYPE AccountType AS ENUM ('', 'vendor', 'cash');
+
+CREATE TABLE Account (
+    ID serial PRIMARY KEY,
+    Name varchar(255) NOT NULL DEFAULT '',
+    Balance real NOT NULL DEFAULT 0,
+    Type AccountType NOT NULL DEFAULT '',
+    Vendor integer REFERENCES Vendor ON DELETE SET NULL
 );
 
 CREATE TABLE Item (
@@ -30,6 +32,7 @@ CREATE TABLE Item (
 CREATE TABLE PaymentBatch (
     ID bigserial PRIMARY KEY
 );
+
 
 CREATE TABLE Payment (
     ID bigserial PRIMARY KEY,
@@ -67,3 +70,4 @@ $$ LANGUAGE plpgsql;
 
 
 DROP TABLE Vendor, Account, Item, PaymentBatch, Payment, Settings;
+DROP TYPE AccountType;
