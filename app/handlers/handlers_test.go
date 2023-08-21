@@ -71,7 +71,7 @@ func TestItems(t *testing.T) {
 	// Create
 	f := `{
 		"Name": "Test item",
-		"Price": 3.14
+		"Price": 314
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
 	itemID := res.Body.String()
@@ -136,12 +136,12 @@ func TestPayments(t *testing.T) {
 	utils.CheckError(t, err)
 
 	// Create payments via API
-	f := database.PaymentBatch{
+	f := CreatePaymentsRequest{
 		Payments: []database.Payment{
 			{
 				Sender:   account_id,
 				Receiver: account_id,
-				Amount:   float32(3.14),
+				Amount:   314,
 			},
 		},
 	}
@@ -162,11 +162,11 @@ func TestPayments(t *testing.T) {
 	}
 
 	// Test payments response
-	require.Equal(t, payments[0].Amount, float32(3.14))
+	require.Equal(t, payments[0].Amount, 314)
 	require.Equal(t, payments[0].Sender, account_id)
 	require.Equal(t, payments[0].Receiver, account_id)
-	require.Equal(t, payments[0].Timestamp.Time.Day(), time.Now().Day())
-	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().UTC().Hour())
+	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
+	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
 
 }
 

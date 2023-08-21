@@ -17,7 +17,7 @@ import (
 var log = utils.GetLogger()
 
 type PaymentOrderRequest struct {
-	Amount              float32  `json:"amount"`
+	Amount              int      `json:"amount"`
 	CustomerTrns        string   `json:"customerTrns"`
 	Customer            Customer `json:"customer"`
 	PaymentTimeout      int      `json:"paymentTimeout"`
@@ -126,7 +126,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	return authResponse.AccessToken, nil
 }
 
-func CreatePaymentOrder(accessToken string, amount float32) (int, error) {
+func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 	// Create a new request URL using http
 	apiURL := "https://demo-api.vivapayments.com"
 	resource := "/checkout/v2/orders"

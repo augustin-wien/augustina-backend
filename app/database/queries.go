@@ -105,7 +105,7 @@ func (db *Database) ListItems() ([]Item, error) {
 	}
 	for rows.Next() {
 		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image)
+		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.Archived)
 		if err != nil {
 			log.Error(err)
 			return items, err
@@ -327,7 +327,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 // Accounts -------------------------------------------------------------------
 
 
-func (db *Database) CreateAccount(account Account) (id int32, err error) {
+func (db *Database) CreateAccount(account Account) (id int, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
 	return id, err
 }

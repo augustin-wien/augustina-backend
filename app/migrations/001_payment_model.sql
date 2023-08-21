@@ -26,14 +26,14 @@ CREATE TABLE Item (
     ID serial PRIMARY KEY,
     Name varchar(255) UNIQUE NOT NULL,
     Description varchar(255),
-    Price real NOT NULL DEFAULT 0,
+    Price integer NOT NULL DEFAULT 0,  -- Price in cents
     Image varchar(255) NOT NULL DEFAULT '',
     Archived bool NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE PaymentOrder (
     ID bigserial PRIMARY KEY,
-    TransactionID varchar(255) NOT NULL DEFAULT '',
+    TransactionID integer NOT NULL DEFAULT 0,
     TransactionVerified bool NOT NULL DEFAULT FALSE,
     Timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Vendor integer REFERENCES Vendor
@@ -42,8 +42,8 @@ CREATE TABLE PaymentOrder (
 CREATE TABLE OrderItem (
     ID bigserial PRIMARY KEY,
     Item integer REFERENCES Item,
-    Price real NOT NULL DEFAULT 0, -- Price at time of purchase
-    Quantity real NOT NULL DEFAULT 0,
+    Price integer NOT NULL DEFAULT 0,  -- Price at time of purchase in cents
+    Quantity integer NOT NULL DEFAULT 0,
     PaymentOrder integer REFERENCES PaymentOrder
 );
 
@@ -52,7 +52,7 @@ CREATE TABLE Payment (
     Timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Sender integer NOT NULL REFERENCES Account,
     Receiver integer NOT NULL REFERENCES Account,
-    Amount real NOT NULL,
+    Amount integer NOT NULL,  -- Price in cents
     AuthorizedBy varchar(255) NOT NULL DEFAULT '',
     OrderItem integer REFERENCES OrderItem,
     PaymentOrder integer REFERENCES PaymentOrder

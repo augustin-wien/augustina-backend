@@ -7,9 +7,10 @@ import (
 )
 
 // Attributes have to be uppercase to be exported
+// All prices are in cents
 
 type Vendor struct {
-	ID	   	   int32
+	ID	   	   int
 	KeycloakID string
 	UrlID	   string  // This is used for the QR code
 	LicenseID  string
@@ -17,55 +18,55 @@ type Vendor struct {
 	LastName   string
     Email	   string
 	LastPayout null.Time `swaggertype:"string" format:"date-time"`
-	Balance    float32 // This is joined in from the account
+	Balance    int // This is joined in from the account
 }
 
 type Account struct {
-	ID      int32
+	ID      int
 	Name    string
-	Balance float32
+	Balance int
 	Type    string
 	Vendor  null.Int `swaggertype:"integer"`
 }
 
 type Item struct {
-	ID         	int32
+	ID         	int
 	Name       	string
 	Description string
-	Price      	float32
+	Price      	int  // Price in cents
 	Image      	string
 	Archived   	bool
 }
 
 type PaymentOrderItem struct {
-	ID         	int64
-	ItemID     	int32
-	Quantity   	float32
-	Price      	float32  // Price at time of purchase
+	ID         	int
+	ItemID     	int
+	Quantity   	int
+	Price      	int  // Price at time of purchase in cents
 }
 
 type PaymentOrder struct {
-	ID         		int64
+	ID         		int
 	TransactionID 	string
 	Verified 		bool
 	Timestamp  		time.Time
-	Vendor	 		int32
+	Vendor	 		int
 	OrderItems     	[]PaymentOrderItem
 }
 
 type Payment struct {
-	ID        	 	int64
+	ID        	 	int
 	Timestamp 	 	time.Time
-	Sender    	 	int32
-	Receiver  	 	int32
-	Amount    	 	float32
+	Sender    	 	int
+	Receiver  	 	int
+	Amount    	 	int
 	AuthorizedBy 	string
 	PaymentOrderID	null.Int `swaggertype:"integer"`
 	OrderItemID  	null.Int `swaggertype:"integer"`
 }
 
 type Settings struct {
-	ID         int32
+	ID         int
 	Color      string
 	Logo       string
 	MainItem   null.Int `swaggertype:"integer"`

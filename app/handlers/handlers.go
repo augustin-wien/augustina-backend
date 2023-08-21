@@ -34,7 +34,7 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 }
 
 type TransactionOrder struct {
-	Amount float32
+	Amount int
 }
 
 type TransactionOrderResponse struct {
@@ -372,7 +372,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save order to database
-	order.TransactionID = string(transactionID)
+	order.TransactionID = strconv.Itoa(transactionID)
 	paymentOrderID, err := database.Db.CreatePaymentOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -402,6 +402,34 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 func ListPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.ListPayments()
 	respond(w, err, payments)
+}
+
+type CreatePaymentsRequest struct {
+	Payments []database.Payment
+}
+
+// CreatePayments godoc
+//
+//	 	@Summary 		Create a set of payments
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//		@Param			amount body CreatePaymentsRequest true ""
+//		@Success		200
+//		@Router			/payments [post]
+func CreatePayments(w http.ResponseWriter, r *http.Request) {
+	var paymentBatch CreatePaymentsRequest
+	err := utils.ReadJSON(w, r, &paymentBatch)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = database.Db.CreatePayments(paymentBatch.Payments)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 }
 
 // VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
