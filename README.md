@@ -2,6 +2,12 @@
 
 ## Development
 
+Check out the git submodules to load the wordpress, wpcli and parser git checkout mainrepositories:
+
+```bash
+git submodule update --init --recursive
+```
+
 Start the application with Docker:
 
 ```bash
