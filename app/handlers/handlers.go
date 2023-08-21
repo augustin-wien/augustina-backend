@@ -42,7 +42,7 @@ type TransactionOrderResponse struct {
 }
 
 type TransactionVerification struct {
-	TransactionID string
+	TransactionID int
 }
 
 type TransactionVerificationResponse struct {
