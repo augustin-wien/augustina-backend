@@ -15,7 +15,24 @@ docker compose build
 docker compose up -d
 ```
 
-Go to http://localhost:3000/api/hello
+Go to http://localhost:3000/api/hello/
+
+### Swagger
+
+To update swagger, install swagger
+
+```bash
+go install github.com/swaggo/swag/cmd/swag@latest
+```
+
+Rebuild swagger
+
+```bash
+cd app
+swag init -g handlers/swagger.go --parseDependency --parseInternal --parseDepth 1
+```
+
+Note: If the update does not show in your browser, reset cache.
 
 ### Tests
 
@@ -31,11 +48,19 @@ Run linter within the augustin shell:
 golint ./...
 ```
 
-Run tests within the augustin shell:
+Run tests within the augustin shell (sed is used to colorize the output):
 
 ```bash
-go test -v -cover
+go test ./... -v | sed ''/PASS/s//$(printf "\033[32mPASS\033[0m")/'' | sed ''/FAIL/s//$(printf "\033[31mFAIL\033[0m")/''  | sed ''/ERROR/s//$(printf "\033[31mERROR\033[0m")/''
 ```
+
+Open SQL shell in the container (assuming the variables from `.env.example` are used):
+
+```bash
+docker exec -it augustin-db-test  psql -U user -W product_api
+```
+
+And then enter `password` as password.
 
 ### Migrations
 
@@ -108,7 +133,14 @@ Install the [`OpenID Connect Generic`](https://wordpress.org/plugins/daggerhart-
 #### Optional Setup to have a role -> capability mapping
 Install the plugin [`Groups`](https://wordpress.org/plugins/groups/) and the plugin [`Augustin`](https://github.com/augustin-wien/augustin-wp-papers) and it should work automatically.
 
-### Generate token with curl
+### Export Keycloak configs
+After running the application with docker compose, the keycloak configs can be exported with the following command:
+```bash
+docker compose exec keycloak  /opt/keycloak/bin/kc.sh export --dir /tmp/export
+```
+the exported configs are available in the `docker/keycloak/export` folder.
+
+### Generate keycloak token with curl
 
 ```bash
 curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/openid-connect/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'client_id=frontend' --data-urlencode 'grant_type=password' --data-urlencode 'username=user001' --data-urlencode 'password=Test123!' --data-urlencode 'scope=openid'
@@ -116,3 +148,8 @@ curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/o
 
 ## Wordpress
 The wpcli container resets the wordpress installation on every start. This will delete all data in the database and install a fresh wordpress installation.
+
+## Troubleshooting
+
+```"invalid character '}' looking for beginning of object key string```
+-> You might have a false commY at the end of your json

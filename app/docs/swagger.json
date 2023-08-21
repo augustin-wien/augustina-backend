@@ -1,4 +1,7 @@
 {
+    "consumes": [
+        "application/json"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "This swagger describes every endpoint of this project.",
@@ -16,7 +19,7 @@
         "version": "0.0.1"
     },
     "host": "localhost:3000",
-    "basePath": "/api/",
+    "basePath": "/api",
     "paths": {
         "/hello/": {
             "get": {
@@ -34,6 +37,121 @@
                 "responses": {}
             }
         },
+        "/items/": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "List Items",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Item"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Create Item",
+                "parameters": [
+                    {
+                        "description": "Item Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Item"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "int"
+                        }
+                    }
+                }
+            }
+        },
+        "/items/{id}": {
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Delete Item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/items/{id}/": {
+            "put": {
+                "description": "Requires multipart form (for image)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Update Item",
+                "parameters": [
+                    {
+                        "description": "Item Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Item"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/payments": {
             "get": {
                 "consumes": [
@@ -45,21 +163,20 @@
                 "tags": [
                     "core"
                 ],
-                "summary": "Get all payments",
+                "summary": "Get list of all payments",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.Payment"
+                                "$ref": "#/definitions/database.Payment"
                             }
                         }
                     }
                 }
             },
             "post": {
-                "description": "{\"Payments\":[{\"Sender\": 1, \"Receiver\":1, \"Type\":1,\"Amount\":1.00]}",
                 "consumes": [
                     "application/json"
                 ],
@@ -72,20 +189,14 @@
                 "summary": "Create a set of payments",
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/structs.PaymentType"
-                            }
-                        }
+                        "description": "OK"
                     }
                 }
             }
         },
         "/settings/": {
             "get": {
-                "description": "Return settings about the web-shop",
+                "description": "Return configuration data of the system",
                 "consumes": [
                     "application/json"
                 ],
@@ -102,16 +213,133 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.Setting"
+                                "$ref": "#/definitions/database.Settings"
                             }
                         }
                     }
                 }
             }
         },
-        "/vendor/": {
+        "/vendors/": {
             "get": {
-                "description": "Return information for the vendor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "List Vendors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Vendor"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "Create Vendor",
+                "parameters": [
+                    {
+                        "description": "Vendor Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Vendor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/vendors/{id}": {
+            "put": {
+                "description": "Warning: Unfilled fields will be set to default values",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "Update Vendor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Vendor Representation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Vendor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vendors"
+                ],
+                "summary": "Delete Vendor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/vivawallet/transaction_order/": {
+            "post": {
+                "description": "Post your amount like {\"Amount\":100}, which equals 100 cents",
                 "consumes": [
                     "application/json"
                 ],
@@ -121,14 +349,62 @@
                 "tags": [
                     "core"
                 ],
-                "summary": "Return vendor information",
+                "summary": "Create a transaction order",
+                "parameters": [
+                    {
+                        "description": "Amount in cents",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TransactionOrder"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/structs.Vendor"
+                                "$ref": "#/definitions/handlers.TransactionOrderResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/vivawallet/transaction_verification/": {
+            "post": {
+                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Verify a transaction",
+                "parameters": [
+                    {
+                        "description": "Transaction ID",
+                        "name": "transactionID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TransactionVerification"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.TransactionVerificationResponse"
                             }
                         }
                     }
@@ -137,119 +413,19 @@
         }
     },
     "definitions": {
-        "pgtype.Float4": {
+        "database.Item": {
             "type": "object",
             "properties": {
-                "float32": {
-                    "type": "number"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "pgtype.InfinityModifier": {
-            "type": "integer",
-            "enum": [
-                1,
-                0,
-                -1
-            ],
-            "x-enum-varnames": [
-                "Infinity",
-                "Finite",
-                "NegativeInfinity"
-            ]
-        },
-        "pgtype.Int4": {
-            "type": "object",
-            "properties": {
-                "int32": {
-                    "type": "integer"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "pgtype.Int8": {
-            "type": "object",
-            "properties": {
-                "int64": {
-                    "type": "integer"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "pgtype.Text": {
-            "type": "object",
-            "properties": {
-                "string": {
+                "description": {
                     "type": "string"
                 },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "pgtype.Timestamp": {
-            "type": "object",
-            "properties": {
-                "infinityModifier": {
-                    "$ref": "#/definitions/pgtype.InfinityModifier"
+                "id": {
+                    "type": "integer"
                 },
-                "time": {
-                    "description": "Time zone will be ignored when encoding to PostgreSQL.",
+                "image": {
                     "type": "string"
-                },
-                "valid": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "structs.Payment": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "$ref": "#/definitions/pgtype.Float4"
-                },
-                "id": {
-                    "$ref": "#/definitions/pgtype.Int8"
-                },
-                "receiver": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                },
-                "sender": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                },
-                "timestamp": {
-                    "$ref": "#/definitions/pgtype.Timestamp"
-                },
-                "type": {
-                    "$ref": "#/definitions/pgtype.Int4"
-                }
-            }
-        },
-        "structs.PaymentType": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "$ref": "#/definitions/pgtype.Int4"
                 },
                 "name": {
-                    "$ref": "#/definitions/pgtype.Text"
-                }
-            }
-        },
-        "structs.Setting": {
-            "type": "object",
-            "properties": {
-                "color": {
-                    "type": "string"
-                },
-                "logo": {
                     "type": "string"
                 },
                 "price": {
@@ -257,17 +433,123 @@
                 }
             }
         },
-        "structs.Vendor": {
+        "database.Payment": {
             "type": "object",
             "properties": {
-                "credit": {
+                "amount": {
                     "type": "number"
                 },
-                "id-number": {
+                "authorizedBy": {
                     "type": "string"
                 },
-                "qrcode": {
+                "batch": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "item": {
+                    "type": "integer"
+                },
+                "receiver": {
+                    "type": "integer"
+                },
+                "sender": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "database.Settings": {
+            "type": "object",
+            "properties": {
+                "color": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "mainItem": {
+                    "type": "integer"
+                },
+                "refundFees": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "database.Vendor": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "integer"
+                },
+                "balance": {
+                    "description": "This is joined in from the account",
+                    "type": "number"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "keycloakID": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "lastPayout": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "licenseID": {
+                    "type": "string"
+                },
+                "urlID": {
+                    "description": "This is used for the QR code",
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TransactionOrder": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.TransactionOrderResponse": {
+            "type": "object",
+            "properties": {
+                "smartCheckoutURL": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TransactionVerification": {
+            "type": "object",
+            "properties": {
+                "transactionID": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.TransactionVerificationResponse": {
+            "type": "object",
+            "properties": {
+                "verification": {
+                    "type": "boolean"
                 }
             }
         }

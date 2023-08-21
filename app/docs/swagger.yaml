@@ -1,92 +1,98 @@
-basePath: /api/
+basePath: /api
+consumes:
+- application/json
 definitions:
-  pgtype.Float4:
+  database.Item:
     properties:
-      float32:
-        type: number
-      valid:
-        type: boolean
-    type: object
-  pgtype.InfinityModifier:
-    enum:
-    - 1
-    - 0
-    - -1
-    type: integer
-    x-enum-varnames:
-    - Infinity
-    - Finite
-    - NegativeInfinity
-  pgtype.Int4:
-    properties:
-      int32:
-        type: integer
-      valid:
-        type: boolean
-    type: object
-  pgtype.Int8:
-    properties:
-      int64:
-        type: integer
-      valid:
-        type: boolean
-    type: object
-  pgtype.Text:
-    properties:
-      string:
+      description:
         type: string
-      valid:
-        type: boolean
-    type: object
-  pgtype.Timestamp:
-    properties:
-      infinityModifier:
-        $ref: '#/definitions/pgtype.InfinityModifier'
-      time:
-        description: Time zone will be ignored when encoding to PostgreSQL.
+      id:
+        type: integer
+      image:
         type: string
-      valid:
-        type: boolean
-    type: object
-  structs.Payment:
-    properties:
-      amount:
-        $ref: '#/definitions/pgtype.Float4'
-      id:
-        $ref: '#/definitions/pgtype.Int8'
-      receiver:
-        $ref: '#/definitions/pgtype.Int4'
-      sender:
-        $ref: '#/definitions/pgtype.Int4'
-      timestamp:
-        $ref: '#/definitions/pgtype.Timestamp'
-      type:
-        $ref: '#/definitions/pgtype.Int4'
-    type: object
-  structs.PaymentType:
-    properties:
-      id:
-        $ref: '#/definitions/pgtype.Int4'
       name:
-        $ref: '#/definitions/pgtype.Text'
-    type: object
-  structs.Setting:
-    properties:
-      color:
-        type: string
-      logo:
         type: string
       price:
         type: number
     type: object
-  structs.Vendor:
+  database.Payment:
     properties:
-      credit:
+      amount:
         type: number
-      id-number:
+      authorizedBy:
         type: string
-      qrcode:
+      batch:
+        type: integer
+      id:
+        type: integer
+      item:
+        type: integer
+      receiver:
+        type: integer
+      sender:
+        type: integer
+      timestamp:
+        format: date-time
         type: string
+    type: object
+  database.Settings:
+    properties:
+      color:
+        type: string
+      id:
+        type: integer
+      logo:
+        type: string
+      mainItem:
+        type: integer
+      refundFees:
+        type: boolean
+    type: object
+  database.Vendor:
+    properties:
+      account:
+        type: integer
+      balance:
+        description: This is joined in from the account
+        type: number
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: integer
+      keycloakID:
+        type: string
+      lastName:
+        type: string
+      lastPayout:
+        format: date-time
+        type: string
+      licenseID:
+        type: string
+      urlID:
+        description: This is used for the QR code
+        type: string
+    type: object
+  handlers.TransactionOrder:
+    properties:
+      amount:
+        type: integer
+    type: object
+  handlers.TransactionOrderResponse:
+    properties:
+      smartCheckoutURL:
+        type: string
+    type: object
+  handlers.TransactionVerification:
+    properties:
+      transactionID:
+        type: string
+    type: object
+  handlers.TransactionVerificationResponse:
+    properties:
+      verification:
+        type: boolean
     type: object
 externalDocs:
   description: OpenAPI
@@ -116,6 +122,80 @@ paths:
       summary: Return HelloWorld
       tags:
       - core
+  /items/:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Item'
+            type: array
+      summary: List Items
+      tags:
+      - Items
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Item Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Item'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: int
+      summary: Create Item
+      tags:
+      - Items
+  /items/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete Item
+      tags:
+      - Items
+  /items/{id}/:
+    put:
+      consumes:
+      - application/json
+      description: Requires multipart form (for image)
+      parameters:
+      - description: Item Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Item'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Update Item
+      tags:
+      - Items
   /payments:
     get:
       consumes:
@@ -127,24 +207,19 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.Payment'
+              $ref: '#/definitions/database.Payment'
             type: array
-      summary: Get all payments
+      summary: Get list of all payments
       tags:
       - core
     post:
       consumes:
       - application/json
-      description: '{"Payments":[{"Sender": 1, "Receiver":1, "Type":1,"Amount":1.00]}'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            items:
-              $ref: '#/definitions/structs.PaymentType'
-            type: array
       summary: Create a set of payments
       tags:
       - core
@@ -152,7 +227,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Return settings about the web-shop
+      description: Return configuration data of the system
       produces:
       - application/json
       responses:
@@ -160,16 +235,15 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.Setting'
+              $ref: '#/definitions/database.Settings'
             type: array
       summary: Return settings
       tags:
       - core
-  /vendor/:
+  /vendors/:
     get:
       consumes:
       - application/json
-      description: Return information for the vendor
       produces:
       - application/json
       responses:
@@ -177,9 +251,118 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/structs.Vendor'
+              $ref: '#/definitions/database.Vendor'
             type: array
-      summary: Return vendor information
+      summary: List Vendors
+      tags:
+      - vendors
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Vendor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Create Vendor
+      tags:
+      - vendors
+  /vendors/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete Vendor
+      tags:
+      - vendors
+    put:
+      consumes:
+      - application/json
+      description: 'Warning: Unfilled fields will be set to default values'
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Vendor Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Vendor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Update Vendor
+      tags:
+      - vendors
+  /vivawallet/transaction_order/:
+    post:
+      consumes:
+      - application/json
+      description: Post your amount like {"Amount":100}, which equals 100 cents
+      parameters:
+      - description: Amount in cents
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TransactionOrder'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.TransactionOrderResponse'
+            type: array
+      summary: Create a transaction order
+      tags:
+      - core
+  /vivawallet/transaction_verification/:
+    post:
+      consumes:
+      - application/json
+      description: Accepts {"TransactionID":"1234567890"} and returns {"Verification":true},
+        if successful
+      parameters:
+      - description: Transaction ID
+        in: body
+        name: transactionID
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TransactionVerification'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.TransactionVerificationResponse'
+            type: array
+      summary: Verify a transaction
       tags:
       - core
 securityDefinitions:

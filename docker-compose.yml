@@ -1,6 +1,36 @@
 version: "3.8"
 
 services:
+  augustin:
+    container_name: augustin
+    env_file:
+      - .env
+    build:
+      context: .
+    volumes:
+      - ./app:/app
+    command: >
+      sh -c "tern migrate --migrations ./migrations --config
+      ./migrations/tern.conf && tern migrate --migrations ./migrations --config
+      ./migrations/tern_test.conf  && go run main.go"
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_HOST_TEST: ${DB_HOST_TEST}
+      DB_PORT_TEST: ${DB_PORT_TEST}
+      DEVELOPMENT: true
+    depends_on:
+      augustin-db:
+        condition: service_healthy
+    links:
+      - augustin-db
+      - augustin-db-test
+      - keycloak
+    ports:
+      - "3000:3000"
   augustin-db:
     container_name: augustin-db
     image: postgres:14.2
@@ -12,8 +42,9 @@ services:
       POSTGRES_DB: ${DB_NAME}
       TZ: "UTC"
       PGTZ: "UTC"
+    command: -p ${DB_PORT}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
     volumes:
       - dbdata:/var/lib/postgresql/data
     healthcheck:
@@ -22,30 +53,28 @@ services:
       timeout: 5s
       retries: 5
 
-  augustin:
-    container_name: augustin
+  augustin-db-test:
+    container_name: augustin-db-test
+    image: postgres:14.2
     env_file:
       - .env
-    build:
-      context: .
-    volumes:
-      - ./app:/app
-    command: >
-      sh -c "cd migrations && tern migrate && cd .. && go run main.go"
     environment:
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
-      DB_NAME: ${DB_NAME}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: 5432
-    depends_on:
-      augustin-db:
-        condition: service_healthy
-    links:
-      - augustin-db
-      - keycloak
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+      TZ: "UTC"
+      PGTZ: "UTC"
+    command: -p ${DB_PORT_TEST}
     ports:
-      - "3000:3000"
+      - "${DB_PORT_TEST}:${DB_PORT_TEST}"
+    volumes:
+      - dbdata-test:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   keycloak:
     build: ./docker/keycloak
     container_name: augustin-keycloak
