@@ -24,6 +24,9 @@ services:
     command: "cd migrations && tern migrate && cd .. && ./app -prod"
     environment:
       DATABASE_URL: postgres://${DB_USER}:${DB_PASS}@augustin-db:5432/${DB_NAME}?sslmode=disable
+    volumes:
+      - ./img:/img
+      - ./doc:/doc
     depends_on:
       augustin-db:
         condition: service_healthy

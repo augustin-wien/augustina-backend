@@ -1,5 +1,4 @@
 -- First migration file for augustin backend, corresponds to v0.0.1
--- User cannot be used as a table name, so we use UserAccount instead
 
 CREATE TABLE Vendor (
     ID serial PRIMARY KEY,
@@ -46,6 +45,7 @@ CREATE TABLE OrderItem (
     Quantity integer NOT NULL DEFAULT 0,
     PaymentOrder integer REFERENCES PaymentOrder
 );
+
 
 CREATE TABLE Payment (
     ID bigserial PRIMARY KEY,

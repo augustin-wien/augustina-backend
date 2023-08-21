@@ -93,10 +93,10 @@ func GetRouter() (r *chi.Mux) {
 	))
 
 	// Mount static file servers in img & docs folder
-	fs := http.FileServer(http.Dir("img"))
-	r.Handle("/img/*", http.StripPrefix("/img/", fs))
-	fs2 := http.FileServer(http.Dir("docs"))
-	r.Handle("/docs/*", http.StripPrefix("/docs/", fs2))
+	fs_img := http.FileServer(http.Dir("img"))
+	r.Handle("/img/*", http.StripPrefix("/img/", fs_img))
+	fs_docs := http.FileServer(http.Dir("doc"))
+	r.Handle("/doc/*", http.StripPrefix("/doc/", fs_docs))
 
 	return r
 }

@@ -274,7 +274,6 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
-	log.Info("mForm: ", mForm)
 
 	// Handle normal fields
 	var item database.Item
