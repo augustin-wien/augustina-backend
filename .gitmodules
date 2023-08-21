@@ -6,7 +6,7 @@
 	url = https://github.com/augustin-wien/wordpress-theme.git
 [submodule "docker/wordpress/themes/augustin-wp-theme"]
 	path = docker/wordpress/themes/augustin-wp-theme
-	url = git@github.com:augustin-wien/augustin-wp-theme.git
+	url = https://github.com/augustin-wien/augustin-wp-theme.git
 [submodule "docker/augustin-plugin"]
 	path = docker/augustin-plugin
 	url = https://github.com/augustin-wien/augustin-plugin
