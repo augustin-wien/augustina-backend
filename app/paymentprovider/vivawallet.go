@@ -211,10 +211,10 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 
 }
 
-func VerifyTransactionID(accessToken string, transactionID string) (success bool, err error) {
+func VerifyTransactionID(accessToken string, transactionID int) (success bool, err error) {
 	// Create a new request URL using http
 	apiURL := "https://demo-api.vivapayments.com"
-	resource := "/checkout/v2/transactions/" + transactionID
+	resource := "/checkout/v2/transactions/" + strconv.Itoa(transactionID)
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
 	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{transactionId}"

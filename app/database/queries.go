@@ -146,7 +146,7 @@ func (db *Database) DeleteItem(id int) (err error) {
 // PaymentOrders --------------------------------------------------------------
 
 // GetOrder returns Order by TransactionID
-func (db *Database) GetPaymentOrderByTransactionID(TransactionID string) (order PaymentOrder, err error) {
+func (db *Database) GetPaymentOrderByTransactionID(TransactionID int) (order PaymentOrder, err error) {
 
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE TransactionID = $1", TransactionID).Scan(&order.ID, &order.TransactionID, &order.Verified, &order.Timestamp, &order.Vendor)
 
@@ -199,6 +199,20 @@ func (db *Database) CreatePaymentOrder(order PaymentOrder) (orderID int, err err
 			log.Error(err)
 			return
 		}
+	}
+
+	return
+}
+
+// Verify updates a payment order in the database
+func (db *Database) VerifyPaymentOrder(id int) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE PaymentOrder
+	SET Verified = True
+	WHERE ID = $2
+	`, id)
+	if err != nil {
+		log.Error(err)
 	}
 
 	return

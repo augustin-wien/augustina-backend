@@ -348,7 +348,7 @@ type CreatePaymentOrderResponse struct {
 //		@Produce		json
 //	    @Param		    data body CreatePaymentOrderRequest true "Payment Order"
 //		@Success		200 {object} CreatePaymentOrderResponse
-//		@Router			/orders/ [post]
+//		@Router			/orders/verify/{transactionID} [post]
 //
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
@@ -386,6 +386,58 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		SmartCheckoutURL: url,
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
+}
+
+// VerifyPaymentOrder godoc
+//
+//	 	@Summary 		Verify Payment Order
+//		@Description	Verifies and returns payment order
+//		@Tags			Orders
+//		@Accept			json
+//		@Produce		json
+//		@Success		200 {object} PaymentOrder
+//		@Router			/orders/verify/{transactionID} [post]
+//
+func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
+	transactionID, err := strconv.Atoi(chi.URLParam(r, "transactionID"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	order, err := database.Db.GetPaymentOrderByTransactionID(transactionID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Get access token
+	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
+	}
+
+	// Verify transaction
+	isVerified, err := paymentprovider.VerifyTransactionID(accessToken, transactionID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if !isVerified {
+		utils.ErrorJSON(w, errors.New("transaction not verified"), http.StatusBadRequest)
+		return
+	}
+
+	// Store verification in db
+	order.Verified = isVerified
+	err = database.Db.VerifyPaymentOrder(order.ID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Create response
+	utils.WriteJSON(w, http.StatusOK, order)
 }
 
 // Payments (from one account to another account) -----------------------------
