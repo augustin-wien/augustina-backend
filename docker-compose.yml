@@ -173,3 +173,4 @@ volumes:
   dbdata:
   wp_data:
   wp_db_data:
+  dbdata-test:
