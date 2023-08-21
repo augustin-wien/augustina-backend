@@ -88,7 +88,7 @@ services:
     volumes:
       - wp_data:/var/www/html
       - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
-      - ./docker/wordpress/themes/wordpress-theme:/var/www/html/wp-content/themes/wordpress-theme
+      - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
 
     ports:
       - 8090:80
@@ -98,6 +98,7 @@ services:
       - WORDPRESS_DB_USER=wordpress
       - WORDPRESS_DB_PASSWORD=wordpress
       - WORDPRESS_DB_NAME=wordpress
+      - AUGUSTIN_PLUGIN_URL=http://localhost:8070
     depends_on:
       - wordpress-db
       - keycloak
@@ -107,36 +108,15 @@ services:
     user: 0:0
     command: >
       sh -c "
-      chown xfs:xfs /var/www/html -R &&
-      mkdir -p /etc/X11/fs && chown xfs:xfs /etc/X11/fs -R &&
-      su -l xfs -s /bin/sh -c '
-      cd /var/www/html &&
-      wp config create --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=wordpress-db --force && 
-      wp db drop --yes || true &&
-      wp db create || true &&
-      wp core install --url=localhost:8090 --title="Augustin" --admin_user=test_superuser --admin_password=Test123! --admin_email=test_superuser@example.com &&
-      wp config set OIDC_LOGIN_TYPE auto &&
-      wp config set OIDC_CLIENT_ID wordpress &&
-      wp config set OIDC_CLIENT_SECRET 84uZmW6FlEPgvUd201QUsWRmHzUIamZB &&
-      wp config set OIDC_ENDPOINT_LOGIN_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/auth &&
-      wp config set OIDC_ENDPOINT_USERINFO_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/userinfo &&
-      wp config set OIDC_ENDPOINT_TOKEN_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/token &&
-      wp config set OIDC_ENDPOINT_LOGOUT_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/logout &&
-      wp config set OIDC_CLIENT_SCOPE \"email profile openid offline_access roles\" &&
-      wp config set OIDC_ENFORCE_PRIVACY true --raw &&
-      wp config set OIDC_CREATE_IF_DOES_NOT_EXIST true --raw &&
-      wp config set OIDC_LINK_EXISTING_USERS true --raw &&
-      wp config set OIDC_REDIRECT_USER_BACK false --raw &&
-      wp config set OIDC_REDIRECT_ON_LOGOUT false --raw &&
-      wp config set WP_DEBUG true --raw &&
-      wp plugin install --activate --force groups &&
-      wp plugin install --activate --force daggerhart-openid-connect-generic &&
-      wp plugin activate augustin-wp-papers &&
-      tail -f /dev/null'"
+      chmod +x /wpcli/entrypoint.sh &&
+      /wpcli/entrypoint.sh &&
+      tail -f /dev/null"
     volumes:
       - wp_data:/var/www/html
       - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
-      - ./docker/wordpress/themes/wordpress-theme:/var/www/html/wp-content/themes/wordpress-theme
+      - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
+      - ./docker/wpcli/:/wpcli/
+      - ./docker/.env.parser:/wpcli/.env.parser
 
     environment:
       - WORDPRESS_DB_HOST=wordpress-db
@@ -145,6 +125,21 @@ services:
       - WORDPRESS_DB_NAME=wordpress
     depends_on:
       - wordpress
+  parser:
+    build:
+      context: ./docker/augustin-plugin
+    env_file:
+      - ./docker/.env.parser
+    ports:
+      - "8070:8000"
+    volumes:
+      - ./docker/augustin-plugin/sample_data:/sample_data
+      - ./docker/augustin-plugin/pdf-files:/pdf-files
+    environment:
+      - AUGUSTIN_PLUGIN_URL=http://wordpress/wp-json/wp/v2/
+      - AUGUSTIN_PLUGIN_PATH=/sample_data/
+      - AUGUSTIN_PLUGIN_SAVE_PATH=/pdf-files/
+      - WP_API_USER=api_user
 volumes:
   dbdata:
   wp_data:
