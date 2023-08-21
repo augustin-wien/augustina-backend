@@ -21,14 +21,14 @@ func (db *Database) GetHelloWorld() (string, error) {
 
 // ListVendors returns all users from the database
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "select vendor.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Account, Balance from Vendor JOIN account ON account = account.id")
+	rows, err := db.Dbpool.Query(context.Background(), "select vendor.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id")
 	if err != nil {
 		log.Error(err)
 		return vendors, err
 	}
 	for rows.Next() {
 		var vendor Vendor
-		err = rows.Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.Account, &vendor.Balance)
+		err = rows.Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.Balance)
 		if err != nil {
 			log.Error(err)
 			return vendors, err
@@ -40,18 +40,18 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 
 // CreateVendor creates a vendor and an associated account in the database
 func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
+
+	// Create vendor
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout).Scan(&vendorID)
+	if err != nil {
+		log.Error(err)
+	}
+
 	// Create vendor account
-	var accountID int32
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Balance) values (0) RETURNING ID").Scan(&accountID)
+	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Vendor) values (0, 'vendor', $1) RETURNING ID", vendorID)
 	if err != nil {
 		log.Error(err)
 		return
-	}
-
-	// Create vendor
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Account) values ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING ID", vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, accountID).Scan(&vendorID)
-	if err != nil {
-		log.Error(err)
 	}
 
 	return
@@ -84,7 +84,7 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 
 	_, err = db.Dbpool.Exec(context.Background(), `
 	DELETE FROM Account
-	WHERE ID = (SELECT Account FROM Vendor WHERE ID = $1)
+	WHERE Vendor = $1
 	`, vendorID)
 	if err != nil {
 		log.Error(err)
@@ -98,14 +98,16 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 
 func (db *Database) ListItems() ([]Item, error) {
 	var items []Item
-	rows, err := db.Dbpool.Query(context.Background(), "select * from items")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item")
 	if err != nil {
+		log.Error(err)
 		return items, err
 	}
 	for rows.Next() {
 		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Price)
+		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image)
 		if err != nil {
+			log.Error(err)
 			return items, err
 		}
 		items = append(items, item)
@@ -118,12 +120,12 @@ func (db *Database) CreateItem(item Item) (id int32, err error) {
 	return id, err
 }
 
-func (db *Database) UpdateItem(item Item) (err error) {
+func (db *Database) UpdateItem(id int, item Item) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Item
 	SET Name = $2, Price = $3, Image = $4
 	WHERE ID = $1
-	`, item.ID, item.Name, item.Price, item.Image)
+	`, id, item.Name, item.Price, item.Image)
 	if err != nil {
 		log.Error(err)
 	}

@@ -65,28 +65,3 @@ func Test_UpdateSettings(t *testing.T) {
 		t.Errorf("UpdateSettings failed: %v\n", err)
 	}
 }
-
-// Items: []structs.Item{
-// 	{
-// 		Name:  "calendar",
-// 		Price: 3.14,
-// 	},
-// 	{
-// 		Name:  "cards",
-// 		Price: 12.12,
-// 	},
-// },
-
-// func Test_GetVendorSettings(t *testing.T) {
-// 	var vendorsettings string
-// 	vendorsettings, err := TestDb.Db.GetVendorSettings()
-
-// 	if err != nil {
-// 		t.Error("can't select vendorsettings")
-// 	}
-// 	if reflect.TypeOf(vendorsettings).Kind() != reflect.String {
-// 		t.Error("Vendorsettings not of type string")
-// 	}
-
-// 	require.Equal(t, string(vendorsettings), `{"credit":1.61,"qrcode":"/img/Augustin-QR-Code.png","idnumber":"123456789"}`)
-// }
