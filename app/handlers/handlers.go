@@ -34,7 +34,7 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 }
 
 type TransactionOrder struct {
-	Amount int
+	Amount float32
 }
 
 type TransactionOrderResponse struct {
@@ -309,7 +309,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
-//	     @Param          id   path int  true  "Item ID"
+//	        @Param          id   path int  true  "Item ID"
 //			@Router			/items/{id} [delete]
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -329,19 +329,64 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 // Orders ---------------------------------------------------------------------
 
-func CreateOrder(w http.ResponseWriter, r *http.Request) {
-	var order database.Order
+type CreatePaymentOrderRequest struct {
+	Items []database.PaymentOrderItem
+	Vendor int32
+}
+
+type CreatePaymentOrderResponse struct {
+	PaymentOrderID int
+	TransactionID int
+	SmartCheckoutURL string
+}
+
+// CreatePaymentOrder godoc
+//
+//	 	@Summary 		Create Payment Order
+//		@Description	Submits payment order & saves it to database
+//		@Tags			Orders
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    data body CreatePaymentOrderRequest true "Payment Order"
+//		@Success		200 {object} CreatePaymentOrderResponse
+//		@Router			/orders/ [post]
+//
+func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
+
+	// Read payment order from request
+	var order database.PaymentOrder
 	err := utils.ReadJSON(w, r, &order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	id, err := database.Db.CreateOrder(order)
+
+	// Submit order to vivawallet
+	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
+	}
+	transactionID, err := paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
+	if err != nil {
+		log.Error("Creating payment order failed: ", err)
+	}
+
+	// Save order to database
+	order.TransactionID = string(transactionID)
+	paymentOrderID, err := database.Db.CreatePaymentOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, id)
+
+	// Create response
+	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(transactionID)
+	response := CreatePaymentOrderResponse{
+		PaymentOrderID: paymentOrderID,
+		TransactionID: transactionID,
+		SmartCheckoutURL: url,
+	}
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // Payments (from one account to another account) -----------------------------
@@ -359,28 +404,7 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, payments)
 }
 
-// CreatePayments godoc
-//
-//	 	@Summary 		Create a set of payments
-//		@Tags			core
-//		@Accept			json
-//		@Produce		json
-//		@Success		200
-//		@Router			/payments [post]
-// func CreatePayments(w http.ResponseWriter, r *http.Request) {
-// 	var paymentBatch database.
-// 	err := utils.ReadJSON(w, r, &paymentBatch)
-// 	if err != nil {
-// 		utils.ErrorJSON(w, err, http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	err = database.Db.CreatePayments(paymentBatch.Payments)
-// 	if err != nil {
-// 		utils.ErrorJSON(w, err, http.StatusBadRequest)
-// 		return
-// 	}
-// }
+// VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
 
 // VivaWalletCreateTransactionOrder godoc
 //

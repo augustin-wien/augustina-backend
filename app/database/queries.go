@@ -162,7 +162,7 @@ func (db *Database) GetPaymentOrderByTransactionID(TransactionID string) (order 
 		return
 	}
 	for rows.Next() {
-		var orderItem OrderItem
+		var orderItem PaymentOrderItem
 		err = rows.Scan(&orderItem.ID, &orderItem.ItemID, &orderItem.Quantity, &orderItem.Price)
 		if err != nil {
 			log.Error(err)
@@ -175,6 +175,7 @@ func (db *Database) GetPaymentOrderByTransactionID(TransactionID string) (order 
 }
 
 // Create Payment Order
+// Processes transactionID, vendor, and items (trinkgeld is an item)
 func (db *Database) CreatePaymentOrder(order PaymentOrder) (orderID int, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (TransactionID, Vendor) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", order.TransactionID, order.Vendor).Scan(&orderID)
 	if err != nil {

@@ -37,10 +37,10 @@ type Item struct {
 	Archived   	bool
 }
 
-type OrderItem struct {
+type PaymentOrderItem struct {
 	ID         	int64
 	ItemID     	int32
-	Quantity   	int32
+	Quantity   	float32
 	Price      	float32  // Price at time of purchase
 }
 
@@ -50,7 +50,7 @@ type PaymentOrder struct {
 	Verified 		bool
 	Timestamp  		time.Time
 	Vendor	 		int32
-	OrderItems     	[]OrderItem
+	OrderItems     	[]PaymentOrderItem
 }
 
 type Payment struct {
