@@ -113,9 +113,9 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
-//	     @Param          id   path int  true  "Vendor ID"
+//	        @Param          id   path int  true  "Vendor ID"
 //		    @Param		    data body database.Vendor true "Vendor Representation"
-//			@Router			/vendors/{id} [put]
+//			@Router			/vendors/{id}/ [put]
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -139,8 +139,8 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
-//	     @Param          id   path int  true  "Vendor ID"
-//			@Router			/vendors/{id} [delete]
+//	        @Param          id   path int  true  "Vendor ID"
+//			@Router			/vendors/{id}/ [delete]
 func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -329,7 +329,7 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 // Orders ---------------------------------------------------------------------
 
 type CreatePaymentOrderRequest struct {
-	Items []database.PaymentOrderItem
+	Items []database.OrderEntry
 	Vendor int32
 }
 
@@ -353,11 +353,66 @@ type CreatePaymentOrderResponse struct {
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Read payment order from request
-	var order database.PaymentOrder
+	var order database.Order
 	err := utils.ReadJSON(w, r, &order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
+	}
+
+	// Identify accounts
+	var buyerAccount database.Account
+	if order.User.Valid {
+		buyerAccount, err = database.Db.GetAccountByUser(order.User.String)
+	} else {
+		buyerAccount, err = database.Db.GetAccountByType("user_anon")
+	}
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	vendorAccount, err := database.Db.GetAccountByVendor(order.Vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	orgaAccount, err := database.Db.GetAccountByType("orga")
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Extend order entries
+	for _, entry := range order.Entries {
+		// Get item from database
+		item, err := database.Db.GetItem(entry.Item)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		// Define flow of money from buyer to vendor
+		entry.Sender = buyerAccount.ID
+		entry.Receiver = vendorAccount.ID
+
+		// If there is a license item, prepend it before the actual item
+		if item.LicenseItem.Valid {
+			licenseItem, err := database.Db.GetItem(int(item.LicenseItem.Int64))
+			if err != nil {
+				utils.ErrorJSON(w, err, http.StatusBadRequest)
+				return
+			}
+			// License Item is bought by vendor from Orga
+			licenseItemEntry := database.OrderEntry{
+				Item: int(item.LicenseItem.Int64),
+				Quantity: entry.Quantity,
+				Price: licenseItem.Price,
+				Sender: vendorAccount.ID,
+				Receiver: orgaAccount.ID,
+			}
+			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
+		}
+
 	}
 
 	// Submit order to vivawallet
@@ -372,7 +427,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Save order to database
 	order.TransactionID = strconv.Itoa(transactionID)
-	paymentOrderID, err := database.Db.CreatePaymentOrder(order)
+	paymentOrderID, err := database.Db.CreateOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -391,7 +446,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 // VerifyPaymentOrder godoc
 //
 //	 	@Summary 		Verify Payment Order
-//		@Description	Verifies and returns payment order
+//		@Description	Verifies order and creates payments
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
@@ -399,15 +454,24 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Router			/orders/verify/{transactionID} [post]
 //
 func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
+
+	// Get transaction ID from URL parameter
 	transactionID, err := strconv.Atoi(chi.URLParam(r, "transactionID"))
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	order, err := database.Db.GetPaymentOrderByTransactionID(transactionID)
+	// Get payment order from database
+	order, err := database.Db.GetOrderByTransactionID(transactionID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Return success message if already verified
+	if order.Verified {
+		utils.WriteJSON(w, http.StatusOK, order)
 		return
 	}
 
@@ -428,9 +492,12 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Add additional entries in order (e.g. transaction fees)
+	// TODO: order.Entries = append(order.Entries, MyEntry)
+
 	// Store verification in db
 	order.Verified = isVerified
-	err = database.Db.VerifyPaymentOrder(order.ID)
+	err = database.Db.UpdateOrderAndCreatePayments(order.ID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

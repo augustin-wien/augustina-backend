@@ -32,6 +32,16 @@ type PaymentOrderRequest struct {
 	SourceCode          string   `json:"sourceCode"`
 	MerchantTrns        string   `json:"merchantTrns"`
 	Tags                []string `json:"tags"`
+	// TODO: Additional fields that Aaron found in the API docs
+	// PaymentMethodFees   []struct {
+	// 	PaymentMethodId int `json:"paymentMethodId"`
+	// 	Fee             int `json:"fee"`
+	// } `json:"paymentMethodFees"`
+	// CardTokens []string `json:"cardTokens"`
+}
+
+type PaymentOrderResponse struct {
+	OrderCode int `json:"orderCode"`
 }
 
 type Customer struct {
@@ -49,11 +59,7 @@ type AuthenticationResponse struct {
 	Scope       string `json:"scope"`
 }
 
-type PaymentOrderResponse struct {
-	OrderCode int `json:"orderCode"`
-}
-
-type TransactionVerificationRequest struct {
+type TransactionVerificationResponse struct {
 	Email               string  `json:"email"`
 	Amount              float64 `json:"amount"`
 	OrderCode           int     `json:"orderCode"`
@@ -250,8 +256,8 @@ func VerifyTransactionID(accessToken string, transactionID int) (success bool, e
 	}
 
 	// Unmarshal response body to struct
-	var transactionVerificationRequest TransactionVerificationRequest
-	err = json.Unmarshal(body, &transactionVerificationRequest)
+	var transactionVerificationResponse TransactionVerificationResponse
+	err = json.Unmarshal(body, &transactionVerificationResponse)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
 		return false, err

@@ -11,13 +11,14 @@ CREATE TABLE Vendor (
     LastPayout timestamp
 );
 
-CREATE TYPE AccountType AS ENUM ('', 'vendor', 'cash');
+CREATE TYPE AccountType AS ENUM ('', 'user_auth', 'user_anon' 'vendor', 'orga', 'cash');  -- user_anon and cash should only exist once
 
 CREATE TABLE Account (
     ID serial PRIMARY KEY,
     Name varchar(255) NOT NULL DEFAULT '',
     Balance real NOT NULL DEFAULT 0,
     Type AccountType NOT NULL DEFAULT '',
+    User UUID,  -- Keycloak UUID if type is user_auth
     Vendor integer REFERENCES Vendor ON DELETE SET NULL
 );
 
@@ -27,25 +28,28 @@ CREATE TABLE Item (
     Description varchar(255),
     Price integer NOT NULL DEFAULT 0,  -- Price in cents
     Image varchar(255) NOT NULL DEFAULT '',
+    LicenseItem integer REFERENCES Item,  -- Required to be bought first
     Archived bool NOT NULL DEFAULT FALSE
 );
 
-CREATE TABLE PaymentOrder (
+CREATE TABLE Order (
     ID bigserial PRIMARY KEY,
     TransactionID integer NOT NULL DEFAULT 0,
-    TransactionVerified bool NOT NULL DEFAULT FALSE,
+    Verified bool NOT NULL DEFAULT FALSE,
     Timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    User UUID,  -- Keycloak UUID if user is authenticated
     Vendor integer REFERENCES Vendor
 );
 
-CREATE TABLE OrderItem (
+CREATE TABLE OrderEntry (
     ID bigserial PRIMARY KEY,
     Item integer REFERENCES Item,
     Price integer NOT NULL DEFAULT 0,  -- Price at time of purchase in cents
     Quantity integer NOT NULL DEFAULT 0,
-    PaymentOrder integer REFERENCES PaymentOrder
+    Order integer REFERENCES Order,
+    Sender integer NOT NULL REFERENCES Account,
+    Receiver integer NOT NULL REFERENCES Account,
 );
-
 
 CREATE TABLE Payment (
     ID bigserial PRIMARY KEY,
@@ -54,8 +58,8 @@ CREATE TABLE Payment (
     Receiver integer NOT NULL REFERENCES Account,
     Amount integer NOT NULL,  -- Price in cents
     AuthorizedBy varchar(255) NOT NULL DEFAULT '',
-    OrderItem integer REFERENCES OrderItem,
-    PaymentOrder integer REFERENCES PaymentOrder
+    Order integer REFERENCES Order
+    OrderEntry integer REFERENCES OrderEntry,
 );
 
 CREATE TABLE Settings (

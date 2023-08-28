@@ -26,6 +26,7 @@ type Account struct {
 	Name    string
 	Balance int
 	Type    string
+	User    null.String // Keycloak UUID if type = user_auth
 	Vendor  null.Int `swaggertype:"integer"`
 }
 
@@ -35,23 +36,27 @@ type Item struct {
 	Description string
 	Price      	int  // Price in cents
 	Image      	string
+	LicenseItem	null.Int  // License has to be bought before item
 	Archived   	bool
 }
 
-type PaymentOrderItem struct {
+type OrderEntry struct {
 	ID         	int
-	ItemID     	int
+	Item     	int
 	Quantity   	int
 	Price      	int  // Price at time of purchase in cents
+	Sender		int
+	Receiver	int
 }
 
-type PaymentOrder struct {
+type Order struct {
 	ID         		int
 	TransactionID 	string
 	Verified 		bool
 	Timestamp  		time.Time
+	User			null.String  // Keycloak UUID if user is authenticated
 	Vendor	 		int
-	OrderItems     	[]PaymentOrderItem
+	Entries     	[]OrderEntry
 }
 
 type Payment struct {
@@ -61,8 +66,8 @@ type Payment struct {
 	Receiver  	 	int
 	Amount    	 	int
 	AuthorizedBy 	string
-	PaymentOrderID	null.Int `swaggertype:"integer"`
-	OrderItemID  	null.Int `swaggertype:"integer"`
+	Order			null.Int `swaggertype:"integer"`
+	OrderEntry  	null.Int `swaggertype:"integer"`
 }
 
 type Settings struct {
