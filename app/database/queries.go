@@ -48,7 +48,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 	}
 
 	// Create vendor account
-	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Vendor) values (0, 'vendor', $1) RETURNING ID", vendorID)
+	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Vendor) values (0, 'Vendor', $1) RETURNING ID", vendorID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -350,7 +350,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 func (db *Database) CreateAccount(account Account) (id int, err error) {
 	// TODO: Validate that some types should only exist once
 	// TODO: Validate that User should only be filled if type is user_auth
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name, Type) values ($1, $2) RETURNING ID", account.Name, account.Type).Scan(&id)
 	return id, err
 }
 

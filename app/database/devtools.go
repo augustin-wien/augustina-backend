@@ -5,7 +5,6 @@ import "go.uber.org/zap"
 // CreateTestData creates test data for the application
 func (db *Database) CreateDevData() (err error) {
 	db.createDevUsers()
-	db.createDevSettings()
 	return nil
 }
 
@@ -23,11 +22,5 @@ func (db *Database) createDevUsers() (err error) {
 		log.Error("Dev data user creation failed ", zap.Error(err))
 	}
 	log.Info("Dev data user creation succeeded")
-	return nil
-}
-
-func (db *Database) createDevSettings() (err error) {
-	settings := Settings{}
-	db.UpdateSettings(settings)
 	return nil
 }

@@ -11,7 +11,7 @@ CREATE TABLE Vendor (
     LastPayout timestamp
 );
 
-CREATE TYPE AccountType AS ENUM ('', 'user_auth', 'user_anon', 'vendor', 'orga', 'cash');  -- user_anon and cash should only exist once
+CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash');  -- user_anon and cash should only exist once
 
 CREATE TABLE Account (
     ID serial PRIMARY KEY,
