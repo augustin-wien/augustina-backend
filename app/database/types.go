@@ -40,15 +40,6 @@ type Item struct {
 	Archived   	bool
 }
 
-type OrderEntry struct {
-	ID         	int
-	Item     	int
-	Quantity   	int
-	Price      	int  // Price at time of purchase in cents
-	Sender		int
-	Receiver	int
-}
-
 type Order struct {
 	ID         		int
 	TransactionID 	string
@@ -57,6 +48,15 @@ type Order struct {
 	User			null.String  // Keycloak UUID if user is authenticated
 	Vendor	 		int
 	Entries     	[]OrderEntry
+}
+
+type OrderEntry struct {
+	ID         	int
+	Item     	int
+	Quantity   	int
+	Price      	int  // Price at time of purchase in cents
+	Sender		int
+	Receiver	int
 }
 
 type Payment struct {

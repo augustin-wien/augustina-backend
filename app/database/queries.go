@@ -103,7 +103,7 @@ func (db *Database) ListItems() ([]Item, error) {
 	}
 	for rows.Next() {
 		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.Archived)
+		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
 		if err != nil {
 			log.Error(err)
 			return items, err

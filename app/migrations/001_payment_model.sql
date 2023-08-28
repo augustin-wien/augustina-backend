@@ -11,14 +11,14 @@ CREATE TABLE Vendor (
     LastPayout timestamp
 );
 
-CREATE TYPE AccountType AS ENUM ('', 'user_auth', 'user_anon' 'vendor', 'orga', 'cash');  -- user_anon and cash should only exist once
+CREATE TYPE AccountType AS ENUM ('', 'user_auth', 'user_anon', 'vendor', 'orga', 'cash');  -- user_anon and cash should only exist once
 
 CREATE TABLE Account (
     ID serial PRIMARY KEY,
     Name varchar(255) NOT NULL DEFAULT '',
     Balance real NOT NULL DEFAULT 0,
     Type AccountType NOT NULL DEFAULT '',
-    User UUID,  -- Keycloak UUID if type is user_auth
+    UserID UUID,  -- Keycloak UUID if type is user_auth
     Vendor integer REFERENCES Vendor ON DELETE SET NULL
 );
 
@@ -32,12 +32,12 @@ CREATE TABLE Item (
     Archived bool NOT NULL DEFAULT FALSE
 );
 
-CREATE TABLE Order (
+CREATE TABLE PaymentOrder (
     ID bigserial PRIMARY KEY,
     TransactionID integer NOT NULL DEFAULT 0,
     Verified bool NOT NULL DEFAULT FALSE,
     Timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    User UUID,  -- Keycloak UUID if user is authenticated
+    UserID UUID,  -- Keycloak UUID if user is authenticated
     Vendor integer REFERENCES Vendor
 );
 
@@ -46,9 +46,9 @@ CREATE TABLE OrderEntry (
     Item integer REFERENCES Item,
     Price integer NOT NULL DEFAULT 0,  -- Price at time of purchase in cents
     Quantity integer NOT NULL DEFAULT 0,
-    Order integer REFERENCES Order,
+    PaymentOrder integer REFERENCES PaymentOrder,
     Sender integer NOT NULL REFERENCES Account,
-    Receiver integer NOT NULL REFERENCES Account,
+    Receiver integer NOT NULL REFERENCES Account
 );
 
 CREATE TABLE Payment (
@@ -58,8 +58,8 @@ CREATE TABLE Payment (
     Receiver integer NOT NULL REFERENCES Account,
     Amount integer NOT NULL,  -- Price in cents
     AuthorizedBy varchar(255) NOT NULL DEFAULT '',
-    Order integer REFERENCES Order
-    OrderEntry integer REFERENCES OrderEntry,
+    PaymentOrder integer REFERENCES PaymentOrder,
+    OrderEntry integer REFERENCES OrderEntry
 );
 
 CREATE TABLE Settings (

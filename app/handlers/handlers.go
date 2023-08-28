@@ -402,7 +402,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, err, http.StatusBadRequest)
 				return
 			}
-			// License Item is bought by vendor from Orga
+			// Define flow of money from vendor to orga
 			licenseItemEntry := database.OrderEntry{
 				Item: int(item.LicenseItem.Int64),
 				Quantity: entry.Quantity,
