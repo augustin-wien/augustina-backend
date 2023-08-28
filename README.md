@@ -13,6 +13,8 @@ Go to http://localhost:3000/api/hello/
 
 ### Swagger
 
+Visit [http://localhost:3000/swagger/](http://localhost:3000/swagger/)
+
 To update swagger, install swagger
 
 ```bash
@@ -81,14 +83,6 @@ Revert last migration:
 ```bash
 tern migrate --destination -1
 ```
-
-### Swagger
-
-Go to http://localhost:3000/api/swagger
-
-To add API calls to Swagger, download [Swaggo](https://github.com/swaggo/swag) via `go install github.com/swaggo/swag/cmd/swag@latest`
-
-To update the swagger documentation for a changed api call run the following command `swag init -g handlers/handlers.go`
 
 ## Keycloak
 
