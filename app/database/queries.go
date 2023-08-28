@@ -350,7 +350,10 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 func (db *Database) CreateAccount(account Account) (id int, err error) {
 	// TODO: Validate that some types should only exist once
 	// TODO: Validate that User should only be filled if type is user_auth
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name, Type) values ($1, $2) RETURNING ID", account.Name, account.Type).Scan(&id)
+	// Check if account.type = UserAuth
+	// if account.Type == "UserAuth" && account.User.String == "" {
+	// 	err = new (Error)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Name, Type) values ($1, $2) RETURNING ID", account.Name, account.Type).Scan(&id)
 	return id, err
 }
 

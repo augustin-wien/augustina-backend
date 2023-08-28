@@ -11,15 +11,15 @@ CREATE TABLE Vendor (
     LastPayout timestamp
 );
 
-CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash');  -- user_anon and cash should only exist once
+CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash');  -- UserAnon, Orga, and Cash should only exist once
 
 CREATE TABLE Account (
     ID serial PRIMARY KEY,
     Name varchar(255) NOT NULL DEFAULT '',
     Balance real NOT NULL DEFAULT 0,
     Type AccountType NOT NULL DEFAULT '',
-    UserID UUID,  -- Keycloak UUID if type is user_auth
-    Vendor integer REFERENCES Vendor ON DELETE SET NULL
+    UserID UUID UNIQUE,  -- Keycloak UUID if type is user_auth
+    Vendor integer UNIQUE REFERENCES Vendor ON DELETE SET NULL
 );
 
 CREATE TABLE Item (
