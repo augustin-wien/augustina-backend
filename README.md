@@ -141,38 +141,40 @@ curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/o
 
 ### VivaWallet Checkout Process
 
-This PR covers the MVP (minimal viable product) of the VIvaWallet checkout process. Each process step is described below:
+#### 1. Create payment order
+- URL: `http://localhost:3000/api/transaction/`
+- POST Request
+- Sample cURL call
+```bash
+curl --header "Content-Type: application/json" \
+--request POST \
+--data '{"amount":2500}' \
+http://localhost:3000/api/transaction/
+```
+- Here the amount is in cents, so this call requests to charge 2500 cents which is 25€
+- If successful, response is the checkout URL: `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=8958019584072636"}`
+- Extract link and paste it to your browser or if possible click on it to move forward to next step
 
-1. Create payment order via new endpoint
-  - URL: `http://localhost:3000/api/transaction/`
-  - POST Request
-  - Sample cURL call
-    ```bash
-    curl --header "Content-Type: application/json" \
-    --request POST \
-    --data '{"amount":2500}' \
-    http://localhost:3000/api/transaction/
-    ```
-  - Here the amount is in cents, so this call requests to charge 2500 cents which is 25€
-  - If successful, response is: `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=8958019584072636"}`
-  - VivaWallet checkout URL (Sample link in demo version: https://demo.vivapayments.com/web/checkout?ref=9699361263129530) like
-
-5. After being redirected to the VivaWallet checkout URL, you need [VivaWallet Test Cards
+#### 2. Test cards
+- After being redirected to the VivaWallet checkout URL, you need to use a [VivaWallet Test Card
 ](https://developer.vivawallet.com/integration-reference/test-cards-and-environments/) to have a successful process.
-  - NOTE: First option with Visa card did not work for me but third card option for Mastercard did.
+- NOTE: First option with Visa card did not work for me but third card option for Mastercard did.
 
-6. After a successful transaction the user is being redirected to a success page, which is right now `https://local.com/success` and will be changed towards production.
-  - NOTE: The whole sample URL, looks something like this `https://local.com/success?t=d87ea0e6-91da-4312-abdf-67ebb84ee981&s=5857961245421135&lang=en-GB&eventId=0&eci=1`
-  - Here the frontend (or developer for testing purposes) has to extract the transactionID, which is **t** or in this sample URL above `d87ea0e6-91da-4312-abdf-67ebb84ee981`
+#### 3. Redirection page
+- After a successful transaction the user is being redirected to a success page, which is right now `https://local.com/success` and will be changed towards production.
+- NOTE: The whole sample URL, looks something like this `https://local.com/success?t=d87ea0e6-91da-4312-abdf-67ebb84ee981&s=5857961245421135&lang=en-GB&eventId=0&eci=1`
+- Here the frontend (or developer for testing purposes) has to extract the transactionID, which is **t** or in this sample URL above `d87ea0e6-91da-4312-abdf-67ebb84ee981`
 
-7. It is the frontends task to extract the transactionID from the URL to verify the transaction via new endpoint
-  - URL: http://localhost:3000/api/verification/
-  - POST Request
-  - Sample cURL call
-    ```bash
-    curl --header "Content-Type: application/json" \
-    --request POST \
-    --data '{"transactionid":"0a384178-d329-4d54-9474-75c4adff51c0"}' \
-    http://localhost:3000/api/verification/
-    ```
-  - If successful, response is: `{"Verification":true}`
+#### 4. Create verification call
+- It is the frontends task to extract the transactionID from the URL to verify the transaction via new endpoint
+- URL: http://localhost:3000/api/verification/
+- POST Request
+- Sample cURL call
+  ```bash
+  curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"transactionid":"0a384178-d329-4d54-9474-75c4adff51c0"}' \
+  http://localhost:3000/api/verification/
+  ```
+- If successful, response is: `{"Verification":true}` -> checkout process is successfully finished
+- If unsuccessfil, response is: `{"Verification":false}` -> this step is still unclear, in which circumstances a user can be redirected to the success page but her transaction cannot be verified
