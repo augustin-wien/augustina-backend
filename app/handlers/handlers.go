@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"gopkg.in/guregu/null.v4"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -327,12 +328,13 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 // Orders ---------------------------------------------------------------------
 
-type CreatePaymentOrderRequest struct {
-	Items  []database.OrderEntry
-	Vendor int32
+type CreateOrderRequest struct {
+	Entries  []database.OrderEntry
+	User     null.String
+	Vendor   int32
 }
 
-type CreatePaymentOrderResponse struct {
+type CreateOrderResponse struct {
 	PaymentOrderID   int
 	TransactionID    int
 	SmartCheckoutURL string
@@ -345,8 +347,8 @@ type CreatePaymentOrderResponse struct {
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//	    @Param		    data body CreatePaymentOrderRequest true "Payment Order"
-//		@Success		200 {object} CreatePaymentOrderResponse
+//	    @Param		    data body CreateOrderRequest true "Payment Order"
+//		@Success		200 {object} CreateOrderResponse
 //		@Router			/orders/ [post]
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
@@ -363,7 +365,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	if order.User.Valid {
 		buyerAccount, err = database.Db.GetAccountByUser(order.User.String)
 	} else {
-		buyerAccount, err = database.Db.GetAccountByType("user_anon")
+		buyerAccount, err = database.Db.GetAccountByType("UserAnon")
 	}
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -374,7 +376,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	orgaAccount, err := database.Db.GetAccountByType("orga")
+	orgaAccount, err := database.Db.GetAccountByType("Orga")
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -433,7 +435,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Create response
 	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(transactionID)
-	response := CreatePaymentOrderResponse{
+	response := CreateOrderResponse{
 		PaymentOrderID:   paymentOrderID,
 		TransactionID:    transactionID,
 		SmartCheckoutURL: url,
@@ -448,7 +450,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//		@Success		200 {object} CreatePaymentOrderResponse
+//		@Success		200 {object} CreateOrderResponse
 //		@Router			/orders/verify/{transactionID} [post]
 func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 

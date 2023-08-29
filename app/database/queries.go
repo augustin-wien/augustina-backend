@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"errors"
 
 	"go.uber.org/zap"
 )
@@ -207,24 +208,24 @@ func (db *Database) GetOrderByTransactionID(TransactionID int) (order Order, err
 // Create Payment Order
 // Processes transactionID, vendor, and items (trinkgeld is an item)
 func (db *Database) CreateOrder(order Order) (orderID int, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Order (TransactionID, Vendor) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", order.TransactionID, order.Vendor).Scan(&orderID)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Order (TransactionID, Vendor) values ($1, $2) RETURNING ID", order.TransactionID, order.Vendor).Scan(&orderID)
 	if err != nil {
 		log.Error(err)
 	}
 
 	// Create order items
-	for _, orderItem := range order.Entries {
+	for _, entry := range order.Entries {
 
 		// Get current item price
 		var item Item
-		err = db.Dbpool.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", orderItem.Item).Scan(&item.Price)
+		err = db.Dbpool.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
 		if err != nil {
 			log.Error(err)
 			return
 		}
 
 		// Create order item
-		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderItem (Item, Price, Quantity, Order) values ($1, $2, $3, $4)", orderItem.Item, item.Price, orderItem.Quantity, orderID)
+		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder) values ($1, $2, $3, $4)", entry.Item, item.Price, entry.Quantity, orderID)
 		if err != nil {
 			log.Error(err)
 			return
@@ -380,6 +381,9 @@ func (db *Database) ListAccounts() (accounts []Account, err error) {
 func (db *Database) GetAccountByID(id int) (account Account, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE ID = $1", id).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
+		if err.Error() == "no rows in result set" {
+			err = errors.New("account does not exist")
+		}
 		log.Error(err)
 	}
 	return
@@ -389,6 +393,9 @@ func (db *Database) GetAccountByID(id int) (account Account, err error) {
 func (db *Database) GetAccountByUser(user string) (account Account, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE User = $1", user).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
+		if err.Error() == "no rows in result set" {
+			err = errors.New("user does not exist or has no account")
+		}
 		log.Error(err)
 	}
 	return
@@ -398,6 +405,9 @@ func (db *Database) GetAccountByUser(user string) (account Account, err error) {
 func (db *Database) GetAccountByVendor(vendor int) (account Account, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Vendor = $1", vendor).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
+		if err.Error() == "no rows in result set" {
+			err = errors.New("vendor does not exist or has no account")
+		}
 		log.Error(err)
 	}
 	return

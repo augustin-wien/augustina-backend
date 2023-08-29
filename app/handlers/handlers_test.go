@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"mime/multipart"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -29,8 +30,8 @@ func TestHelloWorld(t *testing.T) {
 	require.Equal(t, "\"Hello, world!\"", res.Body.String())
 }
 
-// TestUsers tests CRUD operations on users
-func TestUsers(t *testing.T) {
+// TestVendors tests CRUD operations on users
+func TestVendors(t *testing.T) {
 	// Create
 	json_vendor := `{
 		"keycloakID": "test",
@@ -126,6 +127,29 @@ func TestItems(t *testing.T) {
 
 }
 
+// TestOrders tests CRUD operations on orders
+func TestOrders(t *testing.T) {
+	vendorID, err := database.Db.CreateVendor(database.Vendor{})
+	utils.CheckError(t, err)
+	itemID, err := database.Db.CreateItem(database.Item{})
+	utils.CheckError(t, err)
+	f := `{
+		"entries": [
+			{
+			  "item": ` + strconv.Itoa(int(itemID)) + `,
+			  "price": 300,
+			  "quantity": 1,
+			  "receiver": 1,
+			  "sender": 1
+			}
+		  ],
+		  "vendor": ` + strconv.Itoa(int(vendorID)) + `
+	}`
+	log.Info(f)
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+	ress := res.Body.String()
+	log.Info(ress)
+}
 
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
