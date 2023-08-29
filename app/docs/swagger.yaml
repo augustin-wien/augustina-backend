@@ -4,35 +4,57 @@ consumes:
 definitions:
   database.Item:
     properties:
+      archived:
+        type: boolean
       description:
         type: string
       id:
         type: integer
       image:
         type: string
+      licenseItem:
+        allOf:
+        - $ref: '#/definitions/null.Int'
+        description: License has to be bought before item
       name:
         type: string
       price:
-        type: number
+        description: Price in cents
+        type: integer
+    type: object
+  database.OrderEntry:
+    properties:
+      id:
+        type: integer
+      item:
+        type: integer
+      price:
+        description: Price at time of purchase in cents
+        type: integer
+      quantity:
+        type: integer
+      receiver:
+        type: integer
+      sender:
+        type: integer
     type: object
   database.Payment:
     properties:
       amount:
-        type: number
+        type: integer
       authorizedBy:
         type: string
-      batch:
-        type: integer
       id:
         type: integer
-      item:
+      order:
+        type: integer
+      orderEntry:
         type: integer
       receiver:
         type: integer
       sender:
         type: integer
       timestamp:
-        format: date-time
         type: string
     type: object
   database.Settings:
@@ -52,7 +74,7 @@ definitions:
     properties:
       balance:
         description: This is joined in from the account
-        type: number
+        type: integer
       email:
         type: string
       firstName:
@@ -72,6 +94,31 @@ definitions:
         description: This is used for the QR code
         type: string
     type: object
+  handlers.CreatePaymentOrderRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/database.OrderEntry'
+        type: array
+      vendor:
+        type: integer
+    type: object
+  handlers.CreatePaymentOrderResponse:
+    properties:
+      paymentOrderID:
+        type: integer
+      smartCheckoutURL:
+        type: string
+      transactionID:
+        type: integer
+    type: object
+  handlers.CreatePaymentsRequest:
+    properties:
+      payments:
+        items:
+          $ref: '#/definitions/database.Payment'
+        type: array
+    type: object
   handlers.TransactionOrder:
     properties:
       amount:
@@ -85,11 +132,19 @@ definitions:
   handlers.TransactionVerification:
     properties:
       transactionID:
-        type: string
+        type: integer
     type: object
   handlers.TransactionVerificationResponse:
     properties:
       verification:
+        type: boolean
+    type: object
+  null.Int:
+    properties:
+      int64:
+        type: integer
+      valid:
+        description: Valid is true if Int64 is not NULL
         type: boolean
     type: object
 externalDocs:
@@ -194,6 +249,43 @@ paths:
       summary: Update Item
       tags:
       - Items
+  /orders/:
+    post:
+      consumes:
+      - application/json
+      description: Submits payment order & saves it to database
+      parameters:
+      - description: Payment Order
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreatePaymentOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CreatePaymentOrderResponse'
+      summary: Create Payment Order
+      tags:
+      - Orders
+  /orders/verify/{transactionID}:
+    post:
+      consumes:
+      - application/json
+      description: Verifies order and creates payments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CreatePaymentOrderResponse'
+      summary: Verify Payment Order
+      tags:
+      - Orders
   /payments:
     get:
       consumes:
@@ -213,6 +305,13 @@ paths:
     post:
       consumes:
       - application/json
+      parameters:
+      - description: Payment
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreatePaymentsRequest'
       produces:
       - application/json
       responses:
@@ -272,7 +371,7 @@ paths:
       summary: Create Vendor
       tags:
       - vendors
-  /vendors/{id}:
+  /vendors/{id}/:
     delete:
       consumes:
       - application/json

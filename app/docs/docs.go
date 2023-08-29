@@ -159,6 +159,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders/": {
+            "post": {
+                "description": "Submits payment order \u0026 saves it to database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Create Payment Order",
+                "parameters": [
+                    {
+                        "description": "Payment Order",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreatePaymentOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreatePaymentOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/verify/{transactionID}": {
+            "post": {
+                "description": "Verifies order and creates payments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Verify Payment Order",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreatePaymentOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/payments": {
             "get": {
                 "consumes": [
@@ -194,6 +251,17 @@ const docTemplate = `{
                     "core"
                 ],
                 "summary": "Create a set of payments",
+                "parameters": [
+                    {
+                        "description": "Payment",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreatePaymentsRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -280,7 +348,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/vendors/{id}": {
+        "/vendors/{id}/": {
             "put": {
                 "description": "Warning: Unfilled fields will be set to default values",
                 "consumes": [
@@ -423,6 +491,9 @@ const docTemplate = `{
         "database.Item": {
             "type": "object",
             "properties": {
+                "archived": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -432,11 +503,44 @@ const docTemplate = `{
                 "image": {
                     "type": "string"
                 },
+                "licenseItem": {
+                    "description": "License has to be bought before item",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/null.Int"
+                        }
+                    ]
+                },
                 "name": {
                     "type": "string"
                 },
                 "price": {
-                    "type": "number"
+                    "description": "Price in cents",
+                    "type": "integer"
+                }
+            }
+        },
+        "database.OrderEntry": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "item": {
+                    "type": "integer"
+                },
+                "price": {
+                    "description": "Price at time of purchase in cents",
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "receiver": {
+                    "type": "integer"
+                },
+                "sender": {
+                    "type": "integer"
                 }
             }
         },
@@ -444,18 +548,18 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "amount": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "authorizedBy": {
                     "type": "string"
                 },
-                "batch": {
-                    "type": "integer"
-                },
                 "id": {
                     "type": "integer"
                 },
-                "item": {
+                "order": {
+                    "type": "integer"
+                },
+                "orderEntry": {
                     "type": "integer"
                 },
                 "receiver": {
@@ -465,8 +569,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "timestamp": {
-                    "type": "string",
-                    "format": "date-time"
+                    "type": "string"
                 }
             }
         },
@@ -495,7 +598,7 @@ const docTemplate = `{
             "properties": {
                 "balance": {
                     "description": "This is joined in from the account",
-                    "type": "number"
+                    "type": "integer"
                 },
                 "email": {
                     "type": "string"
@@ -525,6 +628,45 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.CreatePaymentOrderRequest": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.OrderEntry"
+                    }
+                },
+                "vendor": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.CreatePaymentOrderResponse": {
+            "type": "object",
+            "properties": {
+                "paymentOrderID": {
+                    "type": "integer"
+                },
+                "smartCheckoutURL": {
+                    "type": "string"
+                },
+                "transactionID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.CreatePaymentsRequest": {
+            "type": "object",
+            "properties": {
+                "payments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Payment"
+                    }
+                }
+            }
+        },
         "handlers.TransactionOrder": {
             "type": "object",
             "properties": {
@@ -545,7 +687,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "transactionID": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -553,6 +695,18 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "verification": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "null.Int": {
+            "type": "object",
+            "properties": {
+                "int64": {
+                    "type": "integer"
+                },
+                "valid": {
+                    "description": "Valid is true if Int64 is not NULL",
                     "type": "boolean"
                 }
             }
