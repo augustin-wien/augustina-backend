@@ -189,7 +189,7 @@ func (db *Database) GetOrderByID(id int) (order Order, err error) {
 }
 
 // GetOrder returns Order by OrderCode
-func (db *Database) GetOrderByOrderCode(OrderCode int) (order Order, err error) {
+func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err error) {
 
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Order WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.Verified, &order.Timestamp, &order.Vendor)
 	if err != nil {

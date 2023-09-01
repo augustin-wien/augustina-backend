@@ -335,8 +335,6 @@ type CreateOrderRequest struct {
 }
 
 type CreateOrderResponse struct {
-	PaymentOrderID   int
-	OrderCode    int
 	SmartCheckoutURL string
 }
 
@@ -429,7 +427,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Save order to database
 	order.OrderCode = strconv.Itoa(OrderCode)
 	log.Info("Order vendor: ", order.Vendor)
-	paymentOrderID, err := database.Db.CreateOrder(order)
+	_, err = database.Db.CreateOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -438,8 +436,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Create response
 	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(OrderCode)
 	response := CreateOrderResponse{
-		PaymentOrderID:   paymentOrderID,
-		OrderCode:    OrderCode,
 		SmartCheckoutURL: url,
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
@@ -453,15 +449,14 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //		@Success		200 {object} CreateOrderResponse
-//		@Router			/orders/verify/{OrderCode} [post]
+//		@Param			s path int true "Order Code"
+//		@Param			t path int true "Transaction ID"
+//		@Router			/orders/verify/ [post]
 func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Get transaction ID from URL parameter
-	OrderCode, err := strconv.Atoi(chi.URLParam(r, "OrderCode"))
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
+	OrderCode := r.URL.Query().Get("s")
+	TransactionID := r.URL.Query().Get("t")
 
 	// Get payment order from database
 	order, err := database.Db.GetOrderByOrderCode(OrderCode)
@@ -483,7 +478,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify transaction
-	isVerified, err := paymentprovider.VerifyTransactionID(accessToken, OrderCode)
+	isVerified, err := paymentprovider.VerifyTransactionID(accessToken, TransactionID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -497,6 +492,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// TODO: order.Entries = append(order.Entries, MyEntry)
 
 	// Store verification in db
+	order.TransactionID = TransactionID
 	order.Verified = isVerified
 	err = database.Db.UpdateOrderAndCreatePayments(order.ID)
 	if err != nil {
