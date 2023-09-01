@@ -310,12 +310,12 @@ paths:
         in: path
         name: s
         required: true
-        type: integer
+        type: string
       - description: Transaction ID
         in: path
         name: t
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:

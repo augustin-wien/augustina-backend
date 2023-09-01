@@ -201,14 +201,14 @@
                 "summary": "Verify Payment Order",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Order Code",
                         "name": "s",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Transaction ID",
                         "name": "t",
                         "in": "path",

@@ -448,8 +448,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //		@Success		200 {object} database.Order
-//		@Param			s path int true "Order Code"
-//		@Param			t path int true "Transaction ID"
+//		@Param			s path string true "Order Code"
+//		@Param			t path string true "Transaction ID"
 //		@Router			/orders/verify/ [post]
 func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
