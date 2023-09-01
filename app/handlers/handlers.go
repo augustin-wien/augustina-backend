@@ -611,7 +611,7 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify transaction
-	verification, err := paymentprovider.VerifyTransactionID(accessToken, transactionVerification.OrderCode)
+	verification, err := paymentprovider.VerifyTransactionID(accessToken, strconv.Itoa(transactionVerification.OrderCode))
 	if err != nil {
 		log.Info("Verifying transaction failed: ", err)
 		return
