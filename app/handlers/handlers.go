@@ -328,9 +328,9 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 // Orders ---------------------------------------------------------------------
 
 type CreateOrderRequest struct {
-	Entries  []database.OrderEntry
-	User     string
-	Vendor   int32
+	Entries []database.OrderEntry
+	User    string
+	Vendor  int32
 }
 
 type CreateOrderResponse struct {
@@ -456,6 +456,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Get transaction ID from URL parameter
 	OrderCode := r.URL.Query().Get("s")
 	TransactionID := r.URL.Query().Get("t")
+	log.Info("Receiving order code: ", OrderCode, "and transaction ID: ", TransactionID)
 
 	// Get payment order from database
 	order, err := database.Db.GetOrderByOrderCode(OrderCode)
