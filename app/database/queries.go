@@ -22,7 +22,7 @@ func (db *Database) GetHelloWorld() (string, error) {
 
 // ListVendors returns all users from the database
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "select vendor.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id")
 	if err != nil {
 		log.Error(err)
 		return vendors, err
@@ -173,7 +173,7 @@ func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err erro
 
 // GetOrder returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Order WHERE ID = $1", id).Scan(&order.ID, &order.TransactionID, &order.Verified, &order.Timestamp, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Order WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.Verified, &order.Timestamp, &order.Vendor)
 	if err != nil {
 		log.Error(err)
 		return
@@ -188,10 +188,10 @@ func (db *Database) GetOrderByID(id int) (order Order, err error) {
 	return
 }
 
-// GetOrder returns Order by TransactionID
-func (db *Database) GetOrderByTransactionID(TransactionID int) (order Order, err error) {
+// GetOrder returns Order by OrderCode
+func (db *Database) GetOrderByOrderCode(OrderCode int) (order Order, err error) {
 
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Order WHERE TransactionID = $1", TransactionID).Scan(&order.ID, &order.TransactionID, &order.Verified, &order.Timestamp, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Order WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.Verified, &order.Timestamp, &order.Vendor)
 	if err != nil {
 		log.Error(err)
 		return
@@ -206,11 +206,24 @@ func (db *Database) GetOrderByTransactionID(TransactionID int) (order Order, err
 }
 
 // Create Payment Order
-// Processes transactionID, vendor, and items (trinkgeld is an item)
+// TODO: This should be a transaction
+// Processes OrderCode, vendor, and items (trinkgeld is an item)
 func (db *Database) CreateOrder(order Order) (orderID int, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Order (TransactionID, Vendor) values ($1, $2) RETURNING ID", order.TransactionID, order.Vendor).Scan(&orderID)
+	log.Info("Received order vendor: ", order.Vendor)
+	log.Info("stats", db.Dbpool.Stat().TotalConns())
+
+    x, err := db.ListVendors()
 	if err != nil {
 		log.Error(err)
+		return
+	}
+	log.Info("Create Order - Vendors: ", x)
+
+
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
+	if err != nil {
+		log.Error(err)
+		return
 	}
 
 	// Create order items
@@ -225,7 +238,7 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 		}
 
 		// Create order item
-		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder) values ($1, $2, $3, $4)", entry.Item, item.Price, entry.Quantity, orderID)
+		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
 		if err != nil {
 			log.Error(err)
 			return
@@ -264,8 +277,7 @@ func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
 	_, err = tx.Exec(context.Background(), `
 	UPDATE Order
 	SET Verified = True
-	WHERE ID = $2
-
+	WHERE ID = $1
 	`, id)
 	if err != nil {
 		log.Error(err)

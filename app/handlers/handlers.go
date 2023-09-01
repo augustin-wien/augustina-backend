@@ -43,7 +43,7 @@ type TransactionOrderResponse struct {
 }
 
 type TransactionVerification struct {
-	TransactionID int
+	OrderCode int
 }
 
 type TransactionVerificationResponse struct {
@@ -232,7 +232,7 @@ func UpdateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 			break
 		}
 		i += 1
-		if i > 100 {
+		if i > 1000 {
 			log.Error(err)
 			utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
 			return
@@ -336,7 +336,7 @@ type CreateOrderRequest struct {
 
 type CreateOrderResponse struct {
 	PaymentOrderID   int
-	TransactionID    int
+	OrderCode    int
 	SmartCheckoutURL string
 }
 
@@ -393,6 +393,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		// Define flow of money from buyer to vendor
 		entry.Sender = buyerAccount.ID
+		log.Info("Sender ", entry.Sender)
 		entry.Receiver = vendorAccount.ID
 
 		// If there is a license item, prepend it before the actual item
@@ -420,13 +421,14 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("Authentication failed: ", err)
 	}
-	transactionID, err := paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
+	OrderCode, err := paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
 	if err != nil {
 		log.Error("Creating payment order failed: ", err)
 	}
 
 	// Save order to database
-	order.TransactionID = strconv.Itoa(transactionID)
+	order.OrderCode = strconv.Itoa(OrderCode)
+	log.Info("Order vendor: ", order.Vendor)
 	paymentOrderID, err := database.Db.CreateOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -434,10 +436,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create response
-	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(transactionID)
+	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(OrderCode)
 	response := CreateOrderResponse{
 		PaymentOrderID:   paymentOrderID,
-		TransactionID:    transactionID,
+		OrderCode:    OrderCode,
 		SmartCheckoutURL: url,
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
@@ -451,18 +453,18 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //		@Success		200 {object} CreateOrderResponse
-//		@Router			/orders/verify/{transactionID} [post]
+//		@Router			/orders/verify/{OrderCode} [post]
 func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Get transaction ID from URL parameter
-	transactionID, err := strconv.Atoi(chi.URLParam(r, "transactionID"))
+	OrderCode, err := strconv.Atoi(chi.URLParam(r, "OrderCode"))
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	// Get payment order from database
-	order, err := database.Db.GetOrderByTransactionID(transactionID)
+	order, err := database.Db.GetOrderByOrderCode(OrderCode)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -481,7 +483,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify transaction
-	isVerified, err := paymentprovider.VerifyTransactionID(accessToken, transactionID)
+	isVerified, err := paymentprovider.VerifyTransactionID(accessToken, OrderCode)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -591,11 +593,11 @@ func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 // VivaWalletVerifyTransaction godoc
 //
 //	@Summary		Verify a transaction
-//	@Description	Accepts {"TransactionID":"1234567890"} and returns {"Verification":true}, if successful
+//	@Description	Accepts {"OrderCode":"1234567890"} and returns {"Verification":true}, if successful
 //	@Tags			core
 //	@accept			json
 //	@Produce		json
-//	@Param			transactionID body TransactionVerification true "Transaction ID"
+//	@Param			OrderCode body TransactionVerification true "Transaction ID"
 //	@Success		200	{array}	TransactionVerificationResponse
 //	@Router			/vivawallet/transaction_verification/ [post]
 func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
@@ -613,7 +615,7 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify transaction
-	verification, err := paymentprovider.VerifyTransactionID(accessToken, transactionVerification.TransactionID)
+	verification, err := paymentprovider.VerifyTransactionID(accessToken, transactionVerification.OrderCode)
 	if err != nil {
 		log.Info("Verifying transaction failed: ", err)
 		return

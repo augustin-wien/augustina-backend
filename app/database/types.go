@@ -42,7 +42,8 @@ type Item struct {
 
 type Order struct {
 	ID         		int
-	TransactionID 	string
+	OrderCode 	    string
+	TransactionID   string
 	Verified 		bool
 	Timestamp  		time.Time
 	User			null.String  // Keycloak UUID if user is authenticated
