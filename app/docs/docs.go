@@ -691,7 +691,7 @@ const docTemplate = `{
                     }
                 },
                 "user": {
-                    "$ref": "#/definitions/null.String"
+                    "type": "string"
                 },
                 "vendor": {
                     "type": "integer"

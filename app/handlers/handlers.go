@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"gopkg.in/guregu/null.v4"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -330,7 +329,7 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 type CreateOrderRequest struct {
 	Entries  []database.OrderEntry
-	User     null.String
+	User     string
 	Vendor   int32
 }
 

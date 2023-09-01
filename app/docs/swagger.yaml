@@ -124,7 +124,7 @@ definitions:
           $ref: '#/definitions/database.OrderEntry'
         type: array
       user:
-        $ref: '#/definitions/null.String'
+        type: string
       vendor:
         type: integer
     type: object
