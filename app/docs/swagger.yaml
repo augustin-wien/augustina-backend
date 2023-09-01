@@ -22,6 +22,29 @@ definitions:
         description: Price in cents
         type: integer
     type: object
+  database.Order:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/database.OrderEntry'
+        type: array
+      id:
+        type: integer
+      orderCode:
+        type: string
+      timestamp:
+        type: string
+      transactionID:
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/null.String'
+        description: Keycloak UUID if user is authenticated
+      vendor:
+        type: integer
+      verified:
+        type: boolean
+    type: object
   database.OrderEntry:
     properties:
       id:
@@ -94,23 +117,21 @@ definitions:
         description: This is used for the QR code
         type: string
     type: object
-  handlers.CreatePaymentOrderRequest:
+  handlers.CreateOrderRequest:
     properties:
-      items:
+      entries:
         items:
           $ref: '#/definitions/database.OrderEntry'
         type: array
+      user:
+        $ref: '#/definitions/null.String'
       vendor:
         type: integer
     type: object
-  handlers.CreatePaymentOrderResponse:
+  handlers.CreateOrderResponse:
     properties:
-      paymentOrderID:
-        type: integer
       smartCheckoutURL:
         type: string
-      transactionID:
-        type: integer
     type: object
   handlers.CreatePaymentsRequest:
     properties:
@@ -131,7 +152,7 @@ definitions:
     type: object
   handlers.TransactionVerification:
     properties:
-      transactionID:
+      orderCode:
         type: integer
     type: object
   handlers.TransactionVerificationResponse:
@@ -145,6 +166,14 @@ definitions:
         type: integer
       valid:
         description: Valid is true if Int64 is not NULL
+        type: boolean
+    type: object
+  null.String:
+    properties:
+      string:
+        type: string
+      valid:
+        description: Valid is true if String is not NULL
         type: boolean
     type: object
 externalDocs:
@@ -260,29 +289,40 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreatePaymentOrderRequest'
+          $ref: '#/definitions/handlers.CreateOrderRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.CreatePaymentOrderResponse'
+            $ref: '#/definitions/handlers.CreateOrderResponse'
       summary: Create Payment Order
       tags:
       - Orders
-  /orders/verify/{transactionID}:
+  /orders/verify/:
     post:
       consumes:
       - application/json
       description: Verifies order and creates payments
+      parameters:
+      - description: Order Code
+        in: path
+        name: s
+        required: true
+        type: integer
+      - description: Transaction ID
+        in: path
+        name: t
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.CreatePaymentOrderResponse'
+            $ref: '#/definitions/database.Order'
       summary: Verify Payment Order
       tags:
       - Orders
@@ -306,7 +346,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: Payment
+      - description: ' Create Payment'
         in: body
         name: amount
         required: true
@@ -441,12 +481,12 @@ paths:
     post:
       consumes:
       - application/json
-      description: Accepts {"TransactionID":"1234567890"} and returns {"Verification":true},
+      description: Accepts {"OrderCode":"1234567890"} and returns {"Verification":true},
         if successful
       parameters:
       - description: Transaction ID
         in: body
-        name: transactionID
+        name: OrderCode
         required: true
         schema:
           $ref: '#/definitions/handlers.TransactionVerification'

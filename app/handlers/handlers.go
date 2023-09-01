@@ -448,7 +448,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//		@Success		200 {object} CreateOrderResponse
+//		@Success		200 {object} database.Order
 //		@Param			s path int true "Order Code"
 //		@Param			t path int true "Transaction ID"
 //		@Router			/orders/verify/ [post]

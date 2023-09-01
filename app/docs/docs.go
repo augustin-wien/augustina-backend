@@ -179,7 +179,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreatePaymentOrderRequest"
+                            "$ref": "#/definitions/handlers.CreateOrderRequest"
                         }
                     }
                 ],
@@ -187,13 +187,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreatePaymentOrderResponse"
+                            "$ref": "#/definitions/handlers.CreateOrderResponse"
                         }
                     }
                 }
             }
         },
-        "/orders/verify/{transactionID}": {
+        "/orders/verify/": {
             "post": {
                 "description": "Verifies order and creates payments",
                 "consumes": [
@@ -206,11 +206,27 @@ const docTemplate = `{
                     "Orders"
                 ],
                 "summary": "Verify Payment Order",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Order Code",
+                        "name": "s",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Transaction ID",
+                        "name": "t",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreatePaymentOrderResponse"
+                            "$ref": "#/definitions/database.Order"
                         }
                     }
                 }
@@ -253,7 +269,7 @@ const docTemplate = `{
                 "summary": "Create a set of payments",
                 "parameters": [
                     {
-                        "description": "Payment",
+                        "description": " Create Payment",
                         "name": "amount",
                         "in": "body",
                         "required": true,
@@ -451,7 +467,7 @@ const docTemplate = `{
         },
         "/vivawallet/transaction_verification/": {
             "post": {
-                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
+                "description": "Accepts {\"OrderCode\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
                 "consumes": [
                     "application/json"
                 ],
@@ -465,7 +481,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Transaction ID",
-                        "name": "transactionID",
+                        "name": "OrderCode",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -517,6 +533,43 @@ const docTemplate = `{
                 "price": {
                     "description": "Price in cents",
                     "type": "integer"
+                }
+            }
+        },
+        "database.Order": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.OrderEntry"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "transactionID": {
+                    "type": "string"
+                },
+                "user": {
+                    "description": "Keycloak UUID if user is authenticated",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/null.String"
+                        }
+                    ]
+                },
+                "vendor": {
+                    "type": "integer"
+                },
+                "verified": {
+                    "type": "boolean"
                 }
             }
         },
@@ -628,31 +681,28 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CreatePaymentOrderRequest": {
+        "handlers.CreateOrderRequest": {
             "type": "object",
             "properties": {
-                "items": {
+                "entries": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.OrderEntry"
                     }
+                },
+                "user": {
+                    "$ref": "#/definitions/null.String"
                 },
                 "vendor": {
                     "type": "integer"
                 }
             }
         },
-        "handlers.CreatePaymentOrderResponse": {
+        "handlers.CreateOrderResponse": {
             "type": "object",
             "properties": {
-                "paymentOrderID": {
-                    "type": "integer"
-                },
                 "smartCheckoutURL": {
                     "type": "string"
-                },
-                "transactionID": {
-                    "type": "integer"
                 }
             }
         },
@@ -686,7 +736,7 @@ const docTemplate = `{
         "handlers.TransactionVerification": {
             "type": "object",
             "properties": {
-                "transactionID": {
+                "orderCode": {
                     "type": "integer"
                 }
             }
@@ -707,6 +757,18 @@ const docTemplate = `{
                 },
                 "valid": {
                     "description": "Valid is true if Int64 is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "null.String": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if String is not NULL",
                     "type": "boolean"
                 }
             }
