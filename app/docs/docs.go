@@ -209,16 +209,18 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "3043685539722561",
                         "description": "Order Code",
                         "name": "s",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
+                        "format": "882d641c-01cc-442f-b894-2b51250340b5",
                         "description": "Transaction ID",
                         "name": "t",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],

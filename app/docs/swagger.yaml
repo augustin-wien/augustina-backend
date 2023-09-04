@@ -307,12 +307,14 @@ paths:
       description: Verifies order and creates payments
       parameters:
       - description: Order Code
-        in: path
+        format: "3043685539722561"
+        in: query
         name: s
         required: true
         type: string
       - description: Transaction ID
-        in: path
+        format: 882d641c-01cc-442f-b894-2b51250340b5
+        in: query
         name: t
         required: true
         type: string

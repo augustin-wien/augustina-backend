@@ -448,15 +448,15 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //		@Success		200 {object} database.Order
-//		@Param			s path string true "Order Code"
-//		@Param			t path string true "Transaction ID"
+//		@Param			s query string true "Order Code" Format(3043685539722561)
+//		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
 //		@Router			/orders/verify/ [post]
 func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Get transaction ID from URL parameter
 	OrderCode := r.URL.Query().Get("s")
 	TransactionID := r.URL.Query().Get("t")
-	log.Info("Receiving order code: ", OrderCode, "and transaction ID: ", TransactionID)
+	log.Info("Receiving order code: ", OrderCode, " and transaction ID: ", TransactionID)
 
 	// Get payment order from database
 	order, err := database.Db.GetOrderByOrderCode(OrderCode)
