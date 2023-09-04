@@ -92,7 +92,6 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 	return
 }
 
-
 // Items ----------------------------------------------------------------------
 
 func (db *Database) ListItems() ([]Item, error) {
@@ -154,7 +153,7 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // GetOrderEntries returns all entries of an order
 func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price FROM OrderItem WHERE Order = $1", orderID)
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price FROM Item WHERE Order = $1", orderID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -191,7 +190,7 @@ func (db *Database) GetOrderByID(id int) (order Order, err error) {
 // GetOrder returns Order by OrderCode
 func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err error) {
 
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.Verified, &order.Timestamp, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
 	if err != nil {
 		log.Error(err)
 		return
@@ -212,13 +211,14 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	log.Info("Received order vendor: ", order.Vendor)
 	log.Info("stats", db.Dbpool.Stat().TotalConns())
 
-    x, err := db.ListVendors()
+	x, err := db.ListVendors()
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	log.Info("Create Order - Vendors: ", x)
-
+	log.Info("OrderCode ", order.OrderCode)
+	log.Info("Order", order)
 
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
 	if err != nil {
@@ -288,7 +288,7 @@ func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
 
 	// Create payments
 	for _, oi := range order.Entries {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, Order) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price * oi.Quantity, oi.ID, order.ID)
+		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, Order) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
 		if err != nil {
 			return err
 		}
@@ -317,7 +317,6 @@ func (db *Database) ListPayments() ([]Payment, error) {
 	}
 	return payments, nil
 }
-
 
 // Create multiple payments
 func (db *Database) CreatePayments(payments []Payment) (err error) {
@@ -355,7 +354,6 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 	}
 	return nil
 }
-
 
 // Accounts -------------------------------------------------------------------
 
@@ -435,8 +433,6 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 	}
 	return
 }
-
-
 
 // Settings (singleton) -------------------------------------------------------
 
