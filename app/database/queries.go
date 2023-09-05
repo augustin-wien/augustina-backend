@@ -122,7 +122,10 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 }
 
 func (db *Database) CreateItem(item Item) (id int32, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Item (Name, Description, Price, LicenseItem, Archived) values ($1, $2, $3, $4, $5) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived).Scan(&id)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, LicenseItem, Archived) values ($1, $2, $3, $4, $5) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived).Scan(&id)
+	if err != nil {
+		log.Error(err)
+	}
 	return id, err
 }
 
@@ -435,17 +438,6 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 }
 
 // Settings (singleton) -------------------------------------------------------
-
-// Create default settings if they don't exist
-func (db *Database) InitiateSettings() (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	INSERT INTO Settings (ID) VALUES (1);
-	`)
-	if err != nil {
-		log.Error(err)
-	}
-	return
-}
 
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
