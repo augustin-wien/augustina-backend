@@ -39,6 +39,15 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 	return vendors, nil
 }
 
+// GetVendorByLicenseID returns the vendor with the given licenseID
+func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 // CreateVendor creates a vendor and an associated account in the database
 func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 
@@ -438,6 +447,18 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 }
 
 // Settings (singleton) -------------------------------------------------------
+
+// Create default settings if they don't exist
+func (db *Database) InitiateSettings() (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	INSERT INTO Settings (ID) VALUES (1);
+	`)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	return err
+}
 
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
