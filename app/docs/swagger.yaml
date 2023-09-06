@@ -379,6 +379,25 @@ paths:
       summary: Return settings
       tags:
       - core
+    put:
+      consumes:
+      - application/json
+      description: Update configuration data of the system
+      parameters:
+      - description: Settings Representation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.Settings'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Update settings
+      tags:
+      - core
   /vendors/:
     get:
       consumes:
