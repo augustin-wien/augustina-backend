@@ -50,8 +50,6 @@ definitions:
     type: object
   database.Vendor:
     properties:
-      account:
-        type: integer
       balance:
         description: This is joined in from the account
         type: number

@@ -15,7 +15,6 @@ type Vendor struct {
 	LastName   string
     Email	   string
 	LastPayout null.Time `swaggertype:"string" format:"date-time"`
-	Account    int32
 	Balance    float32 // This is joined in from the account
 }
 
@@ -23,14 +22,16 @@ type Account struct {
 	ID      int32
 	Name    string
 	Balance float32
+	Type    string
+	Vendor  null.Int `swaggertype:"integer"`
 }
 
 type Item struct {
-	ID         int32
-	Name       string
+	ID         	int32
+	Name       	string
 	Description string
-	Price      float32
-	Image      string
+	Price      	float32
+	Image      	string
 }
 
 type PaymentBatch struct {

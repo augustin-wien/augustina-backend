@@ -82,11 +82,12 @@ func GetRouter() (r *chi.Mux) {
 		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
 	))
 
-	// Mount static file servers in img & docs folder
-	fs := http.FileServer(http.Dir("img"))
-	r.Handle("/img/*", http.StripPrefix("/img/", fs))
-	fs = http.FileServer(http.Dir("docs"))
-	r.Handle("/docs/*", http.StripPrefix("/docs/", fs))
+	// Mount static file servers in img folder
+	fs_img := http.FileServer(http.Dir("img"))
+	r.Handle("/img/*", http.StripPrefix("/img/", fs_img))
+	// Docs file server is used for swagger documentation
+	fs_docs := http.FileServer(http.Dir("docs"))
+	r.Handle("/docs/*", http.StripPrefix("/docs/", fs_docs))
 
 	return r
 }

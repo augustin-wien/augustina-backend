@@ -493,9 +493,6 @@ const docTemplate = `{
         "database.Vendor": {
             "type": "object",
             "properties": {
-                "account": {
-                    "type": "integer"
-                },
                 "balance": {
                     "description": "This is joined in from the account",
                     "type": "number"

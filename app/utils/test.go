@@ -25,7 +25,7 @@ func SubmitRequest(req *http.Request, router *chi.Mux) *httptest.ResponseRecorde
 func SubmitRequestAndCheckResponse(t *testing.T, req *http.Request, router *chi.Mux, expectedResponseCode int) (res *httptest.ResponseRecorder) {
 	res = SubmitRequest(req, router)
 	if res.Code != expectedResponseCode {
-		log.Error("Expected status code ", expectedResponseCode, ", got ", res.Code, ": ", res.Body.String())
+		log.Error(req.URL.Path, " expected status code ", expectedResponseCode, ", got ", res.Code, ": ", res.Body.String())
 		t.FailNow()
 	}
 	return res
@@ -40,6 +40,7 @@ func CheckResponse(t *testing.T, expected, actual int) {
 
 func CheckError(t *testing.T, err error) {
 	if err != nil {
+		log.Error(err)
 		t.Error(err)
 		t.FailNow()
 	}
@@ -57,6 +58,21 @@ func TestRequest(t *testing.T, router *chi.Mux, method string, url string, body 
 	return res
 }
 
+func TestRequestMultiPart(
+	t *testing.T,
+	router *chi.Mux,
+	method string,
+	url string,
+	body *bytes.Buffer,
+	contentType string,
+	expectedResponseCode int,
+) (res *httptest.ResponseRecorder) {
+	req, err := http.NewRequest(method, url, body)
+	CheckError(t, err)
+	req.Header.Set("Content-Type", contentType)
+	res = SubmitRequestAndCheckResponse(t, req, router, expectedResponseCode)
+	return res
+}
 
 
 func TestRequestStr(t *testing.T, router *chi.Mux, method string, url string, body string, expectedResponseCode int) (res *httptest.ResponseRecorder) {
