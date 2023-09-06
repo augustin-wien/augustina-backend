@@ -13,13 +13,12 @@ var log = utils.GetLogger()
 
 // Database struct
 type Database struct {
-	Dbpool *pgxpool.Pool
+	Dbpool       *pgxpool.Pool
 	IsProduction bool
 }
 
 // Db is the global database connection pool that is used by all handlers
 var Db Database
-
 
 // Connect to production database and store it in the global Db variable
 func (db *Database) InitDb() (err error) {
@@ -27,10 +26,30 @@ func (db *Database) InitDb() (err error) {
 	if err != nil {
 		return err
 	}
-	db.InitiateSettings()
-	db.InitiateAccounts()
-	if config.Config.Development {
-		err = db.CreateDevData()
+	// Check if database has been setup, variable is true in the first place and will be set false afterwards
+	if config.Config.DatabaseSetup {
+
+		err := db.InitiateSettings()
+		if err != nil {
+			log.Error("Settings creation failed ", zap.Error(err))
+		}
+
+		// Check if default accounts exist
+		err = db.InitiateAccounts()
+		if err != nil {
+			log.Error("Default accounts creation failed ", zap.Error(err))
+		}
+
+		if config.Config.Development {
+			err = db.CreateDevData()
+			if err != nil {
+				log.Error("Dev data creation failed ", zap.Error(err))
+			}
+		}
+		config.Config.DatabaseSetup = false
+		log.Info("Database setup complete.")
+	} else {
+		log.Info("Database already setup.")
 	}
 	return err
 }
@@ -65,9 +84,9 @@ func (db *Database) initDb(isProduction bool, logInfo bool) (err error) {
 			":"+
 			utils.GetEnv("DB_PASS", "password")+
 			"@"+
-			utils.GetEnv("DB_HOST" + extra_key, "localhost")+
+			utils.GetEnv("DB_HOST"+extra_key, "localhost")+
 			":"+
-			utils.GetEnv("DB_PORT" + extra_key, "5432")+
+			utils.GetEnv("DB_PORT"+extra_key, "5432")+
 			"/"+
 			utils.GetEnv("DB_NAME", "product_api")+
 			"?sslmode=disable",

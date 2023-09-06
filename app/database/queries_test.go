@@ -68,6 +68,18 @@ func Test_UpdateSettings(t *testing.T) {
 	}
 }
 
+func Test_GetSettings(t *testing.T) {
+	// Define settings
+	settings, err := Db.GetSettings()
+
+	if err != nil {
+		t.Errorf("GetSettings failed: %v\n", err)
+	}
+
+	require.Equal(t, "red", settings.Color)
+	require.Equal(t, "/img/Augustin-Logo-Rechteck.jpg", settings.Logo)
+}
+
 func TestAccounts(t *testing.T) {
 	// Get account by type (default accounts should exist)
 	account, err := Db.GetAccountByType("Cash")
@@ -76,9 +88,9 @@ func TestAccounts(t *testing.T) {
 
 	// Create mew account
 	account = Account{
-		Name:  "test",
-		Type:  "UserAuth",
-		User:  null.StringFrom("550e8400-e29b-41d4-a716-446655440000"),
+		Name: "test",
+		Type: "UserAuth",
+		User: null.StringFrom("550e8400-e29b-41d4-a716-446655440000"),
 	}
 	id, err := Db.CreateAccount(account)
 	utils.CheckError(t, err)
