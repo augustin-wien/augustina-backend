@@ -12,6 +12,7 @@ import (
 func (db *Database) CreateDevData() (err error) {
 	db.createDevUsers()
 	db.CreateDevItems()
+	db.CreateDevSettings()
 	return nil
 }
 
@@ -25,17 +26,11 @@ func (db *Database) createDevUsers() (err error) {
 		Email:      "email1",
 	}
 
-	// Check if vendor already exists, if not create it
-	if returned_vendor, err := db.GetVendorByLicenseID("licenseid1"); err == nil {
-		log.Info("Skipping dev vendor creation. Vendor already exists: ", returned_vendor)
-	} else {
-		_, err = db.CreateVendor(vendor)
-		if err != nil {
-			log.Error("Dev data vendor creation failed ", zap.Error(err))
-		} else {
-			log.Info("Dev data vendor creation succeeded.")
-		}
+	_, err = db.CreateVendor(vendor)
+	if err != nil {
+		log.Error("Dev data vendor creation failed ", zap.Error(err))
 	}
+
 	return nil
 }
 
@@ -56,43 +51,42 @@ func (db *Database) CreateDevItems() (err error) {
 	}
 
 	// Check if newspaper already exists, if not create it
-	if item, err := db.GetItem(1); err == nil {
-		log.Info("Skipping dev newspaper creation. Newspaper already exists: ", item)
-	} else {
-		_, err = db.CreateItem(newspaper)
-		if err != nil {
-			pg := err.(*pgconn.PgError)
-			if reflect.TypeOf(err) == reflect.TypeOf(&pgconn.PgError{}) && pg.Code == "23505" {
-				log.Info("Postgres unique_violation error detected. Details are :", pg.Detail)
-				log.Info("You may want to hit 'docker compose down -v' to reset the database")
-			}
-			log.Error("Dev newspaper creation failed ", zap.Error(err))
-			return err
-		} else {
-			log.Info("Dev newspaper creation succeeded.")
+	_, err = db.CreateItem(newspaper)
+	if err != nil {
+		pg := err.(*pgconn.PgError)
+		if reflect.TypeOf(err) == reflect.TypeOf(&pgconn.PgError{}) && pg.Code == "23505" {
+			// If this error occurs again, you may want to hit 'docker compose down -v' to reset the database
+			log.Info("Postgres unique_violation error detected. Details are :", pg.Detail)
 		}
+		log.Error("Dev newspaper creation failed ", zap.Error(err))
+		return err
 	}
 
 	// Check if calendar already exists, if not create it
-	if item, err := db.GetItem(2); err == nil {
-		log.Info("Skipping dev calendar creation. Calendar already exists: ", item)
-	} else {
-		_, err = db.CreateItem(calendar)
-		if err != nil {
-			pg := err.(*pgconn.PgError)
-			if reflect.TypeOf(err) == reflect.TypeOf(&pgconn.PgError{}) {
-				log.Info("Postgres details error are: ", pg.Detail)
-			}
-			log.Error("Dev newspaper creation failed ", zap.Error(err))
-			return err
-		} else {
-			log.Info("Dev calendar creation succeeded.")
+	_, err = db.CreateItem(calendar)
+	if err != nil {
+		pg := err.(*pgconn.PgError)
+		if reflect.TypeOf(err) == reflect.TypeOf(&pgconn.PgError{}) {
+			log.Info("Postgres details error are: ", pg.Detail)
 		}
+		log.Error("Dev newspaper creation failed ", zap.Error(err))
+		return err
 	}
 
 	return err
 }
 
-func (db *Database) CreateAccountBalances() (err error) {
+func (db *Database) CreateDevSettings() (err error) {
+	settings := Settings{
+		Color:    "#008000",
+		Logo:     "/img/Augustin-Logo-Rechteck.jpg",
+		MainItem: null.IntFrom(1),
+	}
+
+	err = db.UpdateSettings(settings)
+	if err != nil {
+		log.Error("Dev settings creation failed ", zap.Error(err))
+	}
+
 	return err
 }

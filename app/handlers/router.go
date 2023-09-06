@@ -42,7 +42,10 @@ func GetRouter() (r *chi.Mux) {
 
 	// Public routes
 	r.Get("/api/hello/", HelloWorld)
-	r.Get("/api/settings/", getSettings)
+	r.Route("/api/settings", func(r chi.Router) {
+		r.Get("/", getSettings)
+		r.Put("/", updateSettings)
+	})
 
 	// Vendors
 	r.Route("/api/vendors", func(r chi.Router) {

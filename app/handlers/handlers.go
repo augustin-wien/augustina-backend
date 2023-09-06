@@ -643,3 +643,27 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.WriteJSON(w, http.StatusOK, settings)
 }
+
+// updateSettings godoc
+//
+//	 	@Summary 		Update settings
+//		@Description	Update configuration data of the system
+//		@Tags			core
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    data body database.Settings true "Settings Representation"
+//		@Success		200
+//		@Router			/settings/ [put]
+func updateSettings(w http.ResponseWriter, r *http.Request) {
+	var settings database.Settings
+	err := utils.ReadJSON(w, r, &settings)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = database.Db.UpdateSettings(settings)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+}
