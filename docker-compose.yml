@@ -165,8 +165,9 @@ services:
     ports:
       - "8070:8000"
     volumes:
-      - ./docker/augustin-plugin/sample_data:/sample_data
-      - ./docker/augustin-plugin/pdf-files:/pdf-files
+      - ./docker/augustin-plugin-data/sample_data:/sample_data
+      - ./docker/augustin-plugin-data/pdf-files:/pdf-files
+      - ./docker/augustin-plugin/:/app
     environment:
       - AUGUSTIN_PLUGIN_URL=http://wordpress/wp-json/wp/v2/
       - AUGUSTIN_PLUGIN_PATH=/sample_data/
