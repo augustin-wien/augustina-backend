@@ -20,14 +20,13 @@ var Config = config{
 	PaymentServiceProvider:      getEnv("PAYMENT_SERVICE_PROVIDER", ""),
 	VivaWalletSourceCode:        getEnv("VIVA_WALLET_SOURCE_CODE", ""),
 	VivaWalletClientCredentials: getEnv("VIVA_WALLET_CLIENT_CREDENTIALS", ""),
-	DatabaseSetup:               (getEnv("DEVELOPMENT", "false") == "true"),
+	DatabaseSetup:               (getEnv("DATABASE_SETUP", "false") == "true"),
 }
 
 // Local copy of utils.GetEnv to avoid circular dependency
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return defaultValue
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
 	}
-	return value
+	return fallback
 }

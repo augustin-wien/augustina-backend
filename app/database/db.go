@@ -4,6 +4,7 @@ import (
 	"augustin/config"
 	"augustin/utils"
 	"context"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -27,7 +28,9 @@ func (db *Database) InitDb() (err error) {
 		return err
 	}
 	// Check if database has been setup, variable is true in the first place and will be set false afterwards
-	if config.Config.DatabaseSetup {
+	if !config.Config.DatabaseSetup {
+		log.Info("Database already setup.")
+	} else {
 
 		err := db.InitiateSettings()
 		if err != nil {
@@ -46,10 +49,15 @@ func (db *Database) InitDb() (err error) {
 				log.Error("Dev data creation failed ", zap.Error(err))
 			}
 		}
-		config.Config.DatabaseSetup = false
-		log.Info("Database setup complete.")
-	} else {
-		log.Info("Database already setup.")
+
+		// Set DATABASE_SETUP to false to prevent database setup on next startup
+		// TODO make this work or figure out a better solution
+		err = os.Setenv("DATABASE_SETUP", "false")
+		if err != nil {
+			log.Error("Unable to set variable DATABASE_SETUP to 'complete'")
+		}
+
+		log.Info("Database setup successfully completed.")
 	}
 	return err
 }
