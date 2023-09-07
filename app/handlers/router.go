@@ -73,6 +73,7 @@ func GetRouter() (r *chi.Mux) {
 	// Payment service providers
 	r.Post("/api/vivawallet/transaction_order/", VivaWalletCreateTransactionOrder)
 	r.Post("/api/vivawallet/transaction_verification/", VivaWalletVerifyTransaction)
+	r.Post("/api/webhooks/vivawallet/", VivaWalletWebhook)
 
 	// Settings
 	r.Get("/api/settings/", getSettings)

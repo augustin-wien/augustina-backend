@@ -200,52 +200,51 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, id)
 }
 
-
 func UpdateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
-		// Get file from image field
-		file, header, err := r.FormFile("Image")
-		if err != nil {
-			return  // No file passed, which is ok
-		}
-		defer file.Close()
+	// Get file from image field
+	file, header, err := r.FormFile("Image")
+	if err != nil {
+		return // No file passed, which is ok
+	}
+	defer file.Close()
 
-		// Debugging
-		name := strings.Split(header.Filename, ".")
-		if len(name) != 2 {
-			log.Error(err)
-			utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
-			return
-		}
-
-		buf := bytes.NewBuffer(nil)
-		if _, err = io.Copy(buf, file); err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
-
-		// Generate unique filename
-		i := 0
-		for {
-			path = "/img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
-			_, err = os.Stat(".." + path);
-			if errors.Is(err, os.ErrNotExist) {
-				break
-			}
-			i += 1
-			if i > 100 {
-				log.Error(err)
-				utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
-				return
-			}
-		}
-
-		// Save file with unique name
-		err = os.WriteFile(".." + path, buf.Bytes(), 0666)
-		if err != nil {
-			log.Error(err)
-		}
+	// Debugging
+	name := strings.Split(header.Filename, ".")
+	if len(name) != 2 {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
 	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Generate unique filename
+	i := 0
+	for {
+		path = "/img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
+		_, err = os.Stat(".." + path)
+		if errors.Is(err, os.ErrNotExist) {
+			break
+		}
+		i += 1
+		if i > 100 {
+			log.Error(err)
+			utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Save file with unique name
+	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
 
 // UpdateItem godoc
 //
@@ -270,15 +269,15 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	// Read multipart form
 	r.ParseMultipartForm(32 << 20)
 	mForm := r.MultipartForm
-	if (mForm == nil) {
+	if mForm == nil {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
 
 	// Handle normal fields
 	var item database.Item
-	fields := mForm.Value  // Values are stored in []string
-	fields_clean := make(map[string]string)  // Values are stored in string
+	fields := mForm.Value                   // Values are stored in []string
+	fields_clean := make(map[string]string) // Values are stored in string
 	for key, value := range fields {
 		fields_clean[key] = value[0]
 	}
@@ -296,7 +295,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	err = database.Db.UpdateItem(ItemID, item)
 	if err != nil {
 		log.Error(err)
-		utils.ErrorJSON(w,err, http.StatusBadRequest)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
 
 }
@@ -438,6 +437,19 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
 
+}
+
+// VivaWalletWebhook godoc
+//
+//	@Summary		Webhook for VivaWallet
+//	@Description	Webhook for VivaWallet
+//	@Tags			core
+//	@accept			json
+//	@Produce		json
+//	@Success		200
+//	@Router			/webhooks/vivawallet/ [post]
+func VivaWalletWebhook(w http.ResponseWriter, r *http.Request) {
+	// TODO
 }
 
 // Settings -------------------------------------------------------------------
