@@ -153,7 +153,7 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // GetOrderEntries returns all entries of an order
 func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price FROM Item WHERE Order = $1", orderID)
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price FROM OrderEntry WHERE paymentorder = $1", orderID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -172,7 +172,7 @@ func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err erro
 
 // GetOrder returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.Verified, &order.Timestamp, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
 	if err != nil {
 		log.Error(err)
 		return
@@ -199,7 +199,7 @@ func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err erro
 	// Add items to order
 	order.Entries, err = db.GetOrderEntries(order.ID)
 	if err != nil {
-		log.Error(err)
+		log.Error(err, " orderID: ", order.ID)
 	}
 	return
 }
