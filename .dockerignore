@@ -7,3 +7,6 @@ docker-compose.production.yml
 .env
 .env.example
 .github/*
+
+docker/augustin-plugin-data/pdf-files/*
+docker/augustin-plugin-data/sample_data/*

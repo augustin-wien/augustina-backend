@@ -29,3 +29,5 @@ go.work.sum
 /app/augustin
 build/*
 docker/keycloak/export/*.json
+docker/augustin-plugin-data/pdf-files/*
+docker/augustin-plugin-data/sample_data/*
