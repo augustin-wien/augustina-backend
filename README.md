@@ -17,6 +17,19 @@ docker compose up -d
 
 Go to http://localhost:3000/api/hello/
 
+Note: To make the PDF-Parser run correctly check out description below.
+
+### Ports
+Backend: `localhost:3000`
+
+Wordpress: `localhost:8090`
+
+Keycloak login mask: `localhost:8080`
+
+PDF Parser: `localhost:8070`
+
+Frontend / main webshop: `localhost:8060`
+
 ### Swagger
 
 Visit [http://localhost:3000/swagger/](http://localhost:3000/swagger/)
@@ -142,6 +155,16 @@ curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/o
 
 ## Wordpress
 The wpcli container resets the wordpress installation on every start. This will delete all data in the database and install a fresh wordpress installation.
+
+### PDF-Parser
+
+After initializing every docker container, start PDF-Parser again with `docker compose up -d parser`.
+
+#### Explanation
+This is due to the reason that the docker container 'wpcli' sets new environment variables, which have to be set again for the PDF-Parser.
+
+#### Trouble shooting
+In case your PDF-Parser does not work, make sure everything ran fine in yout wpcli container or might restart it via `docker compose restart wpcli`and then run `docker compose up -d parser`
 
 ## Troubleshooting
 
