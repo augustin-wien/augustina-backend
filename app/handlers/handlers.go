@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"augustin/config"
 	"augustin/utils"
 	"bytes"
 	"errors"
@@ -47,6 +48,10 @@ type TransactionVerification struct {
 
 type TransactionVerificationResponse struct {
 	Verification bool
+}
+
+type VivaWalletVerificationKeyResponse struct {
+	Key string
 }
 
 // ReturnHelloWorld godoc
@@ -453,6 +458,7 @@ func VivaWalletWebhook(w http.ResponseWriter, r *http.Request) {
 	var paymentSuccessful paymentprovider.PaymentSuccessfulResponse
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
+		log.Info("Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -462,6 +468,26 @@ func VivaWalletWebhook(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		return
 	}
+}
+
+// VivaWalletVerificationKey godoc
+//
+//	@Summary		Return VivaWallet verification key
+//	@Description	Return VivaWallet verification key
+//	@Tags			core
+//	@accept			json
+//	@Produce		json
+//	@Success		200	{array}	VivaWalletVerificationKeyResponse
+//	@Router			/webhooks/vivawallet/ [get]
+func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
+	key := config.Config.VivaWalletVerificationKey
+	if key == "" {
+		log.Error("VIVA_WALLET_VERIFICATION_KEY not set or can't be found")
+		utils.ErrorJSON(w, errors.New("VIVA_WALLET_VERIFICATION_KEY not set or can't be found"), http.StatusBadRequest)
+		return
+	}
+	response := VivaWalletVerificationKeyResponse{key}
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // Settings -------------------------------------------------------------------

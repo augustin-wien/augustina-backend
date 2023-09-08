@@ -418,6 +418,30 @@ const docTemplate = `{
             }
         },
         "/webhooks/vivawallet/": {
+            "get": {
+                "description": "Return VivaWallet verification key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Return VivaWallet verification key",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.VivaWalletVerificationKeyResponse"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Webhook for VivaWallet",
                 "consumes": [
@@ -584,6 +608,14 @@ const docTemplate = `{
             "properties": {
                 "verification": {
                     "type": "boolean"
+                }
+            }
+        },
+        "handlers.VivaWalletVerificationKeyResponse": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
                 }
             }
         },
