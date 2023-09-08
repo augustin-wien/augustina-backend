@@ -447,9 +447,21 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
+//	@Param			data body paymentprovider.PaymentSuccessfulResponse true "Payment Successful Response"
 //	@Router			/webhooks/vivawallet/ [post]
 func VivaWalletWebhook(w http.ResponseWriter, r *http.Request) {
-	// TODO
+	var paymentSuccessful paymentprovider.PaymentSuccessfulResponse
+	err := utils.ReadJSON(w, r, &paymentSuccessful)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = paymentprovider.HandlePaymentSuccessfulResponse(paymentSuccessful)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 }
 
 // Settings -------------------------------------------------------------------

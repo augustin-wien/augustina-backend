@@ -74,6 +74,80 @@ type TransactionVerificationRequest struct {
 	CardTypeId          int     `json:"cardTypeId"`
 }
 
+type PaymentSuccessfulResponse struct {
+	Url       string `json:"url"`
+	EventData struct {
+		Moto                        bool     `json:"moto"`
+		Email                       string   `json:"email"`
+		Phone                       string   `json:"phone"`
+		BankId                      string   `json:"bankId"`
+		Systemic                    bool     `json:"systemic"`
+		Switching                   bool     `json:"switching"`
+		ParentId                    string   `json:"parentId"`
+		Amount                      int      `json:"amount"`
+		ChannelId                   string   `json:"channelId"`
+		TerminalId                  int      `json:"terminalId"`
+		MerchantId                  string   `json:"merchantId"`
+		OrderCode                   int      `json:"orderCode"`
+		ProductId                   string   `json:"productId"`
+		StatusId                    string   `json:"statusId"`
+		FullName                    string   `json:"fullName"`
+		ResellerId                  string   `json:"resellerId"`
+		InsDate                     string   `json:"insDate"`
+		TotalFee                    int      `json:"totalFee"`
+		CardUniqueReference         string   `json:"cardUniqueReference"`
+		CardToken                   string   `json:"cardToken"`
+		CardNumber                  string   `json:"cardNumber"`
+		TipAmount                   int      `json:"tipAmount"`
+		SourceCode                  string   `json:"sourceCode"`
+		SourceName                  string   `json:"sourceName"`
+		Latitude                    string   `json:"latitude"`
+		Longitude                   string   `json:"longitude"`
+		CompanyName                 string   `json:"companyName"`
+		TransactionId               string   `json:"transactionId"`
+		CompanyTitle                string   `json:"companyTitle"`
+		PanEntryMode                string   `json:"panEntryMode"`
+		ReferenceNumber             int      `json:"referenceNumber"`
+		ResponseCode                string   `json:"responseCode"`
+		CurrencyCode                string   `json:"currencyCode"`
+		OrderCulture                string   `json:"orderCulture"`
+		MerchantTrns                string   `json:"merchantTrns"`
+		CustomerTrns                string   `json:"customerTrns"`
+		IsManualRefund              bool     `json:"isManualRefund"`
+		TargetPersonId              string   `json:"targetPersonId"`
+		TargetWalletId              string   `json:"targetWalletId"`
+		LoyaltyTriggered            bool     `json:"loyaltyTriggered"`
+		TransactionTypeId           int      `json:"transactionTypeId"`
+		TotalInstallments           int      `json:"totalInstallments"`
+		CardCountryCode             string   `json:"cardCountryCode"`
+		CardIssuingBank             string   `json:"cardIssuingBank"`
+		RedeemedAmount              int      `json:"redeemedAmount"`
+		ClearanceDate               string   `json:"clearanceDate"`
+		CurrentInstallment          int      `json:"currentInstallment"`
+		Tags                        []string `json:"tags"`
+		BillId                      string   `json:"billId"`
+		ResellerSourceCode          string   `json:"resellerSourceCode"`
+		ResellerSourceName          string   `json:"resellerSourceName"`
+		ResellerCompanyName         string   `json:"resellerCompanyName"`
+		ResellerSourceAddress       string   `json:"resellerSourceAddress"`
+		CardExpirationDate          string   `json:"cardExpirationDate"`
+		RetrievalReferenceNumber    string   `json:"retrievalReferenceNumber"`
+		AssignedMerchantUsers       []string `json:"assignedMerchantUsers"`
+		AssignedResellerUsers       []string `json:"assignedResellerUsers"`
+		CardTypeId                  int      `json:"cardTypeId"`
+		DigitalWalletId             int      `json:"digitalWalletId"`
+		ResponseEventId             string   `json:"responseEventId"`
+		ElectronicCommerceIndicator string   `json:"electronicCommerceIndicator"`
+	} `json:"eventData"`
+	Created       string `json:"Created"`
+	CorrelationId string `json:"CorrelationId"`
+	EventTypeId   int    `json:"EventTypeId"`
+	Delay         string `json:"Delay"`
+	MessageId     string `json:"MessageId"`
+	RecipientId   string `json:"RecipientId"`
+	MessageTypeId int    `json:"MessageTypeId"`
+}
+
 func AuthenticateToVivaWallet() (string, error) {
 	// Create a new request URL using http
 	apiURL := "https://demo-accounts.vivapayments.com"
@@ -257,4 +331,9 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 		return false, err
 	}
 	return true, nil
+}
+
+func HandlePaymentSuccessfulResponse(paymentSuccessful PaymentSuccessfulResponse) (err error) {
+	log.Info("paymentSuccessful", paymentSuccessful)
+	return
 }
