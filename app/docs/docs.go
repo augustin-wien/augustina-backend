@@ -161,7 +161,7 @@ const docTemplate = `{
         },
         "/orders/": {
             "post": {
-                "description": "Submits payment order \u0026 saves it to database",
+                "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
                 "consumes": [
                     "application/json"
                 ],
@@ -551,7 +551,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "orderCode": {
-                    "type": "string"
+                    "$ref": "#/definitions/null.String"
                 },
                 "timestamp": {
                     "type": "string"
@@ -689,13 +689,24 @@ const docTemplate = `{
                 "entries": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.OrderEntry"
+                        "$ref": "#/definitions/handlers.CreateOrderRequestEntry"
                     }
                 },
                 "user": {
                     "type": "string"
                 },
                 "vendor": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.CreateOrderRequestEntry": {
+            "type": "object",
+            "properties": {
+                "item": {
+                    "type": "integer"
+                },
+                "quantity": {
                     "type": "integer"
                 }
             }
