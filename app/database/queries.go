@@ -261,8 +261,8 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	return
 }
 
-// Verify updates a payment order in the database and creates payments
-func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
+// Verify payment order, update it in the database, and create payments
+func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())

@@ -158,7 +158,7 @@ func TestOrders(t *testing.T) {
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=0"}`)
 
-	orders, err := database.Db.GetOrders()
+	order, err := database.Db.GetOrderByOrderCode("0")
 	if err != nil {
 		t.Error(err)
 	}
@@ -172,15 +172,17 @@ func TestOrders(t *testing.T) {
 		t.Error(err)
 	}
 
+	require.Equal(t, order.Vendor, vendorIDInt)
+	require.Equal(t, order.Verified, false)
+	require.Equal(t, order.Entries[0].Item, itemIDInt)
+	require.Equal(t, order.Entries[0].Quantity, 315)
+	require.Equal(t, order.Entries[0].Price, 314)
+	require.Equal(t, order.Entries[0].Sender, senderAccount.ID)
+	require.Equal(t, order.Entries[0].Receiver, receiverAccount.ID)
 
-	require.Equal(t, 1, len(orders))
-	require.Equal(t, orders[0].Vendor, vendorIDInt)
-	require.Equal(t, orders[0].Verified, false)
-	require.Equal(t, orders[0].Entries[0].Item, itemIDInt)
-	require.Equal(t, orders[0].Entries[0].Quantity, 315)
-	require.Equal(t, orders[0].Entries[0].Price, 314)
-	require.Equal(t, orders[0].Entries[0].Sender, senderAccount.ID)
-	require.Equal(t, orders[0].Entries[0].Receiver, receiverAccount.ID)
+	// Test that transaction correctly takes order code but does not verify
+	res = utils.TestRequest(t, r, "POST", "/api/orders/verify/?s=0&t=1", nil, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"transaction not verified"}}`)
 
 }
 

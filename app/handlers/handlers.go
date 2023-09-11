@@ -446,6 +446,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
+
 // VerifyPaymentOrder godoc
 //
 //	 	@Summary 		Verify Payment Order
@@ -461,7 +462,15 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Get transaction ID from URL parameter
 	OrderCode := r.URL.Query().Get("s")
+	if OrderCode == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter s"), http.StatusBadRequest)
+		return
+	}
 	TransactionID := r.URL.Query().Get("t")
+	if TransactionID == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter t"), http.StatusBadRequest)
+		return
+	}
 
 	// Get payment order from database
 	order, err := database.Db.GetOrderByOrderCode(OrderCode)
@@ -476,18 +485,22 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get access token
-	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
-	if err != nil {
-		log.Error("Authentication failed: ", err)
+	var isVerified bool
+	if database.Db.IsProduction {
+		// Get access token
+		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+		if err != nil {
+			log.Error("Authentication failed: ", err)
+		}
+
+		// Verify transaction
+		isVerified, err = paymentprovider.VerifyTransactionID(accessToken, TransactionID)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
 	}
 
-	// Verify transaction
-	isVerified, err := paymentprovider.VerifyTransactionID(accessToken, TransactionID)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
 	if !isVerified {
 		utils.ErrorJSON(w, errors.New("transaction not verified"), http.StatusBadRequest)
 		return
@@ -499,7 +512,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Store verification in db
 	order.TransactionID = TransactionID
 	order.Verified = isVerified
-	err = database.Db.UpdateOrderAndCreatePayments(order.ID)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
