@@ -153,19 +153,43 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // GetOrderEntries returns all entries of an order
 func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price FROM OrderEntry WHERE paymentorder = $1", orderID)
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price, Sender, Receiver FROM OrderEntry WHERE paymentorder = $1", orderID)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	for rows.Next() {
 		var entry OrderEntry
-		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price)
+		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver)
 		if err != nil {
 			log.Error(err)
 			return
 		}
 		entries = append(entries, entry)
+	}
+	return
+}
+
+// GetOrders returns all orders from the database
+func (db *Database) GetOrders() (orders []Order, err error) {
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM PaymentOrder")
+	if err != nil {
+		log.Error(err)
+		return orders, err
+	}
+	for rows.Next() {
+		var order Order
+		err = rows.Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+		if err != nil {
+			log.Error(err)
+			return orders, err
+		}
+		// Add entries to order
+		order.Entries, err = db.GetOrderEntries(order.ID)
+		if err != nil {
+			log.Error(err)
+		}
+		orders = append(orders, order)
 	}
 	return
 }

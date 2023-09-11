@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"mime/multipart"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -142,19 +143,45 @@ func TestItems(t *testing.T) {
 func TestOrders(t *testing.T) {
 
 	itemID := CreateTestItem(t)
+	itemIDInt, _ := strconv.Atoi(itemID)
 	vendorID := CreateTestVendor(t)
+	vendorIDInt, _ := strconv.Atoi(vendorID)
 	f := `{
 		"entries": [
 			{
 			  "item": ` + itemID + `,
-			  "quantity": 1
+			  "quantity": 315
 			}
 		  ],
 		  "vendor": ` + vendorID + `
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
-	ress := res.Body.String()
-	log.Info(ress)
+	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=0"}`)
+
+	orders, err := database.Db.GetOrders()
+	if err != nil {
+		t.Error(err)
+	}
+
+	senderAccount, err := database.Db.GetAccountByType("UserAnon")
+	if err != nil {
+		t.Error(err)
+	}
+	receiverAccount, err := database.Db.GetAccountByVendor(vendorIDInt)
+	if err != nil {
+		t.Error(err)
+	}
+
+
+	require.Equal(t, 1, len(orders))
+	require.Equal(t, orders[0].Vendor, vendorIDInt)
+	require.Equal(t, orders[0].Verified, false)
+	require.Equal(t, orders[0].Entries[0].Item, itemIDInt)
+	require.Equal(t, orders[0].Entries[0].Quantity, 315)
+	require.Equal(t, orders[0].Entries[0].Price, 314)
+	require.Equal(t, orders[0].Entries[0].Sender, senderAccount.ID)
+	require.Equal(t, orders[0].Entries[0].Receiver, receiverAccount.ID)
+
 }
 
 // TestPayments tests CRUD operations on payments

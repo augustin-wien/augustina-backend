@@ -99,7 +99,6 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	log.Info("id ", vendor.ID, "fn ", vendor.FirstName, "bl ", vendor.Balance)
 
 	id, err := database.Db.CreateVendor(vendor)
 	respond(w, err, id)
