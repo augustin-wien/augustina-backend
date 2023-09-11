@@ -74,81 +74,89 @@ type TransactionVerificationRequest struct {
 	CardTypeId          int     `json:"cardTypeId"`
 }
 
-type PaymentSuccessfulResponse struct {
-	Url       string `json:"Url"`
-	EventData struct {
-		Moto                        bool     `json:"Moto"`
-		Email                       string   `json:"Email"`
-		Phone                       string   `json:"Phone"`
-		Bankid                      string   `json:"Bankid"`
-		Systemic                    bool     `json:"Systemic"`
-		BinId                       int      `json:"BinId"`
-		Ucaf                        string   `json:"Ucaf"`
-		DualMessage                 bool     `json:"DualMessage"`
-		Switching                   bool     `json:"Switching"`
-		Parentid                    string   `json:"Parentid"`
-		Amount                      float64  `json:"Amount"`
-		Channelid                   string   `json:"Channelid"`
-		Terminalid                  int      `json:"Terminalid"`
-		Merchantid                  string   `json:"Merchantid"`
-		Ordercode                   int      `json:"Ordercode"`
-		Productid                   string   `json:"Productid"`
-		Statusid                    string   `json:"Statusid"`
-		Fullname                    string   `json:"Fullname"`
-		Resellerid                  string   `json:"Resellerid"`
-		Insdate                     string   `json:"Insdate"`
-		Totalfee                    float64  `json:"Totalfee"`
-		Carduniquereference         string   `json:"Carduniquereference"`
-		Cardtoken                   string   `json:"Cardtoken"`
-		Cardnumber                  string   `json:"Cardnumber"`
-		Tipamount                   float64  `json:"Tipamount"`
-		Sourcecode                  string   `json:"Sourcecode"`
-		Sourcename                  string   `json:"Sourcename"`
-		Latitude                    string   `json:"Latitude"`
-		Longitude                   string   `json:"Longitude"`
-		Companyname                 string   `json:"Companyname"`
-		Transactionid               string   `json:"Transactionid"`
-		Companytitle                string   `json:"Companytitle"`
-		Panentrymode                string   `json:"Panentrymode"`
-		Referencenumber             int      `json:"Referencenumber"`
-		Responsecode                string   `json:"Responsecode"`
-		Currencycode                string   `json:"Currencycode"`
-		Orderculture                string   `json:"Orderculture"`
-		Merchanttrns                string   `json:"Merchanttrns"`
-		Customertrns                string   `json:"Customertrns"`
-		Ismanualrefund              bool     `json:"Ismanualrefund"`
-		Targetpersonid              string   `json:"Targetpersonid"`
-		Targetwalletid              string   `json:"Targetwalletid"`
-		Loyaltytriggered            bool     `json:"Loyaltytriggered"`
-		Transactiontypeid           int      `json:"Transactiontypeid"`
-		Totalinstallments           int      `json:"Totalinstallments"`
-		Cardcountrycode             string   `json:"Cardcountrycode"`
-		Cardissuingbank             string   `json:"Cardissuingbank"`
-		Redeemedamount              int      `json:"Redeemedamount"`
-		Clearancedate               string   `json:"Clearancedate"`
-		Currentinstallment          int      `json:"Currentinstallment"`
-		Tags                        []string `json:"Tags"`
-		Billid                      string   `json:"Billid"`
-		Resellersourcecode          string   `json:"Resellersourcecode"`
-		Resellersourcename          string   `json:"Resellersourcename"`
-		Resellercompanyname         string   `json:"Resellercompanyname"`
-		Resellersourceaddress       string   `json:"Resellersourceaddress"`
-		Cardexpirationdate          string   `json:"Cardexpirationdate"`
-		Retrievalreferencenumber    string   `json:"Retrievalreferencenumber"`
-		Assignedmerchantusers       []string `json:"Assignedmerchantusers"`
-		Assignedresellerusers       []string `json:"Assignedresellerusers"`
-		Cardtypeid                  int      `json:"Cardtypeid"`
-		Digitalwalletid             int      `json:"Digitalwalletid"`
-		Responseeventid             string   `json:"Responseeventid"`
-		Electroniccommerceindicator string   `json:"Electroniccommerceindicator"`
-	} `json:"EventData"`
-	Created       string `json:"Created"`
-	Correlationid string `json:"Correlationid"`
-	Eventtypeid   int    `json:"Eventtypeid"`
-	Delay         string `json:"Delay"`
-	Messageid     string `json:"Messageid"`
-	Recipientid   string `json:"Recipientid"`
-	Messagetypeid int    `json:"Messagetypeid"`
+type PaymentSuccessfulRequest struct {
+	Url           string    `json:"Url"`
+	EventData     EventData `json:"EventData"`
+	Created       time.Time `json:"Created"`
+	CorrelationId string    `json:"CorrelationId"`
+	EventTypeId   int       `json:"EventTypeId"`
+	Delay         any       `json:"Delay"`
+	MessageId     string    `json:"MessageId"`
+	RecipientId   string    `json:"RecipientId"`
+	MessageTypeId int       `json:"MessageTypeId"`
+}
+
+type EventData struct {
+	Moto                        bool     `json:"Moto"`
+	BinId                       int      `json:"BinId"`
+	Ucaf                        string   `json:"Ucaf"`
+	Email                       string   `json:"Email"`
+	Phone                       string   `json:"Phone"`
+	BankId                      string   `json:"BankId"`
+	Systemic                    bool     `json:"Systemic"`
+	Switching                   bool     `json:"Switching"`
+	ParentId                    any      `json:"ParentId"`
+	Amount                      float64  `json:"Amount"`
+	ChannelId                   string   `json:"ChannelId"`
+	TerminalId                  int      `json:"TerminalId"`
+	MerchantId                  string   `json:"MerchantId"`
+	OrderCode                   int      `json:"OrderCode"`
+	ProductId                   any      `json:"ProductId"`
+	StatusId                    string   `json:"StatusId"`
+	FullName                    string   `json:"FullName"`
+	ResellerId                  any      `json:"ResellerId"`
+	DualMessage                 bool     `json:"DualMessage"`
+	InsDate                     string   `json:"InsDate"`
+	TotalFee                    float64  `json:"TotalFee"`
+	CardToken                   string   `json:"CardToken"`
+	CardNumber                  string   `json:"CardNumber"`
+	TipAmount                   float64  `json:"TipAmount"`
+	SourceCode                  string   `json:"SourceCode"`
+	SourceName                  string   `json:"SourceName"`
+	Latitude                    any      `json:"Latitude"`
+	Longitude                   any      `json:"Longitude"`
+	CompanyName                 any      `json:"CompanyName"`
+	TransactionId               string   `json:"TransactionId"`
+	CompanyTitle                any      `json:"CompanyTitle"`
+	PanEntryMode                string   `json:"PanEntryMode"`
+	ReferenceNumber             int      `json:"ReferenceNumber"`
+	ResponseCode                string   `json:"ResponseCode"`
+	CurrencyCode                string   `json:"CurrencyCode"`
+	OrderCulture                string   `json:"OrderCulture"`
+	MerchantTrns                string   `json:"MerchantTrns"`
+	CustomerTrns                string   `json:"CustomerTrns"`
+	IsManualRefund              bool     `json:"IsManualRefund"`
+	TargetPersonId              any      `json:"TargetPersonId"`
+	TargetWalletId              any      `json:"TargetWalletId"`
+	AcquirerApproved            bool     `json:"AcquirerApproved"`
+	LoyaltyTriggered            bool     `json:"LoyaltyTriggered"`
+	TransactionTypeId           int      `json:"TransactionTypeId"`
+	AuthorizationId             string   `json:"AuthorizationId"`
+	TotalInstallments           int      `json:"TotalInstallments"`
+	CardCountryCode             any      `json:"CardCountryCode"`
+	CardIssuingBank             any      `json:"CardIssuingBank"`
+	RedeemedAmount              float64  `json:"RedeemedAmount"`
+	ClearanceDate               any      `json:"ClearanceDate"`
+	CurrentInstallment          int      `json:"CurrentInstallment"`
+	Tags                        []string `json:"Tags"`
+	BillId                      any      `json:"BillId"`
+	ConnectedAccountId          any      `json:"ConnectedAccountId"`
+	ResellerSourceCode          any      `json:"ResellerSourceCode"`
+	ResellerSourceName          any      `json:"ResellerSourceName"`
+	MerchantCategoryCode        int      `json:"MerchantCategoryCode"`
+	ResellerCompanyName         any      `json:"ResellerCompanyName"`
+	CardUniqueReference         string   `json:"CardUniqueReference"`
+	ResellerSourceAddress       any      `json:"ResellerSourceAddress"`
+	CardExpirationDate          string   `json:"CardExpirationDate"`
+	ServiceId                   any      `json:"ServiceId"`
+	RetrievalReferenceNumber    string   `json:"RetrievalReferenceNumber"`
+	AssignedMerchantUsers       []any    `json:"AssignedMerchantUsers"`
+	AssignedResellerUsers       []any    `json:"AssignedResellerUsers"`
+	CardTypeId                  int      `json:"CardTypeId"`
+	ResponseEventId             any      `json:"ResponseEventId"`
+	ElectronicCommerceIndicator string   `json:"ElectronicCommerceIndicator"`
+	OrderServiceId              int      `json:"OrderServiceId"`
+	DigitalWalletId             any      `json:"DigitalWalletId"`
 }
 
 func AuthenticateToVivaWallet() (string, error) {
@@ -336,7 +344,7 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 	return true, nil
 }
 
-func HandlePaymentSuccessfulResponse(paymentSuccessful PaymentSuccessfulResponse) (err error) {
+func HandlePaymentSuccessfulResponse(paymentSuccessful PaymentSuccessfulRequest) (err error) {
 	log.Info("paymentSuccessful", paymentSuccessful)
 	return
 }

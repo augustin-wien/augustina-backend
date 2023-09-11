@@ -54,6 +54,10 @@ type VivaWalletVerificationKeyResponse struct {
 	Key string
 }
 
+type PaymentSuccessfulResponse struct {
+	Message string
+}
+
 // ReturnHelloWorld godoc
 //
 //	@Summary		Return HelloWorld
@@ -455,7 +459,7 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 //	@Param			data body paymentprovider.PaymentSuccessfulResponse true "Payment Successful Response"
 //	@Router			/webhooks/vivawallet/ [post]
 func VivaWalletWebhook(w http.ResponseWriter, r *http.Request) {
-	var paymentSuccessful paymentprovider.PaymentSuccessfulResponse
+	var paymentSuccessful paymentprovider.PaymentSuccessfulRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
 		log.Info("Reading JSON failed for webhook: ", err)
@@ -468,6 +472,11 @@ func VivaWalletWebhook(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		return
 	}
+
+	response := PaymentSuccessfulResponse{
+		Message: "ok",
+	}
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // VivaWalletVerificationKey godoc
