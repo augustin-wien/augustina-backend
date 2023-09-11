@@ -22,29 +22,6 @@ definitions:
         description: Price in cents
         type: integer
     type: object
-  database.Order:
-    properties:
-      entries:
-        items:
-          $ref: '#/definitions/database.OrderEntry'
-        type: array
-      id:
-        type: integer
-      orderCode:
-        $ref: '#/definitions/null.String'
-      timestamp:
-        type: string
-      transactionID:
-        type: string
-      user:
-        allOf:
-        - $ref: '#/definitions/null.String'
-        description: Keycloak UUID if user is authenticated
-      vendor:
-        type: integer
-      verified:
-        type: boolean
-    type: object
   database.OrderEntry:
     properties:
       id:
@@ -167,20 +144,33 @@ definitions:
       verification:
         type: boolean
     type: object
+  handlers.VerifyOrderResponse:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/database.OrderEntry'
+        type: array
+      id:
+        type: integer
+      orderCode:
+        type: string
+      timestamp:
+        type: string
+      transactionID:
+        type: string
+      user:
+        type: string
+      vendor:
+        type: integer
+      verified:
+        type: boolean
+    type: object
   null.Int:
     properties:
       int64:
         type: integer
       valid:
         description: Valid is true if Int64 is not NULL
-        type: boolean
-    type: object
-  null.String:
-    properties:
-      string:
-        type: string
-      valid:
-        description: Valid is true if String is not NULL
         type: boolean
     type: object
 externalDocs:
@@ -333,7 +323,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/database.Order'
+            $ref: '#/definitions/handlers.VerifyOrderResponse'
       summary: Verify Payment Order
       tags:
       - Orders

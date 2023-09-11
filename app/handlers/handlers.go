@@ -448,6 +448,17 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 
+type VerifyOrderResponse struct {
+	ID         		int
+	OrderCode 	    string
+	TransactionID   string
+	Verified 		bool
+	Timestamp  		string
+	User			string
+	Vendor	 		int
+	Entries     	[]database.OrderEntry
+}
+
 // VerifyPaymentOrder godoc
 //
 //	 	@Summary 		Verify Payment Order
@@ -455,7 +466,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//		@Success		200 {object} database.Order
+//		@Success		200 {object} VerifyOrderResponse
 //		@Param			s query string true "Order Code" Format(3043685539722561)
 //		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
 //		@Router			/orders/verify/ [post]

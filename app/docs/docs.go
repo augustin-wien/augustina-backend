@@ -228,7 +228,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/database.Order"
+                            "$ref": "#/definitions/handlers.VerifyOrderResponse"
                         }
                     }
                 }
@@ -538,43 +538,6 @@ const docTemplate = `{
                 }
             }
         },
-        "database.Order": {
-            "type": "object",
-            "properties": {
-                "entries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.OrderEntry"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "orderCode": {
-                    "$ref": "#/definitions/null.String"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "transactionID": {
-                    "type": "string"
-                },
-                "user": {
-                    "description": "Keycloak UUID if user is authenticated",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/null.String"
-                        }
-                    ]
-                },
-                "vendor": {
-                    "type": "integer"
-                },
-                "verified": {
-                    "type": "boolean"
-                }
-            }
-        },
         "database.OrderEntry": {
             "type": "object",
             "properties": {
@@ -762,6 +725,38 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.VerifyOrderResponse": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.OrderEntry"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "transactionID": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                },
+                "vendor": {
+                    "type": "integer"
+                },
+                "verified": {
+                    "type": "boolean"
+                }
+            }
+        },
         "null.Int": {
             "type": "object",
             "properties": {
@@ -770,18 +765,6 @@ const docTemplate = `{
                 },
                 "valid": {
                     "description": "Valid is true if Int64 is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
-        "null.String": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if String is not NULL",
                     "type": "boolean"
                 }
             }
