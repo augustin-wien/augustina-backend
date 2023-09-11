@@ -327,8 +327,13 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 // Orders ---------------------------------------------------------------------
 
+type CreateOrderRequestEntry struct {
+	Item     int
+	Quantity int
+}
+
 type CreateOrderRequest struct {
-	Entries []database.OrderEntry
+	Entries []CreateOrderRequestEntry
 	User    string
 	Vendor  int32
 }
@@ -340,7 +345,7 @@ type CreateOrderResponse struct {
 // CreatePaymentOrder godoc
 //
 //	 	@Summary 		Create Payment Order
-//		@Description	Submits payment order & saves it to database
+//		@Description	Submits payment order to provider & saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
@@ -357,7 +362,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Identify accounts
+	// Get accounts
 	var buyerAccount database.Account
 	if order.User.Valid {
 		buyerAccount, err = database.Db.GetAccountByUser(order.User.String)
@@ -380,7 +385,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extend order entries
-	for _, entry := range order.Entries {
+	for idx, entry := range order.Entries {
 		// Get item from database
 		item, err := database.Db.GetItem(entry.Item)
 		if err != nil {
@@ -389,9 +394,11 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Define flow of money from buyer to vendor
-		entry.Sender = buyerAccount.ID
-		log.Info("Sender ", entry.Sender)
-		entry.Receiver = vendorAccount.ID
+		order.Entries[idx].Sender = buyerAccount.ID
+		order.Entries[idx].Receiver = vendorAccount.ID
+
+		// TODO: Overwrite price with item price
+		// entry.Price = item.Price
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
@@ -425,7 +432,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Save order to database
 	order.OrderCode = strconv.Itoa(OrderCode)
-	log.Info("Order vendor: ", order.Vendor)
 	_, err = database.Db.CreateOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

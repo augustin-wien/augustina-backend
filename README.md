@@ -44,10 +44,16 @@ Run linter within the augustin shell:
 golint ./...
 ```
 
-Run tests within the augustin shell (sed is used to colorize the output):
+Run tests within the augustin shell (sed is used to colorize the output, -p 1 is used to prevent parallel computing which causes problems with resetting the database for each test):
 
 ```bash
-go test ./... -v | sed ''/PASS/s//$(printf "\033[32mPASS\033[0m")/'' | sed ''/FAIL/s//$(printf "\033[31mFAIL\033[0m")/''  | sed ''/ERROR/s//$(printf "\033[31mERROR\033[0m")/''
+go test ./... -p 1 -v | sed ''/PASS/s//$(printf "\033[32mPASS\033[0m")/'' | sed ''/FAIL/s//$(printf "\033[31mFAIL\033[0m")/''  | sed ''/ERROR/s//$(printf "\033[31mERROR\033[0m")/''
+```
+
+To run a specific Test Case:
+
+```bash
+go test ./... -p 1 -v -cover -run NameOfTestCase
 ```
 
 Open SQL shell in the container (assuming the variables from `.env.example` are used):

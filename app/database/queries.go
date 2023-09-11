@@ -208,17 +208,6 @@ func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err erro
 // TODO: This should be a transaction
 // Processes OrderCode, vendor, and items (trinkgeld is an item)
 func (db *Database) CreateOrder(order Order) (orderID int, err error) {
-	log.Info("Received order vendor: ", order.Vendor)
-	log.Info("stats", db.Dbpool.Stat().TotalConns())
-
-	x, err := db.ListVendors()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	log.Info("Create Order - Vendors: ", x)
-	log.Info("OrderCode ", order.OrderCode)
-	log.Info("Order", order)
 
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
 	if err != nil {
@@ -241,7 +230,7 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
 		if err != nil {
 			log.Error(err)
-			return
+			return orderID, err
 		}
 	}
 
@@ -275,7 +264,7 @@ func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
 
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
-	UPDATE Order
+	UPDATE PaymentOrder
 	SET Verified = True
 	WHERE ID = $1
 	`, id)
@@ -283,12 +272,12 @@ func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
 		log.Error(err)
 	}
 
-	// Get order (including payments)
+	// Get Paymentorder (including payments)
 	order, err := db.GetOrderByID(id)
 
 	// Create payments
 	for _, oi := range order.Entries {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, Order) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
+		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, PaymentOrder) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
 		if err != nil {
 			return err
 		}
@@ -320,8 +309,6 @@ func (db *Database) ListPayments() ([]Payment, error) {
 
 // Create multiple payments
 func (db *Database) CreatePayments(payments []Payment) (err error) {
-
-	log.Info("CreatePayments called")
 
 	// Create a transaction to insert all payments at once
 	tx, err := db.Dbpool.Begin(context.Background())

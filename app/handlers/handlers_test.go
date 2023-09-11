@@ -138,28 +138,24 @@ func TestItems(t *testing.T) {
 }
 
 // TestOrders tests CRUD operations on orders
-// TODO: Test not working because
-// 1. Vendor that is created before does not exist in api/orders/ request,
-// leading to a foreign key error, maybe some problem with the test DB?
-// 2. Handler fails when it tries to connect to vivawallet
+// TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
 
-	// itemID := CreateTestItem(t)
-	// vendorID := CreateTestVendor(t)
-    //
-	// f := `{
-	// 	"entries": [
-	// 		{
-	// 		  "item": ` + itemID + `,
-	// 		  "price": 300,
-	// 		  "quantity": 1
-	// 		}
-	// 	  ],
-	// 	  "vendor": ` + vendorID + `
-	// }`
-	// res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
-	// ress := res.Body.String()
-	// log.Info(ress)
+	itemID := CreateTestItem(t)
+	vendorID := CreateTestVendor(t)
+	f := `{
+		"entries": [
+			{
+			  "item": ` + itemID + `,
+			  "price": 300,
+			  "quantity": 1
+			}
+		  ],
+		  "vendor": ` + vendorID + `
+	}`
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+	ress := res.Body.String()
+	log.Info(ress)
 }
 
 // TestPayments tests CRUD operations on payments
