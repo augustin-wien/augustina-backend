@@ -147,7 +147,6 @@ func TestOrders(t *testing.T) {
 		"entries": [
 			{
 			  "item": ` + itemID + `,
-			  "price": 300,
 			  "quantity": 1
 			}
 		  ],

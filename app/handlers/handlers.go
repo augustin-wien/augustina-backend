@@ -396,9 +396,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		// Define flow of money from buyer to vendor
 		order.Entries[idx].Sender = buyerAccount.ID
 		order.Entries[idx].Receiver = vendorAccount.ID
-
-		// TODO: Overwrite price with item price
-		// entry.Price = item.Price
+		order.Entries[idx].Price = item.Price  // Take current item price
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
@@ -420,14 +418,17 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// Submit order to vivawallet
-	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
-	if err != nil {
-		log.Error("Authentication failed: ", err)
-	}
-	OrderCode, err := paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
-	if err != nil {
-		log.Error("Creating payment order failed: ", err)
+	// Submit order to vivawallet (disabled in tests)
+	var OrderCode int
+	if database.Db.IsProduction {
+		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+		if err != nil {
+			log.Error("Authentication failed: ", err)
+		}
+		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
+		if err != nil {
+			log.Error("Creating payment order failed: ", err)
+		}
 	}
 
 	// Save order to database
