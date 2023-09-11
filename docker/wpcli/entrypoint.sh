@@ -1,7 +1,8 @@
 # /bin/sh
 mkdir -p /etc/X11/fs && 
 chown xfs:xfs /etc/X11/fs -R &&
-chown xfs:xfs /wpcli -R &&
+touch /wpcli/.env.parser &&
+chown xfs:xfs /wpcli/.env.parser -R &&
 su -l xfs -s /bin/sh -c '
 
       cd /var/www/html &&
