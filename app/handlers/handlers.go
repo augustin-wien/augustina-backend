@@ -431,7 +431,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save order to database
-	order.OrderCode = strconv.Itoa(OrderCode)
+	order.OrderCode.String = strconv.Itoa(OrderCode)
+	order.OrderCode.Valid = true  // This means that it is not null
 	_, err = database.Db.CreateOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

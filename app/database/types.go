@@ -42,7 +42,7 @@ type Item struct {
 
 type Order struct {
 	ID         		int
-	OrderCode 	    string
+	OrderCode 	    null.String
 	TransactionID   string
 	Verified 		bool
 	Timestamp  		time.Time
