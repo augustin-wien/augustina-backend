@@ -9,6 +9,7 @@ services:
     environment:
       VITE_API_URL: ${BACKEND_HOST}
       VITE_KEYCLOAK_URL: ${KEYCLOAK_HOST}
+      VITE_AUGUSTIN_COVER: ${AUGUSTIN_COVER}
     depends_on:
       - augustin
   augustin:
