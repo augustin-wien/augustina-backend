@@ -160,7 +160,7 @@ const docTemplate = `{
         },
         "/orders/": {
             "post": {
-                "description": "Submits payment order \u0026 saves it to database",
+                "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
                 "consumes": [
                     "application/json"
                 ],
@@ -227,7 +227,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/database.Order"
+                            "$ref": "#/definitions/handlers.VerifyOrderResponse"
                         }
                     }
                 }
@@ -566,43 +566,6 @@ const docTemplate = `{
                 }
             }
         },
-        "database.Order": {
-            "type": "object",
-            "properties": {
-                "entries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.OrderEntry"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "orderCode": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "transactionID": {
-                    "type": "string"
-                },
-                "user": {
-                    "description": "Keycloak UUID if user is authenticated",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/null.String"
-                        }
-                    ]
-                },
-                "vendor": {
-                    "type": "integer"
-                },
-                "verified": {
-                    "type": "boolean"
-                }
-            }
-        },
         "database.OrderEntry": {
             "type": "object",
             "properties": {
@@ -717,13 +680,24 @@ const docTemplate = `{
                 "entries": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.OrderEntry"
+                        "$ref": "#/definitions/handlers.CreateOrderRequestEntry"
                     }
                 },
                 "user": {
                     "type": "string"
                 },
                 "vendor": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.CreateOrderRequestEntry": {
+            "type": "object",
+            "properties": {
+                "item": {
+                    "type": "integer"
+                },
+                "quantity": {
                     "type": "integer"
                 }
             }
@@ -779,6 +753,38 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.VerifyOrderResponse": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.OrderEntry"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "transactionID": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                },
+                "vendor": {
+                    "type": "integer"
+                },
+                "verified": {
+                    "type": "boolean"
+                }
+            }
+        },
         "null.Int": {
             "type": "object",
             "properties": {
@@ -787,18 +793,6 @@ const docTemplate = `{
                 },
                 "valid": {
                     "description": "Valid is true if Int64 is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
-        "null.String": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if String is not NULL",
                     "type": "boolean"
                 }
             }

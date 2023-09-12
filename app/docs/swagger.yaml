@@ -22,29 +22,6 @@ definitions:
         description: Price in cents
         type: integer
     type: object
-  database.Order:
-    properties:
-      entries:
-        items:
-          $ref: '#/definitions/database.OrderEntry'
-        type: array
-      id:
-        type: integer
-      orderCode:
-        type: string
-      timestamp:
-        type: string
-      transactionID:
-        type: string
-      user:
-        allOf:
-        - $ref: '#/definitions/null.String'
-        description: Keycloak UUID if user is authenticated
-      vendor:
-        type: integer
-      verified:
-        type: boolean
-    type: object
   database.OrderEntry:
     properties:
       id:
@@ -121,11 +98,18 @@ definitions:
     properties:
       entries:
         items:
-          $ref: '#/definitions/database.OrderEntry'
+          $ref: '#/definitions/handlers.CreateOrderRequestEntry'
         type: array
       user:
         type: string
       vendor:
+        type: integer
+    type: object
+  handlers.CreateOrderRequestEntry:
+    properties:
+      item:
+        type: integer
+      quantity:
         type: integer
     type: object
   handlers.CreateOrderResponse:
@@ -160,20 +144,33 @@ definitions:
       verification:
         type: boolean
     type: object
+  handlers.VerifyOrderResponse:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/database.OrderEntry'
+        type: array
+      id:
+        type: integer
+      orderCode:
+        type: string
+      timestamp:
+        type: string
+      transactionID:
+        type: string
+      user:
+        type: string
+      vendor:
+        type: integer
+      verified:
+        type: boolean
+    type: object
   null.Int:
     properties:
       int64:
         type: integer
       valid:
         description: Valid is true if Int64 is not NULL
-        type: boolean
-    type: object
-  null.String:
-    properties:
-      string:
-        type: string
-      valid:
-        description: Valid is true if String is not NULL
         type: boolean
     type: object
 externalDocs:
@@ -282,7 +279,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Submits payment order & saves it to database
+      description: Submits payment order to provider & saves it to database. Entries
+        need to have an item id and a quantity (for entries without a price like tips,
+        the quantity is the amount of cents). If no user is given, the order is anonymous.
       parameters:
       - description: Payment Order
         in: body
@@ -324,7 +323,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/database.Order'
+            $ref: '#/definitions/handlers.VerifyOrderResponse'
       summary: Verify Payment Order
       tags:
       - Orders

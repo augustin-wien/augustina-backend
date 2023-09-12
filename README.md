@@ -2,6 +2,12 @@
 
 ## Development
 
+Check out the git submodules to load the wordpress, wpcli and parser git checkout mainrepositories:
+
+```bash
+git submodule update --init --recursive
+```
+
 Start the application with Docker:
 
 ```bash
@@ -10,6 +16,19 @@ docker compose up -d
 ```
 
 Go to http://localhost:3000/api/hello/
+
+Note: To make the PDF-Parser run correctly check out description below.
+
+### Ports
+Backend: `localhost:3000`
+
+Wordpress: `localhost:8090`
+
+Keycloak login mask: `localhost:8080`
+
+PDF Parser: `localhost:8070`
+
+Frontend / main webshop: `localhost:8060`
 
 ### Swagger
 
@@ -44,10 +63,16 @@ Run linter within the augustin shell:
 golint ./...
 ```
 
-Run tests within the augustin shell (sed is used to colorize the output):
+Run tests within the augustin shell (sed is used to colorize the output, -p 1 is used to prevent parallel computing which causes problems with resetting the database for each test):
 
 ```bash
-go test ./... -v | sed ''/PASS/s//$(printf "\033[32mPASS\033[0m")/'' | sed ''/FAIL/s//$(printf "\033[31mFAIL\033[0m")/''  | sed ''/ERROR/s//$(printf "\033[31mERROR\033[0m")/''
+go test ./... -p 1 -v | sed ''/PASS/s//$(printf "\033[32mPASS\033[0m")/'' | sed ''/FAIL/s//$(printf "\033[31mFAIL\033[0m")/''  | sed ''/ERROR/s//$(printf "\033[31mERROR\033[0m")/''
+```
+
+To run a specific Test Case:
+
+```bash
+go test ./... -p 1 -v -cover -run NameOfTestCase
 ```
 
 Open SQL shell in the container (assuming the variables from `.env.example` are used):
@@ -147,6 +172,19 @@ the exported configs are available in the `docker/keycloak/export` folder.
 ```bash
 curl --location --request POST 'http://localhost:8080/realms/augustin/protocol/openid-connect/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'client_id=frontend' --data-urlencode 'grant_type=password' --data-urlencode 'username=user001' --data-urlencode 'password=Test123!' --data-urlencode 'scope=openid'
 ```
+
+## Wordpress
+The wpcli container resets the wordpress installation on every start. This will delete all data in the database and install a fresh wordpress installation.
+
+### PDF-Parser
+
+After initializing every docker container, start PDF-Parser again with `docker compose up -d parser`.
+
+#### Explanation
+This is due to the reason that the docker container 'wpcli' sets new environment variables, which have to be set again for the PDF-Parser.
+
+#### Trouble shooting
+In case your PDF-Parser does not work, make sure everything ran fine in yout wpcli container or might restart it via `docker compose restart wpcli`and then run `docker compose up -d parser`
 
 ## Troubleshooting
 

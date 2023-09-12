@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"mime/multipart"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -138,28 +139,51 @@ func TestItems(t *testing.T) {
 }
 
 // TestOrders tests CRUD operations on orders
-// TODO: Test not working because
-// 1. Vendor that is created before does not exist in api/orders/ request,
-// leading to a foreign key error, maybe some problem with the test DB?
-// 2. Handler fails when it tries to connect to vivawallet
+// TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
 
-	// itemID := CreateTestItem(t)
-	// vendorID := CreateTestVendor(t)
-	//
-	// f := `{
-	// 	"entries": [
-	// 		{
-	// 		  "item": ` + itemID + `,
-	// 		  "price": 300,
-	// 		  "quantity": 1
-	// 		}
-	// 	  ],
-	// 	  "vendor": ` + vendorID + `
-	// }`
-	// res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
-	// ress := res.Body.String()
-	// log.Info(ress)
+	itemID := CreateTestItem(t)
+	itemIDInt, _ := strconv.Atoi(itemID)
+	vendorID := CreateTestVendor(t)
+	vendorIDInt, _ := strconv.Atoi(vendorID)
+	f := `{
+		"entries": [
+			{
+			  "item": ` + itemID + `,
+			  "quantity": 315
+			}
+		  ],
+		  "vendor": ` + vendorID + `
+	}`
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=0"}`)
+
+	order, err := database.Db.GetOrderByOrderCode("0")
+	if err != nil {
+		t.Error(err)
+	}
+
+	senderAccount, err := database.Db.GetAccountByType("UserAnon")
+	if err != nil {
+		t.Error(err)
+	}
+	receiverAccount, err := database.Db.GetAccountByVendor(vendorIDInt)
+	if err != nil {
+		t.Error(err)
+	}
+
+	require.Equal(t, order.Vendor, vendorIDInt)
+	require.Equal(t, order.Verified, false)
+	require.Equal(t, order.Entries[0].Item, itemIDInt)
+	require.Equal(t, order.Entries[0].Quantity, 315)
+	require.Equal(t, order.Entries[0].Price, 314)
+	require.Equal(t, order.Entries[0].Sender, senderAccount.ID)
+	require.Equal(t, order.Entries[0].Receiver, receiverAccount.ID)
+
+	// Test that transaction correctly takes order code but does not verify
+	res = utils.TestRequest(t, r, "POST", "/api/orders/verify/?s=0&t=1", nil, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"transaction not verified"}}`)
+
 }
 
 // TestPayments tests CRUD operations on payments

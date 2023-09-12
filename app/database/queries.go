@@ -170,14 +170,14 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // GetOrderEntries returns all entries of an order
 func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price FROM Item WHERE Order = $1", orderID)
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price, Sender, Receiver FROM OrderEntry WHERE paymentorder = $1", orderID)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	for rows.Next() {
 		var entry OrderEntry
-		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price)
+		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver)
 		if err != nil {
 			log.Error(err)
 			return
@@ -187,9 +187,33 @@ func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err erro
 	return
 }
 
-// GetOrderByID returns Order by OrderID
+// GetOrders returns all orders from the database
+func (db *Database) GetOrders() (orders []Order, err error) {
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM PaymentOrder")
+	if err != nil {
+		log.Error(err)
+		return orders, err
+	}
+	for rows.Next() {
+		var order Order
+		err = rows.Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+		if err != nil {
+			log.Error(err)
+			return orders, err
+		}
+		// Add entries to order
+		order.Entries, err = db.GetOrderEntries(order.ID)
+		if err != nil {
+			log.Error(err)
+		}
+		orders = append(orders, order)
+	}
+	return
+}
+
+// GetOrder returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.Verified, &order.Timestamp, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
 	if err != nil {
 		log.Error(err)
 		return
@@ -216,7 +240,7 @@ func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err erro
 	// Add items to order
 	order.Entries, err = db.GetOrderEntries(order.ID)
 	if err != nil {
-		log.Error(err)
+		log.Error(err, " orderID: ", order.ID)
 	}
 	return
 }
@@ -225,17 +249,6 @@ func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err erro
 // TODO: This should be a transaction
 // Processes OrderCode, vendor, and items (trinkgeld is an item)
 func (db *Database) CreateOrder(order Order) (orderID int, err error) {
-	log.Info("Received order vendor: ", order.Vendor)
-	log.Info("stats", db.Dbpool.Stat().TotalConns())
-
-	x, err := db.ListVendors()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	log.Info("Create Order - Vendors: ", x)
-	log.Info("OrderCode ", order.OrderCode)
-	log.Info("Order", order)
 
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
 	if err != nil {
@@ -258,15 +271,15 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
 		if err != nil {
 			log.Error(err)
-			return
+			return orderID, err
 		}
 	}
 
 	return
 }
 
-// UpdateOrderAndCreatePayments verifies updates a payment order in the database and creates payments
-func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
+// Verify payment order, update it in the database, and create payments
+func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())
@@ -292,7 +305,7 @@ func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
 
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
-	UPDATE Order
+	UPDATE PaymentOrder
 	SET Verified = True
 	WHERE ID = $1
 	`, id)
@@ -300,12 +313,12 @@ func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
 		log.Error(err)
 	}
 
-	// Get order (including payments)
+	// Get Paymentorder (including payments)
 	order, err := db.GetOrderByID(id)
 
 	// Create payments
 	for _, oi := range order.Entries {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, Order) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
+		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, PaymentOrder) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
 		if err != nil {
 			return err
 		}
@@ -337,8 +350,6 @@ func (db *Database) ListPayments() ([]Payment, error) {
 
 // CreatePayments creates multiple payments depending on the order
 func (db *Database) CreatePayments(payments []Payment) (err error) {
-
-	log.Info("CreatePayments called")
 
 	// Create a transaction to insert all payments at once
 	tx, err := db.Dbpool.Begin(context.Background())

@@ -95,7 +95,86 @@ services:
     command: start-dev --import-realm
     ports:
       - "8080:8080"
+  wordpress-db:
+    # We use a mariadb image which supports both amd64 & arm64 architecture
+    image: mariadb:10.6.4-focal
+    # If you really want to use MySQL, uncomment the following line
+    #image: mysql:8.0.27
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - wp_db_data:/var/lib/mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=somewordpress
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress
+    expose:
+      - 3306
+      - 33060
+  wordpress:
+    image: wordpress:latest
+    volumes:
+      - wp_data:/var/www/html
+      - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
+      - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
 
+    ports:
+      - 8090:80
+    restart: always
+    environment:
+      - WORDPRESS_DB_HOST=wordpress-db
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_NAME=wordpress
+      - AUGUSTIN_PLUGIN_URL=http://localhost:8070
+    depends_on:
+      - wordpress-db
+      - keycloak
+  wpcli:
+    container_name: wp-cli
+    image: wordpress:cli
+    user: 0:0
+    command: >
+      sh -c "
+      chmod +x /wpcli/entrypoint.sh &&
+      /wpcli/entrypoint.sh &&
+      tail -f /dev/null"
+    volumes:
+      - wp_data:/var/www/html
+      - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
+      - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
+      - ./docker/wpcli/:/wpcli/
+      - ./docker/.env.parser:/wpcli/.env.parser
+
+    environment:
+      - WORDPRESS_DB_HOST=wordpress-db
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_NAME=wordpress
+    depends_on:
+      - wordpress
+      - wordpress-db
+    links:
+      - wordpress-db
+  parser:
+    build:
+      context: ./docker/augustin-plugin
+    env_file:
+      - ./docker/.env.parser
+    ports:
+      - "8070:8000"
+    volumes:
+      - ./docker/augustin-plugin-data/sample_data:/sample_data
+      - ./docker/augustin-plugin-data/pdf-files:/pdf-files
+      - ./docker/augustin-plugin/:/app
+    environment:
+      - AUGUSTIN_PLUGIN_URL=http://wordpress/wp-json/wp/v2/
+      - AUGUSTIN_PLUGIN_PATH=/sample_data/
+      - AUGUSTIN_PLUGIN_SAVE_PATH=/pdf-files/
+      - WP_API_USER=api_user
 volumes:
   dbdata:
+  wp_data:
+  wp_db_data:
   dbdata-test:

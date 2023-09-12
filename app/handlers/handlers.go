@@ -99,7 +99,6 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	log.Info("id ", vendor.ID, "fn ", vendor.FirstName, "bl ", vendor.Balance)
 
 	id, err := database.Db.CreateVendor(vendor)
 	respond(w, err, id)
@@ -327,8 +326,13 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 // Orders ---------------------------------------------------------------------
 
+type createOrderRequestEntry struct {
+	Item     int
+	Quantity int
+}
+
 type createOrderRequest struct {
-	Entries []database.OrderEntry
+	Entries []createOrderRequestEntry
 	User    string
 	Vendor  int32
 }
@@ -340,7 +344,7 @@ type createOrderResponse struct {
 // CreatePaymentOrder godoc
 //
 //	 	@Summary 		Create Payment Order
-//		@Description	Submits payment order & saves it to database
+//		@Description	Submits payment order to provider & saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
@@ -357,7 +361,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Identify accounts
+	// Get accounts
 	var buyerAccount database.Account
 	if order.User.Valid {
 		buyerAccount, err = database.Db.GetAccountByUser(order.User.String)
@@ -380,7 +384,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extend order entries
-	for _, entry := range order.Entries {
+	for idx, entry := range order.Entries {
 		// Get item from database
 		item, err := database.Db.GetItem(entry.Item)
 		if err != nil {
@@ -389,9 +393,9 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Define flow of money from buyer to vendor
-		entry.Sender = buyerAccount.ID
-		log.Info("Sender ", entry.Sender)
-		entry.Receiver = vendorAccount.ID
+		order.Entries[idx].Sender = buyerAccount.ID
+		order.Entries[idx].Receiver = vendorAccount.ID
+		order.Entries[idx].Price = item.Price // Take current item price
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
@@ -413,19 +417,22 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// Submit order to vivawallet
-	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
-	if err != nil {
-		log.Error("Authentication failed: ", err)
-	}
-	OrderCode, err := paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
-	if err != nil {
-		log.Error("Creating payment order failed: ", err)
+	// Submit order to vivawallet (disabled in tests)
+	var OrderCode int
+	if database.Db.IsProduction {
+		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+		if err != nil {
+			log.Error("Authentication failed: ", err)
+		}
+		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
+		if err != nil {
+			log.Error("Creating payment order failed: ", err)
+		}
 	}
 
 	// Save order to database
-	order.OrderCode = strconv.Itoa(OrderCode)
-	log.Info("Order vendor: ", order.Vendor)
+	order.OrderCode.String = strconv.Itoa(OrderCode)
+	order.OrderCode.Valid = true // This means that it is not null
 	_, err = database.Db.CreateOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -440,6 +447,17 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
+type verifyOrderResponse struct {
+	ID            int
+	OrderCode     string
+	TransactionID string
+	Verified      bool
+	Timestamp     string
+	User          string
+	Vendor        int
+	Entries       []database.OrderEntry
+}
+
 // VerifyPaymentOrder godoc
 //
 //	 	@Summary 		Verify Payment Order
@@ -447,7 +465,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//		@Success		200 {object} database.Order
+//		@Success		200 {object} VerifyOrderResponse
 //		@Param			s query string true "Order Code" Format(3043685539722561)
 //		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
 //		@Router			/orders/verify/ [post]
@@ -455,7 +473,15 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Get transaction ID from URL parameter
 	OrderCode := r.URL.Query().Get("s")
+	if OrderCode == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter s"), http.StatusBadRequest)
+		return
+	}
 	TransactionID := r.URL.Query().Get("t")
+	if TransactionID == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter t"), http.StatusBadRequest)
+		return
+	}
 
 	// Get payment order from database
 	order, err := database.Db.GetOrderByOrderCode(OrderCode)
@@ -470,18 +496,22 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get access token
-	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
-	if err != nil {
-		log.Error("Authentication failed: ", err)
+	var isVerified bool
+	if database.Db.IsProduction {
+		// Get access token
+		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+		if err != nil {
+			log.Error("Authentication failed: ", err)
+		}
+
+		// Verify transaction
+		isVerified, err = paymentprovider.VerifyTransactionID(accessToken, TransactionID)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
 	}
 
-	// Verify transaction
-	isVerified, err := paymentprovider.VerifyTransactionID(accessToken, TransactionID)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
 	if !isVerified {
 		utils.ErrorJSON(w, errors.New("transaction not verified"), http.StatusBadRequest)
 		return
@@ -493,7 +523,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Store verification in db
 	order.TransactionID = TransactionID
 	order.Verified = isVerified
-	err = database.Db.UpdateOrderAndCreatePayments(order.ID)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

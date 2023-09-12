@@ -46,7 +46,7 @@ type Item struct {
 // Order is a struct that is used for the order table
 type Order struct {
 	ID            int
-	OrderCode     string
+	OrderCode     null.String
 	TransactionID string
 	Verified      bool
 	Timestamp     time.Time
