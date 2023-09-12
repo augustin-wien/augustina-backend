@@ -84,6 +84,17 @@ Revert last migration:
 tern migrate --destination -1
 ```
 
+
+### VS Code Settings
+VS Code is our code editor of choice.
+Therefore, to develop in Go, we use the main [VS Code Go extension](https://marketplace.visualstudio.com/items?itemName=golang.go). This enables a lot of features like formatting on save.
+
+Further, we also lint on save by adding these two lines in our `settings.json` file for VS Code:
+```json
+  "go.lintOnSave": "package",
+  "go.lintTool": "golint"
+```
+
 ## Keycloak
 
 The keycloak server is available at http://localhost:8080 and the admin console at http://localhost:8080/auth/admin
