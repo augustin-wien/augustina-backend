@@ -8,7 +8,7 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-// CreateTestData creates test data for the application
+// CreateDevData creates test data for the application
 func (db *Database) CreateDevData() (err error) {
 	db.createDevUsers()
 	db.CreateDevItems()
@@ -19,7 +19,7 @@ func (db *Database) CreateDevData() (err error) {
 func (db *Database) createDevUsers() (err error) {
 	vendor := Vendor{
 		KeycloakID: "keycloakid1",
-		UrlID:      "www.augustin.or.at/fl-123",
+		URLID:      "www.augustin.or.at/fl-123",
 		LicenseID:  "fl-123",
 		FirstName:  "firstname1",
 		LastName:   "lastname1",
@@ -34,6 +34,7 @@ func (db *Database) createDevUsers() (err error) {
 	return nil
 }
 
+// CreateDevItems creates test items for the application
 func (db *Database) CreateDevItems() (err error) {
 	newspaper := Item{
 		Name:        "Zeitung",
@@ -76,6 +77,7 @@ func (db *Database) CreateDevItems() (err error) {
 	return err
 }
 
+// CreateDevSettings creates test settings for the application
 func (db *Database) CreateDevSettings() (err error) {
 	settings := Settings{
 		Color:    "#008000",

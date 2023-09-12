@@ -29,7 +29,7 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 	}
 	for rows.Next() {
 		var vendor Vendor
-		err = rows.Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.Balance)
+		err = rows.Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.Balance)
 		if err != nil {
 			log.Error(err)
 			return vendors, err
@@ -41,7 +41,7 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout)
 	if err != nil {
 		log.Error(err)
 	}
@@ -52,7 +52,7 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 
 	// Create vendor
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout).Scan(&vendorID)
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout).Scan(&vendorID)
 	if err != nil {
 		log.Error(err)
 	}
@@ -73,7 +73,7 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	UPDATE Vendor
 	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7
 	WHERE ID = $8
-	`, vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, id)
+	`, vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, id)
 	if err != nil {
 		log.Error(err)
 	}
@@ -103,6 +103,7 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 
 // Items ----------------------------------------------------------------------
 
+// ListItems returns all items from the database
 func (db *Database) ListItems() ([]Item, error) {
 	var items []Item
 	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item")
@@ -122,6 +123,7 @@ func (db *Database) ListItems() ([]Item, error) {
 	return items, nil
 }
 
+// GetItem returns the item with the given ID
 func (db *Database) GetItem(id int) (item Item, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
 	if err != nil {
@@ -130,6 +132,7 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 	return
 }
 
+// CreateItem creates an item in the database
 func (db *Database) CreateItem(item Item) (id int32, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, LicenseItem, Archived) values ($1, $2, $3, $4, $5) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived).Scan(&id)
 	if err != nil {
@@ -138,6 +141,7 @@ func (db *Database) CreateItem(item Item) (id int32, err error) {
 	return id, err
 }
 
+// UpdateItem updates an item in the database
 func (db *Database) UpdateItem(id int, item Item) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Item
@@ -150,6 +154,7 @@ func (db *Database) UpdateItem(id int, item Item) (err error) {
 	return
 }
 
+// DeleteItem deletes an item in the database
 func (db *Database) DeleteItem(id int) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	DELETE FROM Item
@@ -182,7 +187,7 @@ func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err erro
 	return
 }
 
-// GetOrder returns Order by OrderID
+// GetOrderByID returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.Verified, &order.Timestamp, &order.Vendor)
 	if err != nil {
@@ -199,7 +204,7 @@ func (db *Database) GetOrderByID(id int) (order Order, err error) {
 	return
 }
 
-// GetOrder returns Order by OrderCode
+// GetOrderByOrderCode returns Order by OrderCode
 func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err error) {
 
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
@@ -216,7 +221,7 @@ func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err erro
 	return
 }
 
-// Create Payment Order
+// CreateOrder creates an order in the database
 // TODO: This should be a transaction
 // Processes OrderCode, vendor, and items (trinkgeld is an item)
 func (db *Database) CreateOrder(order Order) (orderID int, err error) {
@@ -260,7 +265,7 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	return
 }
 
-// Verify updates a payment order in the database and creates payments
+// UpdateOrderAndCreatePayments verifies updates a payment order in the database and creates payments
 func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
 
 	// Start a transaction
@@ -311,7 +316,7 @@ func (db *Database) UpdateOrderAndCreatePayments(id int) (err error) {
 
 // Payments -------------------------------------------------------------------
 
-// GetPayments returns the payments from the database
+// ListPayments returns the payments from the database
 func (db *Database) ListPayments() ([]Payment, error) {
 	var payments []Payment
 	rows, err := db.Dbpool.Query(context.Background(), "select * from payment")
@@ -330,7 +335,7 @@ func (db *Database) ListPayments() ([]Payment, error) {
 	return payments, nil
 }
 
-// Create multiple payments
+// CreatePayments creates multiple payments depending on the order
 func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 	log.Info("CreatePayments called")
@@ -380,7 +385,7 @@ func (db *Database) CreateAccount(account Account) (id int, err error) {
 	return id, err
 }
 
-// ListAccounts
+// ListAccounts returns all accounts from the database
 func (db *Database) ListAccounts() (accounts []Account, err error) {
 	rows, err := db.Dbpool.Query(context.Background(), "select * from Account")
 	if err != nil {
@@ -448,10 +453,10 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 
 // Settings (singleton) -------------------------------------------------------
 
-// Create default settings if they don't exist
+// InitiateSettings creates default settings if they don't exist
 func (db *Database) InitiateSettings() (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
-	INSERT INTO Settings (ID) VALUES (1);
+	INSERT IGNORE INTO Settings (ID) VALUES (1);
 	`)
 	if err != nil {
 		log.Error(err)
@@ -460,6 +465,7 @@ func (db *Database) InitiateSettings() (err error) {
 	return err
 }
 
+// GetSettings returns the settings from the database
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
@@ -471,6 +477,7 @@ func (db *Database) GetSettings() (Settings, error) {
 	return settings, err
 }
 
+// UpdateSettings updates the settings in the database
 func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `

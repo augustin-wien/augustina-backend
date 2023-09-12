@@ -95,6 +95,9 @@ Further, we also lint on save by adding these two lines in our `settings.json` f
   "go.lintTool": "golint"
 ```
 
+### Environment variables
+When variable `DEVELOPMENT=true`, demo data will be created during container creation. This data can be used for development purposes.
+
 ## Keycloak
 
 The keycloak server is available at http://localhost:8080 and the admin console at http://localhost:8080/auth/admin
