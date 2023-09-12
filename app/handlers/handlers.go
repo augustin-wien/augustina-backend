@@ -33,23 +33,23 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 	utils.WriteJSON(w, http.StatusOK, payload)
 }
 
-type TransactionOrder struct {
+type transactionOrder struct {
 	Amount int
 }
 
-type TransactionOrderResponse struct {
+type transactionOrderResponse struct {
 	SmartCheckoutURL string
 }
 
-type TransactionVerification struct {
+type transactionVerification struct {
 	OrderCode int
 }
 
-type TransactionVerificationResponse struct {
+type transactionVerificationResponse struct {
 	Verification bool
 }
 
-// ReturnHelloWorld godoc
+// HelloWorld godoc
 //
 //	@Summary		Return HelloWorld
 //	@Description	Return HelloWorld as sample API call
@@ -200,7 +200,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, id)
 }
 
-func UpdateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
+func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
 	// Get file from image field
 	file, header, err := r.FormFile("Image")
 	if err != nil {
@@ -230,7 +230,7 @@ func UpdateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 		if errors.Is(err, os.ErrNotExist) {
 			break
 		}
-		i += 1
+		i++
 		if i > 1000 {
 			log.Error(err)
 			utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
@@ -276,17 +276,17 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var item database.Item
-	fields := mForm.Value                   // Values are stored in []string
-	fields_clean := make(map[string]string) // Values are stored in string
+	fields := mForm.Value                  // Values are stored in []string
+	fieldsClean := make(map[string]string) // Values are stored in string
 	for key, value := range fields {
-		fields_clean[key] = value[0]
+		fieldsClean[key] = value[0]
 	}
-	err = mapstructure.Decode(fields_clean, &item)
+	err = mapstructure.Decode(fieldsClean, &item)
 	if err != nil {
 		log.Error(err)
 	}
 
-	path, _ := UpdateItemImage(w, r)
+	path, _ := updateItemImage(w, r)
 	if path != "" {
 		item.Image = path
 	}
@@ -327,13 +327,13 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 // Orders ---------------------------------------------------------------------
 
-type CreateOrderRequest struct {
+type createOrderRequest struct {
 	Entries []database.OrderEntry
 	User    string
 	Vendor  int32
 }
 
-type CreateOrderResponse struct {
+type createOrderResponse struct {
 	SmartCheckoutURL string
 }
 
@@ -434,7 +434,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Create response
 	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(OrderCode)
-	response := CreateOrderResponse{
+	response := createOrderResponse{
 		SmartCheckoutURL: url,
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
@@ -518,7 +518,7 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, payments)
 }
 
-type CreatePaymentsRequest struct {
+type createPaymentsRequest struct {
 	Payments []database.Payment
 }
 
@@ -532,7 +532,7 @@ type CreatePaymentsRequest struct {
 //		@Success		200
 //		@Router			/payments [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
-	var paymentBatch CreatePaymentsRequest
+	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -559,7 +559,7 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 //	@Success		200	{array}	TransactionOrderResponse
 //	@Router			/vivawallet/transaction_order/ [post]
 func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
-	var transactionOrder TransactionOrder
+	var transactionOrder transactionOrder
 	err := utils.ReadJSON(w, r, &transactionOrder)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -578,7 +578,7 @@ func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Create response
 	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)
-	response := TransactionOrderResponse{
+	response := transactionOrderResponse{
 		SmartCheckoutURL: url,
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
@@ -596,7 +596,7 @@ func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 //	@Success		200	{array}	TransactionVerificationResponse
 //	@Router			/vivawallet/transaction_verification/ [post]
 func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
-	var transactionVerification TransactionVerification
+	var transactionVerification transactionVerification
 	err := utils.ReadJSON(w, r, &transactionVerification)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -617,7 +617,7 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create response
-	response := TransactionVerificationResponse{
+	response := transactionVerificationResponse{
 		Verification: verification,
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
