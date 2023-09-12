@@ -467,7 +467,8 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 // InitiateSettings creates default settings if they don't exist
 func (db *Database) InitiateSettings() (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
-	INSERT IGNORE INTO Settings (ID) VALUES (1);
+	INSERT INTO Settings (ID) VALUES (1)
+	ON CONFLICT (ID) DO NOTHING;
 	`)
 	if err != nil {
 		log.Error(err)
