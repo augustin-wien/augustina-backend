@@ -39,7 +39,6 @@ services:
         condition: service_healthy
     links:
       - augustin-db
-      - augustin-db-test
       - keycloak
     ports:
       - "7001:3000"
