@@ -4,7 +4,6 @@ import (
 	"augustin/config"
 	"augustin/utils"
 	"context"
-	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -27,14 +26,14 @@ func (db *Database) InitDb() (err error) {
 	if err != nil {
 		return err
 	}
-	// Check if database has been setup, variable is true in the first place and will be set false afterwards
 
+	// Create default settings
 	err = db.InitiateSettings()
 	if err != nil {
 		log.Error("Settings creation failed ", zap.Error(err))
 	}
 
-	// Check if default accounts exist
+	// Create default accounts
 	err = db.InitiateAccounts()
 	if err != nil {
 		log.Error("Default accounts creation failed ", zap.Error(err))
@@ -46,15 +45,6 @@ func (db *Database) InitDb() (err error) {
 			log.Error("Dev data creation failed ", zap.Error(err))
 		}
 	}
-
-	// Set DATABASE_SETUP to false to prevent database setup on next startup
-	// TODO make this work or figure out a better solution
-	err = os.Setenv("DATABASE_SETUP", "false")
-	if err != nil {
-		log.Error("Unable to set variable DATABASE_SETUP to 'complete'")
-	}
-
-	log.Info("Database setup successfully completed.")
 
 	return err
 }
@@ -69,8 +59,18 @@ func (db *Database) InitEmptyTestDb() (err error) {
 	if err != nil {
 		return err
 	}
-	db.InitiateSettings()
-	db.InitiateAccounts()
+	// Create default settings
+	err = db.InitiateSettings()
+	if err != nil {
+		log.Error("Settings creation failed ", zap.Error(err))
+	}
+
+	// Create default accounts
+	err = db.InitiateAccounts()
+	if err != nil {
+		log.Error("Default accounts creation failed ", zap.Error(err))
+	}
+
 	return err
 }
 

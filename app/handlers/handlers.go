@@ -41,7 +41,7 @@ type transactionOrderResponse struct {
 	SmartCheckoutURL string
 }
 
-type transactionVerification struct {
+type TransactionVerification struct {
 	OrderCode int
 }
 
@@ -199,7 +199,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, id)
 }
 
-func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
+func UpdateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
 	// Get file from image field
 	file, header, err := r.FormFile("Image")
 	if err != nil {

@@ -426,10 +426,6 @@ func (db *Database) CreateAccount(account Account) (id int, err error) {
 	return id, err
 }
 
-func contains(allowedTypes []string, s string) {
-	panic("unimplemented")
-}
-
 // ListAccounts returns all accounts from the database
 func (db *Database) ListAccounts() (accounts []Account, err error) {
 	rows, err := db.Dbpool.Query(context.Background(), "select * from Account")
