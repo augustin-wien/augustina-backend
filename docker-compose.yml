@@ -33,6 +33,7 @@ services:
       DB_HOST_TEST: ${DB_HOST_TEST}
       DB_PORT_TEST: ${DB_PORT_TEST}
       DEVELOPMENT: true
+      FRONTEND_URL: ${FRONTEND_URL}
     depends_on:
       augustin-db:
         condition: service_healthy
