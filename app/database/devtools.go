@@ -54,11 +54,6 @@ func (db *Database) CreateDevItems() (err error) {
 	// Check if newspaper already exists, if not create it
 	_, err = db.CreateItem(newspaper)
 	if err != nil {
-		pg := err.(*pgconn.PgError)
-		if reflect.TypeOf(err) == reflect.TypeOf(&pgconn.PgError{}) && pg.Code == "23505" {
-			// If this error occurs again, you may want to hit 'docker compose down -v' to reset the database
-			log.Info("Postgres unique_violation error detected. Details are :", pg.Detail)
-		}
 		log.Error("Dev newspaper creation failed ", zap.Error(err))
 		return err
 	}

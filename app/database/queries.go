@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"go.uber.org/zap"
+	"golang.org/x/exp/slices"
 )
 
 // GetHelloWorld returns the string "Hello, world!" from the database and should be used as a template for other queries
@@ -134,6 +135,18 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 
 // CreateItem creates an item in the database
 func (db *Database) CreateItem(item Item) (id int32, err error) {
+	// Check if the item name already exists
+	var count int
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Item WHERE Name = $1", item.Name).Scan(&count)
+	if err != nil {
+		log.Error(err)
+		return 0, err
+	}
+	if count > 0 {
+		return 0, errors.New("Item with the same name already exists. Update it or delete it first")
+	}
+
+	// Insert the new item
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, LicenseItem, Archived) values ($1, $2, $3, $4, $5) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived).Scan(&id)
 	if err != nil {
 		log.Error(err)
@@ -211,7 +224,7 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 	return
 }
 
-// GetOrder returns Order by OrderID
+// GetOrderByID returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
 	if err != nil {
@@ -278,7 +291,7 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	return
 }
 
-// Verify payment order, update it in the database, and create payments
+// VerifyOrderAndCreatePayments verifies payment order, update it in the database, and create payments
 func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 
 	// Start a transaction
@@ -387,13 +400,34 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 // CreateAccount creates an account in the database
 func (db *Database) CreateAccount(account Account) (id int, err error) {
-	// TODO: Validate that some types should only exist once
 	// TODO: Validate that User should only be filled if type is user_auth
 	// Check if account.type = UserAuth
 	// if account.Type == "UserAuth" && account.User.String == "" {
 	// 	err = new (Error)
+
+	// Define a slice of types, which should only exist once
+	existOnceTypes := []string{"Cash", "Orga", "UserAnon"}
+
+	// Check if an account of the specified type already exists
+	if slices.Contains(existOnceTypes, account.Type) {
+		var existingCount int
+		err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Account WHERE Type = $1", account.Type).Scan(&existingCount)
+		if err != nil {
+			return 0, err
+		}
+		// If an account of the specified type already exists, return an error
+		if existingCount > 0 {
+			return 0, errors.New("An account of this type, which should exist only once, already exists: " + account.Type)
+		}
+	}
+
+	// Insert the new account
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Name, Type) values ($1, $2) RETURNING ID", account.Name, account.Type).Scan(&id)
 	return id, err
+}
+
+func contains(allowedTypes []string, s string) {
+	panic("unimplemented")
 }
 
 // ListAccounts returns all accounts from the database
