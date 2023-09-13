@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// AuthMiddleware is a middleware to check if the request is authorized
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -21,8 +22,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		user_token := strings.Split(r.Header.Get("Authorization"), " ")[1]
-		userinfo, err := keycloak.KeycloakClient.GetUserInfo(user_token)
+		userToken := strings.Split(r.Header.Get("Authorization"), " ")[1]
+		userinfo, err := keycloak.KeycloakClient.GetUserInfo(userToken)
 		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
