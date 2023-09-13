@@ -27,6 +27,9 @@ func (db *Database) InitDb() (err error) {
 		return err
 	}
 
+	// Create variable to check if database was already initialized
+	isInitialized := false
+
 	// Create default settings
 	err = db.InitiateSettings()
 	if err != nil {
@@ -36,10 +39,11 @@ func (db *Database) InitDb() (err error) {
 	// Create default accounts
 	err = db.InitiateAccounts()
 	if err != nil {
+		isInitialized = true
 		log.Error("Default accounts creation failed ", zap.Error(err))
 	}
 
-	if config.Config.Development {
+	if config.Config.Development && !isInitialized {
 		err = db.CreateDevData()
 		if err != nil {
 			log.Error("Dev data creation failed ", zap.Error(err))
