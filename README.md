@@ -17,7 +17,15 @@ docker compose up -d
 
 Go to http://localhost:3000/api/hello/
 
-Note: To make the PDF-Parser run correctly check out description below.
+**Notes**
+
+1. For developing in frontend or backend only, run this command
+  ```bash
+  docker compose up -d augustin augustin-db augustin-db-test keycloak
+  ```
+2. To make the PDF-Parser run correctly check out description below.
+
+
 
 ### Ports
 Backend: `localhost:3000`
