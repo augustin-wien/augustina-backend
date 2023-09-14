@@ -4,9 +4,8 @@ services:
   augustin-frontend:
     build:
       context: ./docker/augustin-frontend
+      dockerfile: ./Dockerfile.production
     image: dkia/augustin-frontend
-    networks:
-      - host
     ports:
       - "7002:80"
     environment:
@@ -23,8 +22,7 @@ services:
     image: dkia/augustin-backend  
     command: >
       sh -c "tern migrate --migrations ./migrations --config
-      ./migrations/tern.conf && tern migrate --migrations ./migrations --config
-      ./migrations/tern_test.conf  && go run main.go"
+      ./migrations/tern.conf && go run main.go"
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
@@ -42,8 +40,6 @@ services:
       - keycloak
     ports:
       - "7001:3000"
-    networks:
-      - host
   augustin-db:
     image: postgres:14.2
     env_file:
@@ -62,8 +58,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - host
   keycloak:
     build: ./docker/keycloak
     image: dkia/augustin-keycloak
@@ -84,8 +78,6 @@ services:
     command: start-dev --import-realm
     ports:
       - "7000:8080"
-    networks:
-      - host
   wordpress-db:
     # We use a mariadb image which supports both amd64 & arm64 architecture
     image: mariadb:10.6.4-focal
@@ -105,8 +97,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - host
   wordpress:
     image: wordpress:latest
     volumes:
@@ -120,16 +110,11 @@ services:
       - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
       - AUGUSTIN_PLUGIN_URL=${AUGUSTIN_PARSER_URL}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     depends_on:
       - wordpress-db
       - keycloak
-    networks:
-      - host
+    ports:
+      - "7004:80"
   wpcli:
     image: wordpress:cli
     user: 0:0
@@ -155,8 +140,6 @@ services:
       - wordpress
     links:
       - wordpress-db
-    networks:
-      - host
   parser:
     build:
       context: ./docker/augustin-plugin
@@ -176,14 +159,8 @@ services:
       - WP_API_USER=api_user
     depends_on:
       - wordpress
-    networks:
-      - host
 volumes:
   dbdata:
   wp_data:
   wp_db_data:
   dbdata-test:
-networks:
-  host:
-    name: host
-    external: true
