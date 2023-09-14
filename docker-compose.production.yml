@@ -4,6 +4,7 @@ services:
   augustin-frontend:
     build:
       context: ./docker/augustin-frontend
+    image: augustin/augustin-frontend    
     ports:
       - "7002:80"
     environment:
@@ -18,6 +19,7 @@ services:
       - .env
     build:
       context: .
+    image: augustin/augustin-backend  
     volumes:
       - ./app:/app
     command: >
@@ -64,6 +66,7 @@ services:
 
   keycloak:
     build: ./docker/keycloak
+    image: augustin/augustin-keycloak  
     container_name: augustin-keycloak
     environment:
       KEYCLOAK_ADMIN: admin
@@ -158,6 +161,7 @@ services:
   parser:
     build:
       context: ./docker/augustin-plugin
+    image: augustin/augustin-parser  
     env_file:
       - ./docker/.env.parser
     ports:
