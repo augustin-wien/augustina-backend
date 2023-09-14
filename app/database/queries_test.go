@@ -86,7 +86,7 @@ func TestAccounts(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, "Cash", account.Name)
 
-	// Create mew account
+	// Create new account
 	account = Account{
 		Name: "test",
 		Type: "UserAuth",

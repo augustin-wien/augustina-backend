@@ -43,7 +43,7 @@ func (db *Database) InitDb() (err error) {
 		log.Error("Default accounts creation failed ", zap.Error(err))
 	}
 
-	if config.Config.Development && !isInitialized {
+	if config.Config.CreateDemoData && !isInitialized {
 		err = db.CreateDevData()
 		if err != nil {
 			log.Error("Dev data creation failed ", zap.Error(err))

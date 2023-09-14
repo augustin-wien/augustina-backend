@@ -9,7 +9,7 @@ import (
 
 // GetLogger initializes a logger
 func GetLogger() *zap.SugaredLogger {
-	if config.Config.Development {
+	if config.Config.CreateDemoData {
 		return zap.Must(zap.NewDevelopment()).Sugar()
 	}
 	return zap.Must(zap.NewProduction()).Sugar()

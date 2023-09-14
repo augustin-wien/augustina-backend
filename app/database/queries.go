@@ -42,7 +42,14 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
+	// Get vendor data
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout)
+	if err != nil {
+		log.Error(err)
+	}
+
+	// Get vendor balance
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
 	if err != nil {
 		log.Error(err)
 	}

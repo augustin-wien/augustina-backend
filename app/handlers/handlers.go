@@ -696,4 +696,5 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	utils.WriteJSON(w, http.StatusOK, nil)
 }

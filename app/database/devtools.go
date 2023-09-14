@@ -11,11 +11,12 @@ import (
 // CreateDevData creates test data for the application
 func (db *Database) CreateDevData() (err error) {
 	db.createDevUsers()
-	db.CreateDevItems()
-	db.CreateDevSettings()
+	db.createDevItems()
+	db.createDevSettings()
 	return nil
 }
 
+// CreateDevUsers creates test users for the application
 func (db *Database) createDevUsers() (err error) {
 	vendor := Vendor{
 		KeycloakID: "keycloakid1",
@@ -35,7 +36,7 @@ func (db *Database) createDevUsers() (err error) {
 }
 
 // CreateDevItems creates test items for the application
-func (db *Database) CreateDevItems() (err error) {
+func (db *Database) createDevItems() (err error) {
 	newspaper := Item{
 		Name:        "Zeitung",
 		Description: "Aktuelle Zeitungsausgabe",
@@ -73,7 +74,7 @@ func (db *Database) CreateDevItems() (err error) {
 }
 
 // CreateDevSettings creates test settings for the application
-func (db *Database) CreateDevSettings() (err error) {
+func (db *Database) createDevSettings() (err error) {
 	settings := Settings{
 		Color:    "#008000",
 		Logo:     "/img/Augustin-Logo-Rechteck.jpg",

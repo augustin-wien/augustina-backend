@@ -129,7 +129,7 @@ Further, we also lint on save by adding these two lines in our `settings.json` f
 ```
 
 ### Environment variables
-When variable `DEVELOPMENT=true`, demo data will be created during container creation. This data can be used for development purposes.
+When variable `CREATE_DEMO_DATA=true`, demo data will be created during container creation. This data can be used for development purposes.
 
 ## Keycloak
 

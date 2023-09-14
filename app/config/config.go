@@ -5,7 +5,7 @@ import "os"
 type config struct {
 	Version                     string
 	Port                        string
-	Development                 bool
+	CreateDemoData              bool
 	PaymentServiceProvider      string
 	VivaWalletSourceCode        string
 	VivaWalletClientCredentials string
@@ -15,7 +15,7 @@ type config struct {
 var Config = config{
 	Version:                     "0.0.1",
 	Port:                        getEnv("PORT", "3000"),
-	Development:                 (getEnv("DEVELOPMENT", "false") == "true"),
+	CreateDemoData:              (getEnv("CREATE_DEMO_DATA", "false") == "true"),
 	PaymentServiceProvider:      getEnv("PAYMENT_SERVICE_PROVIDER", ""),
 	VivaWalletSourceCode:        getEnv("VIVA_WALLET_SOURCE_CODE", ""),
 	VivaWalletClientCredentials: getEnv("VIVA_WALLET_CLIENT_CREDENTIALS", ""),
