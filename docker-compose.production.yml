@@ -4,7 +4,7 @@ services:
   augustin-frontend:
     build:
       context: ./docker/augustin-frontend
-    image: dkia/augustin-frontend    
+    image: dkia/augustin-frontend
     ports:
       - "7002:80"
     environment:
@@ -37,8 +37,7 @@ services:
       DEVELOPMENT: ${DEVELOPMENT}
       FRONTEND_URL: ${FRONTEND_URL}
     depends_on:
-      augustin-db:
-        condition: service_healthy
+      - augustin-db
     links:
       - augustin-db
       - keycloak
@@ -66,7 +65,7 @@ services:
 
   keycloak:
     build: ./docker/keycloak
-    image: dkia/augustin-keycloak  
+    image: dkia/augustin-keycloak
     container_name: augustin-keycloak
     environment:
       KEYCLOAK_ADMIN: admin
@@ -126,10 +125,8 @@ services:
       timeout: 10s
       retries: 5
     depends_on:
-      wordpress-db:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
+      - wordpress-db
+      - keycloak
   wpcli:
     container_name: wp-cli
     image: wordpress:cli
@@ -152,16 +149,14 @@ services:
       - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
     depends_on:
-      wordpress-db:
-        condition: service_healthy
-      wordpress:
-        condition: service_healthy
+      - wordpress-db
+      - wordpress
     links:
       - wordpress-db
   parser:
     build:
       context: ./docker/augustin-plugin
-    image: dkia/augustin-parser  
+    image: dkia/augustin-parser
     env_file:
       - ./docker/.env.parser
     ports:
@@ -176,8 +171,7 @@ services:
       - AUGUSTIN_PLUGIN_SAVE_PATH=/pdf-files/
       - WP_API_USER=api_user
     depends_on:
-      wordpress:
-        condition: service_healthy
+      - wordpress
 volumes:
   dbdata:
   wp_data:
