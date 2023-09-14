@@ -14,14 +14,11 @@ services:
     depends_on:
       - augustin
   augustin:
-    container_name: augustin
     env_file:
       - .env
     build:
       context: .
     image: dkia/augustin-backend  
-    volumes:
-      - ./app:/app
     command: >
       sh -c "tern migrate --migrations ./migrations --config
       ./migrations/tern.conf && tern migrate --migrations ./migrations --config
@@ -44,7 +41,6 @@ services:
     ports:
       - "7001:3000"
   augustin-db:
-    container_name: augustin-db
     image: postgres:14.2
     env_file:
       - .env
@@ -66,7 +62,6 @@ services:
   keycloak:
     build: ./docker/keycloak
     image: dkia/augustin-keycloak
-    container_name: augustin-keycloak
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -91,7 +86,7 @@ services:
     #image: mysql:8.0.27
     command: '--default-authentication-plugin=mysql_native_password'
     volumes:
-      - wp_db_data:/var/lib/mysql
+      - ./wp_db_data:/var/lib/mysql
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=${WORDPRESS_ROOT_PASSWORD}
@@ -109,7 +104,7 @@ services:
   wordpress:
     image: wordpress:latest
     volumes:
-      - wp_data:/var/www/html
+      - ./wp_data:/var/www/html
       - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
       - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
     restart: always
