@@ -5,6 +5,8 @@ services:
     build:
       context: ./docker/augustin-frontend
     image: dkia/augustin-frontend
+    networks:
+      - host
     ports:
       - "7002:80"
     environment:
@@ -40,6 +42,8 @@ services:
       - keycloak
     ports:
       - "7001:3000"
+    networks:
+      - host
   augustin-db:
     image: postgres:14.2
     env_file:
@@ -58,7 +62,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
+    networks:
+      - host
   keycloak:
     build: ./docker/keycloak
     image: dkia/augustin-keycloak
@@ -79,6 +84,8 @@ services:
     command: start-dev --import-realm
     ports:
       - "7000:8080"
+    networks:
+      - host
   wordpress-db:
     # We use a mariadb image which supports both amd64 & arm64 architecture
     image: mariadb:10.6.4-focal
@@ -98,6 +105,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - host
   wordpress:
     image: wordpress:latest
     volumes:
@@ -119,6 +128,8 @@ services:
     depends_on:
       - wordpress-db
       - keycloak
+    networks:
+      - host
   wpcli:
     image: wordpress:cli
     user: 0:0
@@ -144,6 +155,8 @@ services:
       - wordpress
     links:
       - wordpress-db
+    networks:
+      - host
   parser:
     build:
       context: ./docker/augustin-plugin
@@ -163,8 +176,14 @@ services:
       - WP_API_USER=api_user
     depends_on:
       - wordpress
+    networks:
+      - host
 volumes:
   dbdata:
   wp_data:
   wp_db_data:
   dbdata-test:
+networks:
+  host:
+    name: host
+    external: true
