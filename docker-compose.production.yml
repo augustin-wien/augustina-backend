@@ -52,7 +52,7 @@ services:
       PGTZ: "UTC"
     command: -p ${DB_PORT}
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - /dockerstorage/convive/augustin-backend/dbdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
@@ -86,7 +86,7 @@ services:
     #image: mysql:8.0.27
     command: '--default-authentication-plugin=mysql_native_password'
     volumes:
-      - ./wp_db_data:/var/lib/mysql
+      - /dockerstorage/convive/augustin-backend/wp_db_data:/var/lib/mysql
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=${WORDPRESS_ROOT_PASSWORD}
@@ -98,15 +98,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    expose:
-      - 3306
-      - 33060
   wordpress:
     image: wordpress:latest
     volumes:
-      - ./wp_data:/var/www/html
-      - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
-      - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
+      - /dockerstorage/convive/augustin-backend/wp_data:/var/www/html
+      - /dockerstorage/convive/augustin-backend/docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
+      - /dockerstorage/convive/augustin-backend/docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
     restart: always
     environment:
       - WORDPRESS_DB_HOST=wordpress-db
@@ -123,7 +120,6 @@ services:
       - wordpress-db
       - keycloak
   wpcli:
-    container_name: wp-cli
     image: wordpress:cli
     user: 0:0
     command: >
@@ -132,11 +128,11 @@ services:
       /wpcli/entrypoint.sh &&
       tail -f /dev/null"
     volumes:
-      - wp_data:/var/www/html
-      - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
-      - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
-      - ./docker/wpcli/:/wpcli/
-      - ./docker/.env.parser:/wpcli/.env.parser
+      - /dockerstorage/convive/augustin-backend/wp_data:/var/www/html
+      - /dockerstorage/convive/augustin-backend/docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
+      - /dockerstorage/convive/augustin-backend/docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
+      - /dockerstorage/convive/augustin-backend/docker/wpcli/:/wpcli/
+      - /dockerstorage/convive/augustin-backend/docker/.env.parser:/wpcli/.env.parser
 
     environment:
       - WORDPRESS_DB_HOST=wordpress-db
@@ -153,13 +149,13 @@ services:
       context: ./docker/augustin-plugin
     image: dkia/augustin-parser
     env_file:
-      - ./docker/.env.parser
+      - /dockerstorage/convive/augustin-backend/docker/.env.parser
     ports:
       - "7003:8000"
     volumes:
-      - ./docker/augustin-plugin-data/sample_data:/sample_data
-      - ./docker/augustin-plugin-data/pdf-files:/pdf-files
-      - ./docker/augustin-plugin/:/app
+      - /dockerstorage/convive/augustin-backend/docker/augustin-plugin-data/sample_data:/sample_data
+      - /dockerstorage/convive/augustin-backend/docker/augustin-plugin-data/pdf-files:/pdf-files
+      - /dockerstorage/convive/augustin-backend/docker/augustin-plugin/:/app
     environment:
       - AUGUSTIN_PLUGIN_URL=${AUGUSTIN_PLUGIN_URL}
       - AUGUSTIN_PLUGIN_PATH=/sample_data/
