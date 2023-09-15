@@ -27,27 +27,48 @@ func (db *Database) InitDb() (err error) {
 		return err
 	}
 
-	// Create variable to check if database was already initialized
-	isInitialized := false
-
-	// Create default settings
-	err = db.InitiateSettings()
+	// Initializes DBSettings if not already initialized
+	err = db.InitiateDBSettings()
 	if err != nil {
 		log.Error("Settings creation failed ", zap.Error(err))
 	}
 
-	// Create default accounts
-	err = db.InitiateAccounts()
+	// Get DBSettings
+	var dbSettings DBSettings
+	dbSettings, err = db.GetDBSettings()
 	if err != nil {
-		isInitialized = true
-		log.Error("Default accounts creation failed ", zap.Error(err))
+		log.Error("Settings retrieval failed ", zap.Error(err))
 	}
 
-	if config.Config.CreateDemoData && !isInitialized {
-		err = db.CreateDevData()
+	if !dbSettings.IsInitialized {
+
+		// Create default settings
+		err = db.InitiateSettings()
 		if err != nil {
-			log.Error("Dev data creation failed ", zap.Error(err))
+			log.Error("Settings creation failed ", zap.Error(err))
 		}
+
+		// Create default accounts
+		err = db.InitiateAccounts()
+		if err != nil {
+			log.Error("Default accounts creation failed ", zap.Error(err))
+		}
+
+		if config.Config.CreateDemoData {
+			err = db.CreateDevData()
+			if err != nil {
+				log.Error("Dev data creation failed ", zap.Error(err))
+			}
+		}
+
+		// Update DBSettings to initialized
+		err = db.UpdateDBSettings(DBSettings{IsInitialized: true})
+		if err != nil {
+			log.Error("Updating DBSettings failed ", zap.Error(err))
+		}
+		log.Info("Database successfully initialized")
+	} else {
+		log.Info("Database already initialized")
 	}
 
 	return err
@@ -117,7 +138,7 @@ func (db *Database) initDb(isProduction bool, logInfo bool) (err error) {
 		return
 	}
 	if logInfo {
-		log.Info("InitDb succesfull: ", greeting)
+		log.Info("Connection to database successful: ", greeting)
 	}
 	return
 }

@@ -85,3 +85,9 @@ type Settings struct {
 	MainItem   null.Int `swaggertype:"integer"`
 	RefundFees bool
 }
+
+// DBSettings is a struct that is used for the dbsettings table
+type DBSettings struct {
+	ID            int
+	IsInitialized bool
+}
