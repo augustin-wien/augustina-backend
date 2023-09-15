@@ -74,8 +74,10 @@ func GetRouter() (r *chi.Mux) {
 	r.Post("/api/vivawallet/transaction_order/", VivaWalletCreateTransactionOrder)
 	r.Post("/api/vivawallet/transaction_verification/", VivaWalletVerifyTransaction)
 	r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
-		r.Post("/", VivaWalletWebhook)
-		r.Get("/", VivaWalletVerificationKey)
+		r.Post("/successful/", VivaWalletWebhookSuccess)
+		r.Get("/successful/", VivaWalletVerificationKey)
+		r.Post("/failure/", VivaWalletWebhookFailure)
+		r.Get("/failure/", VivaWalletVerificationKey)
 	})
 
 	// Settings

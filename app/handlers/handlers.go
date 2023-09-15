@@ -448,17 +448,17 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// VivaWalletWebhook godoc
+// VivaWalletWebhookSuccess godoc
 //
-//	@Summary		Webhook for VivaWallet
-//	@Description	Webhook for VivaWallet
+//	@Summary		Webhook for VivaWallet successful transaction
+//	@Description	Webhook for VivaWallet successful transaction
 //	@Tags			core
 //	@accept			json
 //	@Produce		json
 //	@Success		200
 //	@Param			data body paymentprovider.PaymentSuccessfulResponse true "Payment Successful Response"
-//	@Router			/webhooks/vivawallet/ [post]
-func VivaWalletWebhook(w http.ResponseWriter, r *http.Request) {
+//	@Router			/webhooks/vivawallet/success [post]
+func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 	var paymentSuccessful paymentprovider.PaymentSuccessfulRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
@@ -468,6 +468,34 @@ func VivaWalletWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = paymentprovider.HandlePaymentSuccessfulResponse(paymentSuccessful)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, nil)
+}
+
+// VivaWalletWebhookFailure godoc
+//
+//	@Summary		Webhook for VivaWallet failed transaction
+//	@Description	Webhook for VivaWallet failed transaction
+//	@Tags			core
+//	@accept			json
+//	@Produce		json
+//	@Success		200
+//	@Param			data body nil true "Payment Failure Response"
+//	@Router			/webhooks/vivawallet/failure [post]
+func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
+	var paymentFailure paymentprovider.PaymentSuccessfulRequest
+	err := utils.ReadJSON(w, r, &paymentFailure)
+	if err != nil {
+		log.Info("Reading JSON failed for webhook: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = paymentprovider.HandlyPaymentFailureResponse(paymentFailure)
 	if err != nil {
 		log.Error(err)
 		return
