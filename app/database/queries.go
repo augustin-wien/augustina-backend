@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"errors"
 
 	"go.uber.org/zap"
 )
@@ -21,7 +22,7 @@ func (db *Database) GetHelloWorld() (string, error) {
 
 // ListVendors returns all users from the database
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "select vendor.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id")
 	if err != nil {
 		log.Error(err)
 		return vendors, err
@@ -48,7 +49,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 	}
 
 	// Create vendor account
-	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Vendor) values (0, 'vendor', $1) RETURNING ID", vendorID)
+	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Vendor) values (0, 'Vendor', $1) RETURNING ID", vendorID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -59,7 +60,6 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 
 // UpdateVendor Updates a user in the database
 func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
-	log.Info("updating")
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Vendor
 	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7
@@ -68,7 +68,6 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	if err != nil {
 		log.Error(err)
 	}
-
 	return
 }
 
@@ -93,7 +92,6 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 	return
 }
 
-
 // Items ----------------------------------------------------------------------
 
 func (db *Database) ListItems() ([]Item, error) {
@@ -105,7 +103,7 @@ func (db *Database) ListItems() ([]Item, error) {
 	}
 	for rows.Next() {
 		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image)
+		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
 		if err != nil {
 			log.Error(err)
 			return items, err
@@ -115,17 +113,25 @@ func (db *Database) ListItems() ([]Item, error) {
 	return items, nil
 }
 
+func (db *Database) GetItem(id int) (item Item, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 func (db *Database) CreateItem(item Item) (id int32, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Item (Name, Description, Price) values ($1, $2, $3) RETURNING ID", item.Name, item.Description, item.Price).Scan(&id)
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Item (Name, Description, Price, LicenseItem, Archived) values ($1, $2, $3, $4, $5) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived).Scan(&id)
 	return id, err
 }
 
 func (db *Database) UpdateItem(id int, item Item) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Item
-	SET Name = $2, Price = $3, Image = $4
+	SET Name = $2, Description = $3, Price = $4, Image = $5, LicenseItem = $6, Archived = $7
 	WHERE ID = $1
-	`, id, item.Name, item.Price, item.Image)
+	`, id, item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived)
 	if err != nil {
 		log.Error(err)
 	}
@@ -143,6 +149,167 @@ func (db *Database) DeleteItem(id int) (err error) {
 	return
 }
 
+// Orders ---------------------------------------------------------------------
+
+// GetOrderEntries returns all entries of an order
+func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price, Sender, Receiver FROM OrderEntry WHERE paymentorder = $1", orderID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	for rows.Next() {
+		var entry OrderEntry
+		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		entries = append(entries, entry)
+	}
+	return
+}
+
+// GetOrders returns all orders from the database
+func (db *Database) GetOrders() (orders []Order, err error) {
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM PaymentOrder")
+	if err != nil {
+		log.Error(err)
+		return orders, err
+	}
+	for rows.Next() {
+		var order Order
+		err = rows.Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+		if err != nil {
+			log.Error(err)
+			return orders, err
+		}
+		// Add entries to order
+		order.Entries, err = db.GetOrderEntries(order.ID)
+		if err != nil {
+			log.Error(err)
+		}
+		orders = append(orders, order)
+	}
+	return
+}
+
+// GetOrder returns Order by OrderID
+func (db *Database) GetOrderByID(id int) (order Order, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Add entries to order
+	order.Entries, err = db.GetOrderEntries(order.ID)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return
+}
+
+// GetOrder returns Order by OrderCode
+func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err error) {
+
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Add items to order
+	order.Entries, err = db.GetOrderEntries(order.ID)
+	if err != nil {
+		log.Error(err, " orderID: ", order.ID)
+	}
+	return
+}
+
+// Create Payment Order
+// TODO: This should be a transaction
+// Processes OrderCode, vendor, and items (trinkgeld is an item)
+func (db *Database) CreateOrder(order Order) (orderID int, err error) {
+
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Create order items
+	for _, entry := range order.Entries {
+
+		// Get current item price
+		var item Item
+		err = db.Dbpool.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		// Create order item
+		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
+		if err != nil {
+			log.Error(err)
+			return orderID, err
+		}
+	}
+
+	return
+}
+
+// Verify payment order, update it in the database, and create payments
+func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
+
+	// Start a transaction
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+
+	// Execute transaction after function returns
+	defer func() {
+		if p := recover(); p != nil {
+			// Rollback the transaction if a panic occurred
+			_ = tx.Rollback(context.Background())
+			// Re-throw the panic
+			panic(p)
+		} else if err != nil {
+			// Rollback the transaction if an error occurred
+			_ = tx.Rollback(context.Background())
+		} else {
+			// Commit the transaction if everything is successful
+			err = tx.Commit(context.Background())
+		}
+	}()
+
+	// Verify payment order
+	_, err = tx.Exec(context.Background(), `
+	UPDATE PaymentOrder
+	SET Verified = True
+	WHERE ID = $1
+	`, id)
+	if err != nil {
+		log.Error(err)
+	}
+
+	// Get Paymentorder (including payments)
+	order, err := db.GetOrderByID(id)
+
+	// Create payments
+	for _, oi := range order.Entries {
+		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, PaymentOrder) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return
+}
+
 // Payments -------------------------------------------------------------------
 
 // GetPayments returns the payments from the database
@@ -155,7 +322,7 @@ func (db *Database) ListPayments() ([]Payment, error) {
 	}
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Item, &payment.Batch)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry)
 		if err != nil {
 			return payments, err
 		}
@@ -164,11 +331,8 @@ func (db *Database) ListPayments() ([]Payment, error) {
 	return payments, nil
 }
 
-
 // Create multiple payments
 func (db *Database) CreatePayments(payments []Payment) (err error) {
-
-	log.Info("CreatePayments called")
 
 	// Create a transaction to insert all payments at once
 	tx, err := db.Dbpool.Begin(context.Background())
@@ -202,15 +366,84 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 	return nil
 }
 
-
 // Accounts -------------------------------------------------------------------
 
-
-func (db *Database) CreateAccount(account Account) (id int32, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Account (Name) values ($1) RETURNING ID", account.Name).Scan(&id)
+// CreateAccount creates an account in the database
+func (db *Database) CreateAccount(account Account) (id int, err error) {
+	// TODO: Validate that some types should only exist once
+	// TODO: Validate that User should only be filled if type is user_auth
+	// Check if account.type = UserAuth
+	// if account.Type == "UserAuth" && account.User.String == "" {
+	// 	err = new (Error)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Name, Type) values ($1, $2) RETURNING ID", account.Name, account.Type).Scan(&id)
 	return id, err
 }
 
+// ListAccounts
+func (db *Database) ListAccounts() (accounts []Account, err error) {
+	rows, err := db.Dbpool.Query(context.Background(), "select * from Account")
+	if err != nil {
+		log.Error(err)
+		return accounts, err
+	}
+	for rows.Next() {
+		var account Account
+		err = rows.Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+		if err != nil {
+			log.Error(err)
+			return accounts, err
+		}
+		accounts = append(accounts, account)
+	}
+	return accounts, nil
+}
+
+// GetAccountByID returns the account with the given ID
+func (db *Database) GetAccountByID(id int) (account Account, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE ID = $1", id).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+	if err != nil {
+		if err.Error() == "no rows in result set" {
+			err = errors.New("account does not exist")
+		}
+		log.Error(err)
+	}
+	return
+}
+
+// GetAccountByUser returns the account with the given user
+func (db *Database) GetAccountByUser(user string) (account Account, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE User = $1", user).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+	if err != nil {
+		if err.Error() == "no rows in result set" {
+			err = errors.New("user does not exist or has no account")
+		}
+		log.Error(err)
+	}
+	return
+}
+
+// GetAccountByVendor returns the account with the given vendor
+func (db *Database) GetAccountByVendor(vendor int) (account Account, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Vendor = $1", vendor).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+	if err != nil {
+		if err.Error() == "no rows in result set" {
+			err = errors.New("vendor does not exist or has no account")
+		}
+		log.Error(err)
+	}
+	return
+}
+
+// GetAccountByType returns the account with the given type
+// Works only for types with a single entry in the database
+// TODO: This could easily be cached
+func (db *Database) GetAccountByType(accountType string) (account Account, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Type = $1", accountType).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
 
 // Settings (singleton) -------------------------------------------------------
 

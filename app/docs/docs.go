@@ -158,6 +158,81 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders/": {
+            "post": {
+                "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Create Payment Order",
+                "parameters": [
+                    {
+                        "description": "Payment Order",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/verify/": {
+            "post": {
+                "description": "Verifies order and creates payments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Verify Payment Order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "3043685539722561",
+                        "description": "Order Code",
+                        "name": "s",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "882d641c-01cc-442f-b894-2b51250340b5",
+                        "description": "Transaction ID",
+                        "name": "t",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VerifyOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/payments": {
             "get": {
                 "consumes": [
@@ -193,6 +268,17 @@ const docTemplate = `{
                     "core"
                 ],
                 "summary": "Create a set of payments",
+                "parameters": [
+                    {
+                        "description": " Create Payment",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreatePaymentsRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -279,7 +365,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/vendors/{id}": {
+        "/vendors/{id}/": {
             "put": {
                 "description": "Warning: Unfilled fields will be set to default values",
                 "consumes": [
@@ -382,7 +468,7 @@ const docTemplate = `{
         },
         "/vivawallet/transaction_verification/": {
             "post": {
-                "description": "Accepts {\"TransactionID\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
+                "description": "Accepts {\"OrderCode\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
                 "consumes": [
                     "application/json"
                 ],
@@ -396,7 +482,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Transaction ID",
-                        "name": "transactionID",
+                        "name": "OrderCode",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -477,6 +563,9 @@ const docTemplate = `{
         "database.Item": {
             "type": "object",
             "properties": {
+                "archived": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -486,11 +575,44 @@ const docTemplate = `{
                 "image": {
                     "type": "string"
                 },
+                "licenseItem": {
+                    "description": "License has to be bought before item",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/null.Int"
+                        }
+                    ]
+                },
                 "name": {
                     "type": "string"
                 },
                 "price": {
-                    "type": "number"
+                    "description": "Price in cents",
+                    "type": "integer"
+                }
+            }
+        },
+        "database.OrderEntry": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "item": {
+                    "type": "integer"
+                },
+                "price": {
+                    "description": "Price at time of purchase in cents",
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "receiver": {
+                    "type": "integer"
+                },
+                "sender": {
+                    "type": "integer"
                 }
             }
         },
@@ -498,18 +620,18 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "amount": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "authorizedBy": {
                     "type": "string"
                 },
-                "batch": {
-                    "type": "integer"
-                },
                 "id": {
                     "type": "integer"
                 },
-                "item": {
+                "order": {
+                    "type": "integer"
+                },
+                "orderEntry": {
                     "type": "integer"
                 },
                 "receiver": {
@@ -519,8 +641,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "timestamp": {
-                    "type": "string",
-                    "format": "date-time"
+                    "type": "string"
                 }
             }
         },
@@ -549,7 +670,7 @@ const docTemplate = `{
             "properties": {
                 "balance": {
                     "description": "This is joined in from the account",
-                    "type": "number"
+                    "type": "integer"
                 },
                 "email": {
                     "type": "string"
@@ -579,6 +700,53 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.CreateOrderRequest": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.CreateOrderRequestEntry"
+                    }
+                },
+                "user": {
+                    "type": "string"
+                },
+                "vendor": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.CreateOrderRequestEntry": {
+            "type": "object",
+            "properties": {
+                "item": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.CreateOrderResponse": {
+            "type": "object",
+            "properties": {
+                "smartCheckoutURL": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CreatePaymentsRequest": {
+            "type": "object",
+            "properties": {
+                "payments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Payment"
+                    }
+                }
+            }
+        },
         "handlers.TransactionOrder": {
             "type": "object",
             "properties": {
@@ -598,8 +766,8 @@ const docTemplate = `{
         "handlers.TransactionVerification": {
             "type": "object",
             "properties": {
-                "transactionID": {
-                    "type": "string"
+                "orderCode": {
+                    "type": "integer"
                 }
             }
         },
@@ -842,6 +1010,47 @@ const docTemplate = `{
                 },
                 "url": {
                     "type": "string"
+        "handlers.VerifyOrderResponse": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.OrderEntry"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "orderCode": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "transactionID": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                },
+                "vendor": {
+                    "type": "integer"
+                },
+                "verified": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "null.Int": {
+            "type": "object",
+            "properties": {
+                "int64": {
+                    "type": "integer"
+                },
+                "valid": {
+                    "description": "Valid is true if Int64 is not NULL",
+                    "type": "boolean"
                 }
             }
         }

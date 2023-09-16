@@ -32,6 +32,16 @@ type PaymentOrderRequest struct {
 	SourceCode          string   `json:"sourceCode"`
 	MerchantTrns        string   `json:"merchantTrns"`
 	Tags                []string `json:"tags"`
+	// TODO: Additional fields that Aaron found in the API docs
+	// PaymentMethodFees   []struct {
+	// 	PaymentMethodId int `json:"paymentMethodId"`
+	// 	Fee             int `json:"fee"`
+	// } `json:"paymentMethodFees"`
+	// CardTokens []string `json:"cardTokens"`
+}
+
+type PaymentOrderResponse struct {
+	OrderCode int `json:"orderCode"`
 }
 
 type Customer struct {
@@ -211,13 +221,13 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 
 }
 
-func VerifyTransactionID(accessToken string, transactionID string) (success bool, err error) {
+func VerifyTransactionID(accessToken string, TransactionID string) (success bool, err error) {
 	// Create a new request URL using http
 	apiURL := "https://demo-api.vivapayments.com"
-	resource := "/checkout/v2/transactions/" + transactionID
+	resource := "/checkout/v2/transactions/" + TransactionID
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
-	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{transactionId}"
+	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{TransactionID}"
 
 	// Create a new get request
 	req, err := http.NewRequest("GET", urlStr, nil)
@@ -250,8 +260,8 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 	}
 
 	// Unmarshal response body to struct
-	var transactionVerificationRequest TransactionVerificationResponse
-	err = json.Unmarshal(body, &transactionVerificationRequest)
+	var transactionVerificationResponse TransactionVerificationResponse
+	err = json.Unmarshal(body, &transactionVerificationResponse)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
 		return false, err

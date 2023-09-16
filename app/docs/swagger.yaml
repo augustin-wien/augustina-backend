@@ -1,38 +1,60 @@
 basePath: /api
 consumes:
-- application/json
+  - application/json
 definitions:
   database.Item:
     properties:
+      archived:
+        type: boolean
       description:
         type: string
       id:
         type: integer
       image:
         type: string
+      licenseItem:
+        allOf:
+          - $ref: "#/definitions/null.Int"
+        description: License has to be bought before item
       name:
         type: string
       price:
-        type: number
+        description: Price in cents
+        type: integer
+    type: object
+  database.OrderEntry:
+    properties:
+      id:
+        type: integer
+      item:
+        type: integer
+      price:
+        description: Price at time of purchase in cents
+        type: integer
+      quantity:
+        type: integer
+      receiver:
+        type: integer
+      sender:
+        type: integer
     type: object
   database.Payment:
     properties:
       amount:
-        type: number
+        type: integer
       authorizedBy:
         type: string
-      batch:
-        type: integer
       id:
         type: integer
-      item:
+      order:
+        type: integer
+      orderEntry:
         type: integer
       receiver:
         type: integer
       sender:
         type: integer
       timestamp:
-        format: date-time
         type: string
     type: object
   database.Settings:
@@ -52,7 +74,7 @@ definitions:
     properties:
       balance:
         description: This is joined in from the account
-        type: number
+        type: integer
       email:
         type: string
       firstName:
@@ -72,6 +94,36 @@ definitions:
         description: This is used for the QR code
         type: string
     type: object
+  handlers.CreateOrderRequest:
+    properties:
+      entries:
+        items:
+          $ref: "#/definitions/handlers.CreateOrderRequestEntry"
+        type: array
+      user:
+        type: string
+      vendor:
+        type: integer
+    type: object
+  handlers.CreateOrderRequestEntry:
+    properties:
+      item:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  handlers.CreateOrderResponse:
+    properties:
+      smartCheckoutURL:
+        type: string
+    type: object
+  handlers.CreatePaymentsRequest:
+    properties:
+      payments:
+        items:
+          $ref: "#/definitions/database.Payment"
+        type: array
+    type: object
   handlers.TransactionOrder:
     properties:
       amount:
@@ -84,8 +136,8 @@ definitions:
     type: object
   handlers.TransactionVerification:
     properties:
-      transactionID:
-        type: string
+      orderCode:
+        type: integer
     type: object
   handlers.TransactionVerificationResponse:
     properties:
@@ -246,6 +298,34 @@ definitions:
         type: object
       url:
         type: string
+  handlers.VerifyOrderResponse:
+    properties:
+      entries:
+        items:
+          $ref: "#/definitions/database.OrderEntry"
+        type: array
+      id:
+        type: integer
+      orderCode:
+        type: string
+      timestamp:
+        type: string
+      transactionID:
+        type: string
+      user:
+        type: string
+      vendor:
+        type: integer
+      verified:
+        type: boolean
+    type: object
+  null.Int:
+    properties:
+      int64:
+        type: integer
+      valid:
+        description: Valid is true if Int64 is not NULL
+        type: boolean
     type: object
 externalDocs:
   description: OpenAPI
@@ -267,42 +347,42 @@ paths:
   /hello/:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Return HelloWorld as sample API call
       produces:
-      - application/json
+        - application/json
       responses: {}
       summary: Return HelloWorld
       tags:
-      - core
+        - core
   /items/:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Item'
+              $ref: "#/definitions/database.Item"
             type: array
       summary: List Items
       tags:
-      - Items
+        - Items
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Item Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Item'
+        - description: Item Representation
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/database.Item"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -310,250 +390,311 @@ paths:
             type: int
       summary: Create Item
       tags:
-      - Items
+        - Items
   /items/{id}:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Item ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Item ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Delete Item
       tags:
-      - Items
+        - Items
   /items/{id}/:
     put:
       consumes:
-      - application/json
+        - application/json
       description: Requires multipart form (for image)
       parameters:
-      - description: Item Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Item'
+        - description: Item Representation
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/database.Item"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Update Item
       tags:
-      - Items
+        - Items
+  /orders/:
+    post:
+      consumes:
+        - application/json
+      description:
+        Submits payment order to provider & saves it to database. Entries
+        need to have an item id and a quantity (for entries without a price like tips,
+        the quantity is the amount of cents). If no user is given, the order is anonymous.
+      parameters:
+        - description: Payment Order
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/handlers.CreateOrderRequest"
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handlers.CreateOrderResponse"
+      summary: Create Payment Order
+      tags:
+        - Orders
+  /orders/verify/:
+    post:
+      consumes:
+        - application/json
+      description: Verifies order and creates payments
+      parameters:
+        - description: Order Code
+          format: "3043685539722561"
+          in: query
+          name: s
+          required: true
+          type: string
+        - description: Transaction ID
+          format: 882d641c-01cc-442f-b894-2b51250340b5
+          in: query
+          name: t
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handlers.VerifyOrderResponse"
+      summary: Verify Payment Order
+      tags:
+        - Orders
   /payments:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Payment'
+              $ref: "#/definitions/database.Payment"
             type: array
       summary: Get list of all payments
       tags:
-      - core
+        - core
     post:
       consumes:
-      - application/json
+        - application/json
+      parameters:
+        - description: " Create Payment"
+          in: body
+          name: amount
+          required: true
+          schema:
+            $ref: "#/definitions/handlers.CreatePaymentsRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Create a set of payments
       tags:
-      - core
+        - core
   /settings/:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Return configuration data of the system
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Settings'
+              $ref: "#/definitions/database.Settings"
             type: array
       summary: Return settings
       tags:
-      - core
+        - core
   /vendors/:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Vendor'
+              $ref: "#/definitions/database.Vendor"
             type: array
       summary: List Vendors
       tags:
-      - vendors
+        - vendors
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Vendor Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Vendor'
+        - description: Vendor Representation
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/database.Vendor"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Create Vendor
       tags:
-      - vendors
-  /vendors/{id}:
+        - vendors
+  /vendors/{id}/:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Vendor ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Vendor ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Delete Vendor
       tags:
-      - vendors
+        - vendors
     put:
       consumes:
-      - application/json
-      description: 'Warning: Unfilled fields will be set to default values'
+        - application/json
+      description: "Warning: Unfilled fields will be set to default values"
       parameters:
-      - description: Vendor ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Vendor Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Vendor'
+        - description: Vendor ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: Vendor Representation
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/database.Vendor"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Update Vendor
       tags:
-      - vendors
+        - vendors
   /vivawallet/transaction_order/:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Post your amount like {"Amount":100}, which equals 100 cents
       parameters:
-      - description: Amount in cents
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.TransactionOrder'
+        - description: Amount in cents
+          in: body
+          name: amount
+          required: true
+          schema:
+            $ref: "#/definitions/handlers.TransactionOrder"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.TransactionOrderResponse'
+              $ref: "#/definitions/handlers.TransactionOrderResponse"
             type: array
       summary: Create a transaction order
       tags:
-      - core
+        - core
   /vivawallet/transaction_verification/:
     post:
       consumes:
-      - application/json
-      description: Accepts {"TransactionID":"1234567890"} and returns {"Verification":true},
+        - application/json
+      description:
+        Accepts {"OrderCode":"1234567890"} and returns {"Verification":true},
         if successful
       parameters:
-      - description: Transaction ID
-        in: body
-        name: transactionID
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.TransactionVerification'
+        - description: Transaction ID
+          in: body
+          name: OrderCode
+          required: true
+          schema:
+            $ref: "#/definitions/handlers.TransactionVerification"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.TransactionVerificationResponse'
+              $ref: "#/definitions/handlers.TransactionVerificationResponse"
             type: array
       summary: Verify a transaction
       tags:
-      - core
+        - core
   /webhooks/vivawallet/:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Return VivaWallet verification key
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.VivaWalletVerificationKeyResponse'
+              $ref: "#/definitions/handlers.VivaWalletVerificationKeyResponse"
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - core
+        - core
     post:
       consumes:
-      - application/json
+        - application/json
       description: Webhook for VivaWallet
       parameters:
-      - description: Payment Successful Response
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/paymentprovider.PaymentSuccessfulResponse'
+        - description: Payment Successful Response
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/paymentprovider.PaymentSuccessfulResponse"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Webhook for VivaWallet
       tags:
-      - core
+        - core
 securityDefinitions:
   BasicAuth:
     type: basic

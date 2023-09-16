@@ -20,6 +20,7 @@ type Database struct {
 // Db is the global database connection pool that is used by all handlers
 var Db Database
 
+
 // Connect to production database and store it in the global Db variable
 func (db *Database) InitDb() (err error) {
 	err = db.initDb(true, true)
@@ -27,6 +28,7 @@ func (db *Database) InitDb() (err error) {
 		return err
 	}
 	db.InitiateSettings()
+	db.InitiateAccounts()
 	if config.Config.Development {
 		err = db.CreateDevData()
 	}
@@ -43,6 +45,8 @@ func (db *Database) InitEmptyTestDb() (err error) {
 	if err != nil {
 		return err
 	}
+	db.InitiateSettings()
+	db.InitiateAccounts()
 	return err
 }
 
@@ -105,6 +109,5 @@ func (db *Database) EmptyDatabase() (err error) {
 	if err != nil {
 		log.Error(err)
 	}
-	db.InitiateSettings()
 	return
 }
