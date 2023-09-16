@@ -1,8 +1,37 @@
 package paymentprovider
 
-import "time"
+import (
+	"errors"
+	"io"
+	"net/http"
+	"net/url"
+	"strconv"
+	"time"
+)
 
-type PaymentSuccessfulRequest struct {
+type PriceEventData struct {
+	OrderCode       int64   `json:"OrderCode"`
+	MerchantId      string  `json:"MerchantId"`
+	IsvFee          float64 `json:"IsvFee"`
+	TransactionId   string  `json:"TransactionId"`
+	CurrencyCode    string  `json:"CurrencyCode"`
+	Interchange     float64 `json:"Interchange"`
+	TotalCommission float64 `json:"TotalCommission"`
+}
+
+type TransactionPriceRequest struct {
+	Url           string         `json:"Url"`
+	EventData     PriceEventData `json:"EventData"`
+	Created       time.Time      `json:"Created"`
+	CorrelationId string         `json:"CorrelationId"`
+	EventTypeId   int            `json:"EventTypeId"`
+	Delay         *int           `json:"Delay"`
+	MessageId     string         `json:"MessageId"`
+	RecipientId   string         `json:"RecipientId"`
+	MessageTypeId int            `json:"MessageTypeId"`
+}
+
+type TransactionDetailRequest struct {
 	Url           string    `json:"Url"`
 	EventData     EventData `json:"EventData"`
 	Created       time.Time `json:"Created"`
@@ -87,12 +116,71 @@ type EventData struct {
 	DigitalWalletId             any      `json:"DigitalWalletId"`
 }
 
-func HandlePaymentSuccessfulResponse(paymentSuccessful PaymentSuccessfulRequest) (err error) {
+func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest) (err error) {
 	log.Info("paymentSuccessful", paymentSuccessful)
+	// Create a new request URL using http
+	apiURL := "https://demo-api.vivapayments.com"
+	resource := "/checkout/v2/transactions/" + paymentSuccessful.EventData.TransactionId
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{transactionId}"
+
+	// Create a new get request
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		log.Error("Building request failed: ", err)
+	}
+
+	// Get access token
+	accessToken, err := AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
+	}
+
+	// Create Header
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	// Create a new client with a 10 second timeout
+	client := http.Client{Timeout: 10 * time.Second}
+	// Send the request
+	res, err := client.Do(req)
+	if err != nil {
+		log.Error("Sending request failed: ", err)
+	}
+
+	if res.StatusCode != 200 {
+		return errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode))
+	}
+
+	// Close the body after the function returns
+	defer res.Body.Close()
+	// Log the request body
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Error("Reading body failed: ", err)
+		return err
+	}
+	log.Info("transactionVerificationResponse: ", string(body))
+
+	// Unmarshal response body to struct
+	// var transactionVerificationResponse TransactionVerificationResponse
+	// err = json.Unmarshal(body, &transactionVerificationResponse)
+	// if err != nil {
+	// 	log.Error("Unmarshalling body failed: ", err)
+	// 	return err
+	// }
+	// log.Info("transactionVerificationResponse", transactionVerificationResponse)
+
 	return
 }
 
-func HandlyPaymentFailureResponse(paymentFailure PaymentSuccessfulRequest) (err error) {
+func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err error) {
 	log.Info("paymentFailure", paymentFailure)
+	return
+}
+
+func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
+	log.Info("paymentPrice", paymentPrice)
 	return
 }

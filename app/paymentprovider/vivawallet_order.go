@@ -53,7 +53,7 @@ type PaymentOrderResponse struct {
 	OrderCode int `json:"orderCode"`
 }
 
-type TransactionVerificationRequest struct {
+type TransactionVerificationResponse struct {
 	Email               string  `json:"email"`
 	Amount              float64 `json:"amount"`
 	OrderCode           int     `json:"orderCode"`
@@ -148,7 +148,7 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 	// TODO: Change this to a real payment order
 	paymentOrderRequest := PaymentOrderRequest{
 		Amount:              amount,
-		CustomerTrns:        "testCustomerTrns",
+		CustomerTrns:        "Augustin Straßenzeitung + Trinkgeld + Spende + Abo + Versand + 1x Ausgabe + probleme wenn der Text zu lang wird",
 		Customer:            customer,
 		PaymentTimeout:      300,
 		Preauth:             false,
@@ -250,7 +250,7 @@ func VerifyTransactionID(accessToken string, transactionID string) (success bool
 	}
 
 	// Unmarshal response body to struct
-	var transactionVerificationRequest TransactionVerificationRequest
+	var transactionVerificationRequest TransactionVerificationResponse
 	err = json.Unmarshal(body, &transactionVerificationRequest)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
