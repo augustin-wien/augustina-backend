@@ -497,7 +497,7 @@
                 }
             }
         },
-        "/webhooks/vivawallet/": {
+        "/webhooks/vivawallet/failure": {
             "get": {
                 "description": "Return VivaWallet verification key",
                 "consumes": [
@@ -523,7 +523,7 @@
                 }
             },
             "post": {
-                "description": "Webhook for VivaWallet",
+                "description": "Webhook for VivaWallet failed transaction",
                 "consumes": [
                     "application/json"
                 ],
@@ -533,7 +533,117 @@
                 "tags": [
                     "core"
                 ],
-                "summary": "Webhook for VivaWallet",
+                "summary": "Webhook for VivaWallet failed transaction",
+                "parameters": [
+                    {
+                        "description": "Payment Failure Response",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/webhooks/vivawallet/price": {
+            "get": {
+                "description": "Return VivaWallet verification key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Return VivaWallet verification key",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.VivaWalletVerificationKeyResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Webhook for VivaWallet transaction prices",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Webhook for VivaWallet transaction prices",
+                "parameters": [
+                    {
+                        "description": "Payment Price Response",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/paymentprovider.TransactionPriceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/webhooks/vivawallet/success": {
+            "get": {
+                "description": "Return VivaWallet verification key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Return VivaWallet verification key",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.VivaWalletVerificationKeyResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Webhook for VivaWallet successful transaction",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "core"
+                ],
+                "summary": "Webhook for VivaWallet successful transaction",
                 "parameters": [
                     {
                         "description": "Payment Successful Response",
@@ -541,7 +651,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/paymentprovider.PaymentSuccessfulResponse"
+                            "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
                         }
                     }
                 ],
@@ -773,237 +883,6 @@
                 }
             }
         },
-        "handlers.VivaWalletVerificationKeyResponse": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
-                }
-            }
-        },
-        "paymentprovider.PaymentSuccessfulResponse": {
-            "type": "object",
-            "properties": {
-                "CorrelationId": {
-                    "type": "string"
-                },
-                "Created": {
-                    "type": "string"
-                },
-                "Delay": {
-                    "type": "string"
-                },
-                "EventTypeId": {
-                    "type": "integer"
-                },
-                "MessageId": {
-                    "type": "string"
-                },
-                "MessageTypeId": {
-                    "type": "integer"
-                },
-                "RecipientId": {
-                    "type": "string"
-                },
-                "eventData": {
-                    "type": "object",
-                    "properties": {
-                        "amount": {
-                            "type": "integer"
-                        },
-                        "assignedMerchantUsers": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "assignedResellerUsers": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "bankId": {
-                            "type": "string"
-                        },
-                        "billId": {
-                            "type": "string"
-                        },
-                        "cardCountryCode": {
-                            "type": "string"
-                        },
-                        "cardExpirationDate": {
-                            "type": "string"
-                        },
-                        "cardIssuingBank": {
-                            "type": "string"
-                        },
-                        "cardNumber": {
-                            "type": "string"
-                        },
-                        "cardToken": {
-                            "type": "string"
-                        },
-                        "cardTypeId": {
-                            "type": "integer"
-                        },
-                        "cardUniqueReference": {
-                            "type": "string"
-                        },
-                        "channelId": {
-                            "type": "string"
-                        },
-                        "clearanceDate": {
-                            "type": "string"
-                        },
-                        "companyName": {
-                            "type": "string"
-                        },
-                        "companyTitle": {
-                            "type": "string"
-                        },
-                        "currencyCode": {
-                            "type": "string"
-                        },
-                        "currentInstallment": {
-                            "type": "integer"
-                        },
-                        "customerTrns": {
-                            "type": "string"
-                        },
-                        "digitalWalletId": {
-                            "type": "integer"
-                        },
-                        "electronicCommerceIndicator": {
-                            "type": "string"
-                        },
-                        "email": {
-                            "type": "string"
-                        },
-                        "fullName": {
-                            "type": "string"
-                        },
-                        "insDate": {
-                            "type": "string"
-                        },
-                        "isManualRefund": {
-                            "type": "boolean"
-                        },
-                        "latitude": {
-                            "type": "string"
-                        },
-                        "longitude": {
-                            "type": "string"
-                        },
-                        "loyaltyTriggered": {
-                            "type": "boolean"
-                        },
-                        "merchantId": {
-                            "type": "string"
-                        },
-                        "merchantTrns": {
-                            "type": "string"
-                        },
-                        "moto": {
-                            "type": "boolean"
-                        },
-                        "orderCode": {
-                            "type": "integer"
-                        },
-                        "orderCulture": {
-                            "type": "string"
-                        },
-                        "panEntryMode": {
-                            "type": "string"
-                        },
-                        "parentId": {
-                            "type": "string"
-                        },
-                        "phone": {
-                            "type": "string"
-                        },
-                        "productId": {
-                            "type": "string"
-                        },
-                        "redeemedAmount": {
-                            "type": "integer"
-                        },
-                        "referenceNumber": {
-                            "type": "integer"
-                        },
-                        "resellerCompanyName": {
-                            "type": "string"
-                        },
-                        "resellerId": {
-                            "type": "string"
-                        },
-                        "resellerSourceAddress": {
-                            "type": "string"
-                        },
-                        "resellerSourceCode": {
-                            "type": "string"
-                        },
-                        "resellerSourceName": {
-                            "type": "string"
-                        },
-                        "responseCode": {
-                            "type": "string"
-                        },
-                        "responseEventId": {
-                            "type": "string"
-                        },
-                        "retrievalReferenceNumber": {
-                            "type": "string"
-                        },
-                        "sourceCode": {
-                            "type": "string"
-                        },
-                        "sourceName": {
-                            "type": "string"
-                        },
-                        "statusId": {
-                            "type": "string"
-                        },
-                        "switching": {
-                            "type": "boolean"
-                        },
-                        "systemic": {
-                            "type": "boolean"
-                        },
-                        "tags": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "targetPersonId": {
-                            "type": "string"
-                        },
-                        "targetWalletId": {
-                            "type": "string"
-                        },
-                        "terminalId": {
-                            "type": "integer"
-                        },
-                        "tipAmount": {
-                            "type": "integer"
-                        },
-                        "totalFee": {
-                            "type": "integer"
-                        },
-                        "totalInstallments": {
-                            "type": "integer"
-                        },
-                        "transactionId": {
-                            "type": "string"
-                        },
-                        "transactionTypeId": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "url": {
-                    "type": "string"
         "handlers.VerifyOrderResponse": {
             "type": "object",
             "properties": {
@@ -1036,6 +915,14 @@
                 }
             }
         },
+        "handlers.VivaWalletVerificationKeyResponse": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
         "null.Int": {
             "type": "object",
             "properties": {
@@ -1045,6 +932,272 @@
                 "valid": {
                     "description": "Valid is true if Int64 is not NULL",
                     "type": "boolean"
+                }
+            }
+        },
+        "paymentprovider.EventData": {
+            "type": "object",
+            "properties": {
+                "AcquirerApproved": {
+                    "type": "boolean"
+                },
+                "Amount": {
+                    "type": "number"
+                },
+                "AssignedMerchantUsers": {
+                    "type": "array",
+                    "items": {}
+                },
+                "AssignedResellerUsers": {
+                    "type": "array",
+                    "items": {}
+                },
+                "AuthorizationId": {
+                    "type": "string"
+                },
+                "BankId": {
+                    "type": "string"
+                },
+                "BillId": {},
+                "BinId": {
+                    "type": "integer"
+                },
+                "CardCountryCode": {},
+                "CardExpirationDate": {
+                    "type": "string"
+                },
+                "CardIssuingBank": {},
+                "CardNumber": {
+                    "type": "string"
+                },
+                "CardToken": {
+                    "type": "string"
+                },
+                "CardTypeId": {
+                    "type": "integer"
+                },
+                "CardUniqueReference": {
+                    "type": "string"
+                },
+                "ChannelId": {
+                    "type": "string"
+                },
+                "ClearanceDate": {},
+                "CompanyName": {},
+                "CompanyTitle": {},
+                "ConnectedAccountId": {},
+                "CurrencyCode": {
+                    "type": "string"
+                },
+                "CurrentInstallment": {
+                    "type": "integer"
+                },
+                "CustomerTrns": {
+                    "type": "string"
+                },
+                "DigitalWalletId": {},
+                "DualMessage": {
+                    "type": "boolean"
+                },
+                "ElectronicCommerceIndicator": {
+                    "type": "string"
+                },
+                "Email": {
+                    "type": "string"
+                },
+                "FullName": {
+                    "type": "string"
+                },
+                "InsDate": {
+                    "type": "string"
+                },
+                "IsManualRefund": {
+                    "type": "boolean"
+                },
+                "Latitude": {},
+                "Longitude": {},
+                "LoyaltyTriggered": {
+                    "type": "boolean"
+                },
+                "MerchantCategoryCode": {
+                    "type": "integer"
+                },
+                "MerchantId": {
+                    "type": "string"
+                },
+                "MerchantTrns": {
+                    "type": "string"
+                },
+                "Moto": {
+                    "type": "boolean"
+                },
+                "OrderCode": {
+                    "type": "integer"
+                },
+                "OrderCulture": {
+                    "type": "string"
+                },
+                "OrderServiceId": {
+                    "type": "integer"
+                },
+                "PanEntryMode": {
+                    "type": "string"
+                },
+                "ParentId": {},
+                "Phone": {
+                    "type": "string"
+                },
+                "ProductId": {},
+                "RedeemedAmount": {
+                    "type": "number"
+                },
+                "ReferenceNumber": {
+                    "type": "integer"
+                },
+                "ResellerCompanyName": {},
+                "ResellerId": {},
+                "ResellerSourceAddress": {},
+                "ResellerSourceCode": {},
+                "ResellerSourceName": {},
+                "ResponseCode": {
+                    "type": "string"
+                },
+                "ResponseEventId": {},
+                "RetrievalReferenceNumber": {
+                    "type": "string"
+                },
+                "ServiceId": {},
+                "SourceCode": {
+                    "type": "string"
+                },
+                "SourceName": {
+                    "type": "string"
+                },
+                "StatusId": {
+                    "type": "string"
+                },
+                "Switching": {
+                    "type": "boolean"
+                },
+                "Systemic": {
+                    "type": "boolean"
+                },
+                "Tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "TargetPersonId": {},
+                "TargetWalletId": {},
+                "TerminalId": {
+                    "type": "integer"
+                },
+                "TipAmount": {
+                    "type": "number"
+                },
+                "TotalFee": {
+                    "type": "number"
+                },
+                "TotalInstallments": {
+                    "type": "integer"
+                },
+                "TransactionId": {
+                    "type": "string"
+                },
+                "TransactionTypeId": {
+                    "type": "integer"
+                },
+                "Ucaf": {
+                    "type": "string"
+                }
+            }
+        },
+        "paymentprovider.PriceEventData": {
+            "type": "object",
+            "properties": {
+                "CurrencyCode": {
+                    "type": "string"
+                },
+                "Interchange": {
+                    "type": "number"
+                },
+                "IsvFee": {
+                    "type": "number"
+                },
+                "MerchantId": {
+                    "type": "string"
+                },
+                "OrderCode": {
+                    "type": "integer"
+                },
+                "TotalCommission": {
+                    "type": "number"
+                },
+                "TransactionId": {
+                    "type": "string"
+                }
+            }
+        },
+        "paymentprovider.TransactionDetailRequest": {
+            "type": "object",
+            "properties": {
+                "CorrelationId": {
+                    "type": "string"
+                },
+                "Created": {
+                    "type": "string"
+                },
+                "Delay": {},
+                "EventData": {
+                    "$ref": "#/definitions/paymentprovider.EventData"
+                },
+                "EventTypeId": {
+                    "type": "integer"
+                },
+                "MessageId": {
+                    "type": "string"
+                },
+                "MessageTypeId": {
+                    "type": "integer"
+                },
+                "RecipientId": {
+                    "type": "string"
+                },
+                "Url": {
+                    "type": "string"
+                }
+            }
+        },
+        "paymentprovider.TransactionPriceRequest": {
+            "type": "object",
+            "properties": {
+                "CorrelationId": {
+                    "type": "string"
+                },
+                "Created": {
+                    "type": "string"
+                },
+                "Delay": {
+                    "type": "integer"
+                },
+                "EventData": {
+                    "$ref": "#/definitions/paymentprovider.PriceEventData"
+                },
+                "EventTypeId": {
+                    "type": "integer"
+                },
+                "MessageId": {
+                    "type": "string"
+                },
+                "MessageTypeId": {
+                    "type": "integer"
+                },
+                "RecipientId": {
+                    "type": "string"
+                },
+                "Url": {
+                    "type": "string"
                 }
             }
         }

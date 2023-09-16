@@ -40,10 +40,6 @@ type PaymentOrderRequest struct {
 	// CardTokens []string `json:"cardTokens"`
 }
 
-type PaymentOrderResponse struct {
-	OrderCode int `json:"orderCode"`
-}
-
 type Customer struct {
 	Email       string `json:"email"`
 	Fullname    string `json:"fullName"`

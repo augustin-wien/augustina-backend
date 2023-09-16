@@ -671,7 +671,7 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
-//	@Param			data body paymentprovider.PaymentSuccessfulResponse true "Payment Successful Response"
+//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Successful Response"
 //	@Router			/webhooks/vivawallet/success [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 	var paymentSuccessful paymentprovider.TransactionDetailRequest
@@ -699,7 +699,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
-//	@Param			data body nil true "Payment Failure Response"
+//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Failure Response"
 //	@Router			/webhooks/vivawallet/failure [post]
 func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 	var paymentFailure paymentprovider.TransactionDetailRequest
@@ -727,7 +727,7 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
-//	@Param			data body nil true "Payment Price Response"
+//	@Param			data body paymentprovider.TransactionPriceRequest true "Payment Price Response"
 //	@Router			/webhooks/vivawallet/price [post]
 func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 	var paymentPrice paymentprovider.TransactionPriceRequest
@@ -755,7 +755,9 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 //	@accept			json
 //	@Produce		json
 //	@Success		200	{array}	VivaWalletVerificationKeyResponse
-//	@Router			/webhooks/vivawallet/ [get]
+//	@Router			/webhooks/vivawallet/price [get]
+//	@Router 		/webhooks/vivawallet/success [get]
+//	@Router 		/webhooks/vivawallet/failure [get]
 func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 	key := config.Config.VivaWalletVerificationKey
 	if key == "" {
