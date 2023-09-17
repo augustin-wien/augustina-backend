@@ -456,29 +456,18 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
-type VerifyOrderResponse struct {
-	ID            int
-	OrderCode     string
-	TransactionID string
-	Verified      bool
-	Timestamp     string
-	User          string
-	Vendor        int
-	Entries       []database.OrderEntry
-}
-
-// VerifyPaymentOrder godoc
+// SaveTransactionID godoc
 //
 //	 	@Summary 		Verify Payment Order
 //		@Description	Verifies order and creates payments
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//		@Success		200 {object} VerifyOrderResponse
+//		@Success		200 {object} nil
 //		@Param			s query string true "Order Code" Format(3043685539722561)
 //		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
-//		@Router			/orders/verify/ [post]
-func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
+//		@Router			/orders/save/ [post]
+func SaveTransactionID(w http.ResponseWriter, r *http.Request) {
 
 	// Get transaction ID from URL parameter
 	OrderCode := r.URL.Query().Get("s")
@@ -499,47 +488,11 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return success message if already verified
-	if order.Verified {
-		utils.WriteJSON(w, http.StatusOK, order)
-		return
-	}
-
-	var isVerified bool
-	if database.Db.IsProduction {
-		// Get access token
-		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
-		if err != nil {
-			log.Error("Authentication failed: ", err)
-		}
-
-		// Verify transaction
-		isVerified, err = paymentprovider.VerifyTransactionID(accessToken, TransactionID)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
-	}
-
-	if !isVerified {
-		utils.ErrorJSON(w, errors.New("transaction not verified"), http.StatusBadRequest)
-		return
-	}
-
-	// Add additional entries in order (e.g. transaction fees)
-	// TODO: order.Entries = append(order.Entries, MyEntry)
-
-	// Store verification in db
+	// Store transactionID in db to verify it with webhook
 	order.TransactionID = TransactionID
-	order.Verified = isVerified
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
 
 	// Create response
-	utils.WriteJSON(w, http.StatusOK, order)
+	utils.WriteJSON(w, http.StatusOK, nil)
 }
 
 // Payments (from one account to another account) -----------------------------
