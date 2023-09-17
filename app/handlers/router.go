@@ -77,8 +77,8 @@ func GetRouter() (r *chi.Mux) {
 
 	// Payment service providers
 	r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
-		r.Post("/successful/", VivaWalletWebhookSuccess)
-		r.Get("/successful/", VivaWalletVerificationKey)
+		r.Post("/success/", VivaWalletWebhookSuccess)
+		r.Get("/success/", VivaWalletVerificationKey)
 		r.Post("/failure/", VivaWalletWebhookFailure)
 		r.Get("/failure/", VivaWalletVerificationKey)
 		r.Post("/price/", VivaWalletWebhookPrice)
