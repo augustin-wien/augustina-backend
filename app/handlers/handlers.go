@@ -433,7 +433,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("Authentication failed: ", err)
 		}
-		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
+		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order)
 		if err != nil {
 			log.Error("Creating payment order failed: ", err)
 		}
