@@ -192,47 +192,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/orders/verify/": {
-            "post": {
-                "description": "Verifies order and creates payments",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Verify Payment Order",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "3043685539722561",
-                        "description": "Order Code",
-                        "name": "s",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "format": "882d641c-01cc-442f-b894-2b51250340b5",
-                        "description": "Transaction ID",
-                        "name": "t",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.VerifyOrderResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/payments": {
             "get": {
                 "consumes": [
@@ -425,80 +384,6 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
-                    }
-                }
-            }
-        },
-        "/vivawallet/transaction_order/": {
-            "post": {
-                "description": "Post your amount like {\"Amount\":100}, which equals 100 cents",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "core"
-                ],
-                "summary": "Create a transaction order",
-                "parameters": [
-                    {
-                        "description": "Amount in cents",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.TransactionOrder"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.TransactionOrderResponse"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/vivawallet/transaction_verification/": {
-            "post": {
-                "description": "Accepts {\"OrderCode\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "core"
-                ],
-                "summary": "Verify a transaction",
-                "parameters": [
-                    {
-                        "description": "Transaction ID",
-                        "name": "OrderCode",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.TransactionVerification"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.TransactionVerificationResponse"
-                            }
-                        }
                     }
                 }
             }
@@ -702,30 +587,6 @@ const docTemplate = `{
                 }
             }
         },
-        "database.OrderEntry": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "item": {
-                    "type": "integer"
-                },
-                "price": {
-                    "description": "Price at time of purchase in cents",
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                },
-                "receiver": {
-                    "type": "integer"
-                },
-                "sender": {
-                    "type": "integer"
-                }
-            }
-        },
         "database.Payment": {
             "type": "object",
             "properties": {
@@ -854,70 +715,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/database.Payment"
                     }
-                }
-            }
-        },
-        "handlers.TransactionOrder": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.TransactionOrderResponse": {
-            "type": "object",
-            "properties": {
-                "smartCheckoutURL": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.TransactionVerification": {
-            "type": "object",
-            "properties": {
-                "orderCode": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.TransactionVerificationResponse": {
-            "type": "object",
-            "properties": {
-                "verification": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "handlers.VerifyOrderResponse": {
-            "type": "object",
-            "properties": {
-                "entries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.OrderEntry"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "orderCode": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "transactionID": {
-                    "type": "string"
-                },
-                "user": {
-                    "type": "string"
-                },
-                "vendor": {
-                    "type": "integer"
-                },
-                "verified": {
-                    "type": "boolean"
                 }
             }
         },

@@ -22,22 +22,6 @@ definitions:
         description: Price in cents
         type: integer
     type: object
-  database.OrderEntry:
-    properties:
-      id:
-        type: integer
-      item:
-        type: integer
-      price:
-        description: Price at time of purchase in cents
-        type: integer
-      quantity:
-        type: integer
-      receiver:
-        type: integer
-      sender:
-        type: integer
-    type: object
   database.Payment:
     properties:
       amount:
@@ -123,47 +107,6 @@ definitions:
         items:
           $ref: '#/definitions/database.Payment'
         type: array
-    type: object
-  handlers.TransactionOrder:
-    properties:
-      amount:
-        type: integer
-    type: object
-  handlers.TransactionOrderResponse:
-    properties:
-      smartCheckoutURL:
-        type: string
-    type: object
-  handlers.TransactionVerification:
-    properties:
-      orderCode:
-        type: integer
-    type: object
-  handlers.TransactionVerificationResponse:
-    properties:
-      verification:
-        type: boolean
-    type: object
-  handlers.VerifyOrderResponse:
-    properties:
-      entries:
-        items:
-          $ref: '#/definitions/database.OrderEntry'
-        type: array
-      id:
-        type: integer
-      orderCode:
-        type: string
-      timestamp:
-        type: string
-      transactionID:
-        type: string
-      user:
-        type: string
-      vendor:
-        type: integer
-      verified:
-        type: boolean
     type: object
   handlers.VivaWalletVerificationKeyResponse:
     properties:
@@ -488,34 +431,6 @@ paths:
       summary: Create Payment Order
       tags:
       - Orders
-  /orders/verify/:
-    post:
-      consumes:
-      - application/json
-      description: Verifies order and creates payments
-      parameters:
-      - description: Order Code
-        format: "3043685539722561"
-        in: query
-        name: s
-        required: true
-        type: string
-      - description: Transaction ID
-        format: 882d641c-01cc-442f-b894-2b51250340b5
-        in: query
-        name: t
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.VerifyOrderResponse'
-      summary: Verify Payment Order
-      tags:
-      - Orders
   /payments:
     get:
       consumes:
@@ -643,55 +558,6 @@ paths:
       summary: Update Vendor
       tags:
       - vendors
-  /vivawallet/transaction_order/:
-    post:
-      consumes:
-      - application/json
-      description: Post your amount like {"Amount":100}, which equals 100 cents
-      parameters:
-      - description: Amount in cents
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.TransactionOrder'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/handlers.TransactionOrderResponse'
-            type: array
-      summary: Create a transaction order
-      tags:
-      - core
-  /vivawallet/transaction_verification/:
-    post:
-      consumes:
-      - application/json
-      description: Accepts {"OrderCode":"1234567890"} and returns {"Verification":true},
-        if successful
-      parameters:
-      - description: Transaction ID
-        in: body
-        name: OrderCode
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.TransactionVerification'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/handlers.TransactionVerificationResponse'
-            type: array
-      summary: Verify a transaction
-      tags:
-      - core
   /webhooks/vivawallet/failure:
     get:
       consumes:
