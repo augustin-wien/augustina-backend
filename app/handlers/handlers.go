@@ -456,45 +456,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
-// SaveTransactionID godoc
-//
-//	 	@Summary 		Verify Payment Order
-//		@Description	Verifies order and creates payments
-//		@Tags			Orders
-//		@Accept			json
-//		@Produce		json
-//		@Success		200 {object} nil
-//		@Param			s query string true "Order Code" Format(3043685539722561)
-//		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
-//		@Router			/orders/save/ [post]
-func SaveTransactionID(w http.ResponseWriter, r *http.Request) {
-
-	// Get transaction ID from URL parameter
-	OrderCode := r.URL.Query().Get("s")
-	if OrderCode == "" {
-		utils.ErrorJSON(w, errors.New("missing parameter s"), http.StatusBadRequest)
-		return
-	}
-	TransactionID := r.URL.Query().Get("t")
-	if TransactionID == "" {
-		utils.ErrorJSON(w, errors.New("missing parameter t"), http.StatusBadRequest)
-		return
-	}
-
-	// Get payment order from database
-	order, err := database.Db.GetOrderByOrderCode(OrderCode)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	// Store transactionID in db to verify it with webhook
-	order.TransactionID = TransactionID
-
-	// Create response
-	utils.WriteJSON(w, http.StatusOK, nil)
-}
-
 // Payments (from one account to another account) -----------------------------
 
 // ListPayments godoc
@@ -536,84 +497,6 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-}
-
-// VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
-
-// VivaWalletCreateTransactionOrder godoc
-//
-//	@Summary		Create a transaction order
-//	@Description	Post your amount like {"Amount":100}, which equals 100 cents
-//	@Tags			core
-//	@accept			json
-//	@Produce		json
-//	@Param			amount body TransactionOrder true "Amount in cents"
-//	@Success		200	{array}	TransactionOrderResponse
-//	@Router			/vivawallet/transaction_order/ [post]
-func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
-	var transactionOrder TransactionOrder
-	err := utils.ReadJSON(w, r, &transactionOrder)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	// Create a new payment order
-	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
-	if err != nil {
-		log.Error("Authentication failed: ", err)
-	}
-	orderCode, err := paymentprovider.CreatePaymentOrder(accessToken, transactionOrder.Amount)
-	if err != nil {
-		log.Error("Creating payment order failed: ", err)
-	}
-
-	// Create response
-	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)
-	response := TransactionOrderResponse{
-		SmartCheckoutURL: url,
-	}
-	utils.WriteJSON(w, http.StatusOK, response)
-
-}
-
-// VivaWalletVerifyTransaction godoc
-//
-//	@Summary		Verify a transaction
-//	@Description	Accepts {"OrderCode":"1234567890"} and returns {"Verification":true}, if successful
-//	@Tags			core
-//	@accept			json
-//	@Produce		json
-//	@Param			OrderCode body TransactionVerification true "Transaction ID"
-//	@Success		200	{array}	TransactionVerificationResponse
-//	@Router			/vivawallet/transaction_verification/ [post]
-func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
-	var transactionVerification TransactionVerification
-	err := utils.ReadJSON(w, r, &transactionVerification)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	// Get access token
-	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
-	if err != nil {
-		log.Error("Authentication failed: ", err)
-	}
-
-	// Verify transaction
-	verification, err := paymentprovider.VerifyTransactionID(accessToken, strconv.Itoa(transactionVerification.OrderCode))
-	if err != nil {
-		log.Info("Verifying transaction failed: ", err)
-		return
-	}
-
-	// Create response
-	response := TransactionVerificationResponse{
-		Verification: verification,
-	}
-	utils.WriteJSON(w, http.StatusOK, response)
-
 }
 
 // VivaWalletWebhookSuccess godoc
