@@ -8,6 +8,8 @@ Check out the git submodules to load the wordpress, wpcli and parser git checkou
 git submodule update --init --recursive
 ```
 
+Copy `.env.example` to `.env` and set `KEYCLOAK_HOST=http://keycloak:8080/`
+
 Start the application with Docker:
 
 ```bash
@@ -17,7 +19,15 @@ docker compose up -d
 
 Go to http://localhost:3000/api/hello/
 
-Note: To make the PDF-Parser run correctly check out description below.
+**Notes**
+
+1. For developing in frontend or backend only, run this command
+  ```bash
+  docker compose up -d augustin augustin-db augustin-db-test keycloak
+  ```
+2. To make the PDF-Parser run correctly check out description below.
+3. Temporary fix to remove wpcli file: `sudo rm docker/wpcli/.env.parser`
+
 
 ### Ports
 Backend: `localhost:3000`
@@ -108,6 +118,20 @@ Revert last migration:
 ```bash
 tern migrate --destination -1
 ```
+
+
+### VS Code Settings
+VS Code is our code editor of choice.
+Therefore, to develop in Go, we use the main [VS Code Go extension](https://marketplace.visualstudio.com/items?itemName=golang.go). This enables a lot of features like formatting on save.
+
+Further, we also lint on save by adding these two lines in our `settings.json` file for VS Code:
+```json
+  "go.lintOnSave": "package",
+  "go.lintTool": "golint"
+```
+
+### Environment variables
+When variable `CREATE_DEMO_DATA=true`, demo data will be created during container creation. This data can be used for development purposes.
 
 ## Keycloak
 

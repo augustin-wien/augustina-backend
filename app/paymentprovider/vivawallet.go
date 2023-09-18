@@ -16,10 +16,10 @@ import (
 
 var log = utils.GetLogger()
 
-type PaymentOrderRequest struct {
+type paymentOrderRequest struct {
 	Amount              int      `json:"amount"`
 	CustomerTrns        string   `json:"customerTrns"`
-	Customer            Customer `json:"customer"`
+	Customer            customer `json:"customer"`
 	PaymentTimeout      int      `json:"paymentTimeout"`
 	Preauth             bool     `json:"preauth"`
 	AllowRecurring      bool     `json:"allowRecurring"`
@@ -40,11 +40,11 @@ type PaymentOrderRequest struct {
 	// CardTokens []string `json:"cardTokens"`
 }
 
-type PaymentOrderResponse struct {
+type paymentOrderResponse struct {
 	OrderCode int `json:"orderCode"`
 }
 
-type Customer struct {
+type customer struct {
 	Email       string `json:"email"`
 	Fullname    string `json:"fullName"`
 	Phone       string `json:"phone"`
@@ -52,34 +52,35 @@ type Customer struct {
 	RequestLang string `json:"requestLang"`
 }
 
-type AuthenticationResponse struct {
+type authenticationResponse struct {
 	AccessToken string `json:"access_token"`
 	ExpiresIn   int    `json:"expires_in"`
 	TokenType   string `json:"token_type"`
 	Scope       string `json:"scope"`
 }
 
-type TransactionVerificationResponse struct {
+type transactionVerificationResponse struct {
 	Email               string  `json:"email"`
 	Amount              float64 `json:"amount"`
 	OrderCode           int     `json:"orderCode"`
-	StatusId            string  `json:"statusId"`
+	StatusID            string  `json:"statusId"`
 	FullName            string  `json:"fullName"`
 	InsDate             string  `json:"insDate"`
 	CardNumber          string  `json:"cardNumber"`
 	CurrencyCode        string  `json:"currencyCode"`
 	CustomerTrns        string  `json:"customerTrns"`
 	MerchantTrns        string  `json:"merchantTrns"`
-	TransactionTypeId   int     `json:"transactionTypeId"`
+	TransactionTypeID   int     `json:"transactionTypeId"`
 	RecurringSupport    bool    `json:"recurringSupport"`
 	TotalInstallments   int     `json:"totalInstallments"`
 	CardCountryCode     string  `json:"cardCountryCode"`
 	CardIssuingBank     string  `json:"cardIssuingBank"`
 	CurrentInstallment  int     `json:"currentInstallment"`
 	CardUniqueReference string  `json:"cardUniqueReference"`
-	CardTypeId          int     `json:"cardTypeId"`
+	CardTypeID          int     `json:"cardTypeId"`
 }
 
+// AuthenticateToVivaWallet function authenticates to VivaWallet and returns the access token
 func AuthenticateToVivaWallet() (string, error) {
 	// Create a new request URL using http
 	apiURL := "https://demo-accounts.vivapayments.com"
@@ -122,7 +123,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	}
 
 	// Unmarshal response body to struct
-	var authResponse AuthenticationResponse
+	var authResponse authenticationResponse
 	err = json.Unmarshal(body, &authResponse)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
@@ -132,6 +133,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	return authResponse.AccessToken, nil
 }
 
+// CreatePaymentOrder function creates a new payment order and returns the order code
 func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 	// Create a new request URL using http
 	apiURL := "https://demo-api.vivapayments.com"
@@ -142,7 +144,7 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 
 	// Create a new sample customer
 	// TODO: Change this to a real customer
-	customer := Customer{
+	customer := customer{
 		Email:       "test@example.com",
 		Fullname:    "Test Customer",
 		Phone:       "1234567890",
@@ -152,7 +154,7 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 
 	// Create a new sample payment order
 	// TODO: Change this to a real payment order
-	paymentOrderRequest := PaymentOrderRequest{
+	paymentOrderRequest := paymentOrderRequest{
 		Amount:              amount,
 		CustomerTrns:        "testCustomerTrns",
 		Customer:            customer,
@@ -206,7 +208,7 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 	}
 
 	// Unmarshal response body to struct
-	var orderCode PaymentOrderResponse
+	var orderCode paymentOrderResponse
 	err = json.Unmarshal(body, &orderCode)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
@@ -217,6 +219,7 @@ func CreatePaymentOrder(accessToken string, amount int) (int, error) {
 
 }
 
+// VerifyTransactionID function verifies the transaction ID
 func VerifyTransactionID(accessToken string, TransactionID string) (success bool, err error) {
 	// Create a new request URL using http
 	apiURL := "https://demo-api.vivapayments.com"
@@ -256,7 +259,7 @@ func VerifyTransactionID(accessToken string, TransactionID string) (success bool
 	}
 
 	// Unmarshal response body to struct
-	var transactionVerificationResponse TransactionVerificationResponse
+	var transactionVerificationResponse transactionVerificationResponse
 	err = json.Unmarshal(body, &transactionVerificationResponse)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
