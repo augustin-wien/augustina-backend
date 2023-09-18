@@ -34,30 +34,6 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 	utils.WriteJSON(w, http.StatusOK, payload)
 }
 
-type transactionOrder struct {
-	Amount int
-}
-
-type transactionOrderResponse struct {
-	SmartCheckoutURL string
-}
-
-type transactionVerification struct {
-	OrderCode int
-}
-
-type transactionVerificationResponse struct {
-	Verification bool
-}
-
-type VivaWalletVerificationKeyResponse struct {
-	Key string
-}
-
-type PaymentSuccessfulResponse struct {
-	Message string
-}
-
 // HelloWorld godoc
 //
 //	@Summary		Return HelloWorld
@@ -601,7 +577,7 @@ func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("VIVA_WALLET_VERIFICATION_KEY not set or can't be found"), http.StatusBadRequest)
 		return
 	}
-	response := VivaWalletVerificationKeyResponse{key}
+	response := paymentprovider.VivaWalletVerificationKeyResponse{Key: key}
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 

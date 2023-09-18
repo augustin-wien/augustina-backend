@@ -172,3 +172,7 @@ type EventData struct {
 	OrderServiceId              int      `json:"OrderServiceId"`
 	DigitalWalletId             any      `json:"DigitalWalletId"`
 }
+
+type VivaWalletVerificationKeyResponse struct {
+	Key string
+}
