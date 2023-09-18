@@ -172,7 +172,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateOrderRequest"
+                            "$ref": "#/definitions/handlers.createOrderRequest"
                         }
                     }
                 ],
@@ -180,7 +180,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateOrderResponse"
+                            "$ref": "#/definitions/handlers.createOrderResponse"
                         }
                     }
                 }
@@ -221,13 +221,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.VerifyOrderResponse"
+                            "$ref": "#/definitions/handlers.verifyOrderResponse"
                         }
                     }
                 }
             }
         },
-        "/payments": {
+        "/payments/": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -236,7 +236,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Payments"
                 ],
                 "summary": "Get list of all payments",
                 "responses": {
@@ -259,7 +259,37 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Payments"
+                ],
+                "summary": "Create a payment",
+                "parameters": [
+                    {
+                        "description": " Create Payment",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Payment"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/payments/batch/": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
                 ],
                 "summary": "Create a set of payments",
                 "parameters": [
@@ -269,13 +299,49 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreatePaymentsRequest"
+                            "$ref": "#/definitions/handlers.createPaymentsRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "type": "int"
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/payout/": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Create a payment to payout from vendor to cash",
+                "parameters": [
+                    {
+                        "description": " Create Payment",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createPaymentPayoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "int"
+                        }
                     }
                 }
             }
@@ -472,7 +538,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.TransactionOrder"
+                            "$ref": "#/definitions/handlers.transactionOrder"
                         }
                     }
                 ],
@@ -482,7 +548,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.TransactionOrderResponse"
+                                "$ref": "#/definitions/handlers.transactionOrderResponse"
                             }
                         }
                     }
@@ -509,7 +575,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.TransactionVerification"
+                            "$ref": "#/definitions/handlers.transactionVerification"
                         }
                     }
                 ],
@@ -519,7 +585,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.TransactionVerificationResponse"
+                                "$ref": "#/definitions/handlers.transactionVerificationResponse"
                             }
                         }
                     }
@@ -662,19 +728,19 @@
                 "licenseID": {
                     "type": "string"
                 },
-                "urlID": {
+                "urlid": {
                     "description": "This is used for the QR code",
                     "type": "string"
                 }
             }
         },
-        "handlers.CreateOrderRequest": {
+        "handlers.createOrderRequest": {
             "type": "object",
             "properties": {
                 "entries": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.CreateOrderRequestEntry"
+                        "$ref": "#/definitions/handlers.createOrderRequestEntry"
                     }
                 },
                 "user": {
@@ -685,7 +751,7 @@
                 }
             }
         },
-        "handlers.CreateOrderRequestEntry": {
+        "handlers.createOrderRequestEntry": {
             "type": "object",
             "properties": {
                 "item": {
@@ -696,7 +762,7 @@
                 }
             }
         },
-        "handlers.CreateOrderResponse": {
+        "handlers.createOrderResponse": {
             "type": "object",
             "properties": {
                 "smartCheckoutURL": {
@@ -704,7 +770,18 @@
                 }
             }
         },
-        "handlers.CreatePaymentsRequest": {
+        "handlers.createPaymentPayoutRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "vendorLicenseID": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.createPaymentsRequest": {
             "type": "object",
             "properties": {
                 "payments": {
@@ -715,7 +792,7 @@
                 }
             }
         },
-        "handlers.TransactionOrder": {
+        "handlers.transactionOrder": {
             "type": "object",
             "properties": {
                 "amount": {
@@ -723,7 +800,7 @@
                 }
             }
         },
-        "handlers.TransactionOrderResponse": {
+        "handlers.transactionOrderResponse": {
             "type": "object",
             "properties": {
                 "smartCheckoutURL": {
@@ -731,7 +808,7 @@
                 }
             }
         },
-        "handlers.TransactionVerification": {
+        "handlers.transactionVerification": {
             "type": "object",
             "properties": {
                 "orderCode": {
@@ -739,7 +816,7 @@
                 }
             }
         },
-        "handlers.TransactionVerificationResponse": {
+        "handlers.transactionVerificationResponse": {
             "type": "object",
             "properties": {
                 "verification": {
@@ -747,7 +824,7 @@
                 }
             }
         },
-        "handlers.VerifyOrderResponse": {
+        "handlers.verifyOrderResponse": {
             "type": "object",
             "properties": {
                 "entries": {

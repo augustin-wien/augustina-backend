@@ -76,7 +76,9 @@ func GetRouter() (r *chi.Mux) {
 	// Payments
 	r.Route("/api/payments", func(r chi.Router) {
 		r.Get("/", ListPayments)
-		r.Post("/", CreatePayments)
+		r.Post("/", CreatePayment)
+		r.Post("/batch/", CreatePayments)
+		r.Post("/payout/", CreatePaymentPayout)
 	})
 
 	// Payment service providers

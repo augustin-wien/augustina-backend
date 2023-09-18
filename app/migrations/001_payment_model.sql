@@ -4,7 +4,7 @@ CREATE TABLE Vendor (
     ID serial PRIMARY KEY,
     KeycloakID varchar(255) NOT NULL DEFAULT '',
     UrlID varchar(255) NOT NULL DEFAULT '',
-    LicenseID varchar(255) NOT NULL DEFAULT '',
+    LicenseID varchar(255) UNIQUE NOT NULL,
     FirstName varchar(255) NOT NULL DEFAULT '',
     LastName varchar(255) NOT NULL DEFAULT '',
     Email varchar(255) NOT NULL DEFAULT '',

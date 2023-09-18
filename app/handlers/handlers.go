@@ -348,8 +348,8 @@ type createOrderResponse struct {
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//	    @Param		    data body CreateOrderRequest true "Payment Order"
-//		@Success		200 {object} CreateOrderResponse
+//	    @Param		    data body createOrderRequest true "Payment Order"
+//		@Success		200 {object} createOrderResponse
 //		@Router			/orders/ [post]
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
@@ -372,7 +372,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	vendorAccount, err := database.Db.GetAccountByVendor(order.Vendor)
+	vendorAccount, err := database.Db.GetAccountByVendorID(order.Vendor)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -465,7 +465,7 @@ type verifyOrderResponse struct {
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//		@Success		200 {object} VerifyOrderResponse
+//		@Success		200 {object} verifyOrderResponse
 //		@Param			s query string true "Order Code" Format(3043685539722561)
 //		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
 //		@Router			/orders/verify/ [post]
@@ -538,14 +538,42 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 // ListPayments godoc
 //
 //	 	@Summary 		Get list of all payments
-//		@Tags			core
+//		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Payment
-//		@Router			/payments [get]
+//		@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.ListPayments()
 	respond(w, err, payments)
+}
+
+
+
+// CreatePayment godoc
+//
+//	 	@Summary 		Create a payment
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			amount body database.Payment true " Create Payment"
+//		@Success		200
+//		@Router			/payments/ [post]
+func CreatePayment(w http.ResponseWriter, r *http.Request) {
+	var payment database.Payment
+	err := utils.ReadJSON(w, r, &payment)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	paymentID, err := database.Db.CreatePayment(payment)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, paymentID)
 }
 
 type createPaymentsRequest struct {
@@ -555,12 +583,12 @@ type createPaymentsRequest struct {
 // CreatePayments godoc
 //
 //	 	@Summary 		Create a set of payments
-//		@Tags			core
+//		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
-//		@Param			amount body CreatePaymentsRequest true " Create Payment"
-//		@Success		200
-//		@Router			/payments [post]
+//		@Param			amount body createPaymentsRequest true " Create Payment"
+//		@Success		200 {int} id
+//		@Router			/payments/batch/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)
@@ -576,6 +604,79 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type createPaymentPayoutRequest struct {
+	VendorLicenseID string
+	Amount          int
+}
+
+// CreatePaymentPayout godoc
+//
+//	 	@Summary 		Create a payment from a vendor account to cash
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			amount body createPaymentPayoutRequest true " Create Payment"
+//		@Success		200 {int} id
+//		@Router			/payments/payout/ [post]
+func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
+
+		// Read data from request
+		var payoutData createPaymentPayoutRequest
+		err := utils.ReadJSON(w, r, &payoutData)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		// Get vendor
+		vendor, err := database.Db.GetVendorByLicenseID(payoutData.VendorLicenseID)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		// Get vendor account
+		vendorAccount, err := database.Db.GetAccountByVendorID(vendor.ID)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		log.Info("HANDLER Vendor has id ", vendor.ID)
+		log.Info("HANDLER Vendor account has id ", vendorAccount.ID)
+
+		// Get cash account
+		cashAccount, err := database.Db.GetAccountByType("Cash")
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		// Check if vendor has enough money
+		log.Info("Account Payout ", vendorAccount.Balance, payoutData.Amount)
+		if vendorAccount.Balance < payoutData.Amount {
+			utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
+			return
+		}
+
+		// Create payment
+		payment := database.Payment{
+			Sender:   vendorAccount.ID,
+			Receiver: cashAccount.ID,
+			Amount:   payoutData.Amount,
+		}
+		paymentID, err := database.Db.CreatePayment(payment)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		// TODO update last payout date
+
+		utils.WriteJSON(w, http.StatusOK, paymentID)
+
+}
+
+
 // VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
 
 // VivaWalletCreateTransactionOrder godoc
@@ -585,8 +686,8 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 //	@Tags			core
 //	@accept			json
 //	@Produce		json
-//	@Param			amount body TransactionOrder true "Amount in cents"
-//	@Success		200	{array}	TransactionOrderResponse
+//	@Param			amount body transactionOrder true "Amount in cents"
+//	@Success		200	{array}	transactionOrderResponse
 //	@Router			/vivawallet/transaction_order/ [post]
 func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 	var transactionOrder transactionOrder
@@ -622,8 +723,8 @@ func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 //	@Tags			core
 //	@accept			json
 //	@Produce		json
-//	@Param			OrderCode body TransactionVerification true "Transaction ID"
-//	@Success		200	{array}	TransactionVerificationResponse
+//	@Param			OrderCode body transactionVerification true "Transaction ID"
+//	@Success		200	{array}	transactionVerificationResponse
 //	@Router			/vivawallet/transaction_verification/ [post]
 func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 	var transactionVerification transactionVerification

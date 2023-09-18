@@ -75,7 +75,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 	return
 }
 
-// UpdateVendor Updates a user in the database
+// UpdateVendor updates a user in the database
 func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Vendor
@@ -368,7 +368,19 @@ func (db *Database) ListPayments() ([]Payment, error) {
 	return payments, nil
 }
 
-// CreatePayments creates multiple payments depending on the order
+// CreatePayment creates a payment and returns the payment ID
+func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
+
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount).Scan(&paymentID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	return
+}
+
+// CreatePayments creates multiple payments in a transcation
 func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 	// Create a transaction to insert all payments at once
@@ -476,9 +488,9 @@ func (db *Database) GetAccountByUser(user string) (account Account, err error) {
 	return
 }
 
-// GetAccountByVendor returns the account with the given vendor
-func (db *Database) GetAccountByVendor(vendor int) (account Account, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Vendor = $1", vendor).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+// GetAccountByVendorID returns the account with the given vendor
+func (db *Database) GetAccountByVendorID(vendorID int) (account Account, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Vendor = $1", vendorID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
 		if err.Error() == "no rows in result set" {
 			err = errors.New("vendor does not exist or has no account")
@@ -496,6 +508,24 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 	if err != nil {
 		log.Error(err)
 	}
+	return
+}
+
+// UpdateAccountBalance updates the balance of an account in the database
+func (db *Database) UpdateAccountBalance(id int, balance int) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE Account
+	SET Balance = $2
+	WHERE ID = $1
+	`, id, balance)
+	if err != nil {
+		log.Error(err)
+	}
+
+	// DEBUG
+	account, err := db.GetAccountByID(id)
+	log.Info("Updated balance for account ", id, " is ", account.Balance)
+
 	return
 }
 
