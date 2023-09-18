@@ -103,11 +103,6 @@ services:
       - MYSQL_DATABASE=${WORDPRESS_DB_NAME}
       - MYSQL_USER=${WORDPRESS_DB_USER}
       - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD}
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -p$$(echo $$MYSQL_ROOT_PASSWORD) | grep 'mysqld is alive' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
   wordpress:
     image: wordpress:latest
     volumes:
