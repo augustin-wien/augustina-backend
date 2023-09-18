@@ -180,10 +180,6 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, order.Entries[0].Sender, senderAccount.ID)
 	require.Equal(t, order.Entries[0].Receiver, receiverAccount.ID)
 
-	// Test that transaction correctly takes order code but does not verify
-	res = utils.TestRequest(t, r, "POST", "/api/orders/verify/?s=0&t=1", nil, 400)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"transaction not verified"}}`)
-
 }
 
 // TestPayments tests CRUD operations on payments

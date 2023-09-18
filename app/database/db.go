@@ -85,6 +85,12 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		return err
 	}
 
+	// Initializes DBSettings if not already initialized
+	err = db.InitiateDBSettings()
+	if err != nil {
+		log.Error("Settings creation failed ", zap.Error(err))
+	}
+
 	// Get DBSettings
 	var dbSettings DBSettings
 	dbSettings, err = db.GetDBSettings()
@@ -104,13 +110,6 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		err = db.InitiateAccounts()
 		if err != nil {
 			log.Error("Default accounts creation failed ", zap.Error(err))
-		}
-
-		if config.Config.CreateDemoData {
-			err = db.CreateDevData()
-			if err != nil {
-				log.Error("Dev data creation failed ", zap.Error(err))
-			}
 		}
 
 		// Update DBSettings to initialized
