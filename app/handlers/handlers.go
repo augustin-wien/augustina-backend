@@ -676,7 +676,7 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 //	@Tags			core
 //	@accept			json
 //	@Produce		json
-//	@Success		200	{array}	VivaWalletVerificationKeyResponse
+//	@Success		200	{array}	paymentprovider.VivaWalletVerificationKeyResponse
 //	@Router			/webhooks/vivawallet/price [get]
 //	@Router 		/webhooks/vivawallet/success [get]
 //	@Router 		/webhooks/vivawallet/failure [get]
