@@ -22,7 +22,7 @@ services:
     image: dkia/augustin-backend  
     command: >
       sh -c "tern migrate --migrations ./migrations --config
-      ./migrations/tern.conf && go run main.go"
+      ./migrations/tern.conf && /app/augustin"
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}

@@ -27,9 +27,9 @@ COPY --from=build /go/src/augustin/app .
 # Add packages
 RUN apk -U upgrade \
     && apk add --no-cache dumb-init ca-certificates \
-    && chmod +x /app/app
+    && chmod +x /app/augustin
 
 # Exposes port 3000 because our program listens on that port
 EXPOSE 3000
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+ENTRYPOINT ["/app/augustin"]
