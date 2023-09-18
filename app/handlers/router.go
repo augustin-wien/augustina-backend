@@ -42,7 +42,10 @@ func GetRouter() (r *chi.Mux) {
 
 	// Public routes
 	r.Get("/api/hello/", HelloWorld)
-	r.Get("/api/settings/", getSettings)
+	r.Route("/api/settings", func(r chi.Router) {
+		r.Get("/", getSettings)
+		r.Put("/", updateSettings)
+	})
 
 	// Vendors
 	r.Route("/api/vendors", func(r chi.Router) {
@@ -89,11 +92,11 @@ func GetRouter() (r *chi.Mux) {
 	))
 
 	// Mount static file servers in img folder
-	fs_img := http.FileServer(http.Dir("img"))
-	r.Handle("/img/*", http.StripPrefix("/img/", fs_img))
+	fsImg := http.FileServer(http.Dir("img"))
+	r.Handle("/img/*", http.StripPrefix("/img/", fsImg))
 	// Docs file server is used for swagger documentation
-	fs_docs := http.FileServer(http.Dir("docs"))
-	r.Handle("/docs/*", http.StripPrefix("/docs/", fs_docs))
+	fsDocs := http.FileServer(http.Dir("docs"))
+	r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))
 
 	return r
 }

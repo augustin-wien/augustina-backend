@@ -18,4 +18,6 @@
 
 // @externalDocs.description	OpenAPI
 // @externalDocs.url			https://swagger.io/resources/open-api/
+
+// Package handlers contains all the handlers for the API
 package handlers
