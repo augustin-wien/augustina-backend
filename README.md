@@ -8,6 +8,8 @@ Check out the git submodules to load the wordpress, wpcli and parser git checkou
 git submodule update --init --recursive
 ```
 
+Copy `.env.example` to `.env` and set `KEYCLOAK_HOST=http://keycloak:8080/`
+
 Start the application with Docker:
 
 ```bash
@@ -24,7 +26,7 @@ Go to http://localhost:3000/api/hello/
   docker compose up -d augustin augustin-db augustin-db-test keycloak
   ```
 2. To make the PDF-Parser run correctly check out description below.
-
+3. Temporary fix to remove wpcli file: `sudo rm docker/wpcli/.env.parser`
 
 
 ### Ports
