@@ -10,17 +10,20 @@ import (
 )
 
 var log = utils.GetLogger()
+
+// KeycloakClient global variable
 var KeycloakClient Keycloak
 
+// Keycloak struct
 type Keycloak struct {
-	Hostname     string
-	ClientId     string
+	hostname     string
+	ClientID     string
 	ClientSecret string
 	Realm        string
 	Client       *gocloak.GoCloak
 	Context      context.Context
-	admin_token  *gocloak.JWT
-	client_token *gocloak.JWT
+	adminToken   *gocloak.JWT
+	clientToken  *gocloak.JWT
 }
 
 // InitializeOauthServer initializes the Keycloak client
@@ -28,98 +31,109 @@ type Keycloak struct {
 func InitializeOauthServer() (err error) {
 	godotenv.Load("../.env")
 	KeycloakClient = Keycloak{
-		Hostname:     os.Getenv("KEYCLOAK_HOST"),
-		ClientId:     os.Getenv("KEYCLOAK_CLIENT_ID"),
+		hostname:     os.Getenv("KEYCLOAK_HOST"),
+		ClientID:     os.Getenv("KEYCLOAK_CLIENT_ID"),
 		ClientSecret: os.Getenv("KEYCLOAK_CLIENT_SECRET"),
 		Realm:        os.Getenv("KEYCLOAK_REALM"),
 		Client:       nil,
 		Context:      context.Background(),
-		admin_token:  nil,
-		client_token: nil,
+		adminToken:   nil,
+		clientToken:  nil,
 	}
 	// Initialize Keycloak client
-	client := gocloak.NewClient(KeycloakClient.Hostname)
+	client := gocloak.NewClient(KeycloakClient.hostname)
 	KeycloakClient.Client = client
-	KeycloakClient.admin_token, err = KeycloakClient.Login("admin", "admin")
+	KeycloakClient.adminToken, err = KeycloakClient.Login("admin", "admin")
 	if err != nil {
 		log.Error("Error logging in Keycloak admin ", err)
 	}
-	KeycloakClient.client_token, err = KeycloakClient.LoginClient()
+	KeycloakClient.clientToken, err = KeycloakClient.LoginClient()
 	if err != nil {
 		log.Error("Error logging in Keycloak client ", err)
 	}
 	return err
 }
 
+// Login function returns the admin token
 func (k *Keycloak) Login(username string, password string) (*gocloak.JWT, error) {
 	return k.Client.LoginAdmin(k.Context, username, password, "master")
 }
 
+// LoginClient function returns the client token
 func (k *Keycloak) LoginClient() (*gocloak.JWT, error) {
-	return k.Client.LoginClient(k.Context, k.ClientId, k.ClientSecret, k.Realm)
+	return k.Client.LoginClient(k.Context, k.ClientID, k.ClientSecret, k.Realm)
 }
 
-// User functions
-func (k *Keycloak) GetUserInfo(user_token string) (*gocloak.UserInfo, error) {
-	return k.Client.GetUserInfo(k.Context, user_token, k.Realm)
+// GetUserInfo function returns the user info
+func (k *Keycloak) GetUserInfo(userToken string) (*gocloak.UserInfo, error) {
+	return k.Client.GetUserInfo(k.Context, userToken, k.Realm)
 }
 
-func (k *Keycloak) GetUserByID(user_token string, id string) (*gocloak.User, error) {
-	return k.Client.GetUserByID(k.Context, user_token, k.Realm, id)
+// GetUserByID function queries the user id
+func (k *Keycloak) GetUserByID(userToken string, id string) (*gocloak.User, error) {
+	return k.Client.GetUserByID(k.Context, userToken, k.Realm, id)
 }
 
-func (k *Keycloak) IntrospectToken(user_token string) (*gocloak.IntroSpectTokenResult, error) {
-	return k.Client.RetrospectToken(k.Context, user_token, k.ClientId, k.ClientSecret, k.Realm)
+// IntrospectToken function returns the token info
+func (k *Keycloak) IntrospectToken(userToken string) (*gocloak.IntroSpectTokenResult, error) {
+	return k.Client.RetrospectToken(k.Context, userToken, k.ClientID, k.ClientSecret, k.Realm)
 }
 
-// Admin functions
+// GetRoles function returns the roles
 func (k *Keycloak) GetRoles() ([]*gocloak.Role, error) {
-	return k.Client.GetRealmRoles(k.Context, k.admin_token.AccessToken, k.Realm, gocloak.GetRoleParams{})
+	return k.Client.GetRealmRoles(k.Context, k.adminToken.AccessToken, k.Realm, gocloak.GetRoleParams{})
 }
 
-func (k *Keycloak) GetUserRoles(user_id string) ([]*gocloak.Role, error) {
-	return k.Client.GetRealmRolesByUserID(k.Context, k.admin_token.AccessToken, k.Realm, user_id)
+// GetUserRoles function returns the user roles
+func (k *Keycloak) GetUserRoles(userID string) ([]*gocloak.Role, error) {
+	return k.Client.GetRealmRolesByUserID(k.Context, k.adminToken.AccessToken, k.Realm, userID)
 }
 
+// GetRole function returns the role of the given name
 func (k *Keycloak) GetRole(name string) (*gocloak.Role, error) {
-	return k.Client.GetRealmRole(k.Context, k.admin_token.AccessToken, k.Realm, name)
+	return k.Client.GetRealmRole(k.Context, k.adminToken.AccessToken, k.Realm, name)
 }
 
+// CreateRole function creates a role given by name
 func (k *Keycloak) CreateRole(name string) error {
 	var role = gocloak.Role{
 		Name: &name,
 	}
-	_, err := k.Client.CreateRealmRole(k.Context, k.admin_token.AccessToken, k.Realm, role)
+	_, err := k.Client.CreateRealmRole(k.Context, k.adminToken.AccessToken, k.Realm, role)
 	return err
 }
 
+// DeleteRole function deletes a role given by name
 func (k *Keycloak) DeleteRole(name string) error {
-	return k.Client.DeleteRealmRole(k.Context, k.admin_token.AccessToken, k.Realm, name)
+	return k.Client.DeleteRealmRole(k.Context, k.adminToken.AccessToken, k.Realm, name)
 }
 
-func (k *Keycloak) AssignRole(user_id string, role_name string) error {
-	role, err := k.GetRole(role_name)
+// AssignRole function assigns a role to a user by userID
+func (k *Keycloak) AssignRole(userID string, roleName string) error {
+	role, err := k.GetRole(roleName)
 	if err != nil {
 		return err
 	}
-	return k.Client.AddRealmRoleToUser(k.Context, k.admin_token.AccessToken, k.Realm, user_id, []gocloak.Role{*role})
+	return k.Client.AddRealmRoleToUser(k.Context, k.adminToken.AccessToken, k.Realm, userID, []gocloak.Role{*role})
 }
 
-func (k *Keycloak) UnassignRole(user_id string, role_name string) error {
-	role, err := k.GetRole(role_name)
+// UnassignRole function unassigns a role from a user by userID
+func (k *Keycloak) UnassignRole(userID string, roleName string) error {
+	role, err := k.GetRole(roleName)
 	if err != nil {
 		return err
 	}
-	return k.Client.DeleteRealmRoleFromUser(k.Context, k.admin_token.AccessToken, k.Realm, user_id, []gocloak.Role{*role})
+	return k.Client.DeleteRealmRoleFromUser(k.Context, k.adminToken.AccessToken, k.Realm, userID, []gocloak.Role{*role})
 }
 
+// GetUser function returns the user by username
 func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 	exact := true
 	p := gocloak.GetUsersParams{
 		Username: &username,
 		Exact:    &exact,
 	}
-	users, err := k.Client.GetUsers(k.Context, k.admin_token.AccessToken, k.Realm, p)
+	users, err := k.Client.GetUsers(k.Context, k.adminToken.AccessToken, k.Realm, p)
 	// if length of users is 0, then user does not exist
 	if len(users) == 0 {
 		err = gocloak.APIError{
@@ -131,15 +145,17 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 	return users[0], err
 }
 
-func (k *Keycloak) CreateUser(first_name string, last_name string, email string) (user_id string, err error) {
-	return k.Client.CreateUser(k.Context, k.admin_token.AccessToken, k.Realm, gocloak.User{
+// CreateUser function creates a user given by first_name, last_name and email returns the userID
+func (k *Keycloak) CreateUser(firstName string, lastName string, email string) (userID string, err error) {
+	return k.Client.CreateUser(k.Context, k.adminToken.AccessToken, k.Realm, gocloak.User{
 		Username:  &email,
-		FirstName: &first_name,
-		LastName:  &last_name,
+		FirstName: &firstName,
+		LastName:  &lastName,
 		Email:     &email,
 	})
 }
 
-func (k *Keycloak) DeleteUser(user_id string) error {
-	return k.Client.DeleteUser(k.Context, k.admin_token.AccessToken, k.Realm, user_id)
+// DeleteUser function deletes a user given by userID
+func (k *Keycloak) DeleteUser(userID string) error {
+	return k.Client.DeleteUser(k.Context, k.adminToken.AccessToken, k.Realm, userID)
 }

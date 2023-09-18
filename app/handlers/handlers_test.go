@@ -31,14 +31,14 @@ func TestHelloWorld(t *testing.T) {
 }
 
 func CreateTestVendor(t *testing.T) string {
-	json_vendor := `{
+	jsonVendor := `{
 		"keycloakID": "test",
 		"urlID": "test",
 		"licenseID": "test",
 		"firstName": "test1234",
 		"lastName": "test"
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/vendors/", json_vendor, 200)
+	res := utils.TestRequestStr(t, r, "POST", "/api/vendors/", jsonVendor, 200)
 	vendorID := res.Body.String()
 	return vendorID
 }
@@ -55,8 +55,8 @@ func TestVendors(t *testing.T) {
 	require.Equal(t, "test1234", vendors[0].FirstName)
 
 	// Update
-	json_vendor := `{"firstName": "nameAfterUpdate"}`
-	utils.TestRequestStr(t, r, "PUT", "/api/vendors/"+vendorID+"/", json_vendor, 200)
+	jsonVendor := `{"firstName": "nameAfterUpdate"}`
+	utils.TestRequestStr(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200)
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
@@ -98,12 +98,12 @@ func TestItems(t *testing.T) {
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
-    writer := multipart.NewWriter(body)
-    writer.WriteField("Name", "Updated item name")
-    writer.WriteField("nonexistingfieldname", "10")
-    image, _ := writer.CreateFormFile("Image", "test.jpg")
-    image.Write([]byte(`i am the content of a jpg file :D`))
-    writer.Close()
+	writer := multipart.NewWriter(body)
+	writer.WriteField("Name", "Updated item name")
+	writer.WriteField("nonexistingfieldname", "10")
+	image, _ := writer.CreateFormFile("Image", "test.jpg")
+	image.Write([]byte(`i am the content of a jpg file :D`))
+	writer.Close()
 	utils.TestRequestMultiPart(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200)
 
 	// Read
@@ -122,10 +122,10 @@ func TestItems(t *testing.T) {
 
 	// Update with image as field (not as a file)
 	body = new(bytes.Buffer)
-    writer = multipart.NewWriter(body)
+	writer = multipart.NewWriter(body)
 	writer.WriteField("Name", "Updated item name 2")
 	writer.WriteField("Image", "Test")
-    writer.Close()
+	writer.Close()
 	utils.TestRequestMultiPart(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200)
 
 	// Read
@@ -190,17 +190,17 @@ func TestOrders(t *testing.T) {
 func TestPayments(t *testing.T) {
 
 	// Set up a payment account
-	account_id, err := database.Db.CreateAccount(
+	accountID, err := database.Db.CreateAccount(
 		database.Account{Name: "Test account"},
 	)
 	utils.CheckError(t, err)
 
 	// Create payments via API
-	f := CreatePaymentsRequest{
+	f := createPaymentsRequest{
 		Payments: []database.Payment{
 			{
-				Sender:   account_id,
-				Receiver: account_id,
+				Sender:   accountID,
+				Receiver: accountID,
 				Amount:   314,
 			},
 		},
@@ -223,8 +223,8 @@ func TestPayments(t *testing.T) {
 
 	// Test payments response
 	require.Equal(t, payments[0].Amount, 314)
-	require.Equal(t, payments[0].Sender, account_id)
-	require.Equal(t, payments[0].Receiver, account_id)
+	require.Equal(t, payments[0].Sender, accountID)
+	require.Equal(t, payments[0].Receiver, accountID)
 	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
 	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
 

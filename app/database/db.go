@@ -13,29 +13,68 @@ var log = utils.GetLogger()
 
 // Database struct
 type Database struct {
-	Dbpool *pgxpool.Pool
+	Dbpool       *pgxpool.Pool
 	IsProduction bool
 }
 
 // Db is the global database connection pool that is used by all handlers
 var Db Database
 
-
-// Connect to production database and store it in the global Db variable
+// InitDb connects to production database and stores it in the global Db variable
 func (db *Database) InitDb() (err error) {
 	err = db.initDb(true, true)
 	if err != nil {
 		return err
 	}
-	db.InitiateSettings()
-	db.InitiateAccounts()
-	if config.Config.Development {
-		err = db.CreateDevData()
+
+	// Initializes DBSettings if not already initialized
+	err = db.InitiateDBSettings()
+	if err != nil {
+		log.Error("Settings creation failed ", zap.Error(err))
 	}
+
+	// Get DBSettings
+	var dbSettings DBSettings
+	dbSettings, err = db.GetDBSettings()
+	if err != nil {
+		log.Error("Settings retrieval failed ", zap.Error(err))
+	}
+
+	if !dbSettings.IsInitialized {
+
+		// Create default settings
+		err = db.InitiateSettings()
+		if err != nil {
+			log.Error("Settings creation failed ", zap.Error(err))
+		}
+
+		// Create default accounts
+		err = db.InitiateAccounts()
+		if err != nil {
+			log.Error("Default accounts creation failed ", zap.Error(err))
+		}
+
+		if config.Config.CreateDemoData {
+			err = db.CreateDevData()
+			if err != nil {
+				log.Error("Dev data creation failed ", zap.Error(err))
+			}
+		}
+
+		// Update DBSettings to initialized
+		err = db.UpdateDBSettings(DBSettings{IsInitialized: true})
+		if err != nil {
+			log.Error("Updating DBSettings failed ", zap.Error(err))
+		}
+		log.Info("Database successfully initialized")
+	} else {
+		log.Info("Database already initialized")
+	}
+
 	return err
 }
 
-// Connect to an empty testing database and store it in the global Db variable
+// InitEmptyTestDb connects to an empty testing database and store it in the global Db variable
 func (db *Database) InitEmptyTestDb() (err error) {
 	err = db.initDb(false, false)
 	if err != nil {
@@ -45,8 +84,18 @@ func (db *Database) InitEmptyTestDb() (err error) {
 	if err != nil {
 		return err
 	}
-	db.InitiateSettings()
-	db.InitiateAccounts()
+	// Create default settings
+	err = db.InitiateSettings()
+	if err != nil {
+		log.Error("Settings creation failed ", zap.Error(err))
+	}
+
+	// Create default accounts
+	err = db.InitiateAccounts()
+	if err != nil {
+		log.Error("Default accounts creation failed ", zap.Error(err))
+	}
+
 	return err
 }
 
@@ -54,9 +103,9 @@ func (db *Database) InitEmptyTestDb() (err error) {
 func (db *Database) initDb(isProduction bool, logInfo bool) (err error) {
 
 	// Create connection pool
-	var extra_key string
+	var extraKey string
 	if !isProduction {
-		extra_key = "_TEST"
+		extraKey = "_TEST"
 	}
 	dbpool, err := pgxpool.New(
 		context.Background(),
@@ -65,9 +114,9 @@ func (db *Database) initDb(isProduction bool, logInfo bool) (err error) {
 			":"+
 			utils.GetEnv("DB_PASS", "password")+
 			"@"+
-			utils.GetEnv("DB_HOST" + extra_key, "localhost")+
+			utils.GetEnv("DB_HOST"+extraKey, "localhost")+
 			":"+
-			utils.GetEnv("DB_PORT" + extra_key, "5432")+
+			utils.GetEnv("DB_PORT"+extraKey, "5432")+
 			"/"+
 			utils.GetEnv("DB_NAME", "product_api")+
 			"?sslmode=disable",
@@ -89,7 +138,7 @@ func (db *Database) initDb(isProduction bool, logInfo bool) (err error) {
 		return
 	}
 	if logInfo {
-		log.Info("InitDb succesfull: ", greeting)
+		log.Info("Connection to database successful: ", greeting)
 	}
 	return
 }
