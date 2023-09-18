@@ -73,11 +73,6 @@ services:
       KC_HOSTNAME: ${KEYCLOAK_URL_BASE}
       ROOT_LOGLEVEL: ALL
       KEYCLOAK_LOGLEVEL: DEBUG
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8080/realms/master"]
-      interval: 5s
-      timeout: 2s
-      retries: 15
     depends_on:
       - keycloak-db
     volumes:
