@@ -349,11 +349,16 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get accounts
-	var buyerAccount database.Account
+	var buyerAccountID int
 	if order.User.Valid {
-		buyerAccount, err = database.Db.GetAccountByUser(order.User.String)
+		buyerAccount, err := database.Db.GetAccountByUser(order.User.String)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		buyerAccountID = buyerAccount.ID
 	} else {
-		buyerAccount, err = database.Db.GetAccountByType("UserAnon")
+		buyerAccountID, err = database.Db.GetAccountTypeID("UserAnon")
 	}
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -364,7 +369,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	orgaAccount, err := database.Db.GetAccountByType("Orga")
+	orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -380,7 +385,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Define flow of money from buyer to vendor
-		order.Entries[idx].Sender = buyerAccount.ID
+		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
 		order.Entries[idx].Price = item.Price // Take current item price
 
@@ -397,7 +402,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				Quantity: entry.Quantity,
 				Price:    licenseItem.Price,
 				Sender:   vendorAccount.ID,
-				Receiver: orgaAccount.ID,
+				Receiver: orgaAccountID,
 			}
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
 		}

@@ -545,11 +545,14 @@ var accountTypeIDCache map[string]int
 
 // GetAccountTypeID returns the (cached) ID of an account type
 func (db *Database) GetAccountTypeID(accountType string) (accountTypeID int, err error) {
+	if accountTypeIDCache == nil {
+		accountTypeIDCache = make(map[string]int)
+	}
 	if accountTypeIDCache[accountType] != 0 {
 		accountTypeID = accountTypeIDCache[accountType]
 		return
 	}
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID FROM AccountType WHERE Type = $1", accountType).Scan(&accountTypeID)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID FROM Account WHERE Type = $1", accountType).Scan(&accountTypeID)
 	if err != nil {
 		log.Error(err)
 		return
