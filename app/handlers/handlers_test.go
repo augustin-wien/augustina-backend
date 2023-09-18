@@ -189,7 +189,10 @@ func TestOrders(t *testing.T) {
 func TestPaymentsBatch(t *testing.T) {
 
 	// Set up a payment account
-	accountID, err := database.Db.CreateAccount(
+	senderAccountID, err := database.Db.CreateAccount(
+		database.Account{Name: "Test account"},
+	)
+	receiverAccountID, err := database.Db.CreateAccount(
 		database.Account{Name: "Test account"},
 	)
 	utils.CheckError(t, err)
@@ -198,8 +201,8 @@ func TestPaymentsBatch(t *testing.T) {
 	f := createPaymentsRequest{
 		Payments: []database.Payment{
 			{
-				Sender:   accountID,
-				Receiver: accountID,
+				Sender:   senderAccountID,
+				Receiver: receiverAccountID,
 				Amount:   314,
 			},
 		},
@@ -222,11 +225,61 @@ func TestPaymentsBatch(t *testing.T) {
 
 	// Test payments response
 	require.Equal(t, payments[0].Amount, 314)
-	require.Equal(t, payments[0].Sender, accountID)
-	require.Equal(t, payments[0].Receiver, accountID)
+	require.Equal(t, payments[0].Sender, senderAccountID)
+	require.Equal(t, payments[0].Receiver, receiverAccountID)
 	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
 	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
 
+	// Test account balances
+	senderAccount, err := database.Db.GetAccountByID(senderAccountID)
+	utils.CheckError(t, err)
+	receiverAccount, err := database.Db.GetAccountByID(receiverAccountID)
+	utils.CheckError(t, err)
+	require.Equal(t, senderAccount.Balance, -314)
+	require.Equal(t, receiverAccount.Balance, 314)
+
+}
+
+// TestPaymentPayout tests CRUD operations on payment payouts
+func TestPaymentPayout(t *testing.T) {
+
+	vendorID := createTestVendor(t, "testLicenseID")
+	vendorIDInt, _ := strconv.Atoi(vendorID)
+
+	// Create payments via API
+	f := createPaymentPayoutRequest{
+		Amount: 314,
+		VendorLicenseID: "testLicenseID",
+	}
+	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount bigger than vendor account balance"}}`)
+
+	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
+	utils.CheckError(t, err)
+
+	err = database.Db.UpdateAccountBalance(account.ID, 1000)
+	utils.CheckError(t, err)
+
+	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 200)
+
+	paymentID := res.Body.String()
+	paymentIDInt, err := strconv.Atoi(paymentID)
+
+	payment, err := database.Db.GetPayment(paymentIDInt)
+	cashAccount, err := database.Db.GetAccountByType("Cash")
+
+	require.Equal(t, payment.Amount, 314)
+	require.Equal(t, payment.Sender, account.ID)
+	require.Equal(t, payment.Receiver, cashAccount.ID)
+
+	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
+	utils.CheckError(t, err)
+
+	log.Info(vendor.Balance, 686)
+	require.Equal(t, vendor.Balance, 686)
+	require.Equal(t, cashAccount.Balance, 314)
+	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
+	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
 }
 
 // TestPaymentPayout tests CRUD operations on payment payouts

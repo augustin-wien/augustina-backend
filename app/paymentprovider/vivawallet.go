@@ -7,10 +7,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
 
+	b64 "encoding/base64"
 	"net/http"
 	"net/url"
 	"time"
@@ -37,14 +39,25 @@ func AuthenticateToVivaWallet() (string, error) {
 		log.Error("Building request failed: ", err)
 	}
 
-	// Create Header
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", "Basic "+config.Config.VivaWalletClientCredentials)
-	if config.Config.VivaWalletClientCredentials == "" {
-		err := errors.New("VivaWalletClientCredentials not in .env or empty")
+	// Encode client credentials to base64
+
+	if config.Config.VivaWalletSmartCheckoutClientID == "" || config.Config.VivaWalletSmartCheckoutClientKey == "" {
+		err := errors.New("VivaWalletSmartCheckoutClientCredentials not in .env or empty")
 		log.Error(err)
 		return "", err
 	}
+	clientID := config.Config.VivaWalletSmartCheckoutClientID
+	clientKey := config.Config.VivaWalletSmartCheckoutClientKey
+
+	// join id and key with a colon
+	joinedIDKey := clientID + ":" + clientKey
+
+	// encode to base64
+	encodedIDKey := b64.StdEncoding.EncodeToString([]byte(joinedIDKey))
+
+	// Create Header
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", "Basic "+encodedIDKey)
 
 	// Create a new client with a 10 second timeout
 	client := http.Client{Timeout: 10 * time.Second}
@@ -241,7 +254,10 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	if transactionVerificationResponse.Amount != paymentSuccessful.EventData.Amount {
-		return errors.New("Amount mismatch")
+		log.Info("Amount mismatch", zap.Float64(" transactionVerificationResponse.Amount ", transactionVerificationResponse.Amount), zap.Float64(" paymentSuccessful.EventData.Amount ", paymentSuccessful.EventData.Amount))
+		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
+		webhookToFloat64 := fmt.Sprintf("%f", paymentSuccessful.EventData.Amount)
+		return errors.New("Amount mismatch:" + transactionToFloat64 + "  vs. " + webhookToFloat64)
 	}
 
 	if transactionVerificationResponse.StatusId != paymentSuccessful.EventData.StatusId {
