@@ -84,16 +84,43 @@ func (db *Database) InitEmptyTestDb() (err error) {
 	if err != nil {
 		return err
 	}
-	// Create default settings
-	err = db.InitiateSettings()
+
+	// Get DBSettings
+	var dbSettings DBSettings
+	dbSettings, err = db.GetDBSettings()
 	if err != nil {
-		log.Error("Settings creation failed ", zap.Error(err))
+		log.Error("Settings retrieval failed ", zap.Error(err))
 	}
 
-	// Create default accounts
-	err = db.InitiateAccounts()
-	if err != nil {
-		log.Error("Default accounts creation failed ", zap.Error(err))
+	if !dbSettings.IsInitialized {
+
+		// Create default settings
+		err = db.InitiateSettings()
+		if err != nil {
+			log.Error("Settings creation failed ", zap.Error(err))
+		}
+
+		// Create default accounts
+		err = db.InitiateAccounts()
+		if err != nil {
+			log.Error("Default accounts creation failed ", zap.Error(err))
+		}
+
+		if config.Config.CreateDemoData {
+			err = db.CreateDevData()
+			if err != nil {
+				log.Error("Dev data creation failed ", zap.Error(err))
+			}
+		}
+
+		// Update DBSettings to initialized
+		err = db.UpdateDBSettings(DBSettings{IsInitialized: true})
+		if err != nil {
+			log.Error("Updating DBSettings failed ", zap.Error(err))
+		}
+		log.Info("Database successfully initialized")
+	} else {
+		log.Info("Database already initialized")
 	}
 
 	return err
