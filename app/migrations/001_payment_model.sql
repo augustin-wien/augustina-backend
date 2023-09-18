@@ -4,11 +4,15 @@ CREATE TABLE Vendor (
     ID serial PRIMARY KEY,
     KeycloakID varchar(255) NOT NULL DEFAULT '',
     UrlID varchar(255) NOT NULL DEFAULT '',
-    LicenseID varchar(255) UNIQUE NOT NULL,
+    LicenseID varchar(255) UNIQUE,
     FirstName varchar(255) NOT NULL DEFAULT '',
     LastName varchar(255) NOT NULL DEFAULT '',
     Email varchar(255) NOT NULL DEFAULT '',
-    LastPayout timestamp
+    IsDisabled bool NOT NULL DEFAULT FALSE,
+    LastPayout timestamp,
+    Longitude double precision NOT NULL DEFAULT 0,
+    Latitude double precision NOT NULL DEFAULT 0,
+    Address varchar(255) NOT NULL DEFAULT ''
 );
 
 CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash');  -- UserAnon, Orga, and Cash should only exist once
