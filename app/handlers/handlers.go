@@ -42,7 +42,7 @@ type TransactionOrderResponse struct {
 }
 
 type TransactionVerification struct {
-	TransactionID string
+	OrderCode int
 }
 
 type TransactionVerificationResponse struct {
@@ -99,7 +99,6 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	log.Info("id ", vendor.ID, "fn ", vendor.FirstName, "bl ", vendor.Balance)
 
 	id, err := database.Db.CreateVendor(vendor)
 	respond(w, err, id)
@@ -113,9 +112,9 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
-//	     @Param          id   path int  true  "Vendor ID"
+//	        @Param          id   path int  true  "Vendor ID"
 //		    @Param		    data body database.Vendor true "Vendor Representation"
-//			@Router			/vendors/{id} [put]
+//			@Router			/vendors/{id}/ [put]
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -139,8 +138,8 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
-//	     @Param          id   path int  true  "Vendor ID"
-//			@Router			/vendors/{id} [delete]
+//	        @Param          id   path int  true  "Vendor ID"
+//			@Router			/vendors/{id}/ [delete]
 func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -200,52 +199,51 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, id)
 }
 
-
 func UpdateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
-		// Get file from image field
-		file, header, err := r.FormFile("Image")
-		if err != nil {
-			return  // No file passed, which is ok
-		}
-		defer file.Close()
+	// Get file from image field
+	file, header, err := r.FormFile("Image")
+	if err != nil {
+		return // No file passed, which is ok
+	}
+	defer file.Close()
 
-		// Debugging
-		name := strings.Split(header.Filename, ".")
-		if len(name) != 2 {
-			log.Error(err)
-			utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
-			return
-		}
-
-		buf := bytes.NewBuffer(nil)
-		if _, err = io.Copy(buf, file); err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
-
-		// Generate unique filename
-		i := 0
-		for {
-			path = "/img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
-			_, err = os.Stat(".." + path);
-			if errors.Is(err, os.ErrNotExist) {
-				break
-			}
-			i += 1
-			if i > 100 {
-				log.Error(err)
-				utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
-				return
-			}
-		}
-
-		// Save file with unique name
-		err = os.WriteFile(".." + path, buf.Bytes(), 0666)
-		if err != nil {
-			log.Error(err)
-		}
+	// Debugging
+	name := strings.Split(header.Filename, ".")
+	if len(name) != 2 {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
 	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Generate unique filename
+	i := 0
+	for {
+		path = "/img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
+		_, err = os.Stat(".." + path)
+		if errors.Is(err, os.ErrNotExist) {
+			break
+		}
+		i += 1
+		if i > 1000 {
+			log.Error(err)
+			utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Save file with unique name
+	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
 
 // UpdateItem godoc
 //
@@ -270,15 +268,15 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	// Read multipart form
 	r.ParseMultipartForm(32 << 20)
 	mForm := r.MultipartForm
-	if (mForm == nil) {
+	if mForm == nil {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
 
 	// Handle normal fields
 	var item database.Item
-	fields := mForm.Value  // Values are stored in []string
-	fields_clean := make(map[string]string)  // Values are stored in string
+	fields := mForm.Value                   // Values are stored in []string
+	fields_clean := make(map[string]string) // Values are stored in string
 	for key, value := range fields {
 		fields_clean[key] = value[0]
 	}
@@ -296,7 +294,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	err = database.Db.UpdateItem(ItemID, item)
 	if err != nil {
 		log.Error(err)
-		utils.ErrorJSON(w,err, http.StatusBadRequest)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
 
 }
@@ -308,7 +306,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
-//	     @Param          id   path int  true  "Item ID"
+//	        @Param          id   path int  true  "Item ID"
 //			@Router			/items/{id} [delete]
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -326,6 +324,216 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Orders ---------------------------------------------------------------------
+
+type CreateOrderRequestEntry struct {
+	Item     int
+	Quantity int
+}
+
+type CreateOrderRequest struct {
+	Entries []CreateOrderRequestEntry
+	User    string
+	Vendor  int32
+}
+
+type CreateOrderResponse struct {
+	SmartCheckoutURL string
+}
+
+// CreatePaymentOrder godoc
+//
+//	 	@Summary 		Create Payment Order
+//		@Description	Submits payment order to provider & saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.
+//		@Tags			Orders
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    data body CreateOrderRequest true "Payment Order"
+//		@Success		200 {object} CreateOrderResponse
+//		@Router			/orders/ [post]
+func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
+
+	// Read payment order from request
+	var order database.Order
+	err := utils.ReadJSON(w, r, &order)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Get accounts
+	var buyerAccount database.Account
+	if order.User.Valid {
+		buyerAccount, err = database.Db.GetAccountByUser(order.User.String)
+	} else {
+		buyerAccount, err = database.Db.GetAccountByType("UserAnon")
+	}
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	vendorAccount, err := database.Db.GetAccountByVendor(order.Vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	orgaAccount, err := database.Db.GetAccountByType("Orga")
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Extend order entries
+	for idx, entry := range order.Entries {
+		// Get item from database
+		item, err := database.Db.GetItem(entry.Item)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+
+		// Define flow of money from buyer to vendor
+		order.Entries[idx].Sender = buyerAccount.ID
+		order.Entries[idx].Receiver = vendorAccount.ID
+		order.Entries[idx].Price = item.Price  // Take current item price
+
+		// If there is a license item, prepend it before the actual item
+		if item.LicenseItem.Valid {
+			licenseItem, err := database.Db.GetItem(int(item.LicenseItem.Int64))
+			if err != nil {
+				utils.ErrorJSON(w, err, http.StatusBadRequest)
+				return
+			}
+			// Define flow of money from vendor to orga
+			licenseItemEntry := database.OrderEntry{
+				Item:     int(item.LicenseItem.Int64),
+				Quantity: entry.Quantity,
+				Price:    licenseItem.Price,
+				Sender:   vendorAccount.ID,
+				Receiver: orgaAccount.ID,
+			}
+			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
+		}
+
+	}
+
+	// Submit order to vivawallet (disabled in tests)
+	var OrderCode int
+	if database.Db.IsProduction {
+		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+		if err != nil {
+			log.Error("Authentication failed: ", err)
+		}
+		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
+		if err != nil {
+			log.Error("Creating payment order failed: ", err)
+		}
+	}
+
+	// Save order to database
+	order.OrderCode.String = strconv.Itoa(OrderCode)
+	order.OrderCode.Valid = true  // This means that it is not null
+	_, err = database.Db.CreateOrder(order)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Create response
+	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(OrderCode)
+	response := CreateOrderResponse{
+		SmartCheckoutURL: url,
+	}
+	utils.WriteJSON(w, http.StatusOK, response)
+}
+
+
+type VerifyOrderResponse struct {
+	ID         		int
+	OrderCode 	    string
+	TransactionID   string
+	Verified 		bool
+	Timestamp  		string
+	User			string
+	Vendor	 		int
+	Entries     	[]database.OrderEntry
+}
+
+// VerifyPaymentOrder godoc
+//
+//	 	@Summary 		Verify Payment Order
+//		@Description	Verifies order and creates payments
+//		@Tags			Orders
+//		@Accept			json
+//		@Produce		json
+//		@Success		200 {object} VerifyOrderResponse
+//		@Param			s query string true "Order Code" Format(3043685539722561)
+//		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
+//		@Router			/orders/verify/ [post]
+func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
+
+	// Get transaction ID from URL parameter
+	OrderCode := r.URL.Query().Get("s")
+	if OrderCode == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter s"), http.StatusBadRequest)
+		return
+	}
+	TransactionID := r.URL.Query().Get("t")
+	if TransactionID == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter t"), http.StatusBadRequest)
+		return
+	}
+
+	// Get payment order from database
+	order, err := database.Db.GetOrderByOrderCode(OrderCode)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Return success message if already verified
+	if order.Verified {
+		utils.WriteJSON(w, http.StatusOK, order)
+		return
+	}
+
+	var isVerified bool
+	if database.Db.IsProduction {
+		// Get access token
+		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+		if err != nil {
+			log.Error("Authentication failed: ", err)
+		}
+
+		// Verify transaction
+		isVerified, err = paymentprovider.VerifyTransactionID(accessToken, TransactionID)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+
+	if !isVerified {
+		utils.ErrorJSON(w, errors.New("transaction not verified"), http.StatusBadRequest)
+		return
+	}
+
+	// Add additional entries in order (e.g. transaction fees)
+	// TODO: order.Entries = append(order.Entries, MyEntry)
+
+	// Store verification in db
+	order.TransactionID = TransactionID
+	order.Verified = isVerified
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Create response
+	utils.WriteJSON(w, http.StatusOK, order)
+}
+
 // Payments (from one account to another account) -----------------------------
 
 // ListPayments godoc
@@ -341,16 +549,21 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, payments)
 }
 
+type CreatePaymentsRequest struct {
+	Payments []database.Payment
+}
+
 // CreatePayments godoc
 //
 //	 	@Summary 		Create a set of payments
 //		@Tags			core
 //		@Accept			json
 //		@Produce		json
+//		@Param			amount body CreatePaymentsRequest true " Create Payment"
 //		@Success		200
 //		@Router			/payments [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
-	var paymentBatch database.PaymentBatch
+	var paymentBatch CreatePaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -363,6 +576,8 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
 
 // VivaWalletCreateTransactionOrder godoc
 //
@@ -404,11 +619,11 @@ func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
 // VivaWalletVerifyTransaction godoc
 //
 //	@Summary		Verify a transaction
-//	@Description	Accepts {"TransactionID":"1234567890"} and returns {"Verification":true}, if successful
+//	@Description	Accepts {"OrderCode":"1234567890"} and returns {"Verification":true}, if successful
 //	@Tags			core
 //	@accept			json
 //	@Produce		json
-//	@Param			transactionID body TransactionVerification true "Transaction ID"
+//	@Param			OrderCode body TransactionVerification true "Transaction ID"
 //	@Success		200	{array}	TransactionVerificationResponse
 //	@Router			/vivawallet/transaction_verification/ [post]
 func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
@@ -426,7 +641,7 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify transaction
-	verification, err := paymentprovider.VerifyTransactionID(accessToken, transactionVerification.TransactionID)
+	verification, err := paymentprovider.VerifyTransactionID(accessToken, strconv.Itoa(transactionVerification.OrderCode))
 	if err != nil {
 		log.Info("Verifying transaction failed: ", err)
 		return

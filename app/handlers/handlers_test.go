@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"mime/multipart"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -29,9 +30,7 @@ func TestHelloWorld(t *testing.T) {
 	require.Equal(t, "\"Hello, world!\"", res.Body.String())
 }
 
-// TestUsers tests CRUD operations on users
-func TestUsers(t *testing.T) {
-	// Create
+func CreateTestVendor(t *testing.T) string {
 	json_vendor := `{
 		"keycloakID": "test",
 		"urlID": "test",
@@ -41,7 +40,14 @@ func TestUsers(t *testing.T) {
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/vendors/", json_vendor, 200)
 	vendorID := res.Body.String()
-	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
+	return vendorID
+}
+
+// TestVendors tests CRUD operations on users
+func TestVendors(t *testing.T) {
+	// Create
+	vendorID := CreateTestVendor(t)
+	res := utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
 	var vendors []database.Vendor
 	err := json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
@@ -49,7 +55,7 @@ func TestUsers(t *testing.T) {
 	require.Equal(t, "test1234", vendors[0].FirstName)
 
 	// Update
-	json_vendor = `{"firstName": "nameAfterUpdate"}`
+	json_vendor := `{"firstName": "nameAfterUpdate"}`
 	utils.TestRequestStr(t, r, "PUT", "/api/vendors/"+vendorID+"/", json_vendor, 200)
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
@@ -65,19 +71,25 @@ func TestUsers(t *testing.T) {
 	require.Equal(t, 0, len(vendors))
 }
 
-// TestItems tests CRUD operations on items (including images)
-func TestItems(t *testing.T) {
-
-	// Create
+func CreateTestItem(t *testing.T) string {
 	f := `{
 		"Name": "Test item",
-		"Price": 3.14
+		"Price": 314
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
 	itemID := res.Body.String()
+	return itemID
+}
+
+// TestItems tests CRUD operations on items (including images)
+// Todo: delete file after test
+func TestItems(t *testing.T) {
+
+	// Create
+	itemID := CreateTestItem(t)
 
 	// Read
-	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
+	res := utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	var resItems []database.Item
 	err := json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
@@ -126,6 +138,54 @@ func TestItems(t *testing.T) {
 
 }
 
+// TestOrders tests CRUD operations on orders
+// TODO: Test independent of vivawallet
+func TestOrders(t *testing.T) {
+
+	itemID := CreateTestItem(t)
+	itemIDInt, _ := strconv.Atoi(itemID)
+	vendorID := CreateTestVendor(t)
+	vendorIDInt, _ := strconv.Atoi(vendorID)
+	f := `{
+		"entries": [
+			{
+			  "item": ` + itemID + `,
+			  "quantity": 315
+			}
+		  ],
+		  "vendor": ` + vendorID + `
+	}`
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=0"}`)
+
+	order, err := database.Db.GetOrderByOrderCode("0")
+	if err != nil {
+		t.Error(err)
+	}
+
+	senderAccount, err := database.Db.GetAccountByType("UserAnon")
+	if err != nil {
+		t.Error(err)
+	}
+	receiverAccount, err := database.Db.GetAccountByVendor(vendorIDInt)
+	if err != nil {
+		t.Error(err)
+	}
+
+	require.Equal(t, order.Vendor, vendorIDInt)
+	require.Equal(t, order.Verified, false)
+	require.Equal(t, order.Entries[0].Item, itemIDInt)
+	require.Equal(t, order.Entries[0].Quantity, 315)
+	require.Equal(t, order.Entries[0].Price, 314)
+	require.Equal(t, order.Entries[0].Sender, senderAccount.ID)
+	require.Equal(t, order.Entries[0].Receiver, receiverAccount.ID)
+
+	// Test that transaction correctly takes order code but does not verify
+	res = utils.TestRequest(t, r, "POST", "/api/orders/verify/?s=0&t=1", nil, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"transaction not verified"}}`)
+
+}
+
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
 
@@ -136,12 +196,12 @@ func TestPayments(t *testing.T) {
 	utils.CheckError(t, err)
 
 	// Create payments via API
-	f := database.PaymentBatch{
+	f := CreatePaymentsRequest{
 		Payments: []database.Payment{
 			{
 				Sender:   account_id,
 				Receiver: account_id,
-				Amount:   float32(3.14),
+				Amount:   314,
 			},
 		},
 	}
@@ -162,11 +222,11 @@ func TestPayments(t *testing.T) {
 	}
 
 	// Test payments response
-	require.Equal(t, payments[0].Amount, float32(3.14))
+	require.Equal(t, payments[0].Amount, 314)
 	require.Equal(t, payments[0].Sender, account_id)
 	require.Equal(t, payments[0].Receiver, account_id)
-	require.Equal(t, payments[0].Timestamp.Time.Day(), time.Now().Day())
-	require.Equal(t, payments[0].Timestamp.Time.Hour(), time.Now().UTC().Hour())
+	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
+	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
 
 }
 

@@ -1,12 +1,14 @@
 package database
 
 import (
+	"augustin/utils"
 	"context"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gopkg.in/guregu/null.v4"
 )
 
 // TestMain is the main function for the database tests and initializes the database
@@ -64,4 +66,26 @@ func Test_UpdateSettings(t *testing.T) {
 	if err != nil {
 		t.Errorf("UpdateSettings failed: %v\n", err)
 	}
+}
+
+func TestAccounts(t *testing.T) {
+	// Get account by type (default accounts should exist)
+	account, err := Db.GetAccountByType("Cash")
+	utils.CheckError(t, err)
+	require.Equal(t, "Cash", account.Name)
+
+	// Create mew account
+	account = Account{
+		Name:  "test",
+		Type:  "UserAuth",
+		User:  null.StringFrom("550e8400-e29b-41d4-a716-446655440000"),
+	}
+	id, err := Db.CreateAccount(account)
+	utils.CheckError(t, err)
+
+	// Get account by ID
+	account, err = Db.GetAccountByID(id)
+	utils.CheckError(t, err)
+
+	require.Equal(t, "test", account.Name)
 }
