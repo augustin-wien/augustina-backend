@@ -9,6 +9,30 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// Helpers --------------------------------------------------------------------
+
+// deferTx executes a transaction after a function returns
+func deferTx(tx pgx.Tx) (err error) {
+	if p := recover(); p != nil {
+		// Rollback the transaction if a panic occurred
+		_ = tx.Rollback(context.Background())
+		// Re-throw the panic
+		panic(p)
+	} else if err != nil {
+		// Rollback the transaction if an error occurred
+		_ = tx.Rollback(context.Background())
+	} else {
+		// Commit the transaction if everything is successful
+		err = tx.Commit(context.Background())
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	return
+}
+
+// Generic --------------------------------------------------------------------
+
 // GetHelloWorld returns the string "Hello, world!" from the database and should be used as a template for other queries
 func (db *Database) GetHelloWorld() (string, error) {
 	var greeting string
@@ -267,11 +291,17 @@ func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err erro
 }
 
 // CreateOrder creates an order in the database
-// TODO: This should be a transaction
 // Processes OrderCode, vendor, and items (trinkgeld is an item)
 func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
+	// Start a transaction
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		return
+	}
+	defer func() { err = deferTx(tx) }()
+
+	err = tx.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -282,14 +312,14 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 
 		// Get current item price
 		var item Item
-		err = db.Dbpool.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
+		err = tx.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
 		if err != nil {
 			log.Error(err)
 			return
 		}
 
 		// Create order item
-		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
+		_, err = tx.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
 		if err != nil {
 			log.Error(err)
 			return orderID, err
@@ -299,6 +329,7 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	return
 }
 
+
 // VerifyOrderAndCreatePayments verifies payment order, update it in the database, and create payments
 func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 
@@ -307,22 +338,7 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 	if err != nil {
 		return err
 	}
-
-	// Execute transaction after function returns
-	defer func() {
-		if p := recover(); p != nil {
-			// Rollback the transaction if a panic occurred
-			_ = tx.Rollback(context.Background())
-			// Re-throw the panic
-			panic(p)
-		} else if err != nil {
-			// Rollback the transaction if an error occurred
-			_ = tx.Rollback(context.Background())
-		} else {
-			// Commit the transaction if everything is successful
-			err = tx.Commit(context.Background())
-		}
-	}()
+	defer func() { err = deferTx(tx) }()
 
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
@@ -410,22 +426,7 @@ func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
 	if err != nil {
 		return
 	}
-
-	// Handle transaction after function returns
-	defer func() {
-		if p := recover(); p != nil {
-			// Rollback the transaction if a panic occurred
-			_ = tx.Rollback(context.Background())
-			// Re-throw the panic
-			panic(p)
-		} else if err != nil {
-			// Rollback the transaction if an error occurred
-			_ = tx.Rollback(context.Background())
-		} else {
-			// Commit the transaction if everything is successful
-			err = tx.Commit(context.Background())
-		}
-	}()
+	defer func() { err = deferTx(tx) }()
 
 	paymentID, err = createPaymentTx(tx, payment)
 
@@ -441,22 +442,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 		log.Error(err)
 		return err
 	}
-
-	// Handle transaction after function returns
-	defer func() {
-		if p := recover(); p != nil {
-			// Rollback the transaction if a panic occurred
-			_ = tx.Rollback(context.Background())
-			// Re-throw the panic
-			panic(p)
-		} else if err != nil {
-			// Rollback the transaction if an error occurred
-			_ = tx.Rollback(context.Background())
-		} else {
-			// Commit the transaction if everything is successful
-			err = tx.Commit(context.Background())
-		}
-	}()
+	defer func() { err = deferTx(tx) }()
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
@@ -554,9 +540,26 @@ func (db *Database) GetAccountByVendorID(vendorID int) (account Account, err err
 	return
 }
 
+// Memory cache for account type id's
+var accountTypeIDCache map[string]int
+
+// GetAccountTypeID returns the (cached) ID of an account type
+func (db *Database) GetAccountTypeID(accountType string) (accountTypeID int, err error) {
+	if accountTypeIDCache[accountType] != 0 {
+		accountTypeID = accountTypeIDCache[accountType]
+		return
+	}
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID FROM AccountType WHERE Type = $1", accountType).Scan(&accountTypeID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	accountTypeIDCache[accountType] = accountTypeID
+	return
+}
+
 // GetAccountByType returns the account with the given type
 // Works only for types with a single entry in the database
-// TODO: This could easily be cached
 func (db *Database) GetAccountByType(accountType string) (account Account, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Type = $1", accountType).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
@@ -568,17 +571,14 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 // UpdateAccountBalance updates the balance of an account
 func (db *Database) UpdateAccountBalance(id int, balanceDiff int) (err error) {
 
-	account, err := db.GetAccountByID(id)
-	newBalance := account.Balance + balanceDiff
-
-	_, err = db.Dbpool.Exec(context.Background(), `
-	UPDATE Account
-	SET Balance = $2
-	WHERE ID = $1
-	`, id, newBalance)
+	// Start a transaction
+	tx, err := db.Dbpool.Begin(context.Background())
 	if err != nil {
-		log.Error(err)
+		return err
 	}
+	defer func() { err = deferTx(tx) }()
+
+	err = updateAccountBalanceTx(tx, id, balanceDiff)
 
 	return
 }
