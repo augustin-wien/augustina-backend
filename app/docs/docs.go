@@ -37,7 +37,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Return HelloWorld",
                 "responses": {}
@@ -93,7 +93,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "int"
+                            "type": "integer"
                         }
                     }
                 }
@@ -178,7 +178,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateOrderRequest"
+                            "$ref": "#/definitions/handlers.createOrderRequest"
                         }
                     }
                 ],
@@ -186,13 +186,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateOrderResponse"
+                            "$ref": "#/definitions/handlers.createOrderResponse"
                         }
                     }
                 }
             }
         },
-        "/payments": {
+        "/payments/": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -201,7 +201,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Payments"
                 ],
                 "summary": "Get list of all payments",
                 "responses": {
@@ -224,7 +224,37 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Payments"
+                ],
+                "summary": "Create a payment",
+                "parameters": [
+                    {
+                        "description": " Create Payment",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Payment"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/payments/batch/": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
                 ],
                 "summary": "Create a set of payments",
                 "parameters": [
@@ -234,13 +264,49 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreatePaymentsRequest"
+                            "$ref": "#/definitions/handlers.createPaymentsRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/payout/": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Create a payment from a vendor account to cash",
+                "parameters": [
+                    {
+                        "description": " Create Payment",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createPaymentPayoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 }
             }
@@ -255,7 +321,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Return settings",
                 "responses": {
@@ -279,7 +345,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Update settings",
                 "parameters": [
@@ -309,7 +375,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "List Vendors",
                 "responses": {
@@ -332,7 +398,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Create Vendor",
                 "parameters": [
@@ -363,7 +429,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -398,7 +464,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Delete Vendor",
                 "parameters": [
@@ -427,7 +493,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Return VivaWallet verification key",
                 "responses": {
@@ -436,7 +502,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.VivaWalletVerificationKeyResponse"
+                                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
                             }
                         }
                     }
@@ -451,7 +517,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Webhook for VivaWallet failed transaction",
                 "parameters": [
@@ -482,7 +548,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Return VivaWallet verification key",
                 "responses": {
@@ -491,7 +557,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.VivaWalletVerificationKeyResponse"
+                                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
                             }
                         }
                     }
@@ -506,7 +572,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Webhook for VivaWallet transaction prices",
                 "parameters": [
@@ -537,7 +603,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Return VivaWallet verification key",
                 "responses": {
@@ -546,7 +612,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.VivaWalletVerificationKeyResponse"
+                                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
                             }
                         }
                     }
@@ -561,7 +627,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Webhook for VivaWallet successful transaction",
                 "parameters": [
@@ -668,6 +734,9 @@ const docTemplate = `{
         "database.Vendor": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
                 "balance": {
                     "description": "This is joined in from the account",
                     "type": "integer"
@@ -681,6 +750,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "isDisabled": {
+                    "type": "boolean"
+                },
                 "keycloakID": {
                     "type": "string"
                 },
@@ -691,22 +763,28 @@ const docTemplate = `{
                     "type": "string",
                     "format": "date-time"
                 },
-                "licenseID": {
-                    "type": "string"
+                "latitude": {
+                    "type": "number"
                 },
-                "urlID": {
+                "licenseID": {
+                    "$ref": "#/definitions/null.String"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "urlid": {
                     "description": "This is used for the QR code",
                     "type": "string"
                 }
             }
         },
-        "handlers.CreateOrderRequest": {
+        "handlers.createOrderRequest": {
             "type": "object",
             "properties": {
                 "entries": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.CreateOrderRequestEntry"
+                        "$ref": "#/definitions/handlers.createOrderRequestEntry"
                     }
                 },
                 "user": {
@@ -717,7 +795,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CreateOrderRequestEntry": {
+        "handlers.createOrderRequestEntry": {
             "type": "object",
             "properties": {
                 "item": {
@@ -728,7 +806,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CreateOrderResponse": {
+        "handlers.createOrderResponse": {
             "type": "object",
             "properties": {
                 "smartCheckoutURL": {
@@ -736,7 +814,18 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CreatePaymentsRequest": {
+        "handlers.createPaymentPayoutRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "vendorLicenseID": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.createPaymentsRequest": {
             "type": "object",
             "properties": {
                 "payments": {
@@ -744,14 +833,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/database.Payment"
                     }
-                }
-            }
-        },
-        "handlers.VivaWalletVerificationKeyResponse": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
                 }
             }
         },
@@ -763,6 +844,18 @@ const docTemplate = `{
                 },
                 "valid": {
                     "description": "Valid is true if Int64 is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "null.String": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if String is not NULL",
                     "type": "boolean"
                 }
             }
@@ -1029,6 +1122,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "Url": {
+                    "type": "string"
+                }
+            }
+        },
+        "paymentprovider.VivaWalletVerificationKeyResponse": {
+            "type": "object",
+            "properties": {
+                "key": {
                     "type": "string"
                 }
             }

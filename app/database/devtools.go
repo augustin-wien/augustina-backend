@@ -21,7 +21,7 @@ func (db *Database) createDevUsers() (err error) {
 	vendor := Vendor{
 		KeycloakID: "keycloakid1",
 		URLID:      "www.augustin.or.at/fl-123",
-		LicenseID:  "fl-123",
+		LicenseID:  null.NewString("fl-123", true),
 		FirstName:  "firstname1",
 		LastName:   "lastname1",
 		Email:      "email1",

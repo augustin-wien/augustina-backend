@@ -56,6 +56,8 @@ definitions:
     type: object
   database.Vendor:
     properties:
+      address:
+        type: string
       balance:
         description: This is joined in from the account
         type: integer
@@ -65,6 +67,8 @@ definitions:
         type: string
       id:
         type: integer
+      isDisabled:
+        type: boolean
       keycloakID:
         type: string
       lastName:
@@ -72,46 +76,52 @@ definitions:
       lastPayout:
         format: date-time
         type: string
+      latitude:
+        type: number
       licenseID:
-        type: string
-      urlID:
+        $ref: '#/definitions/null.String'
+      longitude:
+        type: number
+      urlid:
         description: This is used for the QR code
         type: string
     type: object
-  handlers.CreateOrderRequest:
+  handlers.createOrderRequest:
     properties:
       entries:
         items:
-          $ref: '#/definitions/handlers.CreateOrderRequestEntry'
+          $ref: '#/definitions/handlers.createOrderRequestEntry'
         type: array
       user:
         type: string
       vendor:
         type: integer
     type: object
-  handlers.CreateOrderRequestEntry:
+  handlers.createOrderRequestEntry:
     properties:
       item:
         type: integer
       quantity:
         type: integer
     type: object
-  handlers.CreateOrderResponse:
+  handlers.createOrderResponse:
     properties:
       smartCheckoutURL:
         type: string
     type: object
-  handlers.CreatePaymentsRequest:
+  handlers.createPaymentPayoutRequest:
+    properties:
+      amount:
+        type: integer
+      vendorLicenseID:
+        type: string
+    type: object
+  handlers.createPaymentsRequest:
     properties:
       payments:
         items:
           $ref: '#/definitions/database.Payment'
         type: array
-    type: object
-  handlers.VivaWalletVerificationKeyResponse:
-    properties:
-      key:
-        type: string
     type: object
   null.Int:
     properties:
@@ -119,6 +129,14 @@ definitions:
         type: integer
       valid:
         description: Valid is true if Int64 is not NULL
+        type: boolean
+    type: object
+  null.String:
+    properties:
+      string:
+        type: string
+      valid:
+        description: Valid is true if String is not NULL
         type: boolean
     type: object
   paymentprovider.EventData:
@@ -305,6 +323,11 @@ definitions:
       Url:
         type: string
     type: object
+  paymentprovider.VivaWalletVerificationKeyResponse:
+    properties:
+      key:
+        type: string
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -332,7 +355,7 @@ paths:
       responses: {}
       summary: Return HelloWorld
       tags:
-      - core
+      - Core
   /items/:
     get:
       consumes:
@@ -365,7 +388,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: int
+            type: integer
       summary: Create Item
       tags:
       - Items
@@ -420,18 +443,18 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreateOrderRequest'
+          $ref: '#/definitions/handlers.createOrderRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.CreateOrderResponse'
+            $ref: '#/definitions/handlers.createOrderResponse'
       summary: Create Payment Order
       tags:
       - Orders
-  /payments:
+  /payments/:
     get:
       consumes:
       - application/json
@@ -446,7 +469,7 @@ paths:
             type: array
       summary: Get list of all payments
       tags:
-      - core
+      - Payments
     post:
       consumes:
       - application/json
@@ -456,15 +479,57 @@ paths:
         name: amount
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreatePaymentsRequest'
+          $ref: '#/definitions/database.Payment'
       produces:
       - application/json
       responses:
         "200":
           description: OK
+      summary: Create a payment
+      tags:
+      - Payments
+  /payments/batch/:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ' Create Payment'
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createPaymentsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
       summary: Create a set of payments
       tags:
-      - core
+      - Payments
+  /payments/payout/:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ' Create Payment'
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createPaymentPayoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+      summary: Create a payment from a vendor account to cash
+      tags:
+      - Payments
   /settings/:
     get:
       consumes:
@@ -481,7 +546,7 @@ paths:
             type: array
       summary: Return settings
       tags:
-      - core
+      - Core
     put:
       consumes:
       - application/json
@@ -500,7 +565,7 @@ paths:
           description: OK
       summary: Update settings
       tags:
-      - core
+      - Core
   /vendors/:
     get:
       consumes:
@@ -516,7 +581,7 @@ paths:
             type: array
       summary: List Vendors
       tags:
-      - vendors
+      - Vendors
     post:
       consumes:
       - application/json
@@ -534,7 +599,7 @@ paths:
           description: OK
       summary: Create Vendor
       tags:
-      - vendors
+      - Vendors
   /vendors/{id}/:
     delete:
       consumes:
@@ -552,7 +617,7 @@ paths:
           description: OK
       summary: Delete Vendor
       tags:
-      - vendors
+      - Vendors
     put:
       consumes:
       - application/json
@@ -576,7 +641,7 @@ paths:
           description: OK
       summary: Update Vendor
       tags:
-      - vendors
+      - Vendors
   /webhooks/vivawallet/failure:
     get:
       consumes:
@@ -589,11 +654,11 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.VivaWalletVerificationKeyResponse'
+              $ref: '#/definitions/paymentprovider.VivaWalletVerificationKeyResponse'
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - core
+      - VivaWallet Webhooks
     post:
       consumes:
       - application/json
@@ -612,7 +677,7 @@ paths:
           description: OK
       summary: Webhook for VivaWallet failed transaction
       tags:
-      - core
+      - VivaWallet Webhooks
   /webhooks/vivawallet/price:
     get:
       consumes:
@@ -625,11 +690,11 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.VivaWalletVerificationKeyResponse'
+              $ref: '#/definitions/paymentprovider.VivaWalletVerificationKeyResponse'
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - core
+      - VivaWallet Webhooks
     post:
       consumes:
       - application/json
@@ -648,7 +713,7 @@ paths:
           description: OK
       summary: Webhook for VivaWallet transaction prices
       tags:
-      - core
+      - VivaWallet Webhooks
   /webhooks/vivawallet/success:
     get:
       consumes:
@@ -661,11 +726,11 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.VivaWalletVerificationKeyResponse'
+              $ref: '#/definitions/paymentprovider.VivaWalletVerificationKeyResponse'
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - core
+      - VivaWallet Webhooks
     post:
       consumes:
       - application/json
@@ -684,7 +749,7 @@ paths:
           description: OK
       summary: Webhook for VivaWallet successful transaction
       tags:
-      - core
+      - VivaWallet Webhooks
 securityDefinitions:
   BasicAuth:
     type: basic
