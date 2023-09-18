@@ -372,7 +372,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: int
+            type: integer
       summary: Create Item
       tags:
       - Items
@@ -489,7 +489,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: int
+            type: integer
       summary: Create a set of payments
       tags:
       - Payments
@@ -510,7 +510,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: int
+            type: integer
       summary: Create a payment from a vendor account to cash
       tags:
       - Payments

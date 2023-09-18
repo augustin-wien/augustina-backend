@@ -169,7 +169,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //	    @Param		    data body database.Item true "Item Representation"
-//		@Success		200	 {int}	id
+//		@Success		200	 {integer}	id
 //		@Router			/items/ [post]
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	var item database.Item
@@ -488,7 +488,7 @@ type createPaymentsRequest struct {
 //		@Accept			json
 //		@Produce		json
 //		@Param			amount body createPaymentsRequest true " Create Payment"
-//		@Success		200 {int} id
+//		@Success		200 {integer} id
 //		@Router			/payments/batch/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
@@ -517,7 +517,7 @@ type createPaymentPayoutRequest struct {
 //		@Accept			json
 //		@Produce		json
 //		@Param			amount body createPaymentPayoutRequest true " Create Payment"
-//		@Success		200 {int} id
+//		@Success		200 {integer} id
 //		@Router			/payments/payout/ [post]
 func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 

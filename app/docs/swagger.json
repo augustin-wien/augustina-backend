@@ -87,7 +87,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "int"
+                            "type": "integer"
                         }
                     }
                 }
@@ -266,7 +266,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "int"
+                            "type": "integer"
                         }
                     }
                 }
@@ -299,7 +299,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "int"
+                            "type": "integer"
                         }
                     }
                 }
