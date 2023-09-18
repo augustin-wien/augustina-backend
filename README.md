@@ -24,7 +24,7 @@ Go to http://localhost:3000/api/hello/
   docker compose up -d augustin augustin-db augustin-db-test keycloak
   ```
 2. To make the PDF-Parser run correctly check out description below.
-
+3. Temporary fix to remove wpcli file: `sudo rm docker/wpcli/.env.parser`
 
 
 ### Ports
