@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
@@ -367,13 +368,25 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 // Payments -------------------------------------------------------------------
 
 // ListPayments returns the payments from the database
-func (db *Database) ListPayments() ([]Payment, error) {
-	var payments []Payment
-	rows, err := db.Dbpool.Query(context.Background(), "select * from payment")
+func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments []Payment, err error) {
+	var rows pgx.Rows
+
+	// Query based on parameters
+	if !minDate.IsZero() && !maxDate.IsZero() {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
+	} else if !minDate.IsZero() {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1", minDate)
+	} else if !maxDate.IsZero() {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp <= $2", maxDate)
+	} else {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment")
+	}
 	if err != nil {
 		log.Error(err)
 		return payments, err
 	}
+
+	// Scan rows
 	for rows.Next() {
 		var payment Payment
 		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry)

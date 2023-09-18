@@ -447,10 +447,23 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
+//		@Param			minDate query string false "Minimum date"
+//		@Param			maxDate query string false "Maximum date"
 //		@Success		200	{array}	database.Payment
 //		@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
-	payments, err := database.Db.ListPayments()
+
+	// Get minDate and maxDate parameters
+	minDate, err := time.Parse(time.RFC3339, r.URL.Query().Get("minDate"))
+	if err != nil {
+		minDate = time.Time{}
+	}
+	maxDate, err := time.Parse(time.RFC3339, r.URL.Query().Get("maxDate"))
+	if err != nil {
+		maxDate = time.Time{}
+	}
+
+	payments, err := database.Db.ListPayments(minDate, maxDate)
 	respond(w, err, payments)
 }
 
