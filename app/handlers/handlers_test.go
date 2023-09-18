@@ -231,8 +231,6 @@ func TestPaymentsBatch(t *testing.T) {
 	// Test time filters
 	timeRequest(t, 0, 0, 1)
 
-
-
 }
 
 func timeRequest(t *testing.T, from int, to int, expectedLength int) () {
