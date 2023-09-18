@@ -250,18 +250,28 @@ func TestPaymentPayout(t *testing.T) {
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
 	utils.CheckError(t, err)
 
-	// Debug
-	vendorFromDb, err := database.Db.GetVendorByLicenseID("testLicenseID")
-	log.Info("TEST Vendor from db has id ", vendorFromDb.ID)
-
-	log.Info("TEST Vendor has id ", vendorIDInt)
-	log.Info("TEST Vendor account has id ", account.ID)
-
 	err = database.Db.UpdateAccountBalance(account.ID, 1000)
 	utils.CheckError(t, err)
 
 	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 200)
 
+	paymentID := res.Body.String()
+	paymentIDInt, err := strconv.Atoi(paymentID)
+
+	payment, err := database.Db.GetPayment(paymentIDInt)
+	cashAccount, err := database.Db.GetAccountByType("Cash")
+
+	require.Equal(t, payment.Amount, 314)
+	require.Equal(t, payment.Sender, account.ID)
+	require.Equal(t, payment.Receiver, cashAccount.ID)
+
+	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
+	utils.CheckError(t, err)
+
+	// TODO: Balance should update automatically
+	// require.Equal(t, vendor.Balance, 314)
+	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
+	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
 }
 
 // TestSettings tests GET and PUT operations on settings

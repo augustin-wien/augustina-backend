@@ -368,6 +368,15 @@ func (db *Database) ListPayments() ([]Payment, error) {
 	return payments, nil
 }
 
+// GetPayment
+func (db *Database) GetPayment(id int) (payment Payment, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Payment WHERE ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 // CreatePayment creates a payment and returns the payment ID
 func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
 

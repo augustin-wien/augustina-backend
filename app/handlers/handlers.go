@@ -9,8 +9,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"gopkg.in/guregu/null.v4"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -641,8 +643,6 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
-		log.Info("HANDLER Vendor has id ", vendor.ID)
-		log.Info("HANDLER Vendor account has id ", vendorAccount.ID)
 
 		// Get cash account
 		cashAccount, err := database.Db.GetAccountByType("Cash")
@@ -670,7 +670,14 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// TODO update last payout date
+		// Update last payout date
+		// TODO: Should be transaction together with above DB request
+		vendor.LastPayout = null.NewTime(time.Now(), true)
+		err = database.Db.UpdateVendor(vendor.ID, vendor)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
 
 		utils.WriteJSON(w, http.StatusOK, paymentID)
 
