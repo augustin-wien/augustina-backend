@@ -18,7 +18,6 @@ import (
 // GetRouter creates a new chi Router and mounts all handlers
 func GetRouter() (r *chi.Mux) {
 	r = chi.NewRouter()
-	log.Info(os.Getenv("FRONTEND_URL"))
 	// Mount all Middleware here
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
@@ -29,8 +28,7 @@ func GetRouter() (r *chi.Mux) {
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
-
-		MaxAge: 300, // Maximum value not ignored by any of major browsers
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 	r.Use(middleware.Recoverer)
 
