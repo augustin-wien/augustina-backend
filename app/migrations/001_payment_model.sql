@@ -8,8 +8,8 @@ CREATE TABLE Vendor (
     FirstName varchar(255) NOT NULL DEFAULT '',
     LastName varchar(255) NOT NULL DEFAULT '',
     Email varchar(255) NOT NULL DEFAULT '',
-    IsDisabled bool NOT NULL DEFAULT FALSE,
     LastPayout timestamp,
+    IsDisabled bool NOT NULL DEFAULT FALSE,
     Longitude double precision NOT NULL DEFAULT 0,
     Latitude double precision NOT NULL DEFAULT 0,
     Address varchar(255) NOT NULL DEFAULT ''
