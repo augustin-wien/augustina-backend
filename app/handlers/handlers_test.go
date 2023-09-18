@@ -189,7 +189,10 @@ func TestOrders(t *testing.T) {
 func TestPaymentsBatch(t *testing.T) {
 
 	// Set up a payment account
-	accountID, err := database.Db.CreateAccount(
+	senderAccountID, err := database.Db.CreateAccount(
+		database.Account{Name: "Test account"},
+	)
+	receiverAccountID, err := database.Db.CreateAccount(
 		database.Account{Name: "Test account"},
 	)
 	utils.CheckError(t, err)
@@ -198,8 +201,8 @@ func TestPaymentsBatch(t *testing.T) {
 	f := createPaymentsRequest{
 		Payments: []database.Payment{
 			{
-				Sender:   accountID,
-				Receiver: accountID,
+				Sender:   senderAccountID,
+				Receiver: receiverAccountID,
 				Amount:   314,
 			},
 		},
@@ -222,10 +225,18 @@ func TestPaymentsBatch(t *testing.T) {
 
 	// Test payments response
 	require.Equal(t, payments[0].Amount, 314)
-	require.Equal(t, payments[0].Sender, accountID)
-	require.Equal(t, payments[0].Receiver, accountID)
+	require.Equal(t, payments[0].Sender, senderAccountID)
+	require.Equal(t, payments[0].Receiver, receiverAccountID)
 	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
 	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
+
+	// Test account balances
+	senderAccount, err := database.Db.GetAccountByID(senderAccountID)
+	utils.CheckError(t, err)
+	receiverAccount, err := database.Db.GetAccountByID(receiverAccountID)
+	utils.CheckError(t, err)
+	require.Equal(t, senderAccount.Balance, -314)
+	require.Equal(t, receiverAccount.Balance, 314)
 
 }
 

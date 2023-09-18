@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
+	"gopkg.in/guregu/null.v4"
 )
 
 // GetHelloWorld returns the string "Hello, world!" from the database and should be used as a template for other queries
@@ -338,11 +339,17 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 	order, err := db.GetOrderByID(id)
 
 	// Create payments
+
+	var payment Payment
 	for _, oi := range order.Entries {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, PaymentOrder) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
-		if err != nil {
-			return err
+		payment = Payment{
+			Sender:   oi.Sender,
+			Receiver: oi.Receiver,
+			Amount:   oi.Price * oi.Quantity,
+			Order:    null.NewInt(int64(order.ID), true),
+			OrderEntry: null.NewInt(int64(oi.ID), true),
 		}
+		createPaymentTx(tx, payment)
 	}
 
 	return
