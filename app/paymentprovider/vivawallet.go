@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -241,7 +242,10 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	if transactionVerificationResponse.Amount != paymentSuccessful.EventData.Amount {
-		return errors.New("Amount mismatch")
+		log.Info("Amount mismatch", zap.Float64(" transactionVerificationResponse.Amount ", transactionVerificationResponse.Amount), zap.Float64(" paymentSuccessful.EventData.Amount ", paymentSuccessful.EventData.Amount))
+		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
+		webhookToFloat64 := fmt.Sprintf("%f", paymentSuccessful.EventData.Amount)
+		return errors.New("Amount mismatch:" + transactionToFloat64 + "  vs. " + webhookToFloat64)
 	}
 
 	if transactionVerificationResponse.StatusId != paymentSuccessful.EventData.StatusId {

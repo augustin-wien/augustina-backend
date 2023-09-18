@@ -378,7 +378,6 @@ func (db *Database) GetPayment(id int) (payment Payment, err error) {
 	return
 }
 
-
 // CreatePayment creates a payment in an transaction
 func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 
@@ -400,7 +399,6 @@ func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 	}
 	return
 }
-
 
 // CreatePayment creates a payment and returns the payment ID
 func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
@@ -547,7 +545,7 @@ func (db *Database) GetAccountByVendorID(vendorID int) (account Account, err err
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Vendor = $1", vendorID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
 		if err.Error() == "no rows in result set" {
-			err = errors.New("vendor does not exist or has no account")
+			err = errors.New("Vendor does not exist or has no account")
 		}
 		log.Error(err)
 	}

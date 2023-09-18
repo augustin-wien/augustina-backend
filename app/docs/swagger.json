@@ -31,7 +31,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Return HelloWorld",
                 "responses": {}
@@ -315,7 +315,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Return settings",
                 "responses": {
@@ -339,7 +339,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Update settings",
                 "parameters": [
@@ -369,7 +369,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "List Vendors",
                 "responses": {
@@ -392,7 +392,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Create Vendor",
                 "parameters": [
@@ -423,7 +423,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -458,7 +458,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Delete Vendor",
                 "parameters": [
@@ -487,7 +487,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Return VivaWallet verification key",
                 "responses": {
@@ -511,7 +511,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Webhook for VivaWallet failed transaction",
                 "parameters": [
@@ -542,7 +542,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Return VivaWallet verification key",
                 "responses": {
@@ -566,7 +566,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Webhook for VivaWallet transaction prices",
                 "parameters": [
@@ -597,7 +597,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Return VivaWallet verification key",
                 "responses": {
@@ -621,7 +621,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Webhook for VivaWallet successful transaction",
                 "parameters": [
@@ -728,6 +728,9 @@
         "database.Vendor": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
                 "balance": {
                     "description": "This is joined in from the account",
                     "type": "integer"
@@ -741,6 +744,9 @@
                 "id": {
                     "type": "integer"
                 },
+                "isDisabled": {
+                    "type": "boolean"
+                },
                 "keycloakID": {
                     "type": "string"
                 },
@@ -751,8 +757,14 @@
                     "type": "string",
                     "format": "date-time"
                 },
+                "latitude": {
+                    "type": "number"
+                },
                 "licenseID": {
-                    "type": "string"
+                    "$ref": "#/definitions/null.String"
+                },
+                "longitude": {
+                    "type": "number"
                 },
                 "urlid": {
                     "description": "This is used for the QR code",
@@ -826,6 +838,18 @@
                 },
                 "valid": {
                     "description": "Valid is true if Int64 is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "null.String": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if String is not NULL",
                     "type": "boolean"
                 }
             }
