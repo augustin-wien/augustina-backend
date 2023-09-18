@@ -9,6 +9,9 @@ type config struct {
 	PaymentServiceProvider      string
 	VivaWalletSourceCode        string
 	VivaWalletClientCredentials string
+	VivaWalletVerificationKey   string
+	VivaWalletApiURL            string
+	VivaWalletAccountsURL       string
 }
 
 // Config is the global configuration variable
@@ -19,6 +22,9 @@ var Config = config{
 	PaymentServiceProvider:      getEnv("PAYMENT_SERVICE_PROVIDER", ""),
 	VivaWalletSourceCode:        getEnv("VIVA_WALLET_SOURCE_CODE", ""),
 	VivaWalletClientCredentials: getEnv("VIVA_WALLET_CLIENT_CREDENTIALS", ""),
+	VivaWalletVerificationKey:   getEnv("VIVA_WALLET_VERIFICATION_KEY", ""),
+	VivaWalletApiURL:            getEnv("VIVA_WALLET_API_URL", ""),
+	VivaWalletAccountsURL:       getEnv("VIVA_WALLET_ACCOUNTS_URL", ""),
 }
 
 // Local copy of utils.GetEnv to avoid circular dependency

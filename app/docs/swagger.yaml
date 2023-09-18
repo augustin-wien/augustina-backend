@@ -22,22 +22,6 @@ definitions:
         description: Price in cents
         type: integer
     type: object
-  database.OrderEntry:
-    properties:
-      id:
-        type: integer
-      item:
-        type: integer
-      price:
-        description: Price at time of purchase in cents
-        type: integer
-      quantity:
-        type: integer
-      receiver:
-        type: integer
-      sender:
-        type: integer
-    type: object
   database.Payment:
     properties:
       amount:
@@ -124,46 +108,10 @@ definitions:
           $ref: '#/definitions/database.Payment'
         type: array
     type: object
-  handlers.TransactionOrder:
+  handlers.VivaWalletVerificationKeyResponse:
     properties:
-      amount:
-        type: integer
-    type: object
-  handlers.TransactionOrderResponse:
-    properties:
-      smartCheckoutURL:
+      key:
         type: string
-    type: object
-  handlers.TransactionVerification:
-    properties:
-      orderCode:
-        type: integer
-    type: object
-  handlers.TransactionVerificationResponse:
-    properties:
-      verification:
-        type: boolean
-    type: object
-  handlers.VerifyOrderResponse:
-    properties:
-      entries:
-        items:
-          $ref: '#/definitions/database.OrderEntry'
-        type: array
-      id:
-        type: integer
-      orderCode:
-        type: string
-      timestamp:
-        type: string
-      transactionID:
-        type: string
-      user:
-        type: string
-      vendor:
-        type: integer
-      verified:
-        type: boolean
     type: object
   null.Int:
     properties:
@@ -172,6 +120,190 @@ definitions:
       valid:
         description: Valid is true if Int64 is not NULL
         type: boolean
+    type: object
+  paymentprovider.EventData:
+    properties:
+      AcquirerApproved:
+        type: boolean
+      Amount:
+        type: number
+      AssignedMerchantUsers:
+        items: {}
+        type: array
+      AssignedResellerUsers:
+        items: {}
+        type: array
+      AuthorizationId:
+        type: string
+      BankId:
+        type: string
+      BillId: {}
+      BinId:
+        type: integer
+      CardCountryCode: {}
+      CardExpirationDate:
+        type: string
+      CardIssuingBank: {}
+      CardNumber:
+        type: string
+      CardToken:
+        type: string
+      CardTypeId:
+        type: integer
+      CardUniqueReference:
+        type: string
+      ChannelId:
+        type: string
+      ClearanceDate: {}
+      CompanyName: {}
+      CompanyTitle: {}
+      ConnectedAccountId: {}
+      CurrencyCode:
+        type: string
+      CurrentInstallment:
+        type: integer
+      CustomerTrns:
+        type: string
+      DigitalWalletId: {}
+      DualMessage:
+        type: boolean
+      ElectronicCommerceIndicator:
+        type: string
+      Email:
+        type: string
+      FullName:
+        type: string
+      InsDate:
+        type: string
+      IsManualRefund:
+        type: boolean
+      Latitude: {}
+      Longitude: {}
+      LoyaltyTriggered:
+        type: boolean
+      MerchantCategoryCode:
+        type: integer
+      MerchantId:
+        type: string
+      MerchantTrns:
+        type: string
+      Moto:
+        type: boolean
+      OrderCode:
+        type: integer
+      OrderCulture:
+        type: string
+      OrderServiceId:
+        type: integer
+      PanEntryMode:
+        type: string
+      ParentId: {}
+      Phone:
+        type: string
+      ProductId: {}
+      RedeemedAmount:
+        type: number
+      ReferenceNumber:
+        type: integer
+      ResellerCompanyName: {}
+      ResellerId: {}
+      ResellerSourceAddress: {}
+      ResellerSourceCode: {}
+      ResellerSourceName: {}
+      ResponseCode:
+        type: string
+      ResponseEventId: {}
+      RetrievalReferenceNumber:
+        type: string
+      ServiceId: {}
+      SourceCode:
+        type: string
+      SourceName:
+        type: string
+      StatusId:
+        type: string
+      Switching:
+        type: boolean
+      Systemic:
+        type: boolean
+      Tags:
+        items:
+          type: string
+        type: array
+      TargetPersonId: {}
+      TargetWalletId: {}
+      TerminalId:
+        type: integer
+      TipAmount:
+        type: number
+      TotalFee:
+        type: number
+      TotalInstallments:
+        type: integer
+      TransactionId:
+        type: string
+      TransactionTypeId:
+        type: integer
+      Ucaf:
+        type: string
+    type: object
+  paymentprovider.PriceEventData:
+    properties:
+      CurrencyCode:
+        type: string
+      Interchange:
+        type: number
+      IsvFee:
+        type: number
+      MerchantId:
+        type: string
+      OrderCode:
+        type: integer
+      TotalCommission:
+        type: number
+      TransactionId:
+        type: string
+    type: object
+  paymentprovider.TransactionDetailRequest:
+    properties:
+      CorrelationId:
+        type: string
+      Created:
+        type: string
+      Delay: {}
+      EventData:
+        $ref: '#/definitions/paymentprovider.EventData'
+      EventTypeId:
+        type: integer
+      MessageId:
+        type: string
+      MessageTypeId:
+        type: integer
+      RecipientId:
+        type: string
+      Url:
+        type: string
+    type: object
+  paymentprovider.TransactionPriceRequest:
+    properties:
+      CorrelationId:
+        type: string
+      Created:
+        type: string
+      Delay:
+        type: integer
+      EventData:
+        $ref: '#/definitions/paymentprovider.PriceEventData'
+      EventTypeId:
+        type: integer
+      MessageId:
+        type: string
+      MessageTypeId:
+        type: integer
+      RecipientId:
+        type: string
+      Url:
+        type: string
     type: object
 externalDocs:
   description: OpenAPI
@@ -297,34 +429,6 @@ paths:
           schema:
             $ref: '#/definitions/handlers.CreateOrderResponse'
       summary: Create Payment Order
-      tags:
-      - Orders
-  /orders/verify/:
-    post:
-      consumes:
-      - application/json
-      description: Verifies order and creates payments
-      parameters:
-      - description: Order Code
-        format: "3043685539722561"
-        in: query
-        name: s
-        required: true
-        type: string
-      - description: Transaction ID
-        format: 882d641c-01cc-442f-b894-2b51250340b5
-        in: query
-        name: t
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.VerifyOrderResponse'
-      summary: Verify Payment Order
       tags:
       - Orders
   /payments:
@@ -473,18 +577,11 @@ paths:
       summary: Update Vendor
       tags:
       - vendors
-  /vivawallet/transaction_order/:
-    post:
+  /webhooks/vivawallet/failure:
+    get:
       consumes:
       - application/json
-      description: Post your amount like {"Amount":100}, which equals 100 cents
-      parameters:
-      - description: Amount in cents
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.TransactionOrder'
+      description: Return VivaWallet verification key
       produces:
       - application/json
       responses:
@@ -492,24 +589,35 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.TransactionOrderResponse'
+              $ref: '#/definitions/handlers.VivaWalletVerificationKeyResponse'
             type: array
-      summary: Create a transaction order
+      summary: Return VivaWallet verification key
       tags:
       - core
-  /vivawallet/transaction_verification/:
     post:
       consumes:
       - application/json
-      description: Accepts {"OrderCode":"1234567890"} and returns {"Verification":true},
-        if successful
+      description: Webhook for VivaWallet failed transaction
       parameters:
-      - description: Transaction ID
+      - description: Payment Failure Response
         in: body
-        name: OrderCode
+        name: data
         required: true
         schema:
-          $ref: '#/definitions/handlers.TransactionVerification'
+          $ref: '#/definitions/paymentprovider.TransactionDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Webhook for VivaWallet failed transaction
+      tags:
+      - core
+  /webhooks/vivawallet/price:
+    get:
+      consumes:
+      - application/json
+      description: Return VivaWallet verification key
       produces:
       - application/json
       responses:
@@ -517,9 +625,64 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.TransactionVerificationResponse'
+              $ref: '#/definitions/handlers.VivaWalletVerificationKeyResponse'
             type: array
-      summary: Verify a transaction
+      summary: Return VivaWallet verification key
+      tags:
+      - core
+    post:
+      consumes:
+      - application/json
+      description: Webhook for VivaWallet transaction prices
+      parameters:
+      - description: Payment Price Response
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/paymentprovider.TransactionPriceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Webhook for VivaWallet transaction prices
+      tags:
+      - core
+  /webhooks/vivawallet/success:
+    get:
+      consumes:
+      - application/json
+      description: Return VivaWallet verification key
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.VivaWalletVerificationKeyResponse'
+            type: array
+      summary: Return VivaWallet verification key
+      tags:
+      - core
+    post:
+      consumes:
+      - application/json
+      description: Webhook for VivaWallet successful transaction
+      parameters:
+      - description: Payment Successful Response
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/paymentprovider.TransactionDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Webhook for VivaWallet successful transaction
       tags:
       - core
 securityDefinitions:

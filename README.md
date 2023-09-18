@@ -119,6 +119,12 @@ Revert last migration:
 tern migrate --destination -1
 ```
 
+### Setup for developing with VivaWallet Webhooks
+For tunneling endpoints from the internet to your locaĺhost port, we use [ngrok](https://ngrok.com/).
+If you keep using our demo account and stick with our code basis this command should do it in your terminal:
+```bash
+ngrok http --domain=workable-credible-mole.ngrok-free.app 3000
+```
 
 ### VS Code Settings
 VS Code is our code editor of choice.
