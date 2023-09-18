@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 )
@@ -377,36 +378,67 @@ func (db *Database) GetPayment(id int) (payment Payment, err error) {
 	return
 }
 
-// CreatePayment creates a payment and returns the payment ID
-func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
 
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount).Scan(&paymentID)
+// CreatePayment creates a payment in an transaction
+func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
+
+	// Create payment
+	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount).Scan(&paymentID)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
 	// Update account balances
-	// TODO: This should happen in a transaction with above
-	err = db.UpdateAccountBalance(payment.Sender, -payment.Amount)
+	err = updateAccountBalanceTx(tx, payment.Sender, -payment.Amount)
 	if err != nil {
 		log.Error(err)
 	}
-	err = db.UpdateAccountBalance(payment.Receiver, payment.Amount)
+	err = updateAccountBalanceTx(tx, payment.Receiver, payment.Amount)
 	if err != nil {
 		log.Error(err)
+	}
+	return
+}
+
+
+// CreatePayment creates a payment and returns the payment ID
+func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
+
+	// Create a transaction to insert all payments at once
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		return
 	}
 
+	// Handle transaction after function returns
+	defer func() {
+		if p := recover(); p != nil {
+			// Rollback the transaction if a panic occurred
+			_ = tx.Rollback(context.Background())
+			// Re-throw the panic
+			panic(p)
+		} else if err != nil {
+			// Rollback the transaction if an error occurred
+			_ = tx.Rollback(context.Background())
+		} else {
+			// Commit the transaction if everything is successful
+			err = tx.Commit(context.Background())
+		}
+	}()
+
+	paymentID, err = createPaymentTx(tx, payment)
 
 	return
 }
 
-// CreatePayments creates multiple payments in a transcation
+// CreatePayments creates multiple payments
 func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 	// Create a transaction to insert all payments at once
 	tx, err := db.Dbpool.Begin(context.Background())
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 
@@ -428,8 +460,9 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3)", payment.Sender, payment.Receiver, payment.Amount)
+		_, err = createPaymentTx(tx, payment)
 		if err != nil {
+			log.Error(err)
 			return err
 		}
 	}
@@ -532,13 +565,35 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 	return
 }
 
-// UpdateAccountBalance updates the balance of an account in the database
+// UpdateAccountBalance updates the balance of an account
 func (db *Database) UpdateAccountBalance(id int, balanceDiff int) (err error) {
 
 	account, err := db.GetAccountByID(id)
 	newBalance := account.Balance + balanceDiff
 
 	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE Account
+	SET Balance = $2
+	WHERE ID = $1
+	`, id, newBalance)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return
+}
+
+// updateAccountBalanceTx updates the balance of an account in an transaction
+func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
+
+	var account Account
+	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1", id).Scan(&account.Balance)
+	if err != nil {
+		log.Error(err)
+	}
+	newBalance := account.Balance + balanceDiff
+
+	_, err = tx.Exec(context.Background(), `
 	UPDATE Account
 	SET Balance = $2
 	WHERE ID = $1
