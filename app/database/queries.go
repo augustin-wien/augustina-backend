@@ -386,6 +386,18 @@ func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
 		return
 	}
 
+	// Update account balances
+	// TODO: This should happen in a transaction with above
+	err = db.UpdateAccountBalance(payment.Sender, -payment.Amount)
+	if err != nil {
+		log.Error(err)
+	}
+	err = db.UpdateAccountBalance(payment.Receiver, payment.Amount)
+	if err != nil {
+		log.Error(err)
+	}
+
+
 	return
 }
 
@@ -521,19 +533,19 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 }
 
 // UpdateAccountBalance updates the balance of an account in the database
-func (db *Database) UpdateAccountBalance(id int, balance int) (err error) {
+func (db *Database) UpdateAccountBalance(id int, balanceDiff int) (err error) {
+
+	account, err := db.GetAccountByID(id)
+	newBalance := account.Balance + balanceDiff
+
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Account
 	SET Balance = $2
 	WHERE ID = $1
-	`, id, balance)
+	`, id, newBalance)
 	if err != nil {
 		log.Error(err)
 	}
-
-	// DEBUG
-	account, err := db.GetAccountByID(id)
-	log.Info("Updated balance for account ", id, " is ", account.Balance)
 
 	return
 }

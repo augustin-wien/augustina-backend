@@ -268,8 +268,9 @@ func TestPaymentPayout(t *testing.T) {
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)
 
-	// TODO: Balance should update automatically
-	// require.Equal(t, vendor.Balance, 314)
+	log.Info(vendor.Balance, 686)
+	require.Equal(t, vendor.Balance, 686)
+	require.Equal(t, cashAccount.Balance, 314)
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
 }
