@@ -1,5 +1,5 @@
 # Building the binary of the App
-FROM golang:1.20 AS build
+FROM golang:alpine AS build
 
 WORKDIR /go/src/augustin
 
@@ -13,23 +13,24 @@ RUN go install github.com/jackc/tern/v2@latest
 # Builds the application as a staticly linked one, to allow it to run on alpine
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o app .
 
+RUN which tern
+
 # Moving the binary to the 'final Image' to make it smaller
 FROM alpine:latest as release
 
 WORKDIR /app
-
-# Create the `public` dir and copy all the assets into it
-# RUN mkdir ./static
-# COPY ./app/static ./static
-
-COPY --from=build /go/src/augustin/app .
-
 # Add packages
 RUN apk -U upgrade \
-    && apk add --no-cache dumb-init ca-certificates \
-    && chmod +x /app/augustin
+    && apk add --no-cache dumb-init ca-certificates
+COPY --from=build /go/bin/tern /tern
+
+COPY --from=build /go/src/augustin/ .
+COPY ./docker/entrypoint.sh /
+RUN chmod +x /app/app
+
+
 
 # Exposes port 3000 because our program listens on that port
 EXPOSE 3000
 
-ENTRYPOINT ["/app/augustin"]
+ENTRYPOINT ["/entrypoint.sh"]

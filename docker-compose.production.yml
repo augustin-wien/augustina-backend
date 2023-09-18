@@ -4,7 +4,6 @@ services:
   augustin-frontend:
     build:
       context: ./docker/augustin-frontend
-      dockerfile: ./Dockerfile.production
     image: dkia/augustin-frontend
     ports:
       - "7002:80"
@@ -13,16 +12,14 @@ services:
       VITE_KEYCLOAK_URL: ${KEYCLOAK_HOST}
       VITE_AUGUSTIN_COVER: ${AUGUSTIN_COVER}
     depends_on:
-      - augustin
-  augustin:
+      - augustin-backend
+  augustin-backend:
     env_file:
       - .env
     build:
       context: .
+      dockerfile: ./Dockerfile.production
     image: dkia/augustin-backend  
-    command: >
-      sh -c "tern migrate --migrations ./migrations --config
-      ./migrations/tern.conf && /app/augustin"
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
