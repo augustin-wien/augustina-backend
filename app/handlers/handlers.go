@@ -57,6 +57,36 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 
 // Users ----------------------------------------------------------------------
 
+type checkLicenseIDRequest struct {
+	LicenseID string
+}
+
+// CheckLicenseID godoc
+//
+//	 	@Summary 		Check if license id exists
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    data body checkLicenseIDRequest true "License ID"
+//		@Success		200	{string}	firstName
+//		@Router			/vendors/check/ [post]
+func CheckLicenseID(w http.ResponseWriter, r *http.Request) {
+	var licenseID checkLicenseIDRequest
+	err := utils.ReadJSON(w, r, &licenseID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	users, err := database.Db.GetVendorByLicenseID(licenseID.LicenseID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id."), http.StatusBadRequest)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, users.FirstName)
+}
+
 // ListVendors godoc
 //
 //	 	@Summary 		List Vendors
@@ -579,8 +609,6 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, paymentID)
 
 }
-
-// VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
 
 // VivaWalletCreateTransactionOrder godoc
 //
