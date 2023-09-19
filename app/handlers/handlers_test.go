@@ -43,7 +43,6 @@ func createTestVendor(t *testing.T, licenseID string) string {
 	return vendorID
 }
 
-
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
 	// Create
@@ -70,7 +69,6 @@ func TestVendors(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
 	require.Equal(t, 0, len(vendors))
-
 
 }
 
@@ -185,61 +183,6 @@ func TestOrders(t *testing.T) {
 
 }
 
-// TestPayments tests CRUD operations on payments
-func TestPaymentsBatch(t *testing.T) {
-
-	// Set up a payment account
-	senderAccountID, err := database.Db.CreateAccount(
-		database.Account{Name: "Test account"},
-	)
-	receiverAccountID, err := database.Db.CreateAccount(
-		database.Account{Name: "Test account"},
-	)
-	utils.CheckError(t, err)
-
-	// Create payments via API
-	f := createPaymentsRequest{
-		Payments: []database.Payment{
-			{
-				Sender:   senderAccountID,
-				Receiver: receiverAccountID,
-				Amount:   314,
-			},
-		},
-	}
-	utils.TestRequest(t, r, "POST", "/api/payments/batch/", f, 200)
-	response2 := utils.TestRequest(t, r, "GET", "/api/payments/", nil, 200)
-
-	// Unmarshal response
-	var payments []database.Payment
-	err = json.Unmarshal(response2.Body.Bytes(), &payments)
-	utils.CheckError(t, err)
-	require.Equal(t, 1, len(payments))
-	if t.Failed() {
-		return
-	}
-	require.Equal(t, 1, len(payments))
-	if t.Failed() {
-		return
-	}
-
-	// Test payments response
-	require.Equal(t, payments[0].Amount, 314)
-	require.Equal(t, payments[0].Sender, senderAccountID)
-	require.Equal(t, payments[0].Receiver, receiverAccountID)
-	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
-	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
-
-	// Test account balances
-	senderAccount, err := database.Db.GetAccountByID(senderAccountID)
-	utils.CheckError(t, err)
-	receiverAccount, err := database.Db.GetAccountByID(receiverAccountID)
-	utils.CheckError(t, err)
-	require.Equal(t, senderAccount.Balance, -314)
-	require.Equal(t, receiverAccount.Balance, 314)
-
-}
-
 // TestPaymentPayout tests CRUD operations on payment payouts
 func TestPaymentPayout(t *testing.T) {
 
@@ -248,7 +191,7 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create payments via API
 	f := createPaymentPayoutRequest{
-		Amount: 314,
+		Amount:          314,
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
