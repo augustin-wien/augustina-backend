@@ -55,6 +55,26 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, greeting)
 }
 
+// HelloWorldAuth godoc
+//
+//	@Summary		Return HelloWorld
+//	@Description	Return HelloWorld as sample API call
+//	@Tags			Core, Auth
+//	@Accept			json
+//	@Produce		json
+//	@Security		KeycloakAuth
+//	@Router			/auth/hello/ [get]
+//
+// HelloWorld API Handler fetching data from database
+func HelloWorldAuth(w http.ResponseWriter, r *http.Request) {
+	greeting, err := database.Db.GetHelloWorld()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, greeting)
+}
+
 // Users ----------------------------------------------------------------------
 
 // ListVendors godoc
@@ -63,6 +83,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
+//		@Security		KeycloakAuth
 //		@Success		200	{array}	database.Vendor
 //		@Router			/vendors/ [get]
 func ListVendors(w http.ResponseWriter, r *http.Request) {
@@ -77,6 +98,7 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
+//		@Security		KeycloakAuth
 //	    @Param		    data body database.Vendor true "Vendor Representation"
 //		@Router			/vendors/ [post]
 func CreateVendor(w http.ResponseWriter, r *http.Request) {
@@ -93,15 +115,16 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 
 // UpdateVendor godoc
 //
-//		 	@Summary 		Update Vendor
-//			@Description	Warning: Unfilled fields will be set to default values
-//			@Tags			Vendors
-//			@Accept			json
-//			@Produce		json
-//			@Success		200
-//	        @Param          id   path int  true  "Vendor ID"
-//		    @Param		    data body database.Vendor true "Vendor Representation"
-//			@Router			/vendors/{id}/ [put]
+//		@Summary 		Update Vendor
+//		@Description	Warning: Unfilled fields will be set to default values
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//		@Security		KeycloakAuth
+//	    @Param          id   path int  true  "Vendor ID"
+//		@Param		    data body database.Vendor true "Vendor Representation"
+//		@Router			/vendors/{id}/ [put]
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -120,13 +143,14 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 
 // DeleteVendor godoc
 //
-//		 	@Summary 		Delete Vendor
-//			@Tags			Vendors
-//			@Accept			json
-//			@Produce		json
-//			@Success		200
-//	        @Param          id   path int  true  "Vendor ID"
-//			@Router			/vendors/{id}/ [delete]
+//		@Summary 		Delete Vendor
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//		@Security		KeycloakAuth
+//	    @Param          id   path int  true  "Vendor ID"
+//		@Router			/vendors/{id}/ [delete]
 func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -170,6 +194,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //	    @Param		    data body database.Item true "Item Representation"
 //		@Success		200	 {integer}	id
+//		@Security		KeycloakAuth
 //		@Router			/items/ [post]
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	var item database.Item
@@ -241,6 +266,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 //		@Produce		json
 //	    @Param		    data body database.Item true "Item Representation"
 //		@Success		200
+//		@Security		KeycloakAuth
 //		@Router			/items/{id}/ [put]
 //
 // UpdateItem requires a multipart form
@@ -293,7 +319,8 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
-//	        @Param          id   path int  true  "Item ID"
+//			@Security		KeycloakAuth
+//	     @Param          id   path int  true  "Item ID"
 //			@Router			/items/{id} [delete]
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -443,6 +470,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Payment
+//		@Security		KeycloakAuth
+//		@Security		KeycloakAuth
 //		@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.ListPayments()
@@ -516,6 +545,7 @@ type createPaymentPayoutRequest struct {
 //		@Produce		json
 //		@Param			amount body createPaymentPayoutRequest true " Create Payment"
 //		@Success		200 {integer} id
+//		@Security		KeycloakAuth
 //		@Router			/payments/payout/ [post]
 func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 
@@ -717,6 +747,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //	    @Param		    data body database.Settings true "Settings Representation"
 //		@Success		200
+//		@Security		KeycloakAuth
 //		@Router			/settings/ [put]
 func updateSettings(w http.ResponseWriter, r *http.Request) {
 	var settings database.Settings

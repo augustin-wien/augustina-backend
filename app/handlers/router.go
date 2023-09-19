@@ -37,18 +37,24 @@ func GetRouter() (r *chi.Mux) {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Timeout(60 * 1000000000)) // 60 seconds
 		r.Use(middlewares.AuthMiddleware)
-		r.Get("/api/auth/hello/", HelloWorld)
+		r.Get("/api/auth/hello/", HelloWorldAuth)
 	})
 
 	// Public routes
 	r.Get("/api/hello/", HelloWorld)
 	r.Route("/api/settings", func(r chi.Router) {
 		r.Get("/", getSettings)
-		r.Put("/", updateSettings)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Put("/", updateSettings)
+		})
 	})
 
 	// Vendors
 	r.Route("/api/vendors", func(r chi.Router) {
+		r.Use(middlewares.AuthMiddleware)
+		r.Use(middlewares.AdminAuthMiddleware)
 		r.Get("/", ListVendors)
 		r.Post("/", CreateVendor)
 		r.Route("/{id}", func(r chi.Router) {
@@ -60,10 +66,14 @@ func GetRouter() (r *chi.Mux) {
 	// Items
 	r.Route("/api/items", func(r chi.Router) {
 		r.Get("/", ListItems)
-		r.Post("/", CreateItem)
-		r.Route("/{id}", func(r chi.Router) {
-			r.Put("/", UpdateItem)
-			r.Delete("/", DeleteItem)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Post("/", CreateItem)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Put("/", UpdateItem)
+				r.Delete("/", DeleteItem)
+			})
 		})
 	})
 
@@ -74,10 +84,14 @@ func GetRouter() (r *chi.Mux) {
 
 	// Payments
 	r.Route("/api/payments", func(r chi.Router) {
-		r.Get("/", ListPayments)
 		r.Post("/", CreatePayment)
 		r.Post("/batch/", CreatePayments)
-		r.Post("/payout/", CreatePaymentPayout)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/", ListPayments)
+			r.Post("/payout/", CreatePaymentPayout)
+		})
 	})
 
 	// Payment service providers

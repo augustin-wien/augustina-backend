@@ -345,6 +345,20 @@ info:
   title: Augustin Swagger
   version: 0.0.1
 paths:
+  /auth/hello/:
+    get:
+      consumes:
+      - application/json
+      description: Return HelloWorld as sample API call
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - KeycloakAuth: []
+      summary: Return HelloWorld
+      tags:
+      - Core
+      - Auth
   /hello/:
     get:
       consumes:
@@ -389,6 +403,8 @@ paths:
           description: OK
           schema:
             type: integer
+      security:
+      - KeycloakAuth: []
       summary: Create Item
       tags:
       - Items
@@ -407,6 +423,8 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Delete Item
       tags:
       - Items
@@ -427,6 +445,8 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Update Item
       tags:
       - Items
@@ -467,6 +487,9 @@ paths:
             items:
               $ref: '#/definitions/database.Payment'
             type: array
+      security:
+      - KeycloakAuth: []
+      - KeycloakAuth: []
       summary: Get list of all payments
       tags:
       - Payments
@@ -527,6 +550,8 @@ paths:
           description: OK
           schema:
             type: integer
+      security:
+      - KeycloakAuth: []
       summary: Create a payment from a vendor account to cash
       tags:
       - Payments
@@ -563,6 +588,8 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Update settings
       tags:
       - Core
@@ -579,6 +606,8 @@ paths:
             items:
               $ref: '#/definitions/database.Vendor'
             type: array
+      security:
+      - KeycloakAuth: []
       summary: List Vendors
       tags:
       - Vendors
@@ -597,6 +626,8 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Create Vendor
       tags:
       - Vendors
@@ -615,6 +646,8 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Delete Vendor
       tags:
       - Vendors
@@ -639,6 +672,8 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Update Vendor
       tags:
       - Vendors
@@ -753,4 +788,12 @@ paths:
 securityDefinitions:
   BasicAuth:
     type: basic
+  KeycloakAuth:
+    description: <b>how to generate an api key</b> <br/><br/><code>curl -d 'client_id=frontend'
+      -d 'username=test_superuser' -d 'password=Test123!' -d 'grant_type=password'     'http://localhost:8080/realms/augustin/protocol/openid-connect/token'
+      |     python -m json.tool | grep access_token</code><br/><br/><br/>Insert the
+      output into the field below the value of the access_token field.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

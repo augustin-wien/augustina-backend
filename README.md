@@ -152,6 +152,7 @@ Additionaly there are the following users for the `augustin` realm:
 | test_user     | Test123!     | magazin-1 |
 | test_user_all     | Test123!     | magazin-1, magazin-2, magazin-3 |
 | test_superuser     | Test123!     | admin |
+| test_vendor     | Test123!     | vendor |
 
 The default openid configuration is available at http://localhost:8080/auth/realms/augustin/.well-known/openid-configuration
 

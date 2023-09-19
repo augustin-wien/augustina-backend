@@ -84,6 +84,8 @@ services:
       KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_HOST}
       ROOT_LOGLEVEL: ALL
       KEYCLOAK_LOGLEVEL: DEBUG
+      KC_HOSTNAME_URL: ${KEYCLOAK_HOST}
+      KC_HOSTNAME_ADMIN_URL: ${KEYCLOAK_HOST}
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/realms/master"]
       interval: 5s
