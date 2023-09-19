@@ -116,13 +116,6 @@ definitions:
       vendorLicenseID:
         type: string
     type: object
-  handlers.createPaymentsRequest:
-    properties:
-      payments:
-        items:
-          $ref: '#/definitions/database.Payment'
-        type: array
-    type: object
   null.Int:
     properties:
       int64:
@@ -468,45 +461,6 @@ paths:
               $ref: '#/definitions/database.Payment'
             type: array
       summary: Get list of all payments
-      tags:
-      - Payments
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' Create Payment'
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/database.Payment'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Create a payment
-      tags:
-      - Payments
-  /payments/batch/:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' Create Payment'
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.createPaymentsRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: integer
-      summary: Create a set of payments
       tags:
       - Payments
   /payments/payout/:
