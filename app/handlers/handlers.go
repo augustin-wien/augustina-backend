@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"augustin/config"
 	"augustin/utils"
 	"bytes"
 	"errors"
@@ -9,8 +10,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"gopkg.in/guregu/null.v4"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -33,27 +36,11 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 	utils.WriteJSON(w, http.StatusOK, payload)
 }
 
-type transactionOrder struct {
-	Amount int
-}
-
-type transactionOrderResponse struct {
-	SmartCheckoutURL string
-}
-
-type transactionVerification struct {
-	OrderCode int
-}
-
-type transactionVerificationResponse struct {
-	Verification bool
-}
-
 // HelloWorld godoc
 //
 //	@Summary		Return HelloWorld
 //	@Description	Return HelloWorld as sample API call
-//	@Tags			core
+//	@Tags			Core
 //	@Accept			json
 //	@Produce		json
 //	@Router			/hello/ [get]
@@ -73,7 +60,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 // ListVendors godoc
 //
 //	 	@Summary 		List Vendors
-//		@Tags			vendors
+//		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Vendor
@@ -86,7 +73,7 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 // CreateVendor godoc
 //
 //	 	@Summary 		Create Vendor
-//		@Tags			vendors
+//		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
@@ -108,7 +95,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 //
 //		 	@Summary 		Update Vendor
 //			@Description	Warning: Unfilled fields will be set to default values
-//			@Tags			vendors
+//			@Tags			Vendors
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
@@ -134,7 +121,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 // DeleteVendor godoc
 //
 //		 	@Summary 		Delete Vendor
-//			@Tags			vendors
+//			@Tags			Vendors
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
@@ -182,7 +169,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //	    @Param		    data body database.Item true "Item Representation"
-//		@Success		200	 {int}	id
+//		@Success		200	 {integer}	id
 //		@Router			/items/ [post]
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	var item database.Item
@@ -348,8 +335,8 @@ type createOrderResponse struct {
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//	    @Param		    data body CreateOrderRequest true "Payment Order"
-//		@Success		200 {object} CreateOrderResponse
+//	    @Param		    data body createOrderRequest true "Payment Order"
+//		@Success		200 {object} createOrderResponse
 //		@Router			/orders/ [post]
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
@@ -372,7 +359,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	vendorAccount, err := database.Db.GetAccountByVendor(order.Vendor)
+	vendorAccount, err := database.Db.GetAccountByVendorID(order.Vendor)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -424,7 +411,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("Authentication failed: ", err)
 		}
-		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order.GetTotal())
+		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order)
 		if err != nil {
 			log.Error("Creating payment order failed: ", err)
 		}
@@ -447,105 +434,45 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
-type verifyOrderResponse struct {
-	ID            int
-	OrderCode     string
-	TransactionID string
-	Verified      bool
-	Timestamp     string
-	User          string
-	Vendor        int
-	Entries       []database.OrderEntry
-}
-
-// VerifyPaymentOrder godoc
-//
-//	 	@Summary 		Verify Payment Order
-//		@Description	Verifies order and creates payments
-//		@Tags			Orders
-//		@Accept			json
-//		@Produce		json
-//		@Success		200 {object} VerifyOrderResponse
-//		@Param			s query string true "Order Code" Format(3043685539722561)
-//		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
-//		@Router			/orders/verify/ [post]
-func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
-
-	// Get transaction ID from URL parameter
-	OrderCode := r.URL.Query().Get("s")
-	if OrderCode == "" {
-		utils.ErrorJSON(w, errors.New("missing parameter s"), http.StatusBadRequest)
-		return
-	}
-	TransactionID := r.URL.Query().Get("t")
-	if TransactionID == "" {
-		utils.ErrorJSON(w, errors.New("missing parameter t"), http.StatusBadRequest)
-		return
-	}
-
-	// Get payment order from database
-	order, err := database.Db.GetOrderByOrderCode(OrderCode)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	// Return success message if already verified
-	if order.Verified {
-		utils.WriteJSON(w, http.StatusOK, order)
-		return
-	}
-
-	var isVerified bool
-	if database.Db.IsProduction {
-		// Get access token
-		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
-		if err != nil {
-			log.Error("Authentication failed: ", err)
-		}
-
-		// Verify transaction
-		isVerified, err = paymentprovider.VerifyTransactionID(accessToken, TransactionID)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
-	}
-
-	if !isVerified {
-		utils.ErrorJSON(w, errors.New("transaction not verified"), http.StatusBadRequest)
-		return
-	}
-
-	// Add additional entries in order (e.g. transaction fees)
-	// TODO: order.Entries = append(order.Entries, MyEntry)
-
-	// Store verification in db
-	order.TransactionID = TransactionID
-	order.Verified = isVerified
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	// Create response
-	utils.WriteJSON(w, http.StatusOK, order)
-}
-
 // Payments (from one account to another account) -----------------------------
 
 // ListPayments godoc
 //
 //	 	@Summary 		Get list of all payments
-//		@Tags			core
+//		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Payment
-//		@Router			/payments [get]
+//		@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.ListPayments()
 	respond(w, err, payments)
+}
+
+// CreatePayment godoc
+//
+//	 	@Summary 		Create a payment
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			amount body database.Payment true " Create Payment"
+//		@Success		200
+//		@Router			/payments/ [post]
+func CreatePayment(w http.ResponseWriter, r *http.Request) {
+	var payment database.Payment
+	err := utils.ReadJSON(w, r, &payment)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	paymentID, err := database.Db.CreatePayment(payment)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, paymentID)
 }
 
 type createPaymentsRequest struct {
@@ -555,12 +482,12 @@ type createPaymentsRequest struct {
 // CreatePayments godoc
 //
 //	 	@Summary 		Create a set of payments
-//		@Tags			core
+//		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
-//		@Param			amount body CreatePaymentsRequest true " Create Payment"
-//		@Success		200
-//		@Router			/payments [post]
+//		@Param			amount body createPaymentsRequest true " Create Payment"
+//		@Success		200 {integer} id
+//		@Router			/payments/batch/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)
@@ -576,82 +503,203 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type createPaymentPayoutRequest struct {
+	VendorLicenseID string
+	Amount          int
+}
+
+// CreatePaymentPayout godoc
+//
+//	 	@Summary 		Create a payment from a vendor account to cash
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			amount body createPaymentPayoutRequest true " Create Payment"
+//		@Success		200 {integer} id
+//		@Router			/payments/payout/ [post]
+func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
+
+	// Read data from request
+	var payoutData createPaymentPayoutRequest
+	err := utils.ReadJSON(w, r, &payoutData)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Get vendor
+	vendor, err := database.Db.GetVendorByLicenseID(payoutData.VendorLicenseID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Get vendor account
+	vendorAccount, err := database.Db.GetAccountByVendorID(vendor.ID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("Wrong license id. This license id does not exist in the database"), http.StatusBadRequest)
+		return
+	}
+
+	// Get cash account
+	cashAccount, err := database.Db.GetAccountByType("Cash")
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Check if vendor has enough money
+	log.Info("Account Payout ", vendorAccount.Balance, payoutData.Amount)
+	if vendorAccount.Balance < payoutData.Amount {
+		utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
+		return
+	}
+
+	// Create payment
+	payment := database.Payment{
+		Sender:   vendorAccount.ID,
+		Receiver: cashAccount.ID,
+		Amount:   payoutData.Amount,
+	}
+	paymentID, err := database.Db.CreatePayment(payment)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Update last payout date
+	// TODO: Should be transaction together with above DB request
+	vendor.LastPayout = null.NewTime(time.Now(), true)
+	err = database.Db.UpdateVendor(vendor.ID, vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, paymentID)
+
+}
+
 // VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
 
 // VivaWalletCreateTransactionOrder godoc
 //
-//	@Summary		Create a transaction order
-//	@Description	Post your amount like {"Amount":100}, which equals 100 cents
-//	@Tags			core
+//	@Summary		Webhook for VivaWallet successful transaction
+//	@Description	Webhook for VivaWallet successful transaction
+//	@Tags			VivaWallet Webhooks
 //	@accept			json
 //	@Produce		json
-//	@Param			amount body TransactionOrder true "Amount in cents"
-//	@Success		200	{array}	TransactionOrderResponse
-//	@Router			/vivawallet/transaction_order/ [post]
-func VivaWalletCreateTransactionOrder(w http.ResponseWriter, r *http.Request) {
-	var transactionOrder transactionOrder
-	err := utils.ReadJSON(w, r, &transactionOrder)
+//	@Success		200
+//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Successful Response"
+//	@Router			/webhooks/vivawallet/success [post]
+func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
+	var paymentSuccessful paymentprovider.TransactionDetailRequest
+	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
+		log.Info("Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Create a new payment order
-	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	err = paymentprovider.HandlePaymentSuccessfulResponse(paymentSuccessful)
 	if err != nil {
-		log.Error("Authentication failed: ", err)
-	}
-	orderCode, err := paymentprovider.CreatePaymentOrder(accessToken, transactionOrder.Amount)
-	if err != nil {
-		log.Error("Creating payment order failed: ", err)
+		log.Error(err)
+		return
 	}
 
-	// Create response
-	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(orderCode)
-	response := transactionOrderResponse{
-		SmartCheckoutURL: url,
-	}
-	utils.WriteJSON(w, http.StatusOK, response)
-
+	utils.WriteJSON(w, http.StatusOK, nil)
 }
 
-// VivaWalletVerifyTransaction godoc
+// VivaWalletWebhookFailure godoc
 //
-//	@Summary		Verify a transaction
-//	@Description	Accepts {"OrderCode":"1234567890"} and returns {"Verification":true}, if successful
-//	@Tags			core
+//	@Summary		Webhook for VivaWallet failed transaction
+//	@Description	Webhook for VivaWallet failed transaction
+//	@Tags			VivaWallet Webhooks
 //	@accept			json
 //	@Produce		json
-//	@Param			OrderCode body TransactionVerification true "Transaction ID"
-//	@Success		200	{array}	TransactionVerificationResponse
-//	@Router			/vivawallet/transaction_verification/ [post]
-func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
-	var transactionVerification transactionVerification
-	err := utils.ReadJSON(w, r, &transactionVerification)
+//	@Success		200
+//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Failure Response"
+//	@Router			/webhooks/vivawallet/failure [post]
+func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
+	var paymentFailure paymentprovider.TransactionDetailRequest
+	err := utils.ReadJSON(w, r, &paymentFailure)
 	if err != nil {
+		log.Info("Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Get access token
-	accessToken, err := paymentprovider.AuthenticateToVivaWallet()
+	err = paymentprovider.HandlePaymentFailureResponse(paymentFailure)
 	if err != nil {
-		log.Error("Authentication failed: ", err)
-	}
-
-	// Verify transaction
-	verification, err := paymentprovider.VerifyTransactionID(accessToken, strconv.Itoa(transactionVerification.OrderCode))
-	if err != nil {
-		log.Info("Verifying transaction failed: ", err)
+		log.Error(err)
 		return
 	}
 
-	// Create response
-	response := transactionVerificationResponse{
-		Verification: verification,
-	}
-	utils.WriteJSON(w, http.StatusOK, response)
+	utils.WriteJSON(w, http.StatusOK, nil)
+}
 
+// VivaWalletWebhookPrice godoc
+//
+//	@Summary		Webhook for VivaWallet transaction prices
+//	@Description	Webhook for VivaWallet transaction prices
+//	@Tags			VivaWallet Webhooks
+//	@accept			json
+//	@Produce		json
+//	@Success		200
+//	@Param			data body paymentprovider.TransactionPriceRequest true "Payment Price Response"
+//	@Router			/webhooks/vivawallet/price [post]
+func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
+
+	log.Info("VivaWalletWebhookPrice entered")
+
+	data, err := io.ReadAll(r.Body)
+
+	if err != nil {
+
+		log.Error("Reading body failed for VivaWalletWebhookPrice: ", err)
+
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+
+	}
+
+	log.Info("VivaWalletWebhookPrice full request: ", string(data))
+	// var paymentPrice paymentprovider.TransactionPriceRequest
+	// err := utils.ReadJSON(w, r, &paymentPrice)
+	// if err != nil {
+	// 	log.Info("Reading JSON failed for webhook: ", err)
+	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
+	// 	return
+	// }
+
+	// err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
+	// if err != nil {
+	// 	log.Error(err)
+	// 	return
+	// }
+
+	// utils.WriteJSON(w, http.StatusOK, nil)
+}
+
+// VivaWalletVerificationKey godoc
+//
+//	@Summary		Return VivaWallet verification key
+//	@Description	Return VivaWallet verification key
+//	@Tags			VivaWallet Webhooks
+//	@accept			json
+//	@Produce		json
+//	@Success		200	{array}	paymentprovider.VivaWalletVerificationKeyResponse
+//	@Router			/webhooks/vivawallet/price [get]
+//	@Router 		/webhooks/vivawallet/success [get]
+//	@Router 		/webhooks/vivawallet/failure [get]
+func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
+	key := config.Config.VivaWalletVerificationKey
+	if key == "" {
+		log.Error("VIVA_WALLET_VERIFICATION_KEY not set or can't be found")
+		utils.ErrorJSON(w, errors.New("VIVA_WALLET_VERIFICATION_KEY not set or can't be found"), http.StatusBadRequest)
+		return
+	}
+	response := paymentprovider.VivaWalletVerificationKeyResponse{Key: key}
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // Settings -------------------------------------------------------------------
@@ -660,7 +708,7 @@ func VivaWalletVerifyTransaction(w http.ResponseWriter, r *http.Request) {
 //
 //	 	@Summary 		Return settings
 //		@Description	Return configuration data of the system
-//		@Tags			core
+//		@Tags			Core
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Settings
@@ -678,7 +726,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 //
 //	 	@Summary 		Update settings
 //		@Description	Update configuration data of the system
-//		@Tags			core
+//		@Tags			Core
 //		@Accept			json
 //		@Produce		json
 //	    @Param		    data body database.Settings true "Settings Representation"

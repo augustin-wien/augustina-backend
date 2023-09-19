@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
+	"gopkg.in/guregu/null.v4"
 )
 
 // GetHelloWorld returns the string "Hello, world!" from the database and should be used as a template for other queries
@@ -43,7 +45,7 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
 	// Get vendor data
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address)
 	if err != nil {
 		log.Error(err)
 	}
@@ -60,7 +62,7 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 
 	// Create vendor
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout).Scan(&vendorID)
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING ID", vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address).Scan(&vendorID)
 	if err != nil {
 		log.Error(err)
 	}
@@ -75,13 +77,13 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 	return
 }
 
-// UpdateVendor Updates a user in the database
+// UpdateVendor updates a user in the database
 func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Vendor
-	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7
-	WHERE ID = $8
-	`, vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, id)
+	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7, IsDisabled = $8, Longitude = $9, Latitude = $10, Address = $11
+	WHERE ID = $12
+	`, vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, id)
 	if err != nil {
 		log.Error(err)
 	}
@@ -337,11 +339,17 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 	order, err := db.GetOrderByID(id)
 
 	// Create payments
+
+	var payment Payment
 	for _, oi := range order.Entries {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, PaymentOrder) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
-		if err != nil {
-			return err
+		payment = Payment{
+			Sender:   oi.Sender,
+			Receiver: oi.Receiver,
+			Amount:   oi.Price * oi.Quantity,
+			Order:    null.NewInt(int64(order.ID), true),
+			OrderEntry: null.NewInt(int64(oi.ID), true),
 		}
+		createPaymentTx(tx, payment)
 	}
 
 	return
@@ -368,12 +376,74 @@ func (db *Database) ListPayments() ([]Payment, error) {
 	return payments, nil
 }
 
-// CreatePayments creates multiple payments depending on the order
+// GetPayment
+func (db *Database) GetPayment(id int) (payment Payment, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Payment WHERE ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
+// CreatePayment creates a payment in an transaction
+func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
+
+	// Create payment
+	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount).Scan(&paymentID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Update account balances
+	err = updateAccountBalanceTx(tx, payment.Sender, -payment.Amount)
+	if err != nil {
+		log.Error(err)
+	}
+	err = updateAccountBalanceTx(tx, payment.Receiver, payment.Amount)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
+// CreatePayment creates a payment and returns the payment ID
+func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
+
+	// Create a transaction to insert all payments at once
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		return
+	}
+
+	// Handle transaction after function returns
+	defer func() {
+		if p := recover(); p != nil {
+			// Rollback the transaction if a panic occurred
+			_ = tx.Rollback(context.Background())
+			// Re-throw the panic
+			panic(p)
+		} else if err != nil {
+			// Rollback the transaction if an error occurred
+			_ = tx.Rollback(context.Background())
+		} else {
+			// Commit the transaction if everything is successful
+			err = tx.Commit(context.Background())
+		}
+	}()
+
+	paymentID, err = createPaymentTx(tx, payment)
+
+	return
+}
+
+// CreatePayments creates multiple payments
 func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 	// Create a transaction to insert all payments at once
 	tx, err := db.Dbpool.Begin(context.Background())
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 
@@ -395,8 +465,9 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3)", payment.Sender, payment.Receiver, payment.Amount)
+		_, err = createPaymentTx(tx, payment)
 		if err != nil {
+			log.Error(err)
 			return err
 		}
 	}
@@ -476,12 +547,12 @@ func (db *Database) GetAccountByUser(user string) (account Account, err error) {
 	return
 }
 
-// GetAccountByVendor returns the account with the given vendor
-func (db *Database) GetAccountByVendor(vendor int) (account Account, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Vendor = $1", vendor).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+// GetAccountByVendorID returns the account with the given vendor
+func (db *Database) GetAccountByVendorID(vendorID int) (account Account, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Vendor = $1", vendorID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
 		if err.Error() == "no rows in result set" {
-			err = errors.New("vendor does not exist or has no account")
+			err = errors.New("Vendor does not exist or has no account")
 		}
 		log.Error(err)
 	}
@@ -496,6 +567,46 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 	if err != nil {
 		log.Error(err)
 	}
+	return
+}
+
+// UpdateAccountBalance updates the balance of an account
+func (db *Database) UpdateAccountBalance(id int, balanceDiff int) (err error) {
+
+	account, err := db.GetAccountByID(id)
+	newBalance := account.Balance + balanceDiff
+
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE Account
+	SET Balance = $2
+	WHERE ID = $1
+	`, id, newBalance)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return
+}
+
+// updateAccountBalanceTx updates the balance of an account in an transaction
+func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
+
+	var account Account
+	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1", id).Scan(&account.Balance)
+	if err != nil {
+		log.Error(err)
+	}
+	newBalance := account.Balance + balanceDiff
+
+	_, err = tx.Exec(context.Background(), `
+	UPDATE Account
+	SET Balance = $2
+	WHERE ID = $1
+	`, id, newBalance)
+	if err != nil {
+		log.Error(err)
+	}
+
 	return
 }
 

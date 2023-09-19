@@ -14,12 +14,16 @@ type Vendor struct {
 	ID         int
 	KeycloakID string
 	URLID      string // This is used for the QR code
-	LicenseID  string
+	LicenseID  null.String
 	FirstName  string
 	LastName   string
 	Email      string
 	LastPayout null.Time `swaggertype:"string" format:"date-time"`
 	Balance    int       // This is joined in from the account
+	IsDisabled bool
+	Longitude  float64
+	Latitude   float64
+	Address	   string
 }
 
 // Account is a struct that is used for the account table

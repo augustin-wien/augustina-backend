@@ -119,6 +119,12 @@ Revert last migration:
 tern migrate --destination -1
 ```
 
+### Setup for developing with VivaWallet Webhooks
+For tunneling endpoints from the internet to your locaĺhost port, we use [ngrok](https://ngrok.com/).
+If you keep using our demo account and stick with our code basis this command should do it in your terminal:
+```bash
+ngrok http --domain=workable-credible-mole.ngrok-free.app 3000
+```
 
 ### VS Code Settings
 VS Code is our code editor of choice.
@@ -203,7 +209,24 @@ In case your PDF-Parser does not work, make sure everything ran fine in yout wpc
 ```"invalid character '}' looking for beginning of object key string```
 -> You might have a false commY at the end of your json
 
-### VivaWallet Checkout Process
+## VivaWallet
+
+### Credentials
+All the following credentials are needed in your `.env` file.
+
+#### Source Code
+To get your Source code, follow the instructions here: https://developer.vivawallet.com/getting-started/create-a-payment-source/payment-source-for-online-payments/
+In case this did not help, try this link: https://help.vivawallet.com/en/articles/5119253-where-can-i-find-the-source-code
+
+#### Smart Checkout Credentials
+To get your Smart Checkout Client ID and Client Key, follow the instructions here: https://developer.vivawallet.com/getting-started/find-your-account-credentials/client-smart-checkout-credentials/
+
+#### Verification key
+To create a new verification key, follow the instructions here: https://developer.vivawallet.com/webhooks-for-payments/#generate-a-webhook-verification-key
+
+
+
+### Checkout Process
 
 #### 1. Create payment order
 - URL: `http://localhost:3000/api/transaction/`

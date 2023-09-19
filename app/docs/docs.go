@@ -37,7 +37,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Return HelloWorld",
                 "responses": {}
@@ -93,7 +93,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "int"
+                            "type": "integer"
                         }
                     }
                 }
@@ -178,7 +178,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateOrderRequest"
+                            "$ref": "#/definitions/handlers.createOrderRequest"
                         }
                     }
                 ],
@@ -186,54 +186,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateOrderResponse"
+                            "$ref": "#/definitions/handlers.createOrderResponse"
                         }
                     }
                 }
             }
         },
-        "/orders/verify/": {
-            "post": {
-                "description": "Verifies order and creates payments",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Verify Payment Order",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "3043685539722561",
-                        "description": "Order Code",
-                        "name": "s",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "format": "882d641c-01cc-442f-b894-2b51250340b5",
-                        "description": "Transaction ID",
-                        "name": "t",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.VerifyOrderResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/payments": {
+        "/payments/": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -242,7 +201,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Payments"
                 ],
                 "summary": "Get list of all payments",
                 "responses": {
@@ -265,7 +224,37 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Payments"
+                ],
+                "summary": "Create a payment",
+                "parameters": [
+                    {
+                        "description": " Create Payment",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.Payment"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/payments/batch/": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
                 ],
                 "summary": "Create a set of payments",
                 "parameters": [
@@ -275,13 +264,49 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreatePaymentsRequest"
+                            "$ref": "#/definitions/handlers.createPaymentsRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/payout/": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Create a payment from a vendor account to cash",
+                "parameters": [
+                    {
+                        "description": " Create Payment",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createPaymentPayoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 }
             }
@@ -296,7 +321,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Return settings",
                 "responses": {
@@ -320,7 +345,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Update settings",
                 "parameters": [
@@ -350,7 +375,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "List Vendors",
                 "responses": {
@@ -373,7 +398,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Create Vendor",
                 "parameters": [
@@ -404,7 +429,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -439,7 +464,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Delete Vendor",
                 "parameters": [
@@ -458,9 +483,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/vivawallet/transaction_order/": {
-            "post": {
-                "description": "Post your amount like {\"Amount\":100}, which equals 100 cents",
+        "/webhooks/vivawallet/failure": {
+            "get": {
+                "description": "Return VivaWallet verification key",
                 "consumes": [
                     "application/json"
                 ],
@@ -468,36 +493,23 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
-                "summary": "Create a transaction order",
-                "parameters": [
-                    {
-                        "description": "Amount in cents",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.TransactionOrder"
-                        }
-                    }
-                ],
+                "summary": "Return VivaWallet verification key",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.TransactionOrderResponse"
+                                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
                             }
                         }
                     }
                 }
-            }
-        },
-        "/vivawallet/transaction_verification/": {
+            },
             "post": {
-                "description": "Accepts {\"OrderCode\":\"1234567890\"} and returns {\"Verification\":true}, if successful",
+                "description": "Webhook for VivaWallet failed transaction",
                 "consumes": [
                     "application/json"
                 ],
@@ -505,29 +517,133 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
-                "summary": "Verify a transaction",
+                "summary": "Webhook for VivaWallet failed transaction",
                 "parameters": [
                     {
-                        "description": "Transaction ID",
-                        "name": "OrderCode",
+                        "description": "Payment Failure Response",
+                        "name": "data",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.TransactionVerification"
+                            "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/webhooks/vivawallet/price": {
+            "get": {
+                "description": "Return VivaWallet verification key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "VivaWallet Webhooks"
+                ],
+                "summary": "Return VivaWallet verification key",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.TransactionVerificationResponse"
+                                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
                             }
                         }
+                    }
+                }
+            },
+            "post": {
+                "description": "Webhook for VivaWallet transaction prices",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "VivaWallet Webhooks"
+                ],
+                "summary": "Webhook for VivaWallet transaction prices",
+                "parameters": [
+                    {
+                        "description": "Payment Price Response",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/paymentprovider.TransactionPriceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/webhooks/vivawallet/success": {
+            "get": {
+                "description": "Return VivaWallet verification key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "VivaWallet Webhooks"
+                ],
+                "summary": "Return VivaWallet verification key",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Webhook for VivaWallet successful transaction",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "VivaWallet Webhooks"
+                ],
+                "summary": "Webhook for VivaWallet successful transaction",
+                "parameters": [
+                    {
+                        "description": "Payment Successful Response",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -562,30 +678,6 @@ const docTemplate = `{
                 },
                 "price": {
                     "description": "Price in cents",
-                    "type": "integer"
-                }
-            }
-        },
-        "database.OrderEntry": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "item": {
-                    "type": "integer"
-                },
-                "price": {
-                    "description": "Price at time of purchase in cents",
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                },
-                "receiver": {
-                    "type": "integer"
-                },
-                "sender": {
                     "type": "integer"
                 }
             }
@@ -642,6 +734,9 @@ const docTemplate = `{
         "database.Vendor": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
                 "balance": {
                     "description": "This is joined in from the account",
                     "type": "integer"
@@ -655,6 +750,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "isDisabled": {
+                    "type": "boolean"
+                },
                 "keycloakID": {
                     "type": "string"
                 },
@@ -665,22 +763,28 @@ const docTemplate = `{
                     "type": "string",
                     "format": "date-time"
                 },
-                "licenseID": {
-                    "type": "string"
+                "latitude": {
+                    "type": "number"
                 },
-                "urlID": {
+                "licenseID": {
+                    "$ref": "#/definitions/null.String"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "urlid": {
                     "description": "This is used for the QR code",
                     "type": "string"
                 }
             }
         },
-        "handlers.CreateOrderRequest": {
+        "handlers.createOrderRequest": {
             "type": "object",
             "properties": {
                 "entries": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.CreateOrderRequestEntry"
+                        "$ref": "#/definitions/handlers.createOrderRequestEntry"
                     }
                 },
                 "user": {
@@ -691,7 +795,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CreateOrderRequestEntry": {
+        "handlers.createOrderRequestEntry": {
             "type": "object",
             "properties": {
                 "item": {
@@ -702,7 +806,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CreateOrderResponse": {
+        "handlers.createOrderResponse": {
             "type": "object",
             "properties": {
                 "smartCheckoutURL": {
@@ -710,7 +814,18 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CreatePaymentsRequest": {
+        "handlers.createPaymentPayoutRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "vendorLicenseID": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.createPaymentsRequest": {
             "type": "object",
             "properties": {
                 "payments": {
@@ -718,70 +833,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/database.Payment"
                     }
-                }
-            }
-        },
-        "handlers.TransactionOrder": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.TransactionOrderResponse": {
-            "type": "object",
-            "properties": {
-                "smartCheckoutURL": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.TransactionVerification": {
-            "type": "object",
-            "properties": {
-                "orderCode": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.TransactionVerificationResponse": {
-            "type": "object",
-            "properties": {
-                "verification": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "handlers.VerifyOrderResponse": {
-            "type": "object",
-            "properties": {
-                "entries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.OrderEntry"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "orderCode": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "transactionID": {
-                    "type": "string"
-                },
-                "user": {
-                    "type": "string"
-                },
-                "vendor": {
-                    "type": "integer"
-                },
-                "verified": {
-                    "type": "boolean"
                 }
             }
         },
@@ -794,6 +845,292 @@ const docTemplate = `{
                 "valid": {
                     "description": "Valid is true if Int64 is not NULL",
                     "type": "boolean"
+                }
+            }
+        },
+        "null.String": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if String is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "paymentprovider.EventData": {
+            "type": "object",
+            "properties": {
+                "AcquirerApproved": {
+                    "type": "boolean"
+                },
+                "Amount": {
+                    "type": "number"
+                },
+                "AssignedMerchantUsers": {
+                    "type": "array",
+                    "items": {}
+                },
+                "AssignedResellerUsers": {
+                    "type": "array",
+                    "items": {}
+                },
+                "AuthorizationId": {
+                    "type": "string"
+                },
+                "BankId": {
+                    "type": "string"
+                },
+                "BillId": {},
+                "BinId": {
+                    "type": "integer"
+                },
+                "CardCountryCode": {},
+                "CardExpirationDate": {
+                    "type": "string"
+                },
+                "CardIssuingBank": {},
+                "CardNumber": {
+                    "type": "string"
+                },
+                "CardToken": {
+                    "type": "string"
+                },
+                "CardTypeId": {
+                    "type": "integer"
+                },
+                "CardUniqueReference": {
+                    "type": "string"
+                },
+                "ChannelId": {
+                    "type": "string"
+                },
+                "ClearanceDate": {},
+                "CompanyName": {},
+                "CompanyTitle": {},
+                "ConnectedAccountId": {},
+                "CurrencyCode": {
+                    "type": "string"
+                },
+                "CurrentInstallment": {
+                    "type": "integer"
+                },
+                "CustomerTrns": {
+                    "type": "string"
+                },
+                "DigitalWalletId": {},
+                "DualMessage": {
+                    "type": "boolean"
+                },
+                "ElectronicCommerceIndicator": {
+                    "type": "string"
+                },
+                "Email": {
+                    "type": "string"
+                },
+                "FullName": {
+                    "type": "string"
+                },
+                "InsDate": {
+                    "type": "string"
+                },
+                "IsManualRefund": {
+                    "type": "boolean"
+                },
+                "Latitude": {},
+                "Longitude": {},
+                "LoyaltyTriggered": {
+                    "type": "boolean"
+                },
+                "MerchantCategoryCode": {
+                    "type": "integer"
+                },
+                "MerchantId": {
+                    "type": "string"
+                },
+                "MerchantTrns": {
+                    "type": "string"
+                },
+                "Moto": {
+                    "type": "boolean"
+                },
+                "OrderCode": {
+                    "type": "integer"
+                },
+                "OrderCulture": {
+                    "type": "string"
+                },
+                "OrderServiceId": {
+                    "type": "integer"
+                },
+                "PanEntryMode": {
+                    "type": "string"
+                },
+                "ParentId": {},
+                "Phone": {
+                    "type": "string"
+                },
+                "ProductId": {},
+                "RedeemedAmount": {
+                    "type": "number"
+                },
+                "ReferenceNumber": {
+                    "type": "integer"
+                },
+                "ResellerCompanyName": {},
+                "ResellerId": {},
+                "ResellerSourceAddress": {},
+                "ResellerSourceCode": {},
+                "ResellerSourceName": {},
+                "ResponseCode": {
+                    "type": "string"
+                },
+                "ResponseEventId": {},
+                "RetrievalReferenceNumber": {
+                    "type": "string"
+                },
+                "ServiceId": {},
+                "SourceCode": {
+                    "type": "string"
+                },
+                "SourceName": {
+                    "type": "string"
+                },
+                "StatusId": {
+                    "type": "string"
+                },
+                "Switching": {
+                    "type": "boolean"
+                },
+                "Systemic": {
+                    "type": "boolean"
+                },
+                "Tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "TargetPersonId": {},
+                "TargetWalletId": {},
+                "TerminalId": {
+                    "type": "integer"
+                },
+                "TipAmount": {
+                    "type": "number"
+                },
+                "TotalFee": {
+                    "type": "number"
+                },
+                "TotalInstallments": {
+                    "type": "integer"
+                },
+                "TransactionId": {
+                    "type": "string"
+                },
+                "TransactionTypeId": {
+                    "type": "integer"
+                },
+                "Ucaf": {
+                    "type": "string"
+                }
+            }
+        },
+        "paymentprovider.PriceEventData": {
+            "type": "object",
+            "properties": {
+                "CurrencyCode": {
+                    "type": "string"
+                },
+                "Interchange": {
+                    "type": "number"
+                },
+                "IsvFee": {
+                    "type": "number"
+                },
+                "MerchantId": {
+                    "type": "string"
+                },
+                "OrderCode": {
+                    "type": "integer"
+                },
+                "TotalCommission": {
+                    "type": "number"
+                },
+                "TransactionId": {
+                    "type": "string"
+                }
+            }
+        },
+        "paymentprovider.TransactionDetailRequest": {
+            "type": "object",
+            "properties": {
+                "CorrelationId": {
+                    "type": "string"
+                },
+                "Created": {
+                    "type": "string"
+                },
+                "Delay": {},
+                "EventData": {
+                    "$ref": "#/definitions/paymentprovider.EventData"
+                },
+                "EventTypeId": {
+                    "type": "integer"
+                },
+                "MessageId": {
+                    "type": "string"
+                },
+                "MessageTypeId": {
+                    "type": "integer"
+                },
+                "RecipientId": {
+                    "type": "string"
+                },
+                "Url": {
+                    "type": "string"
+                }
+            }
+        },
+        "paymentprovider.TransactionPriceRequest": {
+            "type": "object",
+            "properties": {
+                "CorrelationId": {
+                    "type": "string"
+                },
+                "Created": {
+                    "type": "string"
+                },
+                "Delay": {
+                    "type": "integer"
+                },
+                "EventData": {
+                    "$ref": "#/definitions/paymentprovider.PriceEventData"
+                },
+                "EventTypeId": {
+                    "type": "integer"
+                },
+                "MessageId": {
+                    "type": "string"
+                },
+                "MessageTypeId": {
+                    "type": "integer"
+                },
+                "RecipientId": {
+                    "type": "string"
+                },
+                "Url": {
+                    "type": "string"
+                }
+            }
+        },
+        "paymentprovider.VivaWalletVerificationKeyResponse": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
                 }
             }
         }
