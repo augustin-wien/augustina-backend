@@ -343,10 +343,10 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 	var payment Payment
 	for _, oi := range order.Entries {
 		payment = Payment{
-			Sender:   oi.Sender,
-			Receiver: oi.Receiver,
-			Amount:   oi.Price * oi.Quantity,
-			Order:    null.NewInt(int64(order.ID), true),
+			Sender:     oi.Sender,
+			Receiver:   oi.Receiver,
+			Amount:     oi.Price * oi.Quantity,
+			Order:      null.NewInt(int64(order.ID), true),
 			OrderEntry: null.NewInt(int64(oi.ID), true),
 		}
 		createPaymentTx(tx, payment)
@@ -630,7 +630,7 @@ func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
 	SELECT * from Settings LIMIT 1
-	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees)
+	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees, &settings.MoneyLimit)
 	if err != nil {
 		log.Error(err)
 	}
@@ -642,9 +642,9 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `
 	UPDATE Settings
-	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4
+	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4, MoneyLimit = $5
 	WHERE ID = 1
-	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees)
+	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees, settings.MoneyLimit)
 
 	if err != nil {
 		log.Error(err)

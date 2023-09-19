@@ -23,7 +23,7 @@ type Vendor struct {
 	IsDisabled bool
 	Longitude  float64
 	Latitude   float64
-	Address	   string
+	Address    string
 }
 
 // Account is a struct that is used for the account table
@@ -88,6 +88,7 @@ type Settings struct {
 	Logo       string
 	MainItem   null.Int `swaggertype:"integer"`
 	RefundFees bool
+	MoneyLimit int
 }
 
 // DBSettings is a struct that is used for the dbsettings table
