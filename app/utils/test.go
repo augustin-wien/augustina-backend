@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -59,6 +60,17 @@ func TestRequest(t *testing.T, router *chi.Mux, method string, url string, body 
 	return res
 }
 
+func TestRequestWithAuth(t *testing.T, router *chi.Mux, method string, url string, body any, expectedResponseCode int, auth *gocloak.JWT) (res *httptest.ResponseRecorder) {
+	var bodyJSON bytes.Buffer
+	err := json.NewEncoder(&bodyJSON).Encode(body)
+	CheckError(t, err)
+	req, err := http.NewRequest(method, url, &bodyJSON)
+	CheckError(t, err)
+	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
+	res = SubmitRequestAndCheckResponse(t, req, router, expectedResponseCode)
+	return res
+}
+
 // TestRequestMultiPart is a simple utility to test a request with multipart/form-data
 func TestRequestMultiPart(
 	t *testing.T,
@@ -76,10 +88,38 @@ func TestRequestMultiPart(
 	return res
 }
 
+// TestRequestMultiPartWithAuth is a simple utility to test a request with multipart/form-data including auth
+func TestRequestMultiPartWithAuth(
+	t *testing.T,
+	router *chi.Mux,
+	method string,
+	url string,
+	body *bytes.Buffer,
+	contentType string,
+	expectedResponseCode int,
+	auth *gocloak.JWT,
+) (res *httptest.ResponseRecorder) {
+	req, err := http.NewRequest(method, url, body)
+	CheckError(t, err)
+	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
+	res = SubmitRequestAndCheckResponse(t, req, router, expectedResponseCode)
+	return res
+}
+
 // TestRequestStr is a simple utility to test a request with a string body
 func TestRequestStr(t *testing.T, router *chi.Mux, method string, url string, body string, expectedResponseCode int) (res *httptest.ResponseRecorder) {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer([]byte(body)))
 	CheckError(t, err)
+	res = SubmitRequestAndCheckResponse(t, req, router, expectedResponseCode)
+	return res
+}
+
+// TestRequestStrWithAuth is a simple utility to test a request with a string body
+func TestRequestStrWithAuth(t *testing.T, router *chi.Mux, method string, url string, body string, expectedResponseCode int, auth *gocloak.JWT) (res *httptest.ResponseRecorder) {
+	req, err := http.NewRequest(method, url, bytes.NewBuffer([]byte(body)))
+	CheckError(t, err)
+	req.Header.Set("Authorization", "Bearer "+auth.AccessToken)
 	res = SubmitRequestAndCheckResponse(t, req, router, expectedResponseCode)
 	return res
 }

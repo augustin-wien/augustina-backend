@@ -2,26 +2,57 @@ package handlers
 
 import (
 	"augustin/database"
+	"augustin/keycloak"
 	"augustin/utils"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"mime/multipart"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 )
 
 var r *chi.Mux
+var addminUser string
+var adminUserToken *gocloak.JWT
 
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
+	var err error
 	database.Db.InitEmptyTestDb()
+	keycloak.InitializeOauthServer()
 	r = GetRouter()
-	os.Exit(m.Run())
+	defer func() {
+		keycloak.KeycloakClient.DeleteUser(addminUser)
+		keycloak.KeycloakClient.DeleteUser("test123@example.com")
+	}()
+	addminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", "testadmin@example.com", "password")
+	if err != nil {
+		log.Errorf("Create user failed: %v \n", err)
+	}
+	err = keycloak.KeycloakClient.AssignRole(addminUser, "admin")
+	if err != nil {
+		log.Errorf("Assign role failed: %v \n", err)
+	}
+	adminUserToken, err = keycloak.KeycloakClient.GetUserToken("testadmin@example.com", "password")
+	if err != nil {
+		log.Errorf("Login failed: %v \n", err)
+	}
+	fmt.Println("Admin user token: ", adminUserToken.AccessToken)
+
+	return_code := m.Run()
+	err = keycloak.KeycloakClient.DeleteUser(addminUser)
+	if err != nil {
+		log.Errorf("Delete user failed: %v \n", err)
+	}
+
+	os.Exit(return_code)
 }
 
 // TestHelloWorld tests the hello world test function
@@ -36,19 +67,21 @@ func createTestVendor(t *testing.T, licenseID string) string {
 		"urlID": "test",
 		"licenseID": "` + licenseID + `",
 		"firstName": "test1234",
-		"lastName": "test"
+		"lastName": "test",
+		"email": "test123@example.com"
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/vendors/", jsonVendor, 200)
+	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/vendors/", jsonVendor, 200, adminUserToken)
 	vendorID := res.Body.String()
 	return vendorID
 }
 
-
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
+	keycloak.KeycloakClient.DeleteUser("test123@example.com")
 	// Create
 	vendorID := createTestVendor(t, "testLicenseID1")
-	res := utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
+
+	res := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	var vendors []database.Vendor
 	err := json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
@@ -57,20 +90,19 @@ func TestVendors(t *testing.T) {
 
 	// Update
 	jsonVendor := `{"firstName": "nameAfterUpdate"}`
-	utils.TestRequestStr(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200)
-	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
+	utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(vendors))
 	require.Equal(t, "nameAfterUpdate", vendors[0].FirstName)
 
 	// Delete
-	utils.TestRequest(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204)
-	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
 	require.Equal(t, 0, len(vendors))
-
 
 }
 
@@ -79,7 +111,7 @@ func CreateTestItem(t *testing.T) string {
 		"Name": "Test item",
 		"Price": 314
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
+	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
 	itemID := res.Body.String()
 	return itemID
 }
@@ -107,7 +139,7 @@ func TestItems(t *testing.T) {
 	image, _ := writer.CreateFormFile("Image", "test.jpg")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200)
+	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200, adminUserToken)
 
 	// Read
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
@@ -129,7 +161,7 @@ func TestItems(t *testing.T) {
 	writer.WriteField("Name", "Updated item name 2")
 	writer.WriteField("Image", "Test")
 	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200)
+	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200, adminUserToken)
 
 	// Read
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
@@ -208,7 +240,7 @@ func TestPaymentsBatch(t *testing.T) {
 		},
 	}
 	utils.TestRequest(t, r, "POST", "/api/payments/batch/", f, 200)
-	response2 := utils.TestRequest(t, r, "GET", "/api/payments/", nil, 200)
+	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 
 	// Unmarshal response
 	var payments []database.Payment
@@ -248,10 +280,10 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create payments via API
 	f := createPaymentPayoutRequest{
-		Amount: 314,
+		Amount:          314,
 		VendorLicenseID: "testLicenseID",
 	}
-	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
+	res := utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount bigger than vendor account balance"}}`)
 
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
@@ -260,7 +292,7 @@ func TestPaymentPayout(t *testing.T) {
 	err = database.Db.UpdateAccountBalance(account.ID, 1000)
 	utils.CheckError(t, err)
 
-	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 200)
+	res = utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 200, adminUserToken)
 
 	paymentID := res.Body.String()
 	paymentIDInt, err := strconv.Atoi(paymentID)

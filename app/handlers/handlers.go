@@ -110,6 +110,18 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := database.Db.CreateVendor(vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	// Create user in keycloak
+	// randomPassword := utils.RandomString(10)
+	// user, err := keycloak.KeycloakClient.CreateUser(vendor.Email, vendor.Email, vendor.Email, randomPassword)
+	// if err != nil {
+	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
+	// 	return
+	// }
+	// keycloak.KeycloakClient.AssignRole(user, "vendor")
 	respond(w, err, id)
 }
 
@@ -138,6 +150,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = database.Db.UpdateVendor(vendorID, vendor)
+	// todo update keycloak user
 	respond(w, err, vendor)
 }
 

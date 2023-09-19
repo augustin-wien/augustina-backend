@@ -69,6 +69,10 @@ func (k *Keycloak) GetUserInfo(userToken string) (*gocloak.UserInfo, error) {
 	return k.Client.GetUserInfo(k.Context, userToken, k.Realm)
 }
 
+func (k *Keycloak) GetUserToken(user, password string) (*gocloak.JWT, error) {
+	return k.Client.Login(k.Context, k.ClientID, k.ClientSecret, k.Realm, user, password)
+}
+
 // GetUserByID function queries the user id
 func (k *Keycloak) GetUserByID(userToken string, id string) (*gocloak.User, error) {
 	return k.Client.GetUserByID(k.Context, userToken, k.Realm, id)
@@ -146,12 +150,22 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 }
 
 // CreateUser function creates a user given by first_name, last_name and email returns the userID
-func (k *Keycloak) CreateUser(firstName string, lastName string, email string) (userID string, err error) {
+func (k *Keycloak) CreateUser(firstName string, lastName string, email string, password string) (userID string, err error) {
+	credentials := []gocloak.CredentialRepresentation{
+		{
+			Type:      gocloak.StringP("password"),
+			Value:     gocloak.StringP(password),
+			Temporary: gocloak.BoolP(false),
+		},
+	}
 	return k.Client.CreateUser(k.Context, k.adminToken.AccessToken, k.Realm, gocloak.User{
-		Username:  &email,
-		FirstName: &firstName,
-		LastName:  &lastName,
-		Email:     &email,
+		Username:      &email,
+		FirstName:     &firstName,
+		LastName:      &lastName,
+		Email:         &email,
+		Credentials:   &credentials,
+		EmailVerified: gocloak.BoolP(true),
+		Enabled:       gocloak.BoolP(true),
 	})
 }
 

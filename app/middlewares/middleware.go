@@ -55,7 +55,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		for _, role := range userRoles {
-			log.Info("role ", *role.Name)
 			r.Header.Add("X-Auth-Roles-"+*role.Name, *role.Name)
 		}
 		next.ServeHTTP(w, r)

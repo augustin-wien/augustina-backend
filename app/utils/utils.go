@@ -2,6 +2,7 @@ package utils
 
 import (
 	"augustin/config"
+	"math/rand"
 	"os"
 
 	"go.uber.org/zap"
@@ -21,4 +22,19 @@ func GetEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+// RandomString returns a random string of length n
+func RandomString(n int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[RandomInt(0, len(letters))]
+	}
+	return string(b)
+}
+
+// RandomInt returns a random int between min and max
+func RandomInt(min, max int) int {
+	return min + rand.Intn(max-min)
 }
