@@ -19,7 +19,7 @@ import (
 )
 
 var r *chi.Mux
-var addminUser string
+var adminUser string
 var adminUserToken *gocloak.JWT
 
 // TestMain is executed before all tests and initializes an empty database
@@ -29,14 +29,14 @@ func TestMain(m *testing.M) {
 	keycloak.InitializeOauthServer()
 	r = GetRouter()
 	defer func() {
-		keycloak.KeycloakClient.DeleteUser(addminUser)
+		keycloak.KeycloakClient.DeleteUser(adminUser)
 		keycloak.KeycloakClient.DeleteUser("test123@example.com")
 	}()
-	addminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", "testadmin@example.com", "password")
+	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", "testadmin@example.com", "password")
 	if err != nil {
 		log.Errorf("Create user failed: %v \n", err)
 	}
-	err = keycloak.KeycloakClient.AssignRole(addminUser, "admin")
+	err = keycloak.KeycloakClient.AssignRole(adminUser, "admin")
 	if err != nil {
 		log.Errorf("Assign role failed: %v \n", err)
 	}
@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 	fmt.Println("Admin user token: ", adminUserToken.AccessToken)
 
 	return_code := m.Run()
-	err = keycloak.KeycloakClient.DeleteUser(addminUser)
+	err = keycloak.KeycloakClient.DeleteUser(adminUser)
 	if err != nil {
 		log.Errorf("Delete user failed: %v \n", err)
 	}
