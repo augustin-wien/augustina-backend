@@ -419,6 +419,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/vendors/check/": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Check if license id exists",
+                "parameters": [
+                    {
+                        "description": "License ID",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.checkLicenseIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/vendors/{id}/": {
             "put": {
                 "description": "Warning: Unfilled fields will be set to default values",
@@ -774,6 +807,14 @@ const docTemplate = `{
                 },
                 "urlid": {
                     "description": "This is used for the QR code",
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.checkLicenseIDRequest": {
+            "type": "object",
+            "properties": {
+                "licenseID": {
                     "type": "string"
                 }
             }
