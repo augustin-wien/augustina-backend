@@ -484,7 +484,6 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Param			amount body database.Payment true " Create Payment"
 //		@Success		200
-//		@Router			/payments/ [post]
 func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	var payment database.Payment
 	err := utils.ReadJSON(w, r, &payment)
@@ -514,7 +513,6 @@ type createPaymentsRequest struct {
 //		@Produce		json
 //		@Param			amount body createPaymentsRequest true " Create Payment"
 //		@Success		200 {integer} id
-//		@Router			/payments/batch/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)

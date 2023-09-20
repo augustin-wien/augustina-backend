@@ -481,45 +481,6 @@ paths:
       summary: Get list of all payments
       tags:
       - Payments
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' Create Payment'
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/database.Payment'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Create a payment
-      tags:
-      - Payments
-  /payments/batch/:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' Create Payment'
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.createPaymentsRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: integer
-      summary: Create a set of payments
-      tags:
-      - Payments
   /payments/payout/:
     post:
       consumes:

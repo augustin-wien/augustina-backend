@@ -43,7 +43,6 @@ func createTestVendor(t *testing.T, licenseID string) string {
 	return vendorID
 }
 
-
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
 	// Create
@@ -70,7 +69,6 @@ func TestVendors(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
 	require.Equal(t, 0, len(vendors))
-
 
 }
 
@@ -185,7 +183,6 @@ func TestOrders(t *testing.T) {
 
 }
 
-
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
 
@@ -247,7 +244,7 @@ func TestPayments(t *testing.T) {
 
 }
 
-func timeRequest(t *testing.T, from int, to int, expectedLength int) () {
+func timeRequest(t *testing.T, from int, to int, expectedLength int) {
 	var payments []database.Payment
 	path := "/api/payments/"
 	if from != 0 || to != 0 {
@@ -277,7 +274,7 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create payments via API
 	f := createPaymentPayoutRequest{
-		Amount: 314,
+		Amount:          314,
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
