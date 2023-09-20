@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"gopkg.in/guregu/null.v4"
@@ -100,4 +101,97 @@ func TestAccounts(t *testing.T) {
 	utils.CheckError(t, err)
 
 	require.Equal(t, "test", account.Name)
+}
+
+
+func TestOrders(t *testing.T) {
+
+	// Preperation
+	vendorID, err := Db.CreateVendor(Vendor{})
+	utils.CheckError(t, err)
+	senderID, err := Db.CreateAccount(Account{})
+	utils.CheckError(t, err)
+	receiverID, err := Db.CreateAccount(Account{})
+	utils.CheckError(t, err)
+	itemID, err := Db.CreateItem(Item{})
+	utils.CheckError(t, err)
+
+	// Create order
+	order := Order{
+		Vendor:   vendorID,
+		OrderCode: null.NewString("0", true),
+		Entries: []OrderEntry{
+			{
+				Item:     itemID,
+				Quantity: 315,
+				Sender:   senderID,
+				Receiver: receiverID,
+			},
+		},
+	}
+	orderID, err := Db.CreateOrder(order)
+	utils.CheckError(t, err)
+
+	// Create extra order entries with payments
+	err = Db.CreatePayedOrderEntries(orderID, []OrderEntry{
+		{
+			Item:     itemID,
+			Quantity: 316,
+			Sender:   senderID,
+			Receiver: receiverID,
+		},
+	})
+	utils.CheckError(t, err)
+
+	// Verify order and create payments
+	err = Db.VerifyOrderAndCreatePayments(orderID)
+	utils.CheckError(t, err)
+
+	// Check order results
+	order1, err := Db.GetOrderByOrderCode("0")
+	require.Equal(t, 2, len(order1.Entries))
+
+	// Check payment results
+	payments, err := Db.ListPayments(time.Time{}, time.Time{})
+	require.Equal(t, 2, len(payments))
+
+	// Repeat with reverse order
+	order2 := Order{
+		Vendor:   vendorID,
+		OrderCode: null.NewString("1", true),
+		Entries: []OrderEntry{
+			{
+				Item:     itemID,
+				Quantity: 315,
+				Sender:   senderID,
+				Receiver: receiverID,
+			},
+		},
+	}
+	orderID2, err := Db.CreateOrder(order2)
+	utils.CheckError(t, err)
+
+	// Create extra order entries with payments
+	err = Db.CreatePayedOrderEntries(orderID2, []OrderEntry{
+		{
+			Item:     itemID,
+			Quantity: 316,
+			Sender:   senderID,
+			Receiver: receiverID,
+		},
+	})
+	utils.CheckError(t, err)
+
+	// Verify order and create payments
+	err = Db.VerifyOrderAndCreatePayments(orderID2)
+	utils.CheckError(t, err)
+
+	// Check order results
+	order22, err := Db.GetOrderByOrderCode("1")
+	require.Equal(t, 2, len(order22.Entries))
+
+	// Check payment results
+	payments2, err := Db.ListPayments(time.Time{}, time.Time{})
+	require.Equal(t, 4, len(payments2))
+
 }

@@ -84,7 +84,7 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 }
 
 // CreateVendor creates a vendor and an associated account in the database
-func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
+func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 
 	// Create vendor
 	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING ID", vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address).Scan(&vendorID)
@@ -168,7 +168,7 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 }
 
 // CreateItem creates an item in the database
-func (db *Database) CreateItem(item Item) (id int32, err error) {
+func (db *Database) CreateItem(item Item) (id int, err error) {
 	// Check if the item name already exists
 	var count int
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Item WHERE Name = $1", item.Name).Scan(&count)
@@ -339,12 +339,12 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (entryID int, 
 // createPaymentForOrderEntryTx creates a payment for an order entry
 func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, errorIfExists bool) (paymentID int, err error) {
 
-	var entryID int
-	var payment Payment
-	err = tx.QueryRow(context.Background(), "SELECT ID FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&entryID)
+	var count int
+	err = tx.QueryRow(context.Background(), "SELECT COUNT(*) FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&count)
 
 	// If no payment exists for this entry, create one
-	if err != nil && err.Error() == "no rows in result set" && !errorIfExists {
+	var payment Payment
+	if count == 0 && !errorIfExists {
 		err = nil
 		payment = Payment{
 			Sender:   entry.Sender,
@@ -466,7 +466,7 @@ func (db *Database) GetPayment(id int) (payment Payment, err error) {
 func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 
 	// Create payment
-	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount).Scan(&paymentID)
+	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry) values ($1, $2, $3, $4, $5, $6) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry).Scan(&paymentID)
 	if err != nil {
 		log.Error(err)
 		return
