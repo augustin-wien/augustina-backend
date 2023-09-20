@@ -1,7 +1,7 @@
 -- Write your migrate up statements here
 
 ALTER TABLE Settings
-ADD COLUMN MaxOrderAmount integer DEFAULT 5000;
+ADD COLUMN MaxOrderAmount integer;
 
 ---- create above / drop below ----
 
