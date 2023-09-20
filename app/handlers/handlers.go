@@ -348,6 +348,20 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var settings database.Settings
+	if settings, err = database.Db.GetSettings(); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if settings.MaxOrderAmount.Valid {
+		utils.ErrorJSON(w, errors.New("MaxOrderAmount not set"), http.StatusBadRequest)
+		return
+	}
+	if order.GetTotal() >= int(settings.MaxOrderAmount.Int64) {
+		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
+		return
+	}
+
 	// Get accounts
 	var buyerAccountID int
 	if order.User.Valid {

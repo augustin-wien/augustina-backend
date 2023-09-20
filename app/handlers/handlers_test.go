@@ -183,6 +183,31 @@ func TestOrders(t *testing.T) {
 
 }
 
+// TestMaxAmountOrder tests the max amount of an order
+func TestMaxAmountOrder(t *testing.T) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("MaxOrderAmount", "1000")
+	writer.Close()
+
+	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
+
+	itemID := CreateTestItem(t)
+	vendorID := createTestVendor(t, "testLicenseID2")
+	f := `{
+		"entries": [
+			{
+			  "item": ` + itemID + `,
+			  "quantity": -315
+			}
+		  ],
+		  "vendor": ` + vendorID + `
+	}`
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
+
+}
+
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
 
