@@ -3,12 +3,36 @@ package database
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
-	"gopkg.in/guregu/null.v4"
 )
+
+// Helpers --------------------------------------------------------------------
+
+// deferTx executes a transaction after a function returns
+func deferTx(tx pgx.Tx) (err error) {
+	if p := recover(); p != nil {
+		// Rollback the transaction if a panic occurred
+		_ = tx.Rollback(context.Background())
+		// Re-throw the panic
+		panic(p)
+	} else if err != nil {
+		// Rollback the transaction if an error occurred
+		_ = tx.Rollback(context.Background())
+	} else {
+		// Commit the transaction if everything is successful
+		err = tx.Commit(context.Background())
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	return
+}
+
+// Generic --------------------------------------------------------------------
 
 // GetHelloWorld returns the string "Hello, world!" from the database and should be used as a template for other queries
 func (db *Database) GetHelloWorld() (string, error) {
@@ -268,11 +292,17 @@ func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err erro
 }
 
 // CreateOrder creates an order in the database
-// TODO: This should be a transaction
 // Processes OrderCode, vendor, and items (trinkgeld is an item)
 func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
+	// Start a transaction
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		return
+	}
+	defer func() { err = deferTx(tx) }()
+
+	err = tx.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -283,14 +313,14 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 
 		// Get current item price
 		var item Item
-		err = db.Dbpool.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
+		err = tx.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
 		if err != nil {
 			log.Error(err)
 			return
 		}
 
 		// Create order item
-		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
+		_, err = tx.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
 		if err != nil {
 			log.Error(err)
 			return orderID, err
@@ -300,6 +330,7 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	return
 }
 
+
 // VerifyOrderAndCreatePayments verifies payment order, update it in the database, and create payments
 func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 
@@ -308,22 +339,7 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 	if err != nil {
 		return err
 	}
-
-	// Execute transaction after function returns
-	defer func() {
-		if p := recover(); p != nil {
-			// Rollback the transaction if a panic occurred
-			_ = tx.Rollback(context.Background())
-			// Re-throw the panic
-			panic(p)
-		} else if err != nil {
-			// Rollback the transaction if an error occurred
-			_ = tx.Rollback(context.Background())
-		} else {
-			// Commit the transaction if everything is successful
-			err = tx.Commit(context.Background())
-		}
-	}()
+	defer func() { err = deferTx(tx) }()
 
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
@@ -339,17 +355,11 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 	order, err := db.GetOrderByID(id)
 
 	// Create payments
-
-	var payment Payment
 	for _, oi := range order.Entries {
-		payment = Payment{
-			Sender:   oi.Sender,
-			Receiver: oi.Receiver,
-			Amount:   oi.Price * oi.Quantity,
-			Order:    null.NewInt(int64(order.ID), true),
-			OrderEntry: null.NewInt(int64(oi.ID), true),
+		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, PaymentOrder) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
+		if err != nil {
+			return err
 		}
-		createPaymentTx(tx, payment)
 	}
 
 	return
@@ -358,13 +368,25 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 // Payments -------------------------------------------------------------------
 
 // ListPayments returns the payments from the database
-func (db *Database) ListPayments() ([]Payment, error) {
-	var payments []Payment
-	rows, err := db.Dbpool.Query(context.Background(), "select * from payment")
+func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments []Payment, err error) {
+	var rows pgx.Rows
+
+	// Query based on parameters
+	if !minDate.IsZero() && !maxDate.IsZero() {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
+	} else if !minDate.IsZero() {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1", minDate)
+	} else if !maxDate.IsZero() {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp <= $1", maxDate)
+	} else {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment")
+	}
 	if err != nil {
 		log.Error(err)
 		return payments, err
 	}
+
+	// Scan rows
 	for rows.Next() {
 		var payment Payment
 		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry)
@@ -384,6 +406,7 @@ func (db *Database) GetPayment(id int) (payment Payment, err error) {
 	}
 	return
 }
+
 
 // CreatePayment creates a payment in an transaction
 func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
@@ -414,6 +437,7 @@ func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 	return
 }
 
+
 // CreatePayment creates a payment and returns the payment ID
 func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
 
@@ -422,22 +446,7 @@ func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
 	if err != nil {
 		return
 	}
-
-	// Handle transaction after function returns
-	defer func() {
-		if p := recover(); p != nil {
-			// Rollback the transaction if a panic occurred
-			_ = tx.Rollback(context.Background())
-			// Re-throw the panic
-			panic(p)
-		} else if err != nil {
-			// Rollback the transaction if an error occurred
-			_ = tx.Rollback(context.Background())
-		} else {
-			// Commit the transaction if everything is successful
-			err = tx.Commit(context.Background())
-		}
-	}()
+	defer func() { err = deferTx(tx) }()
 
 	paymentID, err = createPaymentTx(tx, payment)
 
@@ -453,22 +462,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 		log.Error(err)
 		return err
 	}
-
-	// Handle transaction after function returns
-	defer func() {
-		if p := recover(); p != nil {
-			// Rollback the transaction if a panic occurred
-			_ = tx.Rollback(context.Background())
-			// Re-throw the panic
-			panic(p)
-		} else if err != nil {
-			// Rollback the transaction if an error occurred
-			_ = tx.Rollback(context.Background())
-		} else {
-			// Commit the transaction if everything is successful
-			err = tx.Commit(context.Background())
-		}
-	}()
+	defer func() { err = deferTx(tx) }()
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
@@ -559,16 +553,36 @@ func (db *Database) GetAccountByVendorID(vendorID int) (account Account, err err
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Vendor = $1", vendorID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
 		if err.Error() == "no rows in result set" {
-			err = errors.New("Vendor does not exist or has no account")
+			err = errors.New("vendor does not exist or has no account")
 		}
 		log.Error(err)
 	}
 	return
 }
 
+// Memory cache for account type id's
+var accountTypeIDCache map[string]int
+
+// GetAccountTypeID returns the (cached) ID of an account type
+func (db *Database) GetAccountTypeID(accountType string) (accountTypeID int, err error) {
+	if accountTypeIDCache == nil {
+		accountTypeIDCache = make(map[string]int)
+	}
+	if accountTypeIDCache[accountType] != 0 {
+		accountTypeID = accountTypeIDCache[accountType]
+		return
+	}
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID FROM Account WHERE Type = $1", accountType).Scan(&accountTypeID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	accountTypeIDCache[accountType] = accountTypeID
+	return
+}
+
 // GetAccountByType returns the account with the given type
 // Works only for types with a single entry in the database
-// TODO: This could easily be cached
 func (db *Database) GetAccountByType(accountType string) (account Account, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Type = $1", accountType).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
@@ -580,17 +594,14 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 // UpdateAccountBalance updates the balance of an account
 func (db *Database) UpdateAccountBalance(id int, balanceDiff int) (err error) {
 
-	account, err := db.GetAccountByID(id)
-	newBalance := account.Balance + balanceDiff
-
-	_, err = db.Dbpool.Exec(context.Background(), `
-	UPDATE Account
-	SET Balance = $2
-	WHERE ID = $1
-	`, id, newBalance)
+	// Start a transaction
+	tx, err := db.Dbpool.Begin(context.Background())
 	if err != nil {
-		log.Error(err)
+		return err
 	}
+	defer func() { err = deferTx(tx) }()
+
+	err = updateAccountBalanceTx(tx, id, balanceDiff)
 
 	return
 }
