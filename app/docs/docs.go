@@ -419,8 +419,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/vendors/check/": {
-            "post": {
+        "/vendors/check/{licenseID}/": {
+            "get": {
+                "description": "Check if license id exists, return first name of vendor if it does",
                 "consumes": [
                     "application/json"
                 ],
@@ -430,16 +431,14 @@ const docTemplate = `{
                 "tags": [
                     "Vendors"
                 ],
-                "summary": "Check if license id exists",
+                "summary": "Check for license id",
                 "parameters": [
                     {
+                        "type": "string",
                         "description": "License ID",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.checkLicenseIDRequest"
-                        }
+                        "name": "licenseID",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -807,14 +806,6 @@ const docTemplate = `{
                 },
                 "urlid": {
                     "description": "This is used for the QR code",
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.checkLicenseIDRequest": {
-            "type": "object",
-            "properties": {
-                "licenseID": {
                     "type": "string"
                 }
             }

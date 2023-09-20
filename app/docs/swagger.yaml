@@ -86,11 +86,6 @@ definitions:
         description: This is used for the QR code
         type: string
     type: object
-  handlers.checkLicenseIDRequest:
-    properties:
-      licenseID:
-        type: string
-    type: object
   handlers.createOrderRequest:
     properties:
       entries:
@@ -647,17 +642,17 @@ paths:
       summary: Update Vendor
       tags:
       - Vendors
-  /vendors/check/:
-    post:
+  /vendors/check/{licenseID}/:
+    get:
       consumes:
       - application/json
+      description: Check if license id exists, return first name of vendor if it does
       parameters:
       - description: License ID
-        in: body
-        name: data
+        in: path
+        name: licenseID
         required: true
-        schema:
-          $ref: '#/definitions/handlers.checkLicenseIDRequest'
+        type: string
       produces:
       - application/json
       responses:
@@ -665,7 +660,7 @@ paths:
           description: OK
           schema:
             type: string
-      summary: Check if license id exists
+      summary: Check for license id
       tags:
       - Vendors
   /webhooks/vivawallet/failure:
