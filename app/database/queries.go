@@ -13,7 +13,7 @@ import (
 // Helpers --------------------------------------------------------------------
 
 // deferTx executes a transaction after a function returns
-func deferTx(tx pgx.Tx) (err error) {
+func deferTx(tx pgx.Tx, err error) error {
 	if p := recover(); p != nil {
 		// Rollback the transaction if a panic occurred
 		_ = tx.Rollback(context.Background())
@@ -29,7 +29,7 @@ func deferTx(tx pgx.Tx) (err error) {
 			log.Error(err)
 		}
 	}
-	return
+	return err
 }
 
 // Generic --------------------------------------------------------------------
@@ -300,7 +300,7 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	if err != nil {
 		return
 	}
-	defer func() { err = deferTx(tx) }()
+	defer func() { err = deferTx(tx, err) }()
 
 	err = tx.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
 	if err != nil {
@@ -339,7 +339,7 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 	if err != nil {
 		return err
 	}
-	defer func() { err = deferTx(tx) }()
+	defer func() { err = deferTx(tx, err) }()
 
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
@@ -411,6 +411,12 @@ func (db *Database) GetPayment(id int) (payment Payment, err error) {
 // CreatePayment creates a payment in an transaction
 func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 
+	// Validation
+	if payment.Amount <= 0 {
+		err = errors.New("Payment amount must be greater than 0")
+		return
+	}
+
 	// Create payment
 	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount).Scan(&paymentID)
 	if err != nil {
@@ -439,7 +445,7 @@ func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
 	if err != nil {
 		return
 	}
-	defer func() { err = deferTx(tx) }()
+	defer func() { err = deferTx(tx, err) }()
 
 	paymentID, err = createPaymentTx(tx, payment)
 
@@ -455,7 +461,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 		log.Error(err)
 		return err
 	}
-	defer func() { err = deferTx(tx) }()
+	defer func() { err = deferTx(tx, err) }()
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
@@ -592,7 +598,7 @@ func (db *Database) UpdateAccountBalance(id int, balanceDiff int) (err error) {
 	if err != nil {
 		return err
 	}
-	defer func() { err = deferTx(tx) }()
+	defer func() { err = deferTx(tx, err) }()
 
 	err = updateAccountBalanceTx(tx, id, balanceDiff)
 

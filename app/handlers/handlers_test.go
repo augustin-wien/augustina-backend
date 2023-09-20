@@ -272,12 +272,20 @@ func TestPaymentPayout(t *testing.T) {
 	vendorID := createTestVendor(t, "testLicenseID")
 	vendorIDInt, _ := strconv.Atoi(vendorID)
 
-	// Create payments via API
+	// Create invalid payments via API
 	f := createPaymentPayoutRequest{
-		Amount:          314,
+		Amount: -314,
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Payment amount must be greater than 0"}}`)
+
+	// Create payments via API
+	f = createPaymentPayoutRequest{
+		Amount: 314,
+		VendorLicenseID: "testLicenseID",
+	}
+	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount bigger than vendor account balance"}}`)
 
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
