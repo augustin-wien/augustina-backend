@@ -204,6 +204,22 @@ const docTemplate = `{
                     "Payments"
                 ],
                 "summary": "Get list of all payments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Minimum date (RFC3339, UTC)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Maximum date (RFC3339, UTC)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -212,67 +228,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/database.Payment"
                             }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Create a payment",
-                "parameters": [
-                    {
-                        "description": " Create Payment",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Payment"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/payments/batch/": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Create a set of payments",
-                "parameters": [
-                    {
-                        "description": " Create Payment",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createPaymentsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "integer"
                         }
                     }
                 }
@@ -375,7 +330,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "List Vendors",
                 "responses": {
@@ -398,7 +353,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "Create Vendor",
                 "parameters": [
@@ -429,7 +384,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -464,7 +419,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "Delete Vendor",
                 "parameters": [
