@@ -10,3 +10,6 @@
 [submodule "docker/augustin-plugin"]
 	path = docker/augustin-plugin
 	url = https://github.com/augustin-wien/augustin-plugin
+[submodule "docker/augustin-frontend"]
+	path = docker/augustin-frontend
+	url = https://github.com/augustin-wien/augustin-frontend.git

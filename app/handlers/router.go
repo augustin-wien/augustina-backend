@@ -18,7 +18,6 @@ import (
 // GetRouter creates a new chi Router and mounts all handlers
 func GetRouter() (r *chi.Mux) {
 	r = chi.NewRouter()
-
 	// Mount all Middleware here
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{

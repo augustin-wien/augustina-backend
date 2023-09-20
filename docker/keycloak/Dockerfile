@@ -3,7 +3,7 @@ RUN mkdir -p /mnt/rootfs
 RUN dnf install --installroot /mnt/rootfs curl --releasever 9 --setopt install_weak_deps=false --nodocs -y; dnf --installroot /mnt/rootfs clean all
 
 
-FROM quay.io/keycloak/keycloak:21.1
+FROM quay.io/keycloak/keycloak:22.0
 COPY --from=ubi-micro-build /mnt/rootfs /
 WORKDIR /opt/keycloak
 COPY ./import/* /opt/keycloak/data/import/
