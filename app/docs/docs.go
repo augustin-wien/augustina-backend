@@ -205,6 +205,22 @@ const docTemplate = `{
                     "Payments"
                 ],
                 "summary": "Get list of all payments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z07:00",
+                        "description": "Minimum date (RFC3339, UTC)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z07:00",
+                        "description": "Maximum date (RFC3339, UTC)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -735,6 +751,9 @@ const docTemplate = `{
         "database.Vendor": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
                 "balance": {
                     "description": "This is joined in from the account",
                     "type": "integer"
@@ -748,6 +767,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "isDisabled": {
+                    "type": "boolean"
+                },
                 "keycloakID": {
                     "type": "string"
                 },
@@ -758,8 +780,14 @@ const docTemplate = `{
                     "type": "string",
                     "format": "date-time"
                 },
+                "latitude": {
+                    "type": "number"
+                },
                 "licenseID": {
-                    "type": "string"
+                    "$ref": "#/definitions/null.String"
+                },
+                "longitude": {
+                    "type": "number"
                 },
                 "urlid": {
                     "description": "This is used for the QR code",
@@ -833,6 +861,18 @@ const docTemplate = `{
                 },
                 "valid": {
                     "description": "Valid is true if Int64 is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "null.String": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if String is not NULL",
                     "type": "boolean"
                 }
             }

@@ -185,6 +185,7 @@ func TestOrders(t *testing.T) {
 
 }
 
+
 // TestPayments tests CRUD operations on payments
 func TestPaymentsBatch(t *testing.T) {
 
@@ -238,6 +239,38 @@ func TestPaymentsBatch(t *testing.T) {
 	require.Equal(t, senderAccount.Balance, -314)
 	require.Equal(t, receiverAccount.Balance, 314)
 
+	// Test time filters
+	timeRequest(t, 0, 0, 1)
+	timeRequest(t, -1, 1, 1)
+	timeRequest(t, -2, -1, 0)
+	timeRequest(t, 1, -1, 0)
+	timeRequest(t, 1, 0, 0)
+	timeRequest(t, 0, 1, 1)
+	timeRequest(t, -1, 0, 1)
+	timeRequest(t, 0, -1, 0)
+
+}
+
+func timeRequest(t *testing.T, from int, to int, expectedLength int) () {
+	var payments []database.Payment
+	path := "/api/payments/"
+	if from != 0 || to != 0 {
+		path += "?"
+	}
+	if from != 0 {
+		path += "from=" + time.Now().UTC().Add(time.Duration(from)*time.Hour).Format(time.RFC3339)
+	}
+	if from != 0 && to != 0 {
+		path += "&"
+	}
+	if to != 0 {
+		path += "to=" + time.Now().UTC().Add(time.Duration(to)*time.Hour).Format(time.RFC3339)
+	}
+	response := utils.TestRequest(t, r, "GET", path, nil, 200)
+	err := json.Unmarshal(response.Body.Bytes(), &payments)
+	utils.CheckError(t, err)
+	require.Equal(t, expectedLength, len(payments))
+	return
 }
 
 // TestPaymentPayout tests CRUD operations on payment payouts
