@@ -57,8 +57,8 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 
 // Users ----------------------------------------------------------------------
 
-type checkLicenseIDRequest struct {
-	LicenseID string
+type checkLicenseIDResponse struct {
+	FirstName string
 }
 
 // CheckVendorsLicenseID godoc
@@ -69,7 +69,8 @@ type checkLicenseIDRequest struct {
 //		@Accept			json
 //		@Produce		json
 //	    @Param		    licenseID path string true "License ID"
-//		@Success		200	{string}	firstName
+//		@Success		200	{string} checkLicenseIDResponse
+//		@Response		200	{string} checkLicenseIDResponse
 //		@Router			/vendors/check/{licenseID}/ [get]
 func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 	licenseID := chi.URLParam(r, "licenseID")
@@ -84,7 +85,8 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, users.FirstName)
+	response := checkLicenseIDResponse{FirstName: users.FirstName}
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // ListVendors godoc
