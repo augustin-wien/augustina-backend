@@ -31,7 +31,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Return HelloWorld",
                 "responses": {}
@@ -201,14 +201,14 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "2006-01-02T15:04:05Z07:00",
+                        "example": "2006-01-02T15:04:05Z",
                         "description": "Minimum date (RFC3339, UTC)",
                         "name": "from",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "example": "2006-01-02T15:04:05Z07:00",
+                        "example": "2006-01-02T15:04:05Z",
                         "description": "Maximum date (RFC3339, UTC)",
                         "name": "to",
                         "in": "query"
@@ -331,7 +331,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Return settings",
                 "responses": {
@@ -355,7 +355,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "Core"
                 ],
                 "summary": "Update settings",
                 "parameters": [
@@ -503,7 +503,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Return VivaWallet verification key",
                 "responses": {
@@ -527,7 +527,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Webhook for VivaWallet failed transaction",
                 "parameters": [
@@ -558,7 +558,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Return VivaWallet verification key",
                 "responses": {
@@ -582,7 +582,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Webhook for VivaWallet transaction prices",
                 "parameters": [
@@ -613,7 +613,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Return VivaWallet verification key",
                 "responses": {
@@ -637,7 +637,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "core"
+                    "VivaWallet Webhooks"
                 ],
                 "summary": "Webhook for VivaWallet successful transaction",
                 "parameters": [

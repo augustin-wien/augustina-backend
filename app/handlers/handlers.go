@@ -40,7 +40,7 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 //
 //	@Summary		Return HelloWorld
 //	@Description	Return HelloWorld as sample API call
-//	@Tags			core
+//	@Tags			Core
 //	@Accept			json
 //	@Produce		json
 //	@Router			/hello/ [get]
@@ -447,8 +447,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
-//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z07:00)
-//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z07:00)
+//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Success		200	{array}	database.Payment
 //		@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
@@ -475,8 +475,6 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	payments, err := database.Db.ListPayments(minDate, maxDate)
 	respond(w, err, payments)
 }
-
-
 
 // CreatePayment godoc
 //
@@ -548,66 +546,65 @@ type createPaymentPayoutRequest struct {
 //		@Router			/payments/payout/ [post]
 func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 
-		// Read data from request
-		var payoutData createPaymentPayoutRequest
-		err := utils.ReadJSON(w, r, &payoutData)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
+	// Read data from request
+	var payoutData createPaymentPayoutRequest
+	err := utils.ReadJSON(w, r, &payoutData)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
-		// Get vendor
-		vendor, err := database.Db.GetVendorByLicenseID(payoutData.VendorLicenseID)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
+	// Get vendor
+	vendor, err := database.Db.GetVendorByLicenseID(payoutData.VendorLicenseID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
-		// Get vendor account
-		vendorAccount, err := database.Db.GetAccountByVendorID(vendor.ID)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
+	// Get vendor account
+	vendorAccount, err := database.Db.GetAccountByVendorID(vendor.ID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
-		// Get cash account
-		cashAccount, err := database.Db.GetAccountByType("Cash")
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
+	// Get cash account
+	cashAccount, err := database.Db.GetAccountByType("Cash")
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
-		// Check if vendor has enough money
-		if vendorAccount.Balance < payoutData.Amount {
-			utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
-			return
-		}
+	// Check if vendor has enough money
+	if vendorAccount.Balance < payoutData.Amount {
+		utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
+		return
+	}
 
-		// Create payment
-		payment := database.Payment{
-			Sender:   vendorAccount.ID,
-			Receiver: cashAccount.ID,
-			Amount:   payoutData.Amount,
-		}
-		paymentID, err := database.Db.CreatePayment(payment)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
+	// Create payment
+	payment := database.Payment{
+		Sender:   vendorAccount.ID,
+		Receiver: cashAccount.ID,
+		Amount:   payoutData.Amount,
+	}
+	paymentID, err := database.Db.CreatePayment(payment)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
-		// Update last payout date
-		// TODO: Should be transaction together with above DB request
-		vendor.LastPayout = null.NewTime(time.Now(), true)
-		err = database.Db.UpdateVendor(vendor.ID, vendor)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
+	// Update last payout date
+	// TODO: Should be transaction together with above DB request
+	vendor.LastPayout = null.NewTime(time.Now(), true)
+	err = database.Db.UpdateVendor(vendor.ID, vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
-		utils.WriteJSON(w, http.StatusOK, paymentID)
+	utils.WriteJSON(w, http.StatusOK, paymentID)
 
 }
-
 
 // VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
 
@@ -615,7 +612,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Webhook for VivaWallet successful transaction
 //	@Description	Webhook for VivaWallet successful transaction
-//	@Tags			core
+//	@Tags			VivaWallet Webhooks
 //	@accept			json
 //	@Produce		json
 //	@Success		200
@@ -643,7 +640,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Webhook for VivaWallet failed transaction
 //	@Description	Webhook for VivaWallet failed transaction
-//	@Tags			core
+//	@Tags			VivaWallet Webhooks
 //	@accept			json
 //	@Produce		json
 //	@Success		200
@@ -671,7 +668,7 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Webhook for VivaWallet transaction prices
 //	@Description	Webhook for VivaWallet transaction prices
-//	@Tags			core
+//	@Tags			VivaWallet Webhooks
 //	@accept			json
 //	@Produce		json
 //	@Success		200
@@ -713,7 +710,7 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Return VivaWallet verification key
 //	@Description	Return VivaWallet verification key
-//	@Tags			core
+//	@Tags			VivaWallet Webhooks
 //	@accept			json
 //	@Produce		json
 //	@Success		200	{array}	paymentprovider.VivaWalletVerificationKeyResponse
@@ -737,7 +734,7 @@ func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 //
 //	 	@Summary 		Return settings
 //		@Description	Return configuration data of the system
-//		@Tags			core
+//		@Tags			Core
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Settings
@@ -755,7 +752,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 //
 //	 	@Summary 		Update settings
 //		@Description	Update configuration data of the system
-//		@Tags			core
+//		@Tags			Core
 //		@Accept			json
 //		@Produce		json
 //	    @Param		    data body database.Settings true "Settings Representation"

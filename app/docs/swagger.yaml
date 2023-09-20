@@ -355,7 +355,7 @@ paths:
       responses: {}
       summary: Return HelloWorld
       tags:
-      - core
+      - Core
   /items/:
     get:
       consumes:
@@ -460,12 +460,12 @@ paths:
       - application/json
       parameters:
       - description: Minimum date (RFC3339, UTC)
-        example: 2006-01-02T15:04:05Z07:00
+        example: "2006-01-02T15:04:05Z"
         in: query
         name: from
         type: string
       - description: Maximum date (RFC3339, UTC)
-        example: 2006-01-02T15:04:05Z07:00
+        example: "2006-01-02T15:04:05Z"
         in: query
         name: to
         type: string
@@ -557,7 +557,7 @@ paths:
             type: array
       summary: Return settings
       tags:
-      - core
+      - Core
     put:
       consumes:
       - application/json
@@ -576,7 +576,7 @@ paths:
           description: OK
       summary: Update settings
       tags:
-      - core
+      - Core
   /vendors/:
     get:
       consumes:
@@ -669,7 +669,7 @@ paths:
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - core
+      - VivaWallet Webhooks
     post:
       consumes:
       - application/json
@@ -688,7 +688,7 @@ paths:
           description: OK
       summary: Webhook for VivaWallet failed transaction
       tags:
-      - core
+      - VivaWallet Webhooks
   /webhooks/vivawallet/price:
     get:
       consumes:
@@ -705,7 +705,7 @@ paths:
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - core
+      - VivaWallet Webhooks
     post:
       consumes:
       - application/json
@@ -724,7 +724,7 @@ paths:
           description: OK
       summary: Webhook for VivaWallet transaction prices
       tags:
-      - core
+      - VivaWallet Webhooks
   /webhooks/vivawallet/success:
     get:
       consumes:
@@ -741,7 +741,7 @@ paths:
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - core
+      - VivaWallet Webhooks
     post:
       consumes:
       - application/json
@@ -760,7 +760,7 @@ paths:
           description: OK
       summary: Webhook for VivaWallet successful transaction
       tags:
-      - core
+      - VivaWallet Webhooks
 securityDefinitions:
   BasicAuth:
     type: basic
