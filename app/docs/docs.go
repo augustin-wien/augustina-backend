@@ -231,67 +231,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Create a payment",
-                "parameters": [
-                    {
-                        "description": " Create Payment",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Payment"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/payments/batch/": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Create a set of payments",
-                "parameters": [
-                    {
-                        "description": " Create Payment",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createPaymentsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                }
             }
         },
         "/payments/payout/": {
@@ -353,7 +292,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Update configuration data of the system",
+                "description": "Update configuration data of the system. Requires multipart form. Logo has to be a png and will always be saved under \"img/logo.png\"",
                 "consumes": [
                     "application/json"
                 ],
@@ -431,6 +370,38 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/vendors/check/{licenseID}/": {
+            "get": {
+                "description": "Check if license id exists, return first name of vendor if it does",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Check for license id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "License ID",
+                        "name": "licenseID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 }
             }

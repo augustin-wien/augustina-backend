@@ -57,6 +57,38 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 
 // Users ----------------------------------------------------------------------
 
+type checkLicenseIDResponse struct {
+	FirstName string
+}
+
+// CheckVendorsLicenseID godoc
+//
+//	 	@Summary 		Check for license id
+//		@Description	Check if license id exists, return first name of vendor if it does
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    licenseID path string true "License ID"
+//		@Success		200	{string} checkLicenseIDResponse
+//		@Response		200	{string} checkLicenseIDResponse
+//		@Router			/vendors/check/{licenseID}/ [get]
+func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
+	licenseID := chi.URLParam(r, "licenseID")
+	if licenseID == "" {
+		utils.ErrorJSON(w, errors.New("No licenseID provided under /vendors/check/{licenseID}/"), http.StatusBadRequest)
+		return
+	}
+
+	users, err := database.Db.GetVendorByLicenseID(licenseID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id."), http.StatusBadRequest)
+		return
+	}
+
+	response := checkLicenseIDResponse{FirstName: users.FirstName}
+	utils.WriteJSON(w, http.StatusOK, response)
+}
+
 // ListVendors godoc
 //
 //	 	@Summary 		List Vendors
@@ -283,7 +315,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
-
+	utils.WriteJSON(w, http.StatusOK, nil)
 }
 
 // DeleteItem godoc
@@ -484,7 +516,6 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Param			amount body database.Payment true " Create Payment"
 //		@Success		200
-//		@Router			/payments/ [post]
 func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	var payment database.Payment
 	err := utils.ReadJSON(w, r, &payment)
@@ -514,7 +545,6 @@ type createPaymentsRequest struct {
 //		@Produce		json
 //		@Param			amount body createPaymentsRequest true " Create Payment"
 //		@Success		200 {integer} id
-//		@Router			/payments/batch/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)
@@ -605,8 +635,6 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, paymentID)
 
 }
-
-// VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
 
 // VivaWalletCreateTransactionOrder godoc
 //
@@ -748,10 +776,47 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, settings)
 }
 
+func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
+
+	// Get file from image field
+	file, header, err := r.FormFile("Logo")
+	if err != nil {
+		return // No file passed, which is ok
+	}
+	defer file.Close()
+
+	// Debugging
+	name := strings.Split(header.Filename, ".")
+	if len(name) != 2 {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
+		return
+	}
+	if name[1] != "png" {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("file type must be png"), http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Save file with name "logo"
+	path = "/img/logo.png"
+	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 // updateSettings godoc
 //
 //	 	@Summary 		Update settings
-//		@Description	Update configuration data of the system
+//		@Description	Update configuration data of the system. Requires multipart form. Logo has to be a png and will always be saved under "img/logo.png"
 //		@Tags			Core
 //		@Accept			json
 //		@Produce		json
@@ -759,12 +824,33 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 //		@Success		200
 //		@Router			/settings/ [put]
 func updateSettings(w http.ResponseWriter, r *http.Request) {
-	var settings database.Settings
-	err := utils.ReadJSON(w, r, &settings)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
+
+	// Read multipart form
+	r.ParseMultipartForm(32 << 20)
+	mForm := r.MultipartForm
+	if mForm == nil {
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
+
+	// Handle normal fields
+	var settings database.Settings
+	fields := mForm.Value                  // Values are stored in []string
+	fieldsClean := make(map[string]string) // Values are stored in string
+	for key, value := range fields {
+		fieldsClean[key] = value[0]
+	}
+	err := mapstructure.Decode(fieldsClean, &settings)
+	if err != nil {
+		log.Error(err)
+	}
+
+	path, _ := updateSettingsLogo(w, r)
+	if path != "" {
+		settings.Logo = path
+	}
+
+	// Save settings to database
 	err = database.Db.UpdateSettings(settings)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

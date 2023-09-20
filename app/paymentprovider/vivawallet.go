@@ -200,7 +200,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	resource := "/checkout/v2/transactions/" + paymentSuccessful.EventData.TransactionId
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
-	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{transactionId}"
+	urlStr := u.String()
 
 	// Create a new get request
 	req, err := http.NewRequest("GET", urlStr, nil)
