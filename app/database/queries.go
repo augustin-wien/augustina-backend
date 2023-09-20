@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
+	"gopkg.in/guregu/null.v4"
 )
 
 // Helpers --------------------------------------------------------------------
@@ -330,8 +331,40 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	return
 }
 
+// UPdate creates an order in the database
+// TODO: This should be a transaction
+// Processes OrderCode, vendor, and items (trinkgeld is an item)
+func (db *Database) addItemsToOrder(order Order) (orderID int, err error) {
 
-// VerifyOrderAndCreatePayments verifies payment order, update it in the database, and create payments
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor) values ($1, $2) RETURNING ID", order.OrderCode, order.Vendor).Scan(&orderID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Create order items
+	for _, entry := range order.Entries {
+
+		// Get current item price
+		var item Item
+		err = db.Dbpool.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		// Create order item
+		_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
+		if err != nil {
+			log.Error(err)
+			return orderID, err
+		}
+	}
+
+	return
+}
+
+// VerifyOrderAndCreatePayments verifies payment order, update it in the database, and create payments for each order entry
 func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 
 	// Start a transaction
@@ -364,6 +397,58 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 
 	return
 }
+
+
+func (db *Database) AddPayedEntriesToOrder(id int, entries []OrderEntry) (err error) {
+
+	// Start a transaction
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+
+	// Execute transaction after function returns
+	defer func() {
+		if p := recover(); p != nil {
+			// Rollback the transaction if a panic occurred
+			_ = tx.Rollback(context.Background())
+			// Re-throw the panic
+			panic(p)
+		} else if err != nil {
+			// Rollback the transaction if an error occurred
+			_ = tx.Rollback(context.Background())
+		} else {
+			// Commit the transaction if everything is successful
+			err = tx.Commit(context.Background())
+		}
+	}()
+
+	// Get Paymentorder (including payments)
+	order, err := db.GetOrderByID(id)
+
+	// Add entries to order
+	for _, entry := range entries {
+		order.Entries = append(order.Entries, entry)
+	}
+
+
+
+	// Create payments
+	var payment Payment
+	for _, oi := range entries {
+		payment = Payment{
+			Sender:   oi.Sender,
+			Receiver: oi.Receiver,
+			Amount:   oi.Price * oi.Quantity,
+			Order:    null.NewInt(int64(order.ID), true),
+			OrderEntry: null.NewInt(int64(oi.ID), true),
+		}
+		createPaymentTx(tx, payment)
+	}
+
+	return
+}
+
 
 // Payments -------------------------------------------------------------------
 
