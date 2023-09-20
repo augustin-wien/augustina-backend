@@ -116,6 +116,13 @@ definitions:
       vendorLicenseID:
         type: string
     type: object
+  handlers.createPaymentsRequest:
+    properties:
+      payments:
+        items:
+          $ref: '#/definitions/database.Payment'
+        type: array
+    type: object
   null.Int:
     properties:
       int64:

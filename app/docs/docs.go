@@ -764,6 +764,17 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.createPaymentsRequest": {
+            "type": "object",
+            "properties": {
+                "payments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Payment"
+                    }
+                }
+            }
+        },
         "null.Int": {
             "type": "object",
             "properties": {

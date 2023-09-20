@@ -449,6 +449,58 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, payments)
 }
 
+// CreatePayment godoc
+//
+//	 	@Summary 		Create a payment
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			amount body database.Payment true " Create Payment"
+//		@Success		200
+func CreatePayment(w http.ResponseWriter, r *http.Request) {
+	var payment database.Payment
+	err := utils.ReadJSON(w, r, &payment)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	paymentID, err := database.Db.CreatePayment(payment)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, paymentID)
+}
+
+type createPaymentsRequest struct {
+	Payments []database.Payment
+}
+
+// CreatePayments godoc
+//
+//	 	@Summary 		Create a set of payments
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			amount body createPaymentsRequest true " Create Payment"
+//		@Success		200 {integer} id
+func CreatePayments(w http.ResponseWriter, r *http.Request) {
+	var paymentBatch createPaymentsRequest
+	err := utils.ReadJSON(w, r, &paymentBatch)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = database.Db.CreatePayments(paymentBatch.Payments)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+}
+
 type createPaymentPayoutRequest struct {
 	VendorLicenseID string
 	Amount          int
