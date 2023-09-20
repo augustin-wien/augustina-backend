@@ -478,6 +478,17 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: Minimum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: from
+        type: string
+      - description: Maximum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: to
+        type: string
       produces:
       - application/json
       responses:
@@ -491,45 +502,6 @@ paths:
       - KeycloakAuth: []
       - KeycloakAuth: []
       summary: Get list of all payments
-      tags:
-      - Payments
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' Create Payment'
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/database.Payment'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Create a payment
-      tags:
-      - Payments
-  /payments/batch/:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' Create Payment'
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.createPaymentsRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: integer
-      summary: Create a set of payments
       tags:
       - Payments
   /payments/payout/:
@@ -575,7 +547,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update configuration data of the system
+      description: Update configuration data of the system. Requires multipart form.
+        Logo has to be a png and will always be saved under "img/logo.png"
       parameters:
       - description: Settings Representation
         in: body
@@ -610,7 +583,7 @@ paths:
       - KeycloakAuth: []
       summary: List Vendors
       tags:
-      - Vendors
+      - vendors
     post:
       consumes:
       - application/json
@@ -630,7 +603,7 @@ paths:
       - KeycloakAuth: []
       summary: Create Vendor
       tags:
-      - Vendors
+      - vendors
   /vendors/{id}/:
     delete:
       consumes:
@@ -675,6 +648,27 @@ paths:
       security:
       - KeycloakAuth: []
       summary: Update Vendor
+      tags:
+      - vendors
+  /vendors/check/{licenseID}/:
+    get:
+      consumes:
+      - application/json
+      description: Check if license id exists, return first name of vendor if it does
+      parameters:
+      - description: License ID
+        in: path
+        name: licenseID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Check for license id
       tags:
       - Vendors
   /webhooks/vivawallet/failure:

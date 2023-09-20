@@ -18,7 +18,6 @@ import (
 // GetRouter creates a new chi Router and mounts all handlers
 func GetRouter() (r *chi.Mux) {
 	r = chi.NewRouter()
-
 	// Mount all Middleware here
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
@@ -57,6 +56,7 @@ func GetRouter() (r *chi.Mux) {
 		r.Use(middlewares.AdminAuthMiddleware)
 		r.Get("/", ListVendors)
 		r.Post("/", CreateVendor)
+		r.Get("/check/{licenseID}/", CheckVendorsLicenseID)
 		r.Route("/{id}", func(r chi.Router) {
 			r.Put("/", UpdateVendor)
 			r.Delete("/", DeleteVendor)

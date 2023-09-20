@@ -249,6 +249,22 @@ const docTemplate = `{
                     "Payments"
                 ],
                 "summary": "Get list of all payments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Minimum date (RFC3339, UTC)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Maximum date (RFC3339, UTC)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -257,67 +273,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/database.Payment"
                             }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Create a payment",
-                "parameters": [
-                    {
-                        "description": " Create Payment",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Payment"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/payments/batch/": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Create a set of payments",
-                "parameters": [
-                    {
-                        "description": " Create Payment",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createPaymentsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "integer"
                         }
                     }
                 }
@@ -392,7 +347,7 @@ const docTemplate = `{
                         "KeycloakAuth": []
                     }
                 ],
-                "description": "Update configuration data of the system",
+                "description": "Update configuration data of the system. Requires multipart form. Logo has to be a png and will always be saved under \"img/logo.png\"",
                 "consumes": [
                     "application/json"
                 ],
@@ -435,7 +390,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "List Vendors",
                 "responses": {
@@ -463,7 +418,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "Create Vendor",
                 "parameters": [
@@ -484,6 +439,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/vendors/check/{licenseID}/": {
+            "get": {
+                "description": "Check if license id exists, return first name of vendor if it does",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Check for license id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "License ID",
+                        "name": "licenseID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/vendors/{id}/": {
             "put": {
                 "security": [
@@ -499,7 +486,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [

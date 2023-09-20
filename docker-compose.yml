@@ -1,6 +1,17 @@
 version: "3.8"
 
 services:
+  augustin-frontend:
+    build:
+      context: ./docker/augustin-frontend
+    ports:
+      - "8060:80"
+    environment:
+      VITE_API_URL: ${BACKEND_HOST}
+      VITE_KEYCLOAK_URL: ${KEYCLOAK_HOST}
+      VITE_AUGUSTIN_COVER: ${AUGUSTIN_COVER}
+    depends_on:
+      - augustin
   augustin:
     container_name: augustin
     env_file:
@@ -22,6 +33,13 @@ services:
       DB_HOST_TEST: ${DB_HOST_TEST}
       DB_PORT_TEST: ${DB_PORT_TEST}
       DEVELOPMENT: true
+      FRONTEND_URL: ${FRONTEND_URL}
+      VIVA_WALLET_SOURCE_CODE: ${VIVA_WALLET_SOURCE_CODE}
+      VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID: ${VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID}
+      VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY: ${VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY}
+      VIVA_WALLET_VERIFICATION_KEY: ${VIVA_WALLET_VERIFICATION_KEY}
+      VIVA_WALLET_API_URL: ${VIVA_WALLET_API_URL}
+      VIVA_WALLET_ACCOUNTS_URL: ${VIVA_WALLET_ACCOUNTS_URL}
     depends_on:
       augustin-db:
         condition: service_healthy
@@ -111,6 +129,11 @@ services:
       - MYSQL_DATABASE=wordpress
       - MYSQL_USER=wordpress
       - MYSQL_PASSWORD=wordpress
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -p$$(echo $$MYSQL_ROOT_PASSWORD) | grep 'mysqld is alive' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     expose:
       - 3306
       - 33060
@@ -130,9 +153,16 @@ services:
       - WORDPRESS_DB_PASSWORD=wordpress
       - WORDPRESS_DB_NAME=wordpress
       - AUGUSTIN_PLUGIN_URL=http://localhost:8070
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     depends_on:
-      - wordpress-db
-      - keycloak
+      wordpress-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
   wpcli:
     container_name: wp-cli
     image: wordpress:cli
@@ -155,8 +185,10 @@ services:
       - WORDPRESS_DB_PASSWORD=wordpress
       - WORDPRESS_DB_NAME=wordpress
     depends_on:
-      - wordpress
-      - wordpress-db
+      wordpress-db:
+        condition: service_healthy
+      wordpress:
+        condition: service_healthy
     links:
       - wordpress-db
   parser:
@@ -175,6 +207,9 @@ services:
       - AUGUSTIN_PLUGIN_PATH=/sample_data/
       - AUGUSTIN_PLUGIN_SAVE_PATH=/pdf-files/
       - WP_API_USER=api_user
+    depends_on:
+      wordpress:
+        condition: service_healthy
 volumes:
   dbdata:
   wp_data:

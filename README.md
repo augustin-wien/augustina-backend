@@ -195,7 +195,9 @@ The wpcli container resets the wordpress installation on every start. This will 
 
 ### PDF-Parser
 
-After initializing every docker container, start PDF-Parser again with `docker compose up -d parser`.
+The pdf parser needs a wp app password in order to autopublish the articles to the wordpress. This password is stored in the `./docker/.env.parser` file and is used by the parser to authenticate itself against the wordpress. Either you can create a new app password by copying `./docker/.env.parser.example` to `./docker/.env.parser` or run the wpcli container to set up a new one. Note: the wpcli container resets the wordpress installation on every start. This will delete all data in the database and install a fresh wordpress installation.
+
+After setting an app password, the PDF-Parser container has to be deployed again with `docker compose up -d parser`.
 
 #### Explanation
 This is due to the reason that the docker container 'wpcli' sets new environment variables, which have to be set again for the PDF-Parser.

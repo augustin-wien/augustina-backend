@@ -31,3 +31,5 @@ build/*
 docker/keycloak/export/*.json
 docker/augustin-plugin-data/pdf-files/*
 docker/augustin-plugin-data/sample_data/*
+docker/.env.parser
+docker/wpcli/.env.parser

@@ -77,10 +77,42 @@ func HelloWorldAuth(w http.ResponseWriter, r *http.Request) {
 
 // Users ----------------------------------------------------------------------
 
+type checkLicenseIDResponse struct {
+	FirstName string
+}
+
+// CheckVendorsLicenseID godoc
+//
+//	 	@Summary 		Check for license id
+//		@Description	Check if license id exists, return first name of vendor if it does
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//	    @Param		    licenseID path string true "License ID"
+//		@Success		200	{string} checkLicenseIDResponse
+//		@Response		200	{string} checkLicenseIDResponse
+//		@Router			/vendors/check/{licenseID}/ [get]
+func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
+	licenseID := chi.URLParam(r, "licenseID")
+	if licenseID == "" {
+		utils.ErrorJSON(w, errors.New("No licenseID provided under /vendors/check/{licenseID}/"), http.StatusBadRequest)
+		return
+	}
+
+	users, err := database.Db.GetVendorByLicenseID(licenseID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id."), http.StatusBadRequest)
+		return
+	}
+
+	response := checkLicenseIDResponse{FirstName: users.FirstName}
+	utils.WriteJSON(w, http.StatusOK, response)
+}
+
 // ListVendors godoc
 //
 //	 	@Summary 		List Vendors
-//		@Tags			Vendors
+//		@Tags			vendors
 //		@Accept			json
 //		@Produce		json
 //		@Security		KeycloakAuth
@@ -94,7 +126,7 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 // CreateVendor godoc
 //
 //	 	@Summary 		Create Vendor
-//		@Tags			Vendors
+//		@Tags			vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
@@ -127,9 +159,9 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 
 // UpdateVendor godoc
 //
-//		@Summary 		Update Vendor
+//	 	@Summary 		Update Vendor
 //		@Description	Warning: Unfilled fields will be set to default values
-//		@Tags			Vendors
+//		@Tags			vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
@@ -322,7 +354,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
-
+	utils.WriteJSON(w, http.StatusOK, nil)
 }
 
 // DeleteItem godoc
@@ -389,11 +421,16 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get accounts
-	var buyerAccount database.Account
+	var buyerAccountID int
 	if order.User.Valid {
-		buyerAccount, err = database.Db.GetAccountByUser(order.User.String)
+		buyerAccount, err := database.Db.GetAccountByUser(order.User.String)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		buyerAccountID = buyerAccount.ID
 	} else {
-		buyerAccount, err = database.Db.GetAccountByType("UserAnon")
+		buyerAccountID, err = database.Db.GetAccountTypeID("UserAnon")
 	}
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -404,7 +441,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	orgaAccount, err := database.Db.GetAccountByType("Orga")
+	orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -420,7 +457,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Define flow of money from buyer to vendor
-		order.Entries[idx].Sender = buyerAccount.ID
+		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
 		order.Entries[idx].Price = item.Price // Take current item price
 
@@ -437,7 +474,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				Quantity: entry.Quantity,
 				Price:    licenseItem.Price,
 				Sender:   vendorAccount.ID,
-				Receiver: orgaAccount.ID,
+				Receiver: orgaAccountID,
 			}
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
 		}
@@ -482,12 +519,34 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
+//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Success		200	{array}	database.Payment
 //		@Security		KeycloakAuth
 //		@Security		KeycloakAuth
 //		@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
-	payments, err := database.Db.ListPayments()
+
+	// Get minDate and maxDate parameters
+	minDateRaw := r.URL.Query().Get("from")
+	maxDateRaw := r.URL.Query().Get("to")
+	var err error
+	var minDate, maxDate time.Time
+	if minDateRaw != "" {
+		minDate, err = time.Parse(time.RFC3339, minDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+	if maxDateRaw != "" {
+		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+
+	// Get payments with optional parameters
+	payments, err := database.Db.ListPayments(minDate, maxDate)
 	respond(w, err, payments)
 }
 
@@ -499,7 +558,6 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Param			amount body database.Payment true " Create Payment"
 //		@Success		200
-//		@Router			/payments/ [post]
 func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	var payment database.Payment
 	err := utils.ReadJSON(w, r, &payment)
@@ -529,7 +587,6 @@ type createPaymentsRequest struct {
 //		@Produce		json
 //		@Param			amount body createPaymentsRequest true " Create Payment"
 //		@Success		200 {integer} id
-//		@Router			/payments/batch/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)
@@ -580,7 +637,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	// Get vendor account
 	vendorAccount, err := database.Db.GetAccountByVendorID(vendor.ID)
 	if err != nil {
-		utils.ErrorJSON(w, errors.New("Wrong license id. This license id does not exist in the database"), http.StatusBadRequest)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -592,7 +649,6 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if vendor has enough money
-	log.Info("Account Payout ", vendorAccount.Balance, payoutData.Amount)
 	if vendorAccount.Balance < payoutData.Amount {
 		utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
 		return
@@ -622,8 +678,6 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, paymentID)
 
 }
-
-// VivaWallet MVP (to be replaced by PaymentOrder API) ------------------------
 
 // VivaWalletCreateTransactionOrder godoc
 //
@@ -692,21 +746,35 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 //	@Param			data body paymentprovider.TransactionPriceRequest true "Payment Price Response"
 //	@Router			/webhooks/vivawallet/price [post]
 func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
-	var paymentPrice paymentprovider.TransactionPriceRequest
-	err := utils.ReadJSON(w, r, &paymentPrice)
+
+	log.Info("VivaWalletWebhookPrice entered")
+
+	data, err := io.ReadAll(r.Body)
+
 	if err != nil {
-		log.Info("Reading JSON failed for webhook: ", err)
+
+		log.Error("Reading body failed for VivaWalletWebhookPrice: ", err)
+
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+
 	}
 
-	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
-	if err != nil {
-		log.Error(err)
-		return
-	}
+	log.Info("VivaWalletWebhookPrice full request: ", string(data))
+	// var paymentPrice paymentprovider.TransactionPriceRequest
+	// err := utils.ReadJSON(w, r, &paymentPrice)
+	// if err != nil {
+	// 	log.Info("Reading JSON failed for webhook: ", err)
+	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
+	// 	return
+	// }
 
-	utils.WriteJSON(w, http.StatusOK, nil)
+	// err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
+	// if err != nil {
+	// 	log.Error(err)
+	// 	return
+	// }
+
+	// utils.WriteJSON(w, http.StatusOK, nil)
 }
 
 // VivaWalletVerificationKey godoc
@@ -751,10 +819,47 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, settings)
 }
 
+func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
+
+	// Get file from image field
+	file, header, err := r.FormFile("Logo")
+	if err != nil {
+		return // No file passed, which is ok
+	}
+	defer file.Close()
+
+	// Debugging
+	name := strings.Split(header.Filename, ".")
+	if len(name) != 2 {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
+		return
+	}
+	if name[1] != "png" {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("file type must be png"), http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Save file with name "logo"
+	path = "/img/logo.png"
+	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 // updateSettings godoc
 //
 //	 	@Summary 		Update settings
-//		@Description	Update configuration data of the system
+//		@Description	Update configuration data of the system. Requires multipart form. Logo has to be a png and will always be saved under "img/logo.png"
 //		@Tags			Core
 //		@Accept			json
 //		@Produce		json
@@ -763,12 +868,33 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 //		@Security		KeycloakAuth
 //		@Router			/settings/ [put]
 func updateSettings(w http.ResponseWriter, r *http.Request) {
-	var settings database.Settings
-	err := utils.ReadJSON(w, r, &settings)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
+
+	// Read multipart form
+	r.ParseMultipartForm(32 << 20)
+	mForm := r.MultipartForm
+	if mForm == nil {
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
+
+	// Handle normal fields
+	var settings database.Settings
+	fields := mForm.Value                  // Values are stored in []string
+	fieldsClean := make(map[string]string) // Values are stored in string
+	for key, value := range fields {
+		fieldsClean[key] = value[0]
+	}
+	err := mapstructure.Decode(fieldsClean, &settings)
+	if err != nil {
+		log.Error(err)
+	}
+
+	path, _ := updateSettingsLogo(w, r)
+	if path != "" {
+		settings.Logo = path
+	}
+
+	// Save settings to database
 	err = database.Db.UpdateSettings(settings)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
