@@ -60,7 +60,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 // ListVendors godoc
 //
 //	 	@Summary 		List Vendors
-//		@Tags			Vendors
+//		@Tags			vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Vendor
@@ -73,7 +73,7 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 // CreateVendor godoc
 //
 //	 	@Summary 		Create Vendor
-//		@Tags			Vendors
+//		@Tags			vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
@@ -95,7 +95,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 //
 //		 	@Summary 		Update Vendor
 //			@Description	Warning: Unfilled fields will be set to default values
-//			@Tags			Vendors
+//			@Tags			vendors
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
@@ -121,7 +121,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 // DeleteVendor godoc
 //
 //		 	@Summary 		Delete Vendor
-//			@Tags			Vendors
+//			@Tags			vendors
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
@@ -349,11 +349,16 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get accounts
-	var buyerAccount database.Account
+	var buyerAccountID int
 	if order.User.Valid {
-		buyerAccount, err = database.Db.GetAccountByUser(order.User.String)
+		buyerAccount, err := database.Db.GetAccountByUser(order.User.String)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		buyerAccountID = buyerAccount.ID
 	} else {
-		buyerAccount, err = database.Db.GetAccountByType("UserAnon")
+		buyerAccountID, err = database.Db.GetAccountTypeID("UserAnon")
 	}
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -364,7 +369,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	orgaAccount, err := database.Db.GetAccountByType("Orga")
+	orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -380,7 +385,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Define flow of money from buyer to vendor
-		order.Entries[idx].Sender = buyerAccount.ID
+		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
 		order.Entries[idx].Price = item.Price // Take current item price
 
@@ -397,7 +402,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				Quantity: entry.Quantity,
 				Price:    licenseItem.Price,
 				Sender:   vendorAccount.ID,
-				Receiver: orgaAccount.ID,
+				Receiver: orgaAccountID,
 			}
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
 		}
@@ -442,10 +447,32 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
+//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Success		200	{array}	database.Payment
 //		@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
-	payments, err := database.Db.ListPayments()
+
+	// Get minDate and maxDate parameters
+	minDateRaw := r.URL.Query().Get("from")
+	maxDateRaw := r.URL.Query().Get("to")
+	var err error
+	var minDate, maxDate time.Time
+	if minDateRaw != "" {
+		minDate, err = time.Parse(time.RFC3339, minDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+	if maxDateRaw != "" {
+		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+
+	// Get payments with optional parameters
+	payments, err := database.Db.ListPayments(minDate, maxDate)
 	respond(w, err, payments)
 }
 
@@ -537,7 +564,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	// Get vendor account
 	vendorAccount, err := database.Db.GetAccountByVendorID(vendor.ID)
 	if err != nil {
-		utils.ErrorJSON(w, errors.New("Wrong license id. This license id does not exist in the database"), http.StatusBadRequest)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -549,7 +576,6 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if vendor has enough money
-	log.Info("Account Payout ", vendorAccount.Balance, payoutData.Amount)
 	if vendorAccount.Balance < payoutData.Amount {
 		utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
 		return

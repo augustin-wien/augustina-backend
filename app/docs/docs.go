@@ -204,6 +204,22 @@ const docTemplate = `{
                     "Payments"
                 ],
                 "summary": "Get list of all payments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Minimum date (RFC3339, UTC)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Maximum date (RFC3339, UTC)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -375,7 +391,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "List Vendors",
                 "responses": {
@@ -398,7 +414,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "Create Vendor",
                 "parameters": [
@@ -429,7 +445,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -464,7 +480,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "Delete Vendor",
                 "parameters": [
