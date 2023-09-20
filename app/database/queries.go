@@ -388,6 +388,13 @@ func (db *Database) GetPayment(id int) (payment Payment, err error) {
 // CreatePayment creates a payment in an transaction
 func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 
+	// Validation
+	if payment.Amount <= 0 {
+		err = errors.New("Payment amount must be greater than 0")
+		log.Error(err)
+		return
+	}
+
 	// Create payment
 	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount).Scan(&paymentID)
 	if err != nil {
