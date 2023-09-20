@@ -57,7 +57,7 @@ func TestVendors(t *testing.T) {
 
 	// Check if licenseID exists and returns first name of vendor
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/testLicenseID1/", nil, 200)
-	require.Equal(t, res.Body.String(), `"test1234"`)
+	require.Equal(t, res.Body.String(), `{"FirstName":"test1234"}`)
 
 	// Update
 	var vendors2 []database.Vendor
