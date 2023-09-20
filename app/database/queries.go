@@ -399,7 +399,7 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 	if err != nil {
 		return err
 	}
-	defer func() { err = deferTx(tx) }()
+	defer func() { err = deferTx(tx, err) }()
 
 	// Create entries & associated payments
 	for _, entry := range entries {
