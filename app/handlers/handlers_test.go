@@ -183,6 +183,89 @@ func TestOrders(t *testing.T) {
 
 }
 
+// TestPayments tests CRUD operations on payments
+func TestPayments(t *testing.T) {
+
+	// Set up a payment account
+	senderAccountID, err := database.Db.CreateAccount(
+		database.Account{Name: "Test account"},
+	)
+	receiverAccountID, err := database.Db.CreateAccount(
+		database.Account{Name: "Test account"},
+	)
+	utils.CheckError(t, err)
+
+	// Create payments via API
+	database.Db.CreatePayment(
+		database.Payment{
+			Sender:   senderAccountID,
+			Receiver: receiverAccountID,
+			Amount:   314,
+		})
+	response2 := utils.TestRequest(t, r, "GET", "/api/payments/", nil, 200)
+
+	// Unmarshal response
+	var payments []database.Payment
+	err = json.Unmarshal(response2.Body.Bytes(), &payments)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(payments))
+	if t.Failed() {
+		return
+	}
+	require.Equal(t, 1, len(payments))
+	if t.Failed() {
+		return
+	}
+
+	// Test payments response
+	require.Equal(t, payments[0].Amount, 314)
+	require.Equal(t, payments[0].Sender, senderAccountID)
+	require.Equal(t, payments[0].Receiver, receiverAccountID)
+	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
+	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
+
+	// Test account balances
+	senderAccount, err := database.Db.GetAccountByID(senderAccountID)
+	utils.CheckError(t, err)
+	receiverAccount, err := database.Db.GetAccountByID(receiverAccountID)
+	utils.CheckError(t, err)
+	require.Equal(t, senderAccount.Balance, -314)
+	require.Equal(t, receiverAccount.Balance, 314)
+
+	// Test time filters
+	timeRequest(t, 0, 0, 1)
+	timeRequest(t, -1, 1, 1)
+	timeRequest(t, -2, -1, 0)
+	timeRequest(t, 1, -1, 0)
+	timeRequest(t, 1, 0, 0)
+	timeRequest(t, 0, 1, 1)
+	timeRequest(t, -1, 0, 1)
+	timeRequest(t, 0, -1, 0)
+
+}
+
+func timeRequest(t *testing.T, from int, to int, expectedLength int) {
+	var payments []database.Payment
+	path := "/api/payments/"
+	if from != 0 || to != 0 {
+		path += "?"
+	}
+	if from != 0 {
+		path += "from=" + time.Now().UTC().Add(time.Duration(from)*time.Hour).Format(time.RFC3339)
+	}
+	if from != 0 && to != 0 {
+		path += "&"
+	}
+	if to != 0 {
+		path += "to=" + time.Now().UTC().Add(time.Duration(to)*time.Hour).Format(time.RFC3339)
+	}
+	response := utils.TestRequest(t, r, "GET", path, nil, 200)
+	err := json.Unmarshal(response.Body.Bytes(), &payments)
+	utils.CheckError(t, err)
+	require.Equal(t, expectedLength, len(payments))
+	return
+}
+
 // TestPaymentPayout tests CRUD operations on payment payouts
 func TestPaymentPayout(t *testing.T) {
 

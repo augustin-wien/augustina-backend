@@ -458,6 +458,17 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: Minimum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: from
+        type: string
+      - description: Maximum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: to
+        type: string
       produces:
       - application/json
       responses:
@@ -542,7 +553,7 @@ paths:
             type: array
       summary: List Vendors
       tags:
-      - Vendors
+      - vendors
     post:
       consumes:
       - application/json
@@ -560,7 +571,7 @@ paths:
           description: OK
       summary: Create Vendor
       tags:
-      - Vendors
+      - vendors
   /vendors/{id}/:
     delete:
       consumes:
@@ -578,7 +589,7 @@ paths:
           description: OK
       summary: Delete Vendor
       tags:
-      - Vendors
+      - vendors
     put:
       consumes:
       - application/json
@@ -602,7 +613,7 @@ paths:
           description: OK
       summary: Update Vendor
       tags:
-      - Vendors
+      - vendors
   /webhooks/vivawallet/failure:
     get:
       consumes:
