@@ -318,22 +318,23 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 }
 
 // createOrderEntryTx adds an entry to an order in an transaction
-func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (entryID int, err error) {
+func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, error) {
 
 	// Get current item price
 	var item Item
-	err = tx.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
+	err := tx.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
 	if err != nil {
 		log.Error(err)
-		return
+		return entry, err
 	}
+	entry.Price = item.Price
 
 	// Create order entry
-	err = tx.QueryRow(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6) RETURNING ID", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver).Scan(&entryID)
+	err = tx.QueryRow(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6) RETURNING ID", entry.Item, entry.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver).Scan(&entry.ID)
 	if err != nil {
 		log.Error(err)
 	}
-	return
+	return entry, err
 }
 
 // createPaymentForOrderEntryTx creates a payment for an order entry
@@ -403,7 +404,7 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 
 	// Create entries & associated payments
 	for _, entry := range entries {
-		entry.ID, err = createOrderEntryTx(tx, orderID, entry)
+		entry, err = createOrderEntryTx(tx, orderID, entry)
 		if err != nil {
 			log.Error(err)
 			return err

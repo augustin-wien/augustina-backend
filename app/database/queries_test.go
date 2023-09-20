@@ -113,7 +113,7 @@ func TestOrders(t *testing.T) {
 	utils.CheckError(t, err)
 	receiverID, err := Db.CreateAccount(Account{})
 	utils.CheckError(t, err)
-	itemID, err := Db.CreateItem(Item{})
+	itemID, err := Db.CreateItem(Item{Price: 1})
 	utils.CheckError(t, err)
 
 	// Create order
