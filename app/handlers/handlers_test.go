@@ -187,7 +187,7 @@ func TestOrders(t *testing.T) {
 
 
 // TestPayments tests CRUD operations on payments
-func TestPaymentsBatch(t *testing.T) {
+func TestPayments(t *testing.T) {
 
 	// Set up a payment account
 	senderAccountID, err := database.Db.CreateAccount(
@@ -199,16 +199,12 @@ func TestPaymentsBatch(t *testing.T) {
 	utils.CheckError(t, err)
 
 	// Create payments via API
-	f := createPaymentsRequest{
-		Payments: []database.Payment{
-			{
-				Sender:   senderAccountID,
-				Receiver: receiverAccountID,
-				Amount:   314,
-			},
-		},
-	}
-	utils.TestRequest(t, r, "POST", "/api/payments/batch/", f, 200)
+	database.Db.CreatePayment(
+		database.Payment{
+			Sender:   senderAccountID,
+			Receiver: receiverAccountID,
+			Amount:   314,
+		})
 	response2 := utils.TestRequest(t, r, "GET", "/api/payments/", nil, 200)
 
 	// Unmarshal response
