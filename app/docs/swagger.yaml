@@ -458,6 +458,17 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: Minimum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: from
+        type: string
+      - description: Maximum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: to
+        type: string
       produces:
       - application/json
       responses:
@@ -468,45 +479,6 @@ paths:
               $ref: '#/definitions/database.Payment'
             type: array
       summary: Get list of all payments
-      tags:
-      - Payments
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' Create Payment'
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/database.Payment'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Create a payment
-      tags:
-      - Payments
-  /payments/batch/:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ' Create Payment'
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.createPaymentsRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: integer
-      summary: Create a set of payments
       tags:
       - Payments
   /payments/payout/:
@@ -550,7 +522,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update configuration data of the system
+      description: Update configuration data of the system. Requires multipart form.
+        Logo has to be a png and will always be saved under "img/logo.png"
       parameters:
       - description: Settings Representation
         in: body
@@ -581,7 +554,7 @@ paths:
             type: array
       summary: List Vendors
       tags:
-      - Vendors
+      - vendors
     post:
       consumes:
       - application/json
@@ -599,7 +572,7 @@ paths:
           description: OK
       summary: Create Vendor
       tags:
-      - Vendors
+      - vendors
   /vendors/{id}/:
     delete:
       consumes:
@@ -617,7 +590,7 @@ paths:
           description: OK
       summary: Delete Vendor
       tags:
-      - Vendors
+      - vendors
     put:
       consumes:
       - application/json
@@ -641,7 +614,7 @@ paths:
           description: OK
       summary: Update Vendor
       tags:
-      - Vendors
+      - vendors
   /vendors/check/{licenseID}/:
     get:
       consumes:
