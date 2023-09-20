@@ -283,7 +283,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
-
+	utils.WriteJSON(w, http.StatusOK, nil)
 }
 
 // DeleteItem godoc
@@ -746,10 +746,47 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, settings)
 }
 
+func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
+
+	// Get file from image field
+	file, header, err := r.FormFile("Logo")
+	if err != nil {
+		return // No file passed, which is ok
+	}
+	defer file.Close()
+
+	// Debugging
+	name := strings.Split(header.Filename, ".")
+	if len(name) != 2 {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
+		return
+	}
+	if name[1] != "png" {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("file type must be png"), http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Save file with name "logo"
+	path = "/img/logo.png"
+	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 // updateSettings godoc
 //
 //	 	@Summary 		Update settings
-//		@Description	Update configuration data of the system
+//		@Description	Update configuration data of the system. Requires multipart form. Logo has to be a png and will always be saved under "img/logo.png"
 //		@Tags			Core
 //		@Accept			json
 //		@Produce		json
@@ -757,12 +794,33 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 //		@Success		200
 //		@Router			/settings/ [put]
 func updateSettings(w http.ResponseWriter, r *http.Request) {
-	var settings database.Settings
-	err := utils.ReadJSON(w, r, &settings)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
+
+	// Read multipart form
+	r.ParseMultipartForm(32 << 20)
+	mForm := r.MultipartForm
+	if mForm == nil {
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
+
+	// Handle normal fields
+	var settings database.Settings
+	fields := mForm.Value                  // Values are stored in []string
+	fieldsClean := make(map[string]string) // Values are stored in string
+	for key, value := range fields {
+		fieldsClean[key] = value[0]
+	}
+	err := mapstructure.Decode(fieldsClean, &settings)
+	if err != nil {
+		log.Error(err)
+	}
+
+	path, _ := updateSettingsLogo(w, r)
+	if path != "" {
+		settings.Logo = path
+	}
+
+	// Save settings to database
 	err = database.Db.UpdateSettings(settings)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
