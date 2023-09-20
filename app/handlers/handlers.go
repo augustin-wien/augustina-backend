@@ -447,22 +447,31 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
-//		@Param			minDate query string false "Minimum date"
-//		@Param			maxDate query string false "Maximum date"
+//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z07:00)
+//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z07:00)
 //		@Success		200	{array}	database.Payment
 //		@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
 
 	// Get minDate and maxDate parameters
-	minDate, err := time.Parse(time.RFC3339, r.URL.Query().Get("minDate"))
-	if err != nil {
-		minDate = time.Time{}
+	minDateRaw := r.URL.Query().Get("from")
+	maxDateRaw := r.URL.Query().Get("to")
+	var err error
+	var minDate, maxDate time.Time
+	if minDateRaw != "" {
+		minDate, err = time.Parse(time.RFC3339, minDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
 	}
-	maxDate, err := time.Parse(time.RFC3339, r.URL.Query().Get("maxDate"))
-	if err != nil {
-		maxDate = time.Time{}
+	if maxDateRaw != "" {
+		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
 	}
 
+	// Get payments with optional parameters
 	payments, err := database.Db.ListPayments(minDate, maxDate)
 	respond(w, err, payments)
 }
@@ -569,7 +578,6 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Check if vendor has enough money
-		log.Info("Account Payout ", vendorAccount.Balance, payoutData.Amount)
 		if vendorAccount.Balance < payoutData.Amount {
 			utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
 			return

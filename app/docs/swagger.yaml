@@ -56,6 +56,8 @@ definitions:
     type: object
   database.Vendor:
     properties:
+      address:
+        type: string
       balance:
         description: This is joined in from the account
         type: integer
@@ -65,6 +67,8 @@ definitions:
         type: string
       id:
         type: integer
+      isDisabled:
+        type: boolean
       keycloakID:
         type: string
       lastName:
@@ -72,8 +76,12 @@ definitions:
       lastPayout:
         format: date-time
         type: string
+      latitude:
+        type: number
       licenseID:
-        type: string
+        $ref: '#/definitions/null.String'
+      longitude:
+        type: number
       urlid:
         description: This is used for the QR code
         type: string
@@ -121,6 +129,14 @@ definitions:
         type: integer
       valid:
         description: Valid is true if Int64 is not NULL
+        type: boolean
+    type: object
+  null.String:
+    properties:
+      string:
+        type: string
+      valid:
+        description: Valid is true if String is not NULL
         type: boolean
     type: object
   paymentprovider.EventData:
@@ -442,6 +458,17 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: Minimum date (RFC3339, UTC)
+        example: 2006-01-02T15:04:05Z07:00
+        in: query
+        name: from
+        type: string
+      - description: Maximum date (RFC3339, UTC)
+        example: 2006-01-02T15:04:05Z07:00
+        in: query
+        name: to
+        type: string
       produces:
       - application/json
       responses:

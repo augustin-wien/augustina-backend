@@ -377,7 +377,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 	} else if !minDate.IsZero() {
 		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1", minDate)
 	} else if !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp <= $2", maxDate)
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp <= $1", maxDate)
 	} else {
 		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment")
 	}
