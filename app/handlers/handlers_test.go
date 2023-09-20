@@ -43,7 +43,6 @@ func createTestVendor(t *testing.T, licenseID string) string {
 	return vendorID
 }
 
-
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
 	// Create
@@ -54,15 +53,21 @@ func TestVendors(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(vendors))
 	require.Equal(t, "test1234", vendors[0].FirstName)
+	require.Equal(t, "testLicenseID1", vendors[0].LicenseID.String)
+
+	// Check if licenseID exists and returns first name of vendor
+	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/testLicenseID1/", nil, 200)
+	require.Equal(t, res.Body.String(), `"test1234"`)
 
 	// Update
+	var vendors2 []database.Vendor
 	jsonVendor := `{"firstName": "nameAfterUpdate"}`
 	utils.TestRequestStr(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200)
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
-	err = json.Unmarshal(res.Body.Bytes(), &vendors)
+	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(vendors))
-	require.Equal(t, "nameAfterUpdate", vendors[0].FirstName)
+	require.Equal(t, 1, len(vendors2))
+	require.Equal(t, "nameAfterUpdate", vendors2[0].FirstName)
 
 	// Delete
 	utils.TestRequest(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204)
@@ -70,7 +75,6 @@ func TestVendors(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
 	require.Equal(t, 0, len(vendors))
-
 
 }
 
@@ -248,7 +252,7 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create payments via API
 	f := createPaymentPayoutRequest{
-		Amount: 314,
+		Amount:          314,
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)

@@ -61,24 +61,24 @@ type checkLicenseIDRequest struct {
 	LicenseID string
 }
 
-// CheckLicenseID godoc
+// CheckVendorsLicenseID godoc
 //
-//	 	@Summary 		Check if license id exists
+//	 	@Summary 		Check for license id
+//		@Description	Check if license id exists, return first name of vendor if it does
 //		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
-//	    @Param		    data body checkLicenseIDRequest true "License ID"
+//	    @Param		    licenseID path string true "License ID"
 //		@Success		200	{string}	firstName
-//		@Router			/vendors/check/ [post]
-func CheckLicenseID(w http.ResponseWriter, r *http.Request) {
-	var licenseID checkLicenseIDRequest
-	err := utils.ReadJSON(w, r, &licenseID)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
+//		@Router			/vendors/check/{licenseID}/ [get]
+func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
+	licenseID := chi.URLParam(r, "licenseID")
+	if licenseID == "" {
+		utils.ErrorJSON(w, errors.New("No licenseID provided under /vendors/check/{licenseID}/"), http.StatusBadRequest)
 		return
 	}
 
-	users, err := database.Db.GetVendorByLicenseID(licenseID.LicenseID)
+	users, err := database.Db.GetVendorByLicenseID(licenseID)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id."), http.StatusBadRequest)
 		return
