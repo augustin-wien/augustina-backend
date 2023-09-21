@@ -239,7 +239,7 @@ curl --header "Content-Type: application/json" \
 http://localhost:3000/api/transaction/
 ```
 - Here the amount is in cents, so this call requests to charge 2500 cents which is 25€
-- If successful, response is the checkout URL: `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=8958019584072636"}`
+- If successful, response in demo instance is the checkout URL: `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=8958019584072636"}`
 - Extract link and paste it to your browser or if possible click on it to move forward to next step
 
 #### 2. Test cards

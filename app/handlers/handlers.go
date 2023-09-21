@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -447,7 +448,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create response
-	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(OrderCode)
+	url := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
 	response := createOrderResponse{
 		SmartCheckoutURL: url,
 	}
@@ -825,6 +826,10 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	for key, value := range fields {
 		fieldsClean[key] = value[0]
 	}
+	log.Info("Clean Fields: ", fieldsClean)
+	log.Info("Type of fields: ", reflect.TypeOf(fieldsClean))
+	log.Info("fields", fields)
+	log.Info("map:", fieldsClean["MaxOrderAmount"])
 	err := mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
 		log.Error(err)

@@ -11,6 +11,7 @@ type config struct {
 	VivaWalletVerificationKey        string
 	VivaWalletApiURL                 string
 	VivaWalletAccountsURL            string
+	VivaWalletSmartCheckoutURL       string
 	VivaWalletSmartCheckoutClientID  string
 	VivaWalletSmartCheckoutClientKey string
 }
@@ -25,6 +26,7 @@ var Config = config{
 	VivaWalletVerificationKey:        getEnv("VIVA_WALLET_VERIFICATION_KEY", ""),
 	VivaWalletApiURL:                 getEnv("VIVA_WALLET_API_URL", ""),
 	VivaWalletAccountsURL:            getEnv("VIVA_WALLET_ACCOUNTS_URL", ""),
+	VivaWalletSmartCheckoutURL:       getEnv("VIVA_WALLET_SMART_CHECKOUT_URL", ""),
 	VivaWalletSmartCheckoutClientID:  getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID", ""),
 	VivaWalletSmartCheckoutClientKey: getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY", ""),
 }
