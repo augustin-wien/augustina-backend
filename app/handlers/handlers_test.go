@@ -45,6 +45,8 @@ func createTestVendor(t *testing.T, licenseID string) string {
 
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
+	database.Db.InitEmptyTestDb()
+
 	// Create
 	vendorID := createTestVendor(t, "testLicenseID1")
 	res := utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
@@ -91,6 +93,7 @@ func CreateTestItem(t *testing.T) string {
 // TestItems tests CRUD operations on items (including images)
 // Todo: delete file after test
 func TestItems(t *testing.T) {
+	database.Db.InitEmptyTestDb()
 
 	// Create
 	itemID := CreateTestItem(t)
@@ -191,6 +194,7 @@ func TestOrders(t *testing.T) {
 
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
+	database.Db.InitEmptyTestDb()
 
 	// Set up a payment account
 	senderAccountID, err := database.Db.CreateAccount(
@@ -319,6 +323,7 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, cashAccount.Balance, 314)
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
+
 }
 
 // TestSettings tests GET and PUT operations on settings
