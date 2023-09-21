@@ -315,7 +315,6 @@ func TestPaymentPayout(t *testing.T) {
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)
 
-	log.Info(vendor.Balance, 686)
 	require.Equal(t, vendor.Balance, 686)
 	require.Equal(t, cashAccount.Balance, 314)
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
