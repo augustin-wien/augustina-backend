@@ -142,6 +142,15 @@ func TestItems(t *testing.T) {
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
+	// setMaxOrderAmount(t, 1000)
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("MaxOrderAmount", `{"Int64":1000,"Valid":true}`)
+	image, _ := writer.CreateFormFile("Image", "test.jpg")
+	image.Write([]byte(`i am the content of a jpg file :D`))
+	writer.Close()
+	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
 
 	itemID := CreateTestItem(t)
 	itemIDInt, _ := strconv.Atoi(itemID)
@@ -183,8 +192,18 @@ func TestOrders(t *testing.T) {
 
 }
 
+// Set MaxOrderAmount to avoid errors
+func setMaxOrderAmount(t *testing.T, amount int) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("MaxOrderAmount", strconv.Itoa(amount))
+	writer.Close()
+	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
+}
+
 // TestMaxAmountOrder tests the max amount of an order
 func TestMaxAmountOrder(t *testing.T) {
+	// setMaxOrderAmount(t, 1000)
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	writer.WriteField("MaxOrderAmount", "1000")
