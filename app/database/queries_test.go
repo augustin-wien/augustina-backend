@@ -118,11 +118,11 @@ func TestOrders(t *testing.T) {
 
 	// Create order
 	order := Order{
-		Vendor:   vendorID,
+		Vendor:   int(vendorID),
 		OrderCode: null.NewString("0", true),
 		Entries: []OrderEntry{
 			{
-				Item:     itemID,
+				Item:     int(itemID),
 				Quantity: 315,
 				Sender:   senderID,
 				Receiver: receiverID,
@@ -135,7 +135,7 @@ func TestOrders(t *testing.T) {
 	// Create extra order entries with payments
 	err = Db.CreatePayedOrderEntries(orderID, []OrderEntry{
 		{
-			Item:     itemID,
+			Item:     int(itemID),
 			Quantity: 316,
 			Sender:   senderID,
 			Receiver: receiverID,
@@ -157,11 +157,11 @@ func TestOrders(t *testing.T) {
 
 	// Repeat with reverse order
 	order2 := Order{
-		Vendor:   vendorID,
+		Vendor:   int(vendorID),
 		OrderCode: null.NewString("1", true),
 		Entries: []OrderEntry{
 			{
-				Item:     itemID,
+				Item:     int(itemID),
 				Quantity: 315,
 				Sender:   senderID,
 				Receiver: receiverID,
@@ -174,7 +174,7 @@ func TestOrders(t *testing.T) {
 	// Create extra order entries with payments
 	err = Db.CreatePayedOrderEntries(orderID2, []OrderEntry{
 		{
-			Item:     itemID,
+			Item:     int(itemID),
 			Quantity: 316,
 			Sender:   senderID,
 			Receiver: receiverID,

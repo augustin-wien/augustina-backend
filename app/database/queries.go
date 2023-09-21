@@ -84,7 +84,7 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 }
 
 // CreateVendor creates a vendor and an associated account in the database
-func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
+func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 
 	// Create vendor
 	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING ID", vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address).Scan(&vendorID)
@@ -168,7 +168,7 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 }
 
 // CreateItem creates an item in the database
-func (db *Database) CreateItem(item Item) (id int, err error) {
+func (db *Database) CreateItem(item Item) (id int32, err error) {
 	// Check if the item name already exists
 	var count int
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Item WHERE Name = $1", item.Name).Scan(&count)
