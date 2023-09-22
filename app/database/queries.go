@@ -92,7 +92,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 	}
 
 	// Create vendor account
-	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Vendor) values (0, 'Vendor', $1) RETURNING ID", vendorID)
+	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Vendor) values (0, $2, $1) RETURNING ID", vendorID, "Vendor")
 	if err != nil {
 		log.Error(err)
 		return
