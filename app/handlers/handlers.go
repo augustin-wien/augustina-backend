@@ -473,6 +473,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
+type VerifyPaymentOrderResponse struct {
+	TimeStamp time.Time
+}
+
 // VerifyPaymentOrder godoc
 //
 //	 	@Summary 		Verify Payment Order
@@ -480,7 +484,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Orders
 //		@Accept			json
 //		@Produce		json
-//		@Success		200
+//		@Success		200 {object} VerifyPaymentOrderResponse
 //		@Param			s query string true "Order Code" Format(3043685539722561)
 //		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
 //		@Router			/orders/verify/ [get]
@@ -521,8 +525,11 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
+	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
+
 	// Create response
-	utils.WriteJSON(w, http.StatusOK, nil)
+	utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
 }
 
 // Payments (from one account to another account) -----------------------------

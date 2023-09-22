@@ -225,7 +225,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VerifyPaymentOrderResponse"
+                        }
                     }
                 }
             }
@@ -799,6 +802,14 @@ const docTemplate = `{
                 },
                 "urlid": {
                     "description": "This is used for the QR code",
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.VerifyPaymentOrderResponse": {
+            "type": "object",
+            "properties": {
+                "timeStamp": {
                     "type": "string"
                 }
             }

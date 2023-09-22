@@ -86,6 +86,11 @@ definitions:
         description: This is used for the QR code
         type: string
     type: object
+  handlers.VerifyPaymentOrderResponse:
+    properties:
+      timeStamp:
+        type: string
+    type: object
   handlers.createOrderRequest:
     properties:
       entries:
@@ -477,6 +482,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/handlers.VerifyPaymentOrderResponse'
       summary: Verify Payment Order
       tags:
       - Orders
