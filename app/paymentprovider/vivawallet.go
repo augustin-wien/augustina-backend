@@ -190,62 +190,8 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest) (err error) {
 
 	// Set everything up for the request
-
-	// Create a new request URL using http
-	apiURL := config.Config.VivaWalletApiURL
-	if apiURL == "" {
-		return errors.New("VivaWalletApiURL is not set")
-	}
-	// Use transactionId from webhook to get transaction details
-	resource := "/checkout/v2/transactions/" + paymentSuccessful.EventData.TransactionId
-	u, _ := url.ParseRequestURI(apiURL)
-	u.Path = resource
-	urlStr := u.String()
-
-	// Create a new get request
-	req, err := http.NewRequest("GET", urlStr, nil)
-	if err != nil {
-		log.Error("Building request failed: ", err)
-	}
-
-	// Get access token
-	accessToken, err := AuthenticateToVivaWallet()
-	if err != nil {
-		log.Error("Authentication failed: ", err)
-	}
-
-	// Create Header
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-
-	// Create a new client with a 10 second timeout
-	client := http.Client{Timeout: 10 * time.Second}
-	// Send the request
-	res, err := client.Do(req)
-	if err != nil {
-		log.Error("Sending request failed: ", err)
-	}
-
-	if res.StatusCode != 200 {
-		return errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode))
-	}
-
-	// Close the body after the function returns
-	defer res.Body.Close()
-	// Log the request body
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		log.Error("Reading body failed: ", err)
-		return err
-	}
-
-	// Unmarshal response body to struct
 	var transactionVerificationResponse TransactionVerificationResponse
-	err = json.Unmarshal(body, &transactionVerificationResponse)
-	if err != nil {
-		log.Error("Unmarshalling body failed: ", err)
-		return err
-	}
+	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionId)
 
 	// 1. Check: Verify that webhook request and API response match all three fields
 
@@ -303,6 +249,66 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	return
+}
+
+func VerifyTransactionID(transactionID string) (transactionVerificationResponse TransactionVerificationResponse, err error) {
+
+	// Create a new request URL using http
+	apiURL := config.Config.VivaWalletApiURL
+	if apiURL == "" {
+		return transactionVerificationResponse, errors.New("VivaWalletApiURL is not set")
+	}
+	// Use transactionId from webhook to get transaction details
+	resource := "/checkout/v2/transactions/" + transactionID
+	u, _ := url.ParseRequestURI(apiURL)
+	u.Path = resource
+	urlStr := u.String()
+
+	// Create a new get request
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		log.Error("Building request failed: ", err)
+	}
+
+	// Get access token
+	accessToken, err := AuthenticateToVivaWallet()
+	if err != nil {
+		log.Error("Authentication failed: ", err)
+	}
+
+	// Create Header
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	// Create a new client with a 10 second timeout
+	client := http.Client{Timeout: 10 * time.Second}
+	// Send the request
+	res, err := client.Do(req)
+	if err != nil {
+		log.Error("Sending request failed: ", err)
+	}
+
+	if res.StatusCode != 200 {
+		return transactionVerificationResponse, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode))
+	}
+
+	// Close the body after the function returns
+	defer res.Body.Close()
+	// Log the request body
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Error("Reading body failed: ", err)
+		return transactionVerificationResponse, err
+	}
+
+	// Unmarshal response body to struct
+	err = json.Unmarshal(body, &transactionVerificationResponse)
+	if err != nil {
+		log.Error("Unmarshalling body failed: ", err)
+		return transactionVerificationResponse, err
+	}
+
+	return transactionVerificationResponse, nil
 }
 
 func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err error) {
