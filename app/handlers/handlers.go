@@ -92,7 +92,7 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 // ListVendors godoc
 //
 //	 	@Summary 		List Vendors
-//		@Tags			vendors
+//		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Vendor
@@ -105,7 +105,7 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 // CreateVendor godoc
 //
 //	 	@Summary 		Create Vendor
-//		@Tags			vendors
+//		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
@@ -127,7 +127,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 //
 //		 	@Summary 		Update Vendor
 //			@Description	Warning: Unfilled fields will be set to default values
-//			@Tags			vendors
+//			@Tags			Vendors
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
@@ -153,7 +153,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 // DeleteVendor godoc
 //
 //		 	@Summary 		Delete Vendor
-//			@Tags			vendors
+//			@Tags			Vendors
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
@@ -360,6 +360,8 @@ type createOrderResponse struct {
 	SmartCheckoutURL string
 }
 
+// PaymentOrders ---------------------------------------------------------------------
+
 // CreatePaymentOrder godoc
 //
 //	 	@Summary 		Create Payment Order
@@ -469,6 +471,65 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		SmartCheckoutURL: url,
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
+}
+
+type VerifyPaymentOrderResponse struct {
+	TimeStamp time.Time
+}
+
+// VerifyPaymentOrder godoc
+//
+//	 	@Summary 		Verify Payment Order
+//		@Description	Verifies order and creates payments
+//		@Tags			Orders
+//		@Accept			json
+//		@Produce		json
+//		@Success		200 {object} VerifyPaymentOrderResponse
+//		@Param			s query string true "Order Code" Format(3043685539722561)
+//		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
+//		@Router			/orders/verify/ [get]
+func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
+
+	// Get transaction ID from URL parameter
+	OrderCode := r.URL.Query().Get("s")
+	if OrderCode == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter s"), http.StatusBadRequest)
+		return
+	}
+	TransactionID := r.URL.Query().Get("t")
+	if TransactionID == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter t"), http.StatusBadRequest)
+		return
+	}
+
+	// Get payment order from database
+	order, err := database.Db.GetOrderByOrderCode(OrderCode)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	log.Info("Order: ", order)
+	log.Info("Order timestamp: ", order.Timestamp)
+
+	if database.Db.IsProduction {
+		// Verify transaction
+		_, err := paymentprovider.VerifyTransactionID(TransactionID)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
+	if time.Now().Sub(order.Timestamp) > 900*time.Second {
+		utils.ErrorJSON(w, errors.New("Transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
+		return
+	}
+
+	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
+	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
+
+	// Create response
+	utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
 }
 
 // Payments (from one account to another account) -----------------------------

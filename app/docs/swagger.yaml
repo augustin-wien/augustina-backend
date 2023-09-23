@@ -86,6 +86,11 @@ definitions:
         description: This is used for the QR code
         type: string
     type: object
+  handlers.VerifyPaymentOrderResponse:
+    properties:
+      timeStamp:
+        type: string
+    type: object
   handlers.createOrderRequest:
     properties:
       entries:
@@ -454,6 +459,34 @@ paths:
       summary: Create Payment Order
       tags:
       - Orders
+  /orders/verify/:
+    get:
+      consumes:
+      - application/json
+      description: Verifies order and creates payments
+      parameters:
+      - description: Order Code
+        format: "3043685539722561"
+        in: query
+        name: s
+        required: true
+        type: string
+      - description: Transaction ID
+        format: 882d641c-01cc-442f-b894-2b51250340b5
+        in: query
+        name: t
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VerifyPaymentOrderResponse'
+      summary: Verify Payment Order
+      tags:
+      - Orders
   /payments/:
     get:
       consumes:
@@ -554,7 +587,7 @@ paths:
             type: array
       summary: List Vendors
       tags:
-      - vendors
+      - Vendors
     post:
       consumes:
       - application/json
@@ -572,7 +605,7 @@ paths:
           description: OK
       summary: Create Vendor
       tags:
-      - vendors
+      - Vendors
   /vendors/{id}/:
     delete:
       consumes:
@@ -590,7 +623,7 @@ paths:
           description: OK
       summary: Delete Vendor
       tags:
-      - vendors
+      - Vendors
     put:
       consumes:
       - application/json
@@ -614,7 +647,7 @@ paths:
           description: OK
       summary: Update Vendor
       tags:
-      - vendors
+      - Vendors
   /vendors/check/{licenseID}/:
     get:
       consumes:
