@@ -158,6 +158,15 @@ func (db *Database) ListItems() ([]Item, error) {
 	return items, nil
 }
 
+// GetItemByName returns the item with the given name
+func (db *Database) GetItemByName(name string) (item Item, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 // GetItem returns the item with the given ID
 func (db *Database) GetItem(id int) (item Item, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
@@ -348,10 +357,10 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	if count == 0 && !errorIfExists {
 		err = nil
 		payment = Payment{
-			Sender:   entry.Sender,
-			Receiver: entry.Receiver,
-			Amount:   entry.Price * entry.Quantity,
-			Order:    null.NewInt(int64(orderID), true),
+			Sender:     entry.Sender,
+			Receiver:   entry.Receiver,
+			Amount:     entry.Price * entry.Quantity,
+			Order:      null.NewInt(int64(orderID), true),
 			OrderEntry: null.NewInt(int64(entry.ID), true),
 		}
 		paymentID, err = createPaymentTx(tx, payment)
@@ -419,7 +428,6 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 	return
 }
 
-
 // Payments -------------------------------------------------------------------
 
 // ListPayments returns the payments from the database
@@ -462,7 +470,6 @@ func (db *Database) GetPayment(id int) (payment Payment, err error) {
 	return
 }
 
-
 // CreatePayment creates a payment in an transaction
 func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 
@@ -490,7 +497,6 @@ func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 	}
 	return
 }
-
 
 // CreatePayment creates a payment and returns the payment ID
 func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
