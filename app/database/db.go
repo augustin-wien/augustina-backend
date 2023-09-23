@@ -54,6 +54,12 @@ func (db *Database) InitDb() (err error) {
 			log.Error("Default accounts creation failed ", zap.Error(err))
 		}
 
+		// Create default items
+		err = db.InitiateItems()
+		if err != nil {
+			log.Error("Default items creation failed ", zap.Error(err))
+		}
+
 		if config.Config.CreateDemoData {
 			err = db.CreateDevData()
 			if err != nil {

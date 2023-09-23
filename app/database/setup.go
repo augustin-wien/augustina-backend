@@ -1,6 +1,10 @@
 package database
 
-import "go.uber.org/zap"
+import (
+	"augustin/config"
+
+	"go.uber.org/zap"
+)
 
 // InitiateAccounts creates default settings if they don't exist
 func (db *Database) InitiateAccounts() (err error) {
@@ -17,19 +21,19 @@ func (db *Database) InitiateAccounts() (err error) {
 	return err
 }
 
-// InitiateItems creates default item for transaction fees
+// InitiateItems creates default item for transaction costs
 func (db *Database) InitiateItems() (err error) {
-	transactionFee := Item{
-		Name:        "Transaktionskosten",
+	transactionCost := Item{
+		Name:        config.Config.TransactionCostsName,
 		Description: "Transaktionskosten der Zahlungsanbieter",
 		Price:       1,
 		Archived:    false,
 	}
 
-	// Create item transaction fee
-	_, err = db.CreateItem(transactionFee)
+	// Create item transaction cost
+	_, err = db.CreateItem(transactionCost)
 	if err != nil {
-		log.Error("InitiateItem creation failed for transaction fees", zap.Error(err))
+		log.Error("InitiateItem creation failed for transaction costs", zap.Error(err))
 		return err
 	}
 	return
