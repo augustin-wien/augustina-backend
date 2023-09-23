@@ -118,6 +118,12 @@ func (db *Database) InitEmptyTestDb() (err error) {
 			log.Error("Default accounts creation failed ", zap.Error(err))
 		}
 
+		// Create default items
+		err = db.InitiateItems()
+		if err != nil {
+			log.Error("Default items creation failed ", zap.Error(err))
+		}
+
 		// Update DBSettings to initialized
 		err = db.UpdateDBSettings(DBSettings{IsInitialized: true})
 		if err != nil {
