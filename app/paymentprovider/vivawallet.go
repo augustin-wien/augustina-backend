@@ -328,60 +328,76 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 		return err
 	}
 
-	// WARNING: This logic builds upon the assumption that there is only Paypal as a payment provider, which leads to a 0.0 TotalCommission
-	// TODO: Add Paypal API call to get transaction fees
+	// TODO: Add Paypal API call to get transaction costs
 	// TODO: Test if VivaWallet still sends a 0.0 TotalCommission by an amount of 10€
 	// TOTHINKABOUT: Should we save which payment provider has been used for our transaction in the database i.e. Paypal or VivaWallet?
+	// Easy to do in success webhook with this param: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
+
 	// 3. Check: Check if TotalCommission is 0.0, which means that transaction costs are on Paypals side
+	// WARNING: This logic builds upon the assumption that there is only Paypal as a payment provider, which leads to a 0.0 TotalCommission
 	if paymentPrice.EventData.TotalCommission == 0.0 {
-		// TODO: Add additional entries in order (e.g. transaction fees) for hardcoded Paypal transaction fees
-		paypal_amount := config.Config.PaypalTransactionFee * order.GetTotal()
+
+		// Convert percentage to multiply it with total sum i.e. 1.05 for 5% transaction costs
+		convertedPercentageCosts := (config.Config.PaypalPercentageCosts + 100) / 100
+		// Calculate transaction costs
+		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
 		// Create order entries for transaction costs
-		err = CreateTransactionFeeEntries(order.ID, int(paypal_amount))
+		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
 
 	} else {
-		transactionFee := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
+
+		transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
 		// Create order entries for transaction costs
-		err = CreateTransactionFeeEntries(order.ID, transactionFee)
+		err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
 
 	}
 
-	// TODO: Figure out via transaction type what type (e.g. paypal, card, etc.) of payment this is
-	// https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
 	log.Info("paymentPrice", paymentPrice)
 	return
 }
 
-// Create payments and order entries to list transaction fees
-func CreateTransactionFeeEntries(orderID int, transactionFee int) (err error) {
+// Create payments and order entries to list transaction costs
+func CreateTransactionCostEntries(order database.Order, transactionCosts int, paymentProvider string) (err error) {
+
+	// Get ID of transaction costs item
+	transactionCostsItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
+	// Get ID of VivaWallet account
+	VivaWalletID, err := database.Db.GetAccountTypeID(paymentProvider)
+
+	// Create order entries for transaction costs
 	var entries = []database.OrderEntry{
 		{
-			Item:     TransactionFeeID, // ID of transaction fee item
-			Quantity: transactionFee,   // Amount of transaction fee
-			Sender:   order.Vendor,     // ID of vendor
-			Receiver: VivaWalletID,     // ID of VivaWallet
+			Item:     transactionCostsItem.ID, // ID of transaction costs item
+			Quantity: transactionCosts,        // Amount of transaction costs
+			Sender:   order.Vendor,            // ID of vendor
+			Receiver: VivaWalletID,            // ID of VivaWallet
 		},
 	}
-	// append transaction cost entries here
-	err = database.Db.CreatePayedOrderEntries(orderID, entries)
+
+	// Create payment with order entries
+	err = database.Db.CreatePayedOrderEntries(order.ID, entries)
 	if err != nil {
 		return err
 	}
 
 	if config.Config.OrgaCoversTransactionCosts {
-		// 4. Step: Create payment for covering transaction costs by Organization
+
+		// Get ID of Orga account
+		orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
+		// Create payment for covering transaction costs by Organization
 		var entries = []database.OrderEntry{
 			{
-				Item:     1,              // ID of transaction fee item
-				Quantity: transactionFee, // Amount of transaction fee
-				Sender:   OrgaID,         // ID of vendor
-				Receiver: order.Vendor,   // ID of VivaWallet
+				Item:     transactionCostsItem.ID, // ID of transaction costs item
+				Quantity: transactionCosts,        // Amount of transaction costs
+				Sender:   orgaAccountID,           // ID of Orga
+				Receiver: order.Vendor,            // ID of vendor
 			},
 		}
 		// append transaction cost entries here
-		err = database.Db.CreatePayedOrderEntries(orderID, entries)
+		err = database.Db.CreatePayedOrderEntries(order.ID, entries)
 		if err != nil {
 			return err
 		}
 	}
+	return
 }
