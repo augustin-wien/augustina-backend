@@ -210,14 +210,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 		return errors.New("StatusId mismatch")
 	}
 
-	// TODO: Figure out what to do if statusId is not "F"
-	// https://developer.vivawallet.com/integration-reference/response-codes/#statusid-parameter
-	// 2. Check: Check if this is the correct statusId
-	if transactionVerificationResponse.StatusId != "F" {
-		return errors.New("StatusId is not F")
-	}
-
-	// 3. Check: Verify that order can be found by ordercode and order is not already set verified in database
+	// 2. Check: Verify that order can be found by ordercode and order is not already set verified in database
 	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentSuccessful.EventData.OrderCode))
 	if err != nil {
 		log.Error("Getting order from database failed: ", err)
@@ -227,7 +220,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 		return errors.New("Order already verified")
 	}
 
-	// 4. Check: Verify amount matches with the ones in the database
+	// 3. Check: Verify amount matches with the ones in the database
 
 	// Sum up all prices of orderentries and compare with amount
 	var sum float64
@@ -306,6 +299,11 @@ func VerifyTransactionID(transactionID string) (transactionVerificationResponse 
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
 		return transactionVerificationResponse, err
+	}
+
+	// 1. Check: Verify that transaction has correct status, only status "F" and "MW" is allowed according to VivaWallet
+	if transactionVerificationResponse.StatusId != "F" && transactionVerificationResponse.StatusId != "MW" {
+		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction.")
 	}
 
 	return transactionVerificationResponse, nil
