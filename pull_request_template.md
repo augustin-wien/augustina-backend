@@ -15,6 +15,15 @@ Express your concerns about your changes if you have any.
 If your changes are dependent to changes to another repo (backend or frontend) please link it.
 Same for other open branches your branch might depends on.
 -->
+**IMPORTANT TO KNOW**
+<!-- Let your reviewer know if she has to configure something new or somehting has to be thought further or ... -->
+
+**CHANGES**
+<!-- Let your reviewer know what changes happened in this PR ... -->
+
+**TODO**
+<!-- Let your reviewer know if there is still something to do or has to be done in the future i.e. for fine-tuning ... -->
+
 
 # Checklist:
 
