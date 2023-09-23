@@ -316,17 +316,72 @@ func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err 
 
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
 
-	// TODO: Add additional entries in order (e.g. transaction fees)
-	// orderCode := ???
-	// orderID, err := database.Db.GetOrderByOrderCode(orderCode)
-	// if err != nil { ...
-	// var entries := []database.OrderEntry{}
-	// append transaction cost entries here
-	// err = database.Db.CreatePayedOrderEntries(orderID, entries)
-	// if err != nil { ...
+	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
+	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId)
+	if err != nil {
+		return err
+	}
+
+	// 2. Check: Verify that order can be found by ordercode
+	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentPrice.EventData.OrderCode))
+	if err != nil {
+		return err
+	}
+
+	// WARNING: This logic builds upon the assumption that there is only Paypal as a payment provider, which leads to a 0.0 TotalCommission
+	// TODO: Add Paypal API call to get transaction fees
+	// TODO: Test if VivaWallet still sends a 0.0 TotalCommission by an amount of 10€
+	// TOTHINKABOUT: Should we save which payment provider has been used for our transaction in the database i.e. Paypal or VivaWallet?
+	// 3. Check: Check if TotalCommission is 0.0, which means that transaction costs are on Paypals side
+	if paymentPrice.EventData.TotalCommission == 0.0 {
+		// TODO: Add additional entries in order (e.g. transaction fees) for hardcoded Paypal transaction fees
+		paypal_amount := config.Config.PaypalTransactionFee * order.GetTotal()
+		// Create order entries for transaction costs
+		err = CreateTransactionFeeEntries(order.ID, int(paypal_amount))
+
+	} else {
+		transactionFee := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
+		// Create order entries for transaction costs
+		err = CreateTransactionFeeEntries(order.ID, transactionFee)
+
+	}
 
 	// TODO: Figure out via transaction type what type (e.g. paypal, card, etc.) of payment this is
 	// https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
 	log.Info("paymentPrice", paymentPrice)
 	return
+}
+
+// Create payments and order entries to list transaction fees
+func CreateTransactionFeeEntries(orderID int, transactionFee int) (err error) {
+	var entries = []database.OrderEntry{
+		{
+			Item:     TransactionFeeID, // ID of transaction fee item
+			Quantity: transactionFee,   // Amount of transaction fee
+			Sender:   order.Vendor,     // ID of vendor
+			Receiver: VivaWalletID,     // ID of VivaWallet
+		},
+	}
+	// append transaction cost entries here
+	err = database.Db.CreatePayedOrderEntries(orderID, entries)
+	if err != nil {
+		return err
+	}
+
+	if config.Config.OrgaCoversTransactionCosts {
+		// 4. Step: Create payment for covering transaction costs by Organization
+		var entries = []database.OrderEntry{
+			{
+				Item:     1,              // ID of transaction fee item
+				Quantity: transactionFee, // Amount of transaction fee
+				Sender:   OrgaID,         // ID of vendor
+				Receiver: order.Vendor,   // ID of VivaWallet
+			},
+		}
+		// append transaction cost entries here
+		err = database.Db.CreatePayedOrderEntries(orderID, entries)
+		if err != nil {
+			return err
+		}
+	}
 }
