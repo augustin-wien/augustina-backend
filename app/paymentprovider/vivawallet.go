@@ -183,7 +183,7 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 		return 0, err
 	}
 
-	return int(orderCode.OrderCode), nil
+	return int(orderCode.OrderCode), err
 
 }
 

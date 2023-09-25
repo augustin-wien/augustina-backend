@@ -136,6 +136,13 @@
                 "summary": "Update Item",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Item Representation",
                         "name": "data",
                         "in": "body",
@@ -705,6 +712,9 @@
                     "type": "string"
                 },
                 "mainItem": {
+                    "type": "integer"
+                },
+                "maxOrderAmount": {
                     "type": "integer"
                 },
                 "refundFees": {

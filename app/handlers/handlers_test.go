@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"augustin/config"
 	"augustin/database"
 	"augustin/utils"
 	"bytes"
@@ -110,6 +111,7 @@ func TestItems(t *testing.T) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	writer.WriteField("Name", "Updated item name")
+	writer.WriteField("Price", strconv.Itoa(10))
 	writer.WriteField("nonexistingfieldname", "10")
 	image, _ := writer.CreateFormFile("Image", "test.jpg")
 	image.Write([]byte(`i am the content of a jpg file :D`))
@@ -121,7 +123,7 @@ func TestItems(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(resItems))
-	require.Equal(t, "Updated item name", resItems[0].Name)
+	require.Equal(t, 10, resItems[0].Price)
 	require.Contains(t, resItems[0].Image, "test")
 	require.Contains(t, resItems[0].Image, ".jpg")
 
@@ -148,18 +150,19 @@ func TestItems(t *testing.T) {
 
 }
 
+// Set MaxOrderAmount to avoid errors
+func setMaxOrderAmount(t *testing.T, amount int) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("MaxOrderAmount", strconv.Itoa(amount))
+	writer.Close()
+	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
+}
+
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
-	// setMaxOrderAmount(t, 1000)
-
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	writer.WriteField("MaxOrderAmount", `1000`)
-	image, _ := writer.CreateFormFile("Image", "test.jpg")
-	image.Write([]byte(`i am the content of a jpg file :D`))
-	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
+	setMaxOrderAmount(t, 10)
 
 	itemID := CreateTestItem(t)
 	itemIDInt, _ := strconv.Atoi(itemID)
@@ -174,8 +177,12 @@ func TestOrders(t *testing.T) {
 		  ],
 		  "vendor": ` + vendorID + `
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
-	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=0"}`)
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
+
+	setMaxOrderAmount(t, 1000000)
+	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"` + config.Config.VivaWalletSmartCheckoutURL + `0"}`)
 
 	order, err := database.Db.GetOrderByOrderCode("0")
 	if err != nil {
@@ -201,40 +208,8 @@ func TestOrders(t *testing.T) {
 
 }
 
-// Set MaxOrderAmount to avoid errors
-func setMaxOrderAmount(t *testing.T, amount int) {
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	writer.WriteField("MaxOrderAmount", strconv.Itoa(amount))
-	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
-}
 
-// TestMaxAmountOrder tests the max amount of an order
-func TestMaxAmountOrder(t *testing.T) {
-	// setMaxOrderAmount(t, 1000)
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	writer.WriteField("MaxOrderAmount", strconv.Itoa(1000))
-	writer.Close()
 
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
-
-	itemID := CreateTestItem(t)
-	vendorID := createTestVendor(t, "testLicenseID2")
-	f := `{
-		"entries": [
-			{
-			  "item": ` + itemID + `,
-			  "quantity": -315
-			}
-		  ],
-		  "vendor": ` + vendorID + `
-	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
-
-}
 
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
