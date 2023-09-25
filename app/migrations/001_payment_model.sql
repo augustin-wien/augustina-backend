@@ -12,7 +12,11 @@ CREATE TABLE Vendor (
     IsDisabled bool NOT NULL DEFAULT FALSE,
     Longitude double precision NOT NULL DEFAULT 0,
     Latitude double precision NOT NULL DEFAULT 0,
-    Address varchar(255) NOT NULL DEFAULT ''
+    Address varchar(255) NOT NULL DEFAULT '',
+    PLZ varchar(255) NOT NULL DEFAULT '',
+    Location varchar(255) NOT NULL DEFAULT '',
+    WorkingTime varchar(1) NOT NULL DEFAULT '',
+    Lang varchar(255) NOT NULL DEFAULT ''
 );
 
 CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash', 'Paypal', 'VivaWallet');  -- UserAnon, Orga, and Cash, VivaWallet, Paypal should only exist once
@@ -54,7 +58,8 @@ CREATE TABLE OrderEntry (
     Quantity integer NOT NULL DEFAULT 0,
     PaymentOrder integer REFERENCES PaymentOrder,
     Sender integer NOT NULL REFERENCES Account,
-    Receiver integer NOT NULL REFERENCES Account
+    Receiver integer NOT NULL REFERENCES Account,
+    IsSale bool NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE Payment (
@@ -65,7 +70,8 @@ CREATE TABLE Payment (
     Amount integer NOT NULL,  -- Price in cents
     AuthorizedBy varchar(255) NOT NULL DEFAULT '',
     PaymentOrder integer REFERENCES PaymentOrder,
-    OrderEntry integer REFERENCES OrderEntry
+    OrderEntry integer REFERENCES OrderEntry,
+    IsSale bool NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE Settings (
