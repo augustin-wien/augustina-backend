@@ -148,12 +148,31 @@ func TestItems(t *testing.T) {
 
 }
 
+func CreateTestItemWithLicense(t *testing.T) (string, string) {
+	f := `{
+		"Name": "License item",
+		"Price": 123
+	}`
+	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
+	licenseItemID := res.Body.String()
+
+	f2 := `{
+		"Name": "Test item",
+		"Price": 314,
+		"LicenseItem": ` + licenseItemID + `
+	}`
+	res2 := utils.TestRequestStr(t, r, "POST", "/api/items/", f2, 200)
+	itemID := res2.Body.String()
+	return itemID, licenseItemID
+}
+
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
 
-	itemID := CreateTestItem(t)
+	itemID, licenseItemID := CreateTestItemWithLicense(t)
 	itemIDInt, _ := strconv.Atoi(itemID)
+	licenseItemIDInt, _ := strconv.Atoi(licenseItemID)
 	vendorID := createTestVendor(t, "testLicenseID2")
 	vendorIDInt, _ := strconv.Atoi(vendorID)
 	f := `{
@@ -186,13 +205,15 @@ func TestOrders(t *testing.T) {
 		t.Error(err)
 	}
 
+
 	require.Equal(t, order.Vendor, vendorIDInt)
 	require.Equal(t, order.Verified, false)
-	require.Equal(t, order.Entries[0].Item, itemIDInt)
-	require.Equal(t, order.Entries[0].Quantity, 315)
-	require.Equal(t, order.Entries[0].Price, 314)
-	require.Equal(t, order.Entries[0].Sender, senderAccount.ID)
-	require.Equal(t, order.Entries[0].Receiver, receiverAccount.ID)
+	require.Equal(t, order.Entries[0].Item, licenseItemIDInt)
+	require.Equal(t, order.Entries[1].Item, itemIDInt)
+	require.Equal(t, order.Entries[1].Quantity, 315)
+	require.Equal(t, order.Entries[1].Price, 314)
+	require.Equal(t, order.Entries[1].Sender, senderAccount.ID)
+	require.Equal(t, order.Entries[1].Receiver, receiverAccount.ID)
 
 }
 

@@ -53,7 +53,8 @@ CREATE TABLE OrderEntry (
     Quantity integer NOT NULL DEFAULT 0,
     PaymentOrder integer REFERENCES PaymentOrder,
     Sender integer NOT NULL REFERENCES Account,
-    Receiver integer NOT NULL REFERENCES Account
+    Receiver integer NOT NULL REFERENCES Account,
+    IsSale bool NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE Payment (
@@ -64,7 +65,8 @@ CREATE TABLE Payment (
     Amount integer NOT NULL,  -- Price in cents
     AuthorizedBy varchar(255) NOT NULL DEFAULT '',
     PaymentOrder integer REFERENCES PaymentOrder,
-    OrderEntry integer REFERENCES OrderEntry
+    OrderEntry integer REFERENCES OrderEntry,
+    IsSale bool NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE Settings (
