@@ -271,6 +271,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 //		@Tags			Items
 //		@Accept			json
 //		@Produce		json
+//		@Param			id path int true "Item ID"
 //	    @Param		    data body database.Item true "Item Representation"
 //		@Success		200
 //		@Router			/items/{id}/ [put]
@@ -294,10 +295,17 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var item database.Item
-	fields := mForm.Value                  // Values are stored in []string
-	fieldsClean := make(map[string]string) // Values are stored in string
+	fields := mForm.Value // Values are stored in []string
+	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
-		fieldsClean[key] = value[0]
+		if key == "Price" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				log.Error(err)
+			}
+		} else {
+			fieldsClean[key] = value[0]
+		}
 	}
 	err = mapstructure.Decode(fieldsClean, &item)
 	if err != nil {
@@ -351,9 +359,9 @@ type createOrderRequestEntry struct {
 }
 
 type createOrderRequest struct {
-	Entries []createOrderRequestEntry
-	User    string
-	Vendor  int32
+	Entries          []createOrderRequestEntry
+	User             string
+	VendorLicenseID  string
 }
 
 type createOrderResponse struct {
@@ -375,9 +383,25 @@ type createOrderResponse struct {
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Read payment order from request
+	var requestData createOrderRequest
 	var order database.Order
-	err := utils.ReadJSON(w, r, &order)
+	err := utils.ReadJSON(w, r, &requestData)
 	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
+	for idx, entry := range requestData.Entries {
+		order.Entries[idx].Item = entry.Item
+		order.Entries[idx].Quantity = entry.Quantity
+	}
+
+	order.User.String = requestData.User
+	vendor, err := database.Db.GetVendorByLicenseID(requestData.VendorLicenseID)
+	order.Vendor = vendor.ID
+
+	var settings database.Settings
+	if settings, err = database.Db.GetSettings(); err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -422,6 +446,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
 		order.Entries[idx].Price = item.Price // Take current item price
+		order.Entries[idx].IsSale = true  // Will be used for sales payment
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
@@ -443,16 +468,25 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	if order.GetTotal() >= settings.MaxOrderAmount {
+		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
+		return
+	}
+
 	// Submit order to vivawallet (disabled in tests)
 	var OrderCode int
 	if database.Db.IsProduction {
 		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
 		if err != nil {
 			log.Error("Authentication failed: ", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 		}
 		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order)
 		if err != nil {
 			log.Error("Creating payment order failed: ", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 		}
 	}
 
@@ -466,7 +500,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create response
-	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(OrderCode)
+	url := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
 	response := createOrderResponse{
 		SmartCheckoutURL: url,
 	}
@@ -663,6 +697,12 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	cashAccount, err := database.Db.GetAccountByType("Cash")
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Check that amount is bigger than 0
+	if payoutData.Amount <= 0 {
+		utils.ErrorJSON(w, errors.New("payout amount must be bigger than 0"), http.StatusBadRequest)
 		return
 	}
 
@@ -886,6 +926,8 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 //		@Router			/settings/ [put]
 func updateSettings(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
 	// Read multipart form
 	r.ParseMultipartForm(32 << 20)
 	mForm := r.MultipartForm
@@ -897,13 +939,22 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	// Handle normal fields
 	var settings database.Settings
 	fields := mForm.Value                  // Values are stored in []string
-	fieldsClean := make(map[string]string) // Values are stored in string
+	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
-		fieldsClean[key] = value[0]
+		if key == "MaxOrderAmount" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				return
+			}
+		} else {
+			fieldsClean[key] = value[0]
+		}
 	}
-	err := mapstructure.Decode(fieldsClean, &settings)
+	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
-		log.Error(err)
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+		return
 	}
 
 	path, _ := updateSettingsLogo(w, r)
