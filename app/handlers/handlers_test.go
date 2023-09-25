@@ -182,7 +182,7 @@ func TestOrders(t *testing.T) {
 			  "quantity": 315
 			}
 		  ],
-		  "vendor": ` + vendorID + `
+		  "vendorLicenseID": "testLicenseID2"
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=0"}`)

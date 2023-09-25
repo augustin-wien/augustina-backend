@@ -743,6 +743,9 @@ const docTemplate = `{
                 "keycloakID": {
                     "type": "string"
                 },
+                "lang": {
+                    "type": "string"
+                },
                 "lastName": {
                     "type": "string"
                 },
@@ -756,11 +759,20 @@ const docTemplate = `{
                 "licenseID": {
                     "$ref": "#/definitions/null.String"
                 },
+                "location": {
+                    "type": "string"
+                },
                 "longitude": {
                     "type": "number"
                 },
+                "plz": {
+                    "type": "string"
+                },
                 "urlid": {
                     "description": "This is used for the QR code",
+                    "type": "string"
+                },
+                "workingTime": {
                     "type": "string"
                 }
             }
@@ -777,8 +789,8 @@ const docTemplate = `{
                 "user": {
                     "type": "string"
                 },
-                "vendor": {
-                    "type": "integer"
+                "vendorLicenseID": {
+                    "type": "string"
                 }
             }
         },

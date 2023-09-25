@@ -351,9 +351,9 @@ type createOrderRequestEntry struct {
 }
 
 type createOrderRequest struct {
-	Entries []createOrderRequestEntry
-	User    string
-	Vendor  int32
+	Entries          []createOrderRequestEntry
+	User             string
+	VendorLicenseID  string
 }
 
 type createOrderResponse struct {
@@ -373,12 +373,22 @@ type createOrderResponse struct {
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Read payment order from request
+	var requestData createOrderRequest
 	var order database.Order
-	err := utils.ReadJSON(w, r, &order)
+	err := utils.ReadJSON(w, r, &requestData)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
+	for idx, entry := range requestData.Entries {
+		order.Entries[idx].Item = entry.Item
+		order.Entries[idx].Quantity = entry.Quantity
+	}
+
+	order.User.String = requestData.User
+	vendor, err := database.Db.GetVendorByLicenseID(requestData.VendorLicenseID)
+	order.Vendor = vendor.ID
 
 	// Get accounts
 	var buyerAccountID int
