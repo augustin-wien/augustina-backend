@@ -562,6 +562,7 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 
 type createPaymentPayoutRequest struct {
 	VendorLicenseID string
+	AuthorizedBy    string
 	Amount          int
 }
 
@@ -616,6 +617,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		Sender:   vendorAccount.ID,
 		Receiver: cashAccount.ID,
 		Amount:   payoutData.Amount,
+		AuthorizedBy: payoutData.AuthorizedBy,
 	}
 	paymentID, err := database.Db.CreatePayment(payment)
 	if err != nil {
