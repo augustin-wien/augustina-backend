@@ -545,7 +545,7 @@ func (db *Database) CreateAccount(account Account) (id int, err error) {
 	// 	err = new (Error)
 
 	// Define a slice of types, which should only exist once
-	existOnceTypes := []string{"Cash", "Orga", "UserAnon"}
+	existOnceTypes := []string{"Cash", "Orga", "UserAnon", "VivaWallet", "Paypal"}
 
 	// Check if an account of the specified type already exists
 	if slices.Contains(existOnceTypes, account.Type) {

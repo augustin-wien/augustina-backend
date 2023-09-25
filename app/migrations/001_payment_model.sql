@@ -15,7 +15,7 @@ CREATE TABLE Vendor (
     Address varchar(255) NOT NULL DEFAULT ''
 );
 
-CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash');  -- UserAnon, Orga, and Cash should only exist once
+CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash', 'Paypal', 'VivaWallet');  -- UserAnon, Orga, and Cash, VivaWallet, Paypal should only exist once
 
 CREATE TABLE Account (
     ID serial PRIMARY KEY,
