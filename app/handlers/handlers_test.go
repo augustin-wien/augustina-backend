@@ -313,7 +313,15 @@ func TestPaymentPayout(t *testing.T) {
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"Payment amount must be greater than 0"}}`)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
+
+	// Create invalid payments via API
+	f = createPaymentPayoutRequest{
+		Amount: 0,
+		VendorLicenseID: "testLicenseID",
+	}
+	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
 
 	// Create payments via API
 	f = createPaymentPayoutRequest{
