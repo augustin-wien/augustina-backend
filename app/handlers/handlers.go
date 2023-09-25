@@ -605,6 +605,12 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check that amount is bigger than 0
+	if payoutData.Amount <= 0 {
+		utils.ErrorJSON(w, errors.New("payout amount must be bigger than 0"), http.StatusBadRequest)
+		return
+	}
+
 	// Check if vendor has enough money
 	if vendorAccount.Balance < payoutData.Amount {
 		utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
