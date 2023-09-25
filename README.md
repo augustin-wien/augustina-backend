@@ -10,6 +10,8 @@ git submodule update --init --recursive
 
 Copy `.env.example` to `.env` and set `KEYCLOAK_HOST=http://keycloak:8080/`
 
+Copy `docker/.env.parser.example` to `docker/.env.parser`
+
 Start the application with Docker:
 
 ```bash
