@@ -190,6 +190,28 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, order.Entries[0].Sender, senderAccount.ID)
 	require.Equal(t, order.Entries[0].Receiver, receiverAccount.ID)
 
+	// Verify order and create payments
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
+
+	// Check payments
+	payments, err := database.Db.ListPayments(time.Time{}, time.Time{})
+	if err != nil {
+		t.Error(err)
+	}
+	require.Equal(t, 1, len(payments))
+	require.Equal(t, payments[0].Amount, 98910)
+
+	// Check balances
+	senderAccount, err = database.Db.GetAccountByType("UserAnon")
+	if err != nil {
+		t.Error(err)
+	}
+	receiverAccount, err = database.Db.GetAccountByVendorID(vendorIDInt)
+	if err != nil {
+		t.Error(err)
+	}
+	require.Equal(t, senderAccount.Balance, -98910)
+	require.Equal(t, receiverAccount.Balance, 98910)
 }
 
 // TestPayments tests CRUD operations on payments
