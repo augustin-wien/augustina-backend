@@ -71,6 +71,7 @@ type OrderEntry struct {
 	Price    int // Price at time of purchase in cents
 	Sender   int
 	Receiver int
+	IsSale   bool // Whether to include this item in sales payment
 }
 
 // Payment is a struct that is used for the payment table
@@ -83,6 +84,7 @@ type Payment struct {
 	AuthorizedBy string
 	Order        null.Int `swaggertype:"integer"`
 	OrderEntry   null.Int `swaggertype:"integer"`
+	IsSale       bool
 }
 
 // Settings is a struct that is used for the settings table
