@@ -16,7 +16,7 @@ CREATE TABLE Vendor (
     PLZ varchar(255) NOT NULL DEFAULT '',
     Location varchar(255) NOT NULL DEFAULT '',
     WorkingTime varchar(1) NOT NULL DEFAULT '',
-    Lang varchar(255) NOT NULL DEFAULT '',
+    Lang varchar(255) NOT NULL DEFAULT ''
 );
 
 CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash');  -- UserAnon, Orga, and Cash should only exist once
