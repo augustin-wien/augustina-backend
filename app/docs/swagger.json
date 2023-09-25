@@ -801,6 +801,9 @@
                 "amount": {
                     "type": "integer"
                 },
+                "authorizedBy": {
+                    "type": "string"
+                },
                 "vendorLicenseID": {
                     "type": "string"
                 }
