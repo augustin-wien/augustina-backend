@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
+	"gopkg.in/guregu/null.v4"
 )
 
 // Helpers --------------------------------------------------------------------
@@ -310,29 +311,58 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 
 	// Create order items
 	for _, entry := range order.Entries {
-
-		// Get current item price
-		var item Item
-		err = tx.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
-		if err != nil {
-			log.Error(err)
-			return
-		}
-
-		// Create order item
-		_, err = tx.Exec(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6)", entry.Item, item.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver)
-		if err != nil {
-			log.Error(err)
-			return orderID, err
-		}
+		createOrderEntryTx(tx, orderID, entry)
 	}
 
 	return
 }
 
+// createOrderEntryTx adds an entry to an order in an transaction
+func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, error) {
 
-// VerifyOrderAndCreatePayments verifies payment order, update it in the database, and create payments
-func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
+	// Get current item price
+	var item Item
+	err := tx.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
+	if err != nil {
+		log.Error(err)
+		return entry, err
+	}
+	entry.Price = item.Price
+
+	// Create order entry
+	err = tx.QueryRow(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver) values ($1, $2, $3, $4, $5, $6) RETURNING ID", entry.Item, entry.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver).Scan(&entry.ID)
+	if err != nil {
+		log.Error(err)
+	}
+	return entry, err
+}
+
+// createPaymentForOrderEntryTx creates a payment for an order entry
+func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, errorIfExists bool) (paymentID int, err error) {
+
+	var count int
+	err = tx.QueryRow(context.Background(), "SELECT COUNT(*) FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&count)
+
+	// If no payment exists for this entry, create one
+	var payment Payment
+	if count == 0 && !errorIfExists {
+		err = nil
+		payment = Payment{
+			Sender:   entry.Sender,
+			Receiver: entry.Receiver,
+			Amount:   entry.Price * entry.Quantity,
+			Order:    null.NewInt(int64(orderID), true),
+			OrderEntry: null.NewInt(int64(entry.ID), true),
+		}
+		paymentID, err = createPaymentTx(tx, payment)
+	}
+
+	return
+}
+
+// VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
+// This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
+func (db *Database) VerifyOrderAndCreatePayments(orderID int) (err error) {
 
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())
@@ -346,24 +376,49 @@ func (db *Database) VerifyOrderAndCreatePayments(id int) (err error) {
 	UPDATE PaymentOrder
 	SET Verified = True
 	WHERE ID = $1
-	`, id)
+	`, orderID)
 	if err != nil {
 		log.Error(err)
 	}
 
 	// Get Paymentorder (including payments)
-	order, err := db.GetOrderByID(id)
+	order, err := db.GetOrderByID(orderID)
 
 	// Create payments
-	for _, oi := range order.Entries {
-		_, err := tx.Exec(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, OrderEntry, PaymentOrder) values ($1, $2, $3, $4, $5)", oi.Sender, oi.Receiver, oi.Price*oi.Quantity, oi.ID, order.ID)
+	for _, entry := range order.Entries {
+		_, err = createPaymentForOrderEntryTx(tx, orderID, entry, false)
+	}
+
+	return
+}
+
+// CreatePayedOrderEntries creates entries with a payment for an order
+func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (err error) {
+
+	// Start a transaction
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+	defer func() { err = deferTx(tx, err) }()
+
+	// Create entries & associated payments
+	for _, entry := range entries {
+		entry, err = createOrderEntryTx(tx, orderID, entry)
 		if err != nil {
+			log.Error(err)
+			return err
+		}
+		_, err = createPaymentForOrderEntryTx(tx, orderID, entry, false)
+		if err != nil {
+			log.Error(err)
 			return err
 		}
 	}
 
 	return
 }
+
 
 // Payments -------------------------------------------------------------------
 
@@ -418,7 +473,7 @@ func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 	}
 
 	// Create payment
-	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount) values ($1, $2, $3) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount).Scan(&paymentID)
+	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry) values ($1, $2, $3, $4, $5, $6) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry).Scan(&paymentID)
 	if err != nil {
 		log.Error(err)
 		return
