@@ -806,7 +806,7 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 	}
 
 	// Save file with name "logo"
-	path = "/img/logo.png"
+	path = "img/logo.png"
 	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
 	if err != nil {
 		log.Error(err)
