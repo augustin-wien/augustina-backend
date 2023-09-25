@@ -295,7 +295,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var item database.Item
-	fields := mForm.Value // Values are stored in []string
+	fields := mForm.Value               // Values are stored in []string
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
 		if key == "Price" {
@@ -359,9 +359,9 @@ type createOrderRequestEntry struct {
 }
 
 type createOrderRequest struct {
-	Entries          []createOrderRequestEntry
-	User             string
-	VendorLicenseID  string
+	Entries         []createOrderRequestEntry
+	User            string
+	VendorLicenseID string
 }
 
 type createOrderResponse struct {
@@ -446,7 +446,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
 		order.Entries[idx].Price = item.Price // Take current item price
-		order.Entries[idx].IsSale = true  // Will be used for sales payment
+		order.Entries[idx].IsSale = true      // Will be used for sales payment
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
@@ -480,13 +480,13 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("Authentication failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+			return
 		}
 		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order)
 		if err != nil {
 			log.Error("Creating payment order failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+			return
 		}
 	}
 
@@ -748,8 +748,22 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 //	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Successful Response"
 //	@Router			/webhooks/vivawallet/success [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
+	log.Info("VivaWalletWebhookSuccess entered")
+
+	data, err := io.ReadAll(r.Body)
+
+	if err != nil {
+
+		log.Error("Reading body failed for VivaWalletWebhookPrice: ", err)
+
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+
+	}
+
+	log.Info("VivaWalletWebhookSuccess full request: ", string(data))
+
 	var paymentSuccessful paymentprovider.TransactionDetailRequest
-	err := utils.ReadJSON(w, r, &paymentSuccessful)
+	err = utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
 		log.Info("Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -818,21 +832,22 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("VivaWalletWebhookPrice full request: ", string(data))
-	// var paymentPrice paymentprovider.TransactionPriceRequest
-	// err := utils.ReadJSON(w, r, &paymentPrice)
-	// if err != nil {
-	// 	log.Info("Reading JSON failed for webhook: ", err)
-	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
-	// 	return
-	// }
 
-	// err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
-	// if err != nil {
-	// 	log.Error(err)
-	// 	return
-	// }
+	var paymentPrice paymentprovider.TransactionPriceRequest
+	err = utils.ReadJSON(w, r, &paymentPrice)
+	if err != nil {
+		log.Info("Reading JSON failed for webhook: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
-	// utils.WriteJSON(w, http.StatusOK, nil)
+	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, err)
 }
 
 // VivaWalletVerificationKey godoc
@@ -938,7 +953,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var settings database.Settings
-	fields := mForm.Value                  // Values are stored in []string
+	fields := mForm.Value               // Values are stored in []string
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
 		if key == "MaxOrderAmount" {
