@@ -51,6 +51,8 @@ definitions:
         type: string
       mainItem:
         type: integer
+      maxOrderAmount:
+        type: integer
       refundFees:
         type: boolean
     type: object
@@ -424,6 +426,11 @@ paths:
       - application/json
       description: Requires multipart form (for image)
       parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: integer
       - description: Item Representation
         in: body
         name: data

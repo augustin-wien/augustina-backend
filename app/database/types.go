@@ -89,11 +89,12 @@ type Payment struct {
 
 // Settings is a struct that is used for the settings table
 type Settings struct {
-	ID         int
-	Color      string
-	Logo       string
-	MainItem   null.Int `swaggertype:"integer"`
-	RefundFees bool
+	ID             int
+	Color          string
+	Logo           string
+	MainItem       null.Int `swaggertype:"integer"`
+	RefundFees     bool
+	MaxOrderAmount int
 }
 
 // DBSettings is a struct that is used for the dbsettings table
