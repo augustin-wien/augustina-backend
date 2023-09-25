@@ -200,7 +200,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	resource := "/checkout/v2/transactions/" + paymentSuccessful.EventData.TransactionId
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
-	urlStr := u.String() // "https://demo-api.vivapayments.com/checkout/v2/transactions/{transactionId}"
+	urlStr := u.String()
 
 	// Create a new get request
 	req, err := http.NewRequest("GET", urlStr, nil)
@@ -311,8 +311,15 @@ func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err 
 }
 
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
-	// Add additional entries in order (e.g. transaction fees)
-	// TODO: order.Entries = append(order.Entries, MyEntry)
+
+	// TODO: Add additional entries in order (e.g. transaction fees)
+	// orderCode := ???
+	// orderID, err := database.Db.GetOrderByOrderCode(orderCode)
+	// if err != nil { ...
+	// var entries := []database.OrderEntry{}
+	// append transaction cost entries here
+	// err = database.Db.CreatePayedOrderEntries(orderID, entries)
+	// if err != nil { ...
 
 	// TODO: Figure out via transaction type what type (e.g. paypal, card, etc.) of payment this is
 	// https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter

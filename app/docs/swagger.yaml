@@ -522,7 +522,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update configuration data of the system
+      description: Update configuration data of the system. Requires multipart form.
+        Logo has to be a png and will always be saved under "img/logo.png"
       parameters:
       - description: Settings Representation
         in: body
@@ -614,6 +615,27 @@ paths:
       summary: Update Vendor
       tags:
       - vendors
+  /vendors/check/{licenseID}/:
+    get:
+      consumes:
+      - application/json
+      description: Check if license id exists, return first name of vendor if it does
+      parameters:
+      - description: License ID
+        in: path
+        name: licenseID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Check for license id
+      tags:
+      - Vendors
   /webhooks/vivawallet/failure:
     get:
       consumes:

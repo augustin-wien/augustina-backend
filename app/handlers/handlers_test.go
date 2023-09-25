@@ -45,6 +45,8 @@ func createTestVendor(t *testing.T, licenseID string) string {
 
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
+	database.Db.InitEmptyTestDb()
+
 	// Create
 	vendorID := createTestVendor(t, "testLicenseID1")
 	res := utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
@@ -53,15 +55,21 @@ func TestVendors(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(vendors))
 	require.Equal(t, "test1234", vendors[0].FirstName)
+	require.Equal(t, "testLicenseID1", vendors[0].LicenseID.String)
+
+	// Check if licenseID exists and returns first name of vendor
+	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/testLicenseID1/", nil, 200)
+	require.Equal(t, res.Body.String(), `{"FirstName":"test1234"}`)
 
 	// Update
+	var vendors2 []database.Vendor
 	jsonVendor := `{"firstName": "nameAfterUpdate"}`
 	utils.TestRequestStr(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200)
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
-	err = json.Unmarshal(res.Body.Bytes(), &vendors)
+	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(vendors))
-	require.Equal(t, "nameAfterUpdate", vendors[0].FirstName)
+	require.Equal(t, 1, len(vendors2))
+	require.Equal(t, "nameAfterUpdate", vendors2[0].FirstName)
 
 	// Delete
 	utils.TestRequest(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204)
@@ -85,6 +93,7 @@ func CreateTestItem(t *testing.T) string {
 // TestItems tests CRUD operations on items (including images)
 // Todo: delete file after test
 func TestItems(t *testing.T) {
+	database.Db.InitEmptyTestDb()
 
 	// Create
 	itemID := CreateTestItem(t)
@@ -229,6 +238,7 @@ func TestMaxAmountOrder(t *testing.T) {
 
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
+	database.Db.InitEmptyTestDb()
 
 	// Set up a payment account
 	senderAccountID, err := database.Db.CreateAccount(
@@ -316,12 +326,20 @@ func TestPaymentPayout(t *testing.T) {
 	vendorID := createTestVendor(t, "testLicenseID")
 	vendorIDInt, _ := strconv.Atoi(vendorID)
 
-	// Create payments via API
+	// Create invalid payments via API
 	f := createPaymentPayoutRequest{
-		Amount:          314,
+		Amount: -314,
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Payment amount must be greater than 0"}}`)
+
+	// Create payments via API
+	f = createPaymentPayoutRequest{
+		Amount: 314,
+		VendorLicenseID: "testLicenseID",
+	}
+	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount bigger than vendor account balance"}}`)
 
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
@@ -345,11 +363,11 @@ func TestPaymentPayout(t *testing.T) {
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)
 
-	log.Info(vendor.Balance, 686)
 	require.Equal(t, vendor.Balance, 686)
 	require.Equal(t, cashAccount.Balance, 314)
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
+
 }
 
 // TestSettings tests GET and PUT operations on settings
