@@ -1,7 +1,8 @@
 -- Write your migrate up statements here
 
+-- Default value is 10000, which equals 100€
 ALTER TABLE Settings
-ADD COLUMN MaxOrderAmount integer;
+ADD COLUMN MaxOrderAmount integer DEFAULT 10000;
 
 ---- create above / drop below ----
 

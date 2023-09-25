@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -354,12 +353,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	if !settings.MaxOrderAmount.Valid {
-		utils.ErrorJSON(w, errors.New("MaxOrderAmount not set"), http.StatusBadRequest)
-		return
-	}
-	log.Info("MaxOrderAmount: ", settings.MaxOrderAmount.Int64)
-	if order.GetTotal() >= int(settings.MaxOrderAmount.Int64) {
+
+	if order.GetTotal() >= settings.MaxOrderAmount {
 		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
 		return
 	}
@@ -826,10 +821,6 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	for key, value := range fields {
 		fieldsClean[key] = value[0]
 	}
-	log.Info("Clean Fields: ", fieldsClean)
-	log.Info("Type of fields: ", reflect.TypeOf(fieldsClean))
-	log.Info("fields", fields)
-	log.Info("map:", fieldsClean["MaxOrderAmount"])
 	err := mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
 		log.Error(err)

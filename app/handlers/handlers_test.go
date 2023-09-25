@@ -146,7 +146,7 @@ func TestOrders(t *testing.T) {
 
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
-	writer.WriteField("MaxOrderAmount", `{"Int64":1000,"Valid":true}`)
+	writer.WriteField("MaxOrderAmount", `1000`)
 	image, _ := writer.CreateFormFile("Image", "test.jpg")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()
@@ -206,7 +206,7 @@ func TestMaxAmountOrder(t *testing.T) {
 	// setMaxOrderAmount(t, 1000)
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
-	writer.WriteField("MaxOrderAmount", "1000")
+	writer.WriteField("MaxOrderAmount", strconv.Itoa(1000))
 	writer.Close()
 
 	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)

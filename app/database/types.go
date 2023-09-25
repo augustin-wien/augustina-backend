@@ -88,7 +88,7 @@ type Settings struct {
 	Logo           string
 	MainItem       null.Int `swaggertype:"integer"`
 	RefundFees     bool
-	MaxOrderAmount null.Int `swaggertype:"integer"`
+	MaxOrderAmount int
 }
 
 // DBSettings is a struct that is used for the dbsettings table

@@ -79,7 +79,7 @@ func (db *Database) createDevSettings() (err error) {
 		Color:          "#008000",
 		Logo:           "/img/Augustin-Logo-Rechteck.jpg",
 		MainItem:       null.IntFrom(1),
-		MaxOrderAmount: null.IntFrom(5000),
+		MaxOrderAmount: 5000,
 	}
 
 	err = db.UpdateSettings(settings)
