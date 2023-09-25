@@ -67,9 +67,10 @@ type TransactionVerificationResponse struct {
 }
 
 type PriceEventData struct {
-	OrderCode       int64   `json:"OrderCode"`
-	MerchantId      string  `json:"MerchantId"`
+	OrderCode       int     `json:"OrderCode"`
+	MerchantID      string  `json:"MerchantId"`
 	IsvFee          float64 `json:"IsvFee"`
+	ResellerID      string  `json:"ResellerId"`
 	TransactionId   string  `json:"TransactionId"`
 	CurrencyCode    string  `json:"CurrencyCode"`
 	Interchange     float64 `json:"Interchange"`

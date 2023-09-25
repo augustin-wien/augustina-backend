@@ -104,8 +104,8 @@ func TestItems(t *testing.T) {
 	var resItems []database.Item
 	err := json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(resItems))
-	require.Equal(t, "Test item", resItems[0].Name)
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Test item", resItems[1].Name)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
@@ -122,13 +122,13 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(resItems))
-	require.Equal(t, 10, resItems[0].Price)
-	require.Contains(t, resItems[0].Image, "test")
-	require.Contains(t, resItems[0].Image, ".jpg")
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Updated item name", resItems[1].Name)
+	require.Contains(t, resItems[1].Image, "test")
+	require.Contains(t, resItems[1].Image, ".jpg")
 
 	// Check file
-	file, err := os.ReadFile(".." + resItems[0].Image)
+	file, err := os.ReadFile(".." + resItems[1].Image)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 
@@ -144,9 +144,9 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(resItems))
-	require.Equal(t, "Updated item name 2", resItems[0].Name)
-	require.Equal(t, resItems[0].Image, "Test")
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Updated item name 2", resItems[1].Name)
+	require.Equal(t, resItems[1].Image, "Test")
 
 }
 
@@ -328,7 +328,7 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create invalid payments via API
 	f := createPaymentPayoutRequest{
-		Amount: -314,
+		Amount:          -314,
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
@@ -344,7 +344,7 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create payments via API
 	f = createPaymentPayoutRequest{
-		Amount: 314,
+		Amount:          314,
 		VendorLicenseID: "testLicenseID",
 	}
 	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)

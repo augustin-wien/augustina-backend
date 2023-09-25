@@ -188,16 +188,73 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 }
 
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest) (err error) {
+	// Log the request body
+	log.Info("Whole request body of transaction success webhook", paymentSuccessful)
 
 	// Set everything up for the request
+	var transactionVerificationResponse TransactionVerificationResponse
+	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionId)
+
+	// 1. Check: Verify that webhook request and API response match all three fields
+
+	if transactionVerificationResponse.OrderCode != paymentSuccessful.EventData.OrderCode {
+		return errors.New("OrderCode mismatch")
+	}
+
+	if transactionVerificationResponse.Amount != paymentSuccessful.EventData.Amount {
+		log.Info("Amount mismatch", zap.Float64(" transactionVerificationResponse.Amount ", transactionVerificationResponse.Amount), zap.Float64(" paymentSuccessful.EventData.Amount ", paymentSuccessful.EventData.Amount))
+		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
+		webhookToFloat64 := fmt.Sprintf("%f", paymentSuccessful.EventData.Amount)
+		return errors.New("Amount mismatch:" + transactionToFloat64 + "  vs. " + webhookToFloat64)
+	}
+
+	if transactionVerificationResponse.StatusId != paymentSuccessful.EventData.StatusId {
+		return errors.New("StatusId mismatch")
+	}
+
+	// 2. Check: Verify that order can be found by ordercode and order is not already set verified in database
+	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentSuccessful.EventData.OrderCode))
+	if err != nil {
+		log.Error("Getting order from database failed: ", err)
+	}
+
+	if order.Verified {
+		return errors.New("Order already verified")
+	}
+
+	// 3. Check: Verify amount matches with the ones in the database
+
+	// Sum up all prices of orderentries and compare with amount
+	var sum float64
+	for _, entry := range order.Entries {
+		sum += float64(entry.Price)
+	}
+	// Amount would mismatch without converting to float64
+	// Note: Bad consistency by VivaWallet representing amount in cents and int vs euro and float
+	sum = float64(sum) / 100
+
+	if sum != paymentSuccessful.EventData.Amount {
+		return errors.New("Amount mismatch")
+	}
+
+	// Since every check passed, now set verification status of order and create payments
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeId)
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+func VerifyTransactionID(transactionID string) (transactionVerificationResponse TransactionVerificationResponse, err error) {
 
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletApiURL
 	if apiURL == "" {
-		return errors.New("VivaWalletApiURL is not set")
+		return transactionVerificationResponse, errors.New("VivaWalletApiURL is not set")
 	}
 	// Use transactionId from webhook to get transaction details
-	resource := "/checkout/v2/transactions/" + paymentSuccessful.EventData.TransactionId
+	resource := "/checkout/v2/transactions/" + transactionID
 	u, _ := url.ParseRequestURI(apiURL)
 	u.Path = resource
 	urlStr := u.String()
@@ -227,7 +284,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	if res.StatusCode != 200 {
-		return errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode))
+		return transactionVerificationResponse, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode))
 	}
 
 	// Close the body after the function returns
@@ -236,73 +293,22 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Error("Reading body failed: ", err)
-		return err
+		return transactionVerificationResponse, err
 	}
 
 	// Unmarshal response body to struct
-	var transactionVerificationResponse TransactionVerificationResponse
 	err = json.Unmarshal(body, &transactionVerificationResponse)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
-		return err
+		return transactionVerificationResponse, err
 	}
 
-	// 1. Check: Verify that webhook request and API response match all three fields
-
-	if transactionVerificationResponse.OrderCode != paymentSuccessful.EventData.OrderCode {
-		return errors.New("OrderCode mismatch")
+	// 1. Check: Verify that transaction has correct status, only status "F" and "MW" is allowed according to VivaWallet
+	if transactionVerificationResponse.StatusId != "F" && transactionVerificationResponse.StatusId != "MW" {
+		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction.")
 	}
 
-	if transactionVerificationResponse.Amount != paymentSuccessful.EventData.Amount {
-		log.Info("Amount mismatch", zap.Float64(" transactionVerificationResponse.Amount ", transactionVerificationResponse.Amount), zap.Float64(" paymentSuccessful.EventData.Amount ", paymentSuccessful.EventData.Amount))
-		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
-		webhookToFloat64 := fmt.Sprintf("%f", paymentSuccessful.EventData.Amount)
-		return errors.New("Amount mismatch:" + transactionToFloat64 + "  vs. " + webhookToFloat64)
-	}
-
-	if transactionVerificationResponse.StatusId != paymentSuccessful.EventData.StatusId {
-		return errors.New("StatusId mismatch")
-	}
-
-	// TODO: Figure out what to do if statusId is not "F"
-	// https://developer.vivawallet.com/integration-reference/response-codes/#statusid-parameter
-	// 2. Check: Check if this is the correct statusId
-	if transactionVerificationResponse.StatusId != "F" {
-		return errors.New("StatusId is not F")
-	}
-
-	// 3. Check: Verify that order can be found by ordercode and order is not already set verified in database
-	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentSuccessful.EventData.OrderCode))
-	if err != nil {
-		log.Error("Getting order from database failed: ", err)
-	}
-
-	if order.Verified {
-		return errors.New("Order already verified")
-	}
-
-	// 4. Check: Verify amount matches with the ones in the database
-
-	// Sum up all prices of orderentries and compare with amount
-	var sum float64
-	for _, entry := range order.Entries {
-		sum += float64(entry.Price)
-	}
-	// Amount would mismatch without converting to float64
-	// Note: Bad consistency by VivaWallet representing amount in cents and int vs euro and float
-	sum = float64(sum) / 100
-
-	if sum != paymentSuccessful.EventData.Amount {
-		return errors.New("Amount mismatch")
-	}
-
-	// Since every check passed, now set verification status of order and create payments
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
-	if err != nil {
-		return err
-	}
-
-	return
+	return transactionVerificationResponse, err
 }
 
 func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err error) {
@@ -311,18 +317,90 @@ func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err 
 }
 
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
+	//Log the request body
+	log.Info("Whole request body of transaction price webhook", paymentPrice)
 
-	// TODO: Add additional entries in order (e.g. transaction fees)
-	// orderCode := ???
-	// orderID, err := database.Db.GetOrderByOrderCode(orderCode)
-	// if err != nil { ...
-	// var entries := []database.OrderEntry{}
-	// append transaction cost entries here
-	// err = database.Db.CreatePayedOrderEntries(orderID, entries)
-	// if err != nil { ...
+	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
+	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId)
+	if err != nil {
+		return err
+	}
 
-	// TODO: Figure out via transaction type what type (e.g. paypal, card, etc.) of payment this is
-	// https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
-	log.Info("paymentPrice", paymentPrice)
+	// 2. Check: Verify that order can be found by ordercode
+	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentPrice.EventData.OrderCode))
+	if err != nil {
+		return err
+	}
+
+	// TODO: Add Paypal API call to get transaction costs
+	// TODO: Test if VivaWallet still sends a 0.0 TotalCommission by an amount of 10€
+	// TOTHINKABOUT: Should we save which payment provider has been used for our transaction in the database i.e. Paypal or VivaWallet?
+	// Easy to do in success webhook with this param: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
+
+	// 3. Check: Check if TotalCommission is 0.0, which means that transaction costs are on Paypals side
+	// WARNING: This logic builds upon the assumption that there is only Paypal as a payment provider, which leads to a 0.0 TotalCommission
+	if paymentPrice.EventData.TotalCommission == 0.0 {
+
+		// Convert percentage to multiply it with total sum i.e. 1.05 for 5% transaction costs
+		convertedPercentageCosts := (config.Config.PaypalPercentageCosts + 100) / 100
+		// Calculate transaction costs
+		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
+		// Create order entries for transaction costs
+		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
+
+	} else {
+
+		transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
+		// Create order entries for transaction costs
+		err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
+
+	}
+
+	return
+}
+
+// Create payments and order entries to list transaction costs
+func CreateTransactionCostEntries(order database.Order, transactionCosts int, paymentProvider string) (err error) {
+
+	// Get ID of transaction costs item
+	transactionCostsItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
+	// Get ID of VivaWallet account
+	VivaWalletID, err := database.Db.GetAccountTypeID(paymentProvider)
+
+	// Create order entries for transaction costs
+	var entries = []database.OrderEntry{
+		{
+			Item:     transactionCostsItem.ID, // ID of transaction costs item
+			Quantity: transactionCosts,        // Amount of transaction costs
+			Sender:   order.Vendor,            // ID of vendor
+			Receiver: VivaWalletID,            // ID of VivaWallet
+		},
+	}
+
+	// Create payment with order entries
+	err = database.Db.CreatePayedOrderEntries(order.ID, entries)
+	if err != nil {
+		return err
+	}
+
+	if config.Config.OrgaCoversTransactionCosts {
+
+		// Get ID of Orga account
+		orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
+		// Create payment for covering transaction costs by Organization
+		var entries = []database.OrderEntry{
+			{
+				Item:     transactionCostsItem.ID, // ID of transaction costs item
+				Quantity: transactionCosts,        // Amount of transaction costs
+				Sender:   orgaAccountID,           // ID of Orga
+				Receiver: order.Vendor,            // ID of vendor
+			},
+		}
+		// append transaction cost entries here
+		err = database.Db.CreatePayedOrderEntries(order.ID, entries)
+		if err != nil {
+			return err
+		}
+	}
 	return
 }

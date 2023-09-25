@@ -200,6 +200,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders/verify/": {
+            "get": {
+                "description": "Verifies order and creates payments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Verify Payment Order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "3043685539722561",
+                        "description": "Order Code",
+                        "name": "s",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "882d641c-01cc-442f-b894-2b51250340b5",
+                        "description": "Transaction ID",
+                        "name": "t",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VerifyPaymentOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/payments/": {
             "get": {
                 "consumes": [
@@ -338,7 +379,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "List Vendors",
                 "responses": {
@@ -361,7 +402,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Create Vendor",
                 "parameters": [
@@ -424,7 +465,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -459,7 +500,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Delete Vendor",
                 "parameters": [
@@ -784,6 +825,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "workingTime": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.VerifyPaymentOrderResponse": {
+            "type": "object",
+            "properties": {
+                "timeStamp": {
                     "type": "string"
                 }
             }
