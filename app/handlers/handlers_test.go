@@ -159,13 +159,32 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
 }
 
+func CreateTestItemWithLicense(t *testing.T) (string, string) {
+	f := `{
+		"Name": "License item",
+		"Price": 123
+	}`
+	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
+	licenseItemID := res.Body.String()
+
+	f2 := `{
+		"Name": "Test item",
+		"Price": 314,
+		"LicenseItem": ` + licenseItemID + `
+	}`
+	res2 := utils.TestRequestStr(t, r, "POST", "/api/items/", f2, 200)
+	itemID := res2.Body.String()
+	return itemID, licenseItemID
+}
+
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
 	setMaxOrderAmount(t, 10)
 
-	itemID := CreateTestItem(t)
+	itemID, licenseItemID := CreateTestItemWithLicense(t)
 	itemIDInt, _ := strconv.Atoi(itemID)
+	licenseItemIDInt, _ := strconv.Atoi(licenseItemID)
 	vendorID := createTestVendor(t, "testLicenseID2")
 	vendorIDInt, _ := strconv.Atoi(vendorID)
 	f := `{
@@ -175,7 +194,7 @@ func TestOrders(t *testing.T) {
 			  "quantity": 315
 			}
 		  ],
-		  "vendor": ` + vendorID + `
+		  "vendorLicenseID": "testLicenseID2"
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
@@ -189,6 +208,10 @@ func TestOrders(t *testing.T) {
 		t.Error(err)
 	}
 
+	// Test order amount
+	orderTotal := order.GetTotal()
+	require.Equal(t, orderTotal, 314*315)
+
 	senderAccount, err := database.Db.GetAccountByType("UserAnon")
 	if err != nil {
 		t.Error(err)
@@ -198,13 +221,15 @@ func TestOrders(t *testing.T) {
 		t.Error(err)
 	}
 
+
 	require.Equal(t, order.Vendor, vendorIDInt)
 	require.Equal(t, order.Verified, false)
-	require.Equal(t, order.Entries[0].Item, itemIDInt)
-	require.Equal(t, order.Entries[0].Quantity, 315)
-	require.Equal(t, order.Entries[0].Price, 314)
-	require.Equal(t, order.Entries[0].Sender, senderAccount.ID)
-	require.Equal(t, order.Entries[0].Receiver, receiverAccount.ID)
+	require.Equal(t, order.Entries[0].Item, licenseItemIDInt)
+	require.Equal(t, order.Entries[1].Item, itemIDInt)
+	require.Equal(t, order.Entries[1].Quantity, 315)
+	require.Equal(t, order.Entries[1].Price, 314)
+	require.Equal(t, order.Entries[1].Sender, senderAccount.ID)
+	require.Equal(t, order.Entries[1].Receiver, receiverAccount.ID)
 
 }
 
@@ -307,7 +332,15 @@ func TestPaymentPayout(t *testing.T) {
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"Payment amount must be greater than 0"}}`)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
+
+	// Create invalid payments via API
+	f = createPaymentPayoutRequest{
+		Amount: 0,
+		VendorLicenseID: "testLicenseID",
+	}
+	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
 
 	// Create payments via API
 	f = createPaymentPayoutRequest{

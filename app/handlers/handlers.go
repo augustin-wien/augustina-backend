@@ -359,9 +359,9 @@ type createOrderRequestEntry struct {
 }
 
 type createOrderRequest struct {
-	Entries []createOrderRequestEntry
-	User    string
-	Vendor  int32
+	Entries          []createOrderRequestEntry
+	User             string
+	VendorLicenseID  string
 }
 
 type createOrderResponse struct {
@@ -381,12 +381,22 @@ type createOrderResponse struct {
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Read payment order from request
+	var requestData createOrderRequest
 	var order database.Order
-	err := utils.ReadJSON(w, r, &order)
+	err := utils.ReadJSON(w, r, &requestData)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
+	for idx, entry := range requestData.Entries {
+		order.Entries[idx].Item = entry.Item
+		order.Entries[idx].Quantity = entry.Quantity
+	}
+
+	order.User.String = requestData.User
+	vendor, err := database.Db.GetVendorByLicenseID(requestData.VendorLicenseID)
+	order.Vendor = vendor.ID
 
 	var settings database.Settings
 	if settings, err = database.Db.GetSettings(); err != nil {
@@ -434,6 +444,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
 		order.Entries[idx].Price = item.Price // Take current item price
+		order.Entries[idx].IsSale = true  // Will be used for sales payment
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
@@ -625,6 +636,12 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	cashAccount, err := database.Db.GetAccountByType("Cash")
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Check that amount is bigger than 0
+	if payoutData.Amount <= 0 {
+		utils.ErrorJSON(w, errors.New("payout amount must be bigger than 0"), http.StatusBadRequest)
 		return
 	}
 
