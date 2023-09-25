@@ -205,7 +205,6 @@ func TestOrders(t *testing.T) {
 		t.Error(err)
 	}
 
-
 	require.Equal(t, order.Vendor, vendorIDInt)
 	require.Equal(t, order.Verified, false)
 	require.Equal(t, order.Entries[0].Item, licenseItemIDInt)
@@ -309,7 +308,7 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create invalid payments via API
 	f := createPaymentPayoutRequest{
-		Amount: -314,
+		Amount:          -314,
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
@@ -317,7 +316,7 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create payments via API
 	f = createPaymentPayoutRequest{
-		Amount: 314,
+		Amount:          314,
 		VendorLicenseID: "testLicenseID",
 	}
 	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
@@ -367,7 +366,7 @@ func TestSettings(t *testing.T) {
 	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
 	err := json.Unmarshal(res.Body.Bytes(), &settings)
 	utils.CheckError(t, err)
-	require.Equal(t, "/img/logo.png", settings.Logo)
+	require.Equal(t, "img/logo.png", settings.Logo)
 
 	// Check file
 	file, err := os.ReadFile(".." + settings.Logo)
