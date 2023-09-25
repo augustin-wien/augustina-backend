@@ -12,7 +12,11 @@ CREATE TABLE Vendor (
     IsDisabled bool NOT NULL DEFAULT FALSE,
     Longitude double precision NOT NULL DEFAULT 0,
     Latitude double precision NOT NULL DEFAULT 0,
-    Address varchar(255) NOT NULL DEFAULT ''
+    Address varchar(255) NOT NULL DEFAULT '',
+    PLZ varchar(255) NOT NULL DEFAULT '',
+    Location varchar(255) NOT NULL DEFAULT '',
+    WorkingTime varchar(1) NOT NULL DEFAULT '',
+    Lang varchar(255) NOT NULL DEFAULT '',
 );
 
 CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash');  -- UserAnon, Orga, and Cash should only exist once

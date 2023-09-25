@@ -24,6 +24,10 @@ type Vendor struct {
 	Longitude  float64
 	Latitude   float64
 	Address	   string
+	PLZ		   string
+	Location   string
+	WorkingTime string
+	Lang        string
 }
 
 // Account is a struct that is used for the account table
