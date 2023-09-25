@@ -23,7 +23,7 @@ type Vendor struct {
 	IsDisabled bool
 	Longitude  float64
 	Latitude   float64
-	Address	   string
+	Address    string
 }
 
 // Account is a struct that is used for the account table
@@ -49,14 +49,15 @@ type Item struct {
 
 // Order is a struct that is used for the order table
 type Order struct {
-	ID            int
-	OrderCode     null.String
-	TransactionID string
-	Verified      bool
-	Timestamp     time.Time
-	User          null.String // Keycloak UUID if user is authenticated
-	Vendor        int
-	Entries       []OrderEntry
+	ID                int
+	OrderCode         null.String
+	TransactionID     string
+	Verified          bool
+	TransactionTypeID int
+	Timestamp         time.Time
+	User              null.String // Keycloak UUID if user is authenticated
+	Vendor            int
+	Entries           []OrderEntry
 }
 
 // OrderEntry is a struct that is used for the order_entry table

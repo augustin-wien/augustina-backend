@@ -188,6 +188,8 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 }
 
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest) (err error) {
+	// Log the request body
+	log.Info("Whole request body of transaction success webhook", paymentSuccessful)
 
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
@@ -236,7 +238,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	// Since every check passed, now set verification status of order and create payments
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeId)
 	if err != nil {
 		return err
 	}
@@ -306,7 +308,7 @@ func VerifyTransactionID(transactionID string) (transactionVerificationResponse 
 		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction.")
 	}
 
-	return transactionVerificationResponse, nil
+	return transactionVerificationResponse, err
 }
 
 func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err error) {
@@ -315,6 +317,8 @@ func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err 
 }
 
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
+	//Log the request body
+	log.Info("Whole request body of transaction price webhook", paymentPrice)
 
 	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
 	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId)
@@ -352,7 +356,6 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 
 	}
 
-	log.Info("paymentPrice", paymentPrice)
 	return
 }
 

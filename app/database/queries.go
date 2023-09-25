@@ -252,7 +252,7 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 	}
 	for rows.Next() {
 		var order Order
-		err = rows.Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+		err = rows.Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
 		if err != nil {
 			log.Error(err)
 			return orders, err
@@ -269,7 +269,7 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 
 // GetOrderByID returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
 	if err != nil {
 		log.Error(err)
 		return
@@ -287,7 +287,7 @@ func (db *Database) GetOrderByID(id int) (order Order, err error) {
 // GetOrderByOrderCode returns Order by OrderCode
 func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err error) {
 
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
 	if err != nil {
 		log.Error(err)
 		return
@@ -371,7 +371,7 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
-func (db *Database) VerifyOrderAndCreatePayments(orderID int) (err error) {
+func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID int) (err error) {
 
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())
@@ -383,9 +383,9 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int) (err error) {
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
 	UPDATE PaymentOrder
-	SET Verified = True
-	WHERE ID = $1
-	`, orderID)
+	SET Verified = True, TransactionTypeID = $1
+	WHERE ID = $2
+	`, transactionTypeID, orderID)
 	if err != nil {
 		log.Error(err)
 	}
