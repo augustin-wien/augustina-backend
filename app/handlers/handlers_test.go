@@ -173,6 +173,10 @@ func TestOrders(t *testing.T) {
 		t.Error(err)
 	}
 
+	// Test order amount
+	orderTotal := order.GetTotal()
+	require.Equal(t, orderTotal, 314*315)
+
 	senderAccount, err := database.Db.GetAccountByType("UserAnon")
 	if err != nil {
 		t.Error(err)
