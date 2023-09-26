@@ -508,8 +508,6 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	log.Info("Order: ", order)
-	log.Info("Order timestamp: ", order.Timestamp)
 
 	if database.Db.IsProduction {
 		// Verify transaction
