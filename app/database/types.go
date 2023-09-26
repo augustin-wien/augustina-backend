@@ -53,14 +53,15 @@ type Item struct {
 
 // Order is a struct that is used for the order table
 type Order struct {
-	ID            int
-	OrderCode     null.String
-	TransactionID string
-	Verified      bool
-	Timestamp     time.Time
-	User          null.String // Keycloak UUID if user is authenticated
-	Vendor        int
-	Entries       []OrderEntry
+	ID                int
+	OrderCode         null.String
+	TransactionID     string
+	Verified          bool
+	TransactionTypeID int
+	Timestamp         time.Time
+	User              null.String // Keycloak UUID if user is authenticated
+	Vendor            int
+	Entries           []OrderEntry
 }
 
 // OrderEntry is a struct that is used for the order_entry table
@@ -71,6 +72,7 @@ type OrderEntry struct {
 	Price    int // Price at time of purchase in cents
 	Sender   int
 	Receiver int
+	IsSale   bool // Whether to include this item in sales payment
 }
 
 // Payment is a struct that is used for the payment table
@@ -83,15 +85,17 @@ type Payment struct {
 	AuthorizedBy string
 	Order        null.Int `swaggertype:"integer"`
 	OrderEntry   null.Int `swaggertype:"integer"`
+	IsSale       bool
 }
 
 // Settings is a struct that is used for the settings table
 type Settings struct {
-	ID         int
-	Color      string
-	Logo       string
-	MainItem   null.Int `swaggertype:"integer"`
-	RefundFees bool
+	ID             int
+	Color          string
+	Logo           string
+	MainItem       null.Int `swaggertype:"integer"`
+	RefundFees     bool
+	MaxOrderAmount int
 }
 
 // DBSettings is a struct that is used for the dbsettings table
