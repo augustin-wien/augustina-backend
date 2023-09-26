@@ -228,10 +228,17 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	var sum float64
 	for _, entry := range order.Entries {
 		log.Info("Entry price: ", entry.Price, " Entry quantity: ", entry.Quantity, "Entry item: ", entry.Item)
+
 		// Check if entry is transaction costs, which are not included in the sum
-		if entry.Item == 1 {
+		var item database.Item
+		item, err = database.Db.GetItemByName(config.Config.TransactionCostsName)
+		if err != nil {
+			return err
+		}
+		if entry.Item == item.ID {
 			continue // Skip transaction costs
 		}
+
 		sum += float64(entry.Price * entry.Quantity)
 	}
 	// Amount would mismatch without converting to float64
