@@ -183,11 +183,13 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 		return 0, err
 	}
 
-	return int(orderCode.OrderCode), nil
+	return int(orderCode.OrderCode), err
 
 }
 
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest) (err error) {
+	// Log the request body
+	log.Info("Whole request body of transaction success webhook", paymentSuccessful)
 
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
@@ -210,14 +212,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 		return errors.New("StatusId mismatch")
 	}
 
-	// TODO: Figure out what to do if statusId is not "F"
-	// https://developer.vivawallet.com/integration-reference/response-codes/#statusid-parameter
-	// 2. Check: Check if this is the correct statusId
-	if transactionVerificationResponse.StatusId != "F" {
-		return errors.New("StatusId is not F")
-	}
-
-	// 3. Check: Verify that order can be found by ordercode and order is not already set verified in database
+	// 2. Check: Verify that order can be found by ordercode and order is not already set verified in database
 	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentSuccessful.EventData.OrderCode))
 	if err != nil {
 		log.Error("Getting order from database failed: ", err)
@@ -227,7 +222,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 		return errors.New("Order already verified")
 	}
 
-	// 4. Check: Verify amount matches with the ones in the database
+	// 3. Check: Verify amount matches with the ones in the database
 
 	// Sum up all prices of orderentries and compare with amount
 	var sum float64
@@ -243,7 +238,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	// Since every check passed, now set verification status of order and create payments
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeId)
 	if err != nil {
 		return err
 	}
@@ -308,7 +303,12 @@ func VerifyTransactionID(transactionID string) (transactionVerificationResponse 
 		return transactionVerificationResponse, err
 	}
 
-	return transactionVerificationResponse, nil
+	// 1. Check: Verify that transaction has correct status, only status "F" and "MW" is allowed according to VivaWallet
+	if transactionVerificationResponse.StatusId != "F" && transactionVerificationResponse.StatusId != "MW" {
+		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction.")
+	}
+
+	return transactionVerificationResponse, err
 }
 
 func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err error) {
@@ -317,11 +317,90 @@ func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err 
 }
 
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
-	// Add additional entries in order (e.g. transaction fees)
-	// TODO: order.Entries = append(order.Entries, MyEntry)
+	//Log the request body
+	log.Info("Whole request body of transaction price webhook", paymentPrice)
 
-	// TODO: Figure out via transaction type what type (e.g. paypal, card, etc.) of payment this is
-	// https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
-	log.Info("paymentPrice", paymentPrice)
+	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
+	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId)
+	if err != nil {
+		return err
+	}
+
+	// 2. Check: Verify that order can be found by ordercode
+	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentPrice.EventData.OrderCode))
+	if err != nil {
+		return err
+	}
+
+	// TODO: Add Paypal API call to get transaction costs
+	// TODO: Test if VivaWallet still sends a 0.0 TotalCommission by an amount of 10€
+	// TOTHINKABOUT: Should we save which payment provider has been used for our transaction in the database i.e. Paypal or VivaWallet?
+	// Easy to do in success webhook with this param: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
+
+	// 3. Check: Check if TotalCommission is 0.0, which means that transaction costs are on Paypals side
+	// WARNING: This logic builds upon the assumption that there is only Paypal as a payment provider, which leads to a 0.0 TotalCommission
+	if paymentPrice.EventData.TotalCommission == 0.0 {
+
+		// Convert percentage to multiply it with total sum i.e. 1.05 for 5% transaction costs
+		convertedPercentageCosts := (config.Config.PaypalPercentageCosts + 100) / 100
+		// Calculate transaction costs
+		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
+		// Create order entries for transaction costs
+		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
+
+	} else {
+
+		transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
+		// Create order entries for transaction costs
+		err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
+
+	}
+
+	return
+}
+
+// Create payments and order entries to list transaction costs
+func CreateTransactionCostEntries(order database.Order, transactionCosts int, paymentProvider string) (err error) {
+
+	// Get ID of transaction costs item
+	transactionCostsItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
+	// Get ID of VivaWallet account
+	VivaWalletID, err := database.Db.GetAccountTypeID(paymentProvider)
+
+	// Create order entries for transaction costs
+	var entries = []database.OrderEntry{
+		{
+			Item:     transactionCostsItem.ID, // ID of transaction costs item
+			Quantity: transactionCosts,        // Amount of transaction costs
+			Sender:   order.Vendor,            // ID of vendor
+			Receiver: VivaWalletID,            // ID of VivaWallet
+		},
+	}
+
+	// Create payment with order entries
+	err = database.Db.CreatePayedOrderEntries(order.ID, entries)
+	if err != nil {
+		return err
+	}
+
+	if config.Config.OrgaCoversTransactionCosts {
+
+		// Get ID of Orga account
+		orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
+		// Create payment for covering transaction costs by Organization
+		var entries = []database.OrderEntry{
+			{
+				Item:     transactionCostsItem.ID, // ID of transaction costs item
+				Quantity: transactionCosts,        // Amount of transaction costs
+				Sender:   orgaAccountID,           // ID of Orga
+				Receiver: order.Vendor,            // ID of vendor
+			},
+		}
+		// append transaction cost entries here
+		err = database.Db.CreatePayedOrderEntries(order.ID, entries)
+		if err != nil {
+			return err
+		}
+	}
 	return
 }
