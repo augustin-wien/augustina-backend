@@ -349,6 +349,7 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, e
 // createPaymentForOrderEntryTx creates a payment for an order entry
 func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, errorIfExists bool) (paymentID int, err error) {
 
+	log.Info("createPaymentForOrderEntryTx", zap.Int("orderID", orderID), zap.Any("entry", entry))
 	var count int
 	err = tx.QueryRow(context.Background(), "SELECT COUNT(*) FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&count)
 
@@ -362,14 +363,13 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 			Amount:     entry.Price * entry.Quantity,
 			Order:      null.NewInt(int64(orderID), true),
 			OrderEntry: null.NewInt(int64(entry.ID), true),
-			IsSale:   entry.IsSale,
+			IsSale:     entry.IsSale,
 		}
 		paymentID, err = createPaymentTx(tx, payment)
 	}
 
 	return
 }
-
 
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
@@ -415,6 +415,7 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 
 	// Create entries & associated payments
 	for _, entry := range entries {
+		log.Info("Final entry creation for order", zap.Int("orderID", orderID), zap.Any("entry", entry))
 		entry, err = createOrderEntryTx(tx, orderID, entry)
 		if err != nil {
 			log.Error(err)

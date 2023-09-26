@@ -189,7 +189,7 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest) (err error) {
 	// Log the request body
-	log.Info("Whole request body of transaction success webhook", paymentSuccessful)
+	log.Info("Transaction success webhook entered", paymentSuccessful)
 
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
@@ -318,7 +318,7 @@ func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err 
 
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
 	//Log the request body
-	log.Info("Whole request body of transaction price webhook", paymentPrice)
+	log.Info("Transaction price webhook entered", paymentPrice)
 
 	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
 	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId)
@@ -340,18 +340,22 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	// 3. Check: Check if TotalCommission is 0.0, which means that transaction costs are on Paypals side
 	// WARNING: This logic builds upon the assumption that there is only Paypal as a payment provider, which leads to a 0.0 TotalCommission
 	if paymentPrice.EventData.TotalCommission == 0.0 {
+		log.Info("Entered Paypal transaction costs logic")
 
 		// Convert percentage to multiply it with total sum i.e. 1.05 for 5% transaction costs
 		convertedPercentageCosts := (config.Config.PaypalPercentageCosts + 100) / 100
 		// Calculate transaction costs
 		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
+		log.Info(zap.Float64("paypalAmount", paypalAmount))
 		// Create order entries for transaction costs
 		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
 
 	} else {
+		log.Info("Entered VivaWallet transaction costs logic")
 
 		transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
 		// Create order entries for transaction costs
+		log.Info(zap.Int("transactionCosts VivaWallet", transactionCosts))
 		err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
 
 	}
@@ -361,6 +365,7 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 
 // Create payments and order entries to list transaction costs
 func CreateTransactionCostEntries(order database.Order, transactionCosts int, paymentProvider string) (err error) {
+	log.Info("CreateTransactionCostEntries entered")
 
 	// Get ID of transaction costs item
 	transactionCostsItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
@@ -376,6 +381,7 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 			Receiver: VivaWalletID,            // ID of VivaWallet
 		},
 	}
+	log.Info(zap.Any("First transaction cost entry", entries))
 
 	// Create payment with order entries
 	err = database.Db.CreatePayedOrderEntries(order.ID, entries)
@@ -385,6 +391,7 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 
 	if config.Config.OrgaCoversTransactionCosts {
 
+		log.Info("OrgaCoversTransactionCosts is set to true and second entry entered")
 		// Get ID of Orga account
 		orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
 		// Create payment for covering transaction costs by Organization
