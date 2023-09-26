@@ -742,6 +742,10 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 
 }
 
+type WebhookResponse struct {
+	Status string
+}
+
 // VivaWalletCreateTransactionOrder godoc
 //
 //	@Summary		Webhook for VivaWallet successful transaction
@@ -781,7 +785,10 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, nil)
+	var response WebhookResponse
+	response.Status = "OK"
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // VivaWalletWebhookFailure godoc
@@ -809,7 +816,10 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, nil)
+	var response WebhookResponse
+	response.Status = "OK"
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // VivaWalletWebhookPrice godoc
@@ -852,7 +862,10 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, err)
+	var response WebhookResponse
+	response.Status = "OK"
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // VivaWalletVerificationKey godoc
