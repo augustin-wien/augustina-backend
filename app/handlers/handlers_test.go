@@ -201,7 +201,7 @@ func TestOrders(t *testing.T) {
 
 	setMaxOrderAmount(t, 1000000)
 	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
-	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"` + config.Config.VivaWalletSmartCheckoutURL + `0"}`)
+	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
 	order, err := database.Db.GetOrderByOrderCode("0")
 	if err != nil {
@@ -221,7 +221,6 @@ func TestOrders(t *testing.T) {
 		t.Error(err)
 	}
 
-
 	require.Equal(t, order.Vendor, vendorIDInt)
 	require.Equal(t, order.Verified, false)
 	require.Equal(t, order.Entries[0].Item, licenseItemIDInt)
@@ -232,15 +231,15 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, order.Entries[1].Receiver, receiverAccount.ID)
 
 	// Verify order and create payments
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 5)
 
 	// Check payments
 	payments, err := database.Db.ListPayments(time.Time{}, time.Time{})
 	if err != nil {
 		t.Error(err)
 	}
-	require.Equal(t, 1, len(payments))
-	require.Equal(t, payments[0].Amount, 98910)
+	require.Equal(t, 2, len(payments))
+	require.Equal(t, payments[1].Amount, 98910)
 
 	// Check balances
 	senderAccount, err = database.Db.GetAccountByType("UserAnon")
@@ -251,12 +250,11 @@ func TestOrders(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	log.Info(senderAccount, "senderAccount")
+	log.Info(receiverAccount, "receiverAccount")
 	require.Equal(t, senderAccount.Balance, -98910)
-	require.Equal(t, receiverAccount.Balance, 98910)
+	require.Equal(t, receiverAccount.Balance, 60165)
 }
-
-
-
 
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
@@ -358,7 +356,7 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create invalid payments via API
 	f = createPaymentPayoutRequest{
-		Amount: 0,
+		Amount:          0,
 		VendorLicenseID: "testLicenseID",
 	}
 	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
