@@ -67,26 +67,26 @@ type TransactionVerificationResponse struct {
 }
 
 type PriceEventData struct {
-	OrderCode       int     `json:"OrderCode"`
-	MerchantID      string  `json:"MerchantId"`
-	IsvFee          float64 `json:"IsvFee"`
-	ResellerID      string  `json:"ResellerId"`
-	TransactionId   string  `json:"TransactionId"`
 	CurrencyCode    string  `json:"CurrencyCode"`
 	Interchange     float64 `json:"Interchange"`
+	IsvFee          float64 `json:"IsvFee"`
+	MerchantID      string  `json:"MerchantId"`
+	OrderCode       int     `json:"OrderCode"`
+	ResellerID      string  `json:"ResellerId"`
 	TotalCommission float64 `json:"TotalCommission"`
+	TransactionId   string  `json:"TransactionId"`
 }
 
 type TransactionPriceRequest struct {
-	Url           string         `json:"Url"`
-	EventData     PriceEventData `json:"EventData"`
-	Created       time.Time      `json:"Created"`
 	CorrelationId string         `json:"CorrelationId"`
-	EventTypeId   int            `json:"EventTypeId"`
+	Created       time.Time      `json:"Created"`
 	Delay         *int           `json:"Delay"`
+	EventData     PriceEventData `json:"EventData"`
+	EventTypeId   int            `json:"EventTypeId"`
 	MessageId     string         `json:"MessageId"`
-	RecipientId   string         `json:"RecipientId"`
 	MessageTypeId int            `json:"MessageTypeId"`
+	RecipientId   string         `json:"RecipientId"`
+	Url           string         `json:"Url"`
 }
 
 type TransactionDetailRequest struct {
