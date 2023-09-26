@@ -204,12 +204,41 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 //		@Success		200	 {integer}	id
 //		@Router			/items/ [post]
 func CreateItem(w http.ResponseWriter, r *http.Request) {
-	var item database.Item
-	err := utils.ReadJSON(w, r, &item)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
+	var err error
+	// Read multipart form
+	r.ParseMultipartForm(32 << 20)
+	mForm := r.MultipartForm
+	if mForm == nil {
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
+
+	// Handle normal fields
+	var item database.Item
+	fields := mForm.Value               // Values are stored in []string
+	fieldsClean := make(map[string]any) // Values are stored in string
+	for key, value := range fields {
+		if key == "Price" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				log.Error(err)
+			}
+		} else {
+			fieldsClean[key] = value[0]
+		}
+	}
+	err = mapstructure.Decode(fieldsClean, &item)
+	if err != nil {
+		log.Error(err)
+	}
+	path, err := updateItemImage(item.Image)
+	if err != nil {
+		log.Error(err)
+		err = errors.New("image couldn't be saved")
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+	}
+	item.Image = path
+	item.Archived = false
 	id, err := database.Db.CreateItem(item)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -218,50 +247,53 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, id)
 }
 
-func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
-	// Get file from image field
-	file, header, err := r.FormFile("Image")
-	if err != nil {
-		return // No file passed, which is ok
-	}
-	defer file.Close()
+func updateItemImage(image string) (path string, err error) {
 
-	// Debugging
-	name := strings.Split(header.Filename, ".")
-	if len(name) != 2 {
-		log.Error(err)
-		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
-		return
+	if image == "" {
+		return "", nil
+	}
+	// check if image is already saved
+	if strings.HasPrefix(image, "img/") &&
+		(strings.HasSuffix(image, ".png") || strings.HasSuffix(image, ".jpeg")) {
+		return image, nil
 	}
 
-	buf := bytes.NewBuffer(nil)
-	if _, err = io.Copy(buf, file); err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	// Generate unique filename
-	i := 0
-	for {
-		path = "/img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
-		_, err = os.Stat(".." + path)
-		if errors.Is(err, os.ErrNotExist) {
-			break
-		}
-		i++
-		if i > 1000 {
-			log.Error(err)
-			utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
-			return
-		}
-	}
-
-	// Save file with unique name
-	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	name := utils.RandomString(10)
+	//  extract mime type from base64 string
+	mimeType := strings.Split(image, ";")[0]
+	mimeType = strings.Split(mimeType, ":")[1]
+	//  get file extension
+	ext := strings.Split(mimeType, "/")[1]
+	//  decode base64 string
+	image = strings.Split(image, ",")[1]
+	//  create file name with random string
+	name = name + "." + ext
+	//  decode base64 string
+	file, err := utils.DecodeBase64(image)
 	if err != nil {
 		log.Error(err)
+		return "", err
 	}
-	return
+	//  show current path
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	// create file
+	_, err = os.Create(dir + "/img/" + name)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	// write file
+	err = os.WriteFile(dir+"/img/"+name, file, 0666)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	path = "img/" + name
+	return path, nil
 }
 
 // UpdateItem godoc
@@ -295,7 +327,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var item database.Item
-	fields := mForm.Value // Values are stored in []string
+	fields := mForm.Value               // Values are stored in []string
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
 		if key == "Price" {
@@ -311,11 +343,13 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error(err)
 	}
-
-	path, _ := updateItemImage(w, r)
-	if path != "" {
-		item.Image = path
+	path, err := updateItemImage(item.Image)
+	if err != nil {
+		log.Error(err)
+		err = errors.New("image couldn't be saved")
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
+	item.Image = path
 
 	// Save item to database
 	err = database.Db.UpdateItem(ItemID, item)
@@ -359,9 +393,9 @@ type createOrderRequestEntry struct {
 }
 
 type createOrderRequest struct {
-	Entries          []createOrderRequestEntry
-	User             string
-	VendorLicenseID  string
+	Entries         []createOrderRequestEntry
+	User            string
+	VendorLicenseID string
 }
 
 type createOrderResponse struct {
@@ -444,7 +478,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
 		order.Entries[idx].Price = item.Price // Take current item price
-		order.Entries[idx].IsSale = true  // Will be used for sales payment
+		order.Entries[idx].IsSale = true      // Will be used for sales payment
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
@@ -478,13 +512,13 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("Authentication failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+			return
 		}
 		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order)
 		if err != nil {
 			log.Error("Creating payment order failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+			return
 		}
 	}
 
@@ -877,7 +911,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var settings database.Settings
-	fields := mForm.Value                  // Values are stored in []string
+	fields := mForm.Value               // Values are stored in []string
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
 		if key == "MaxOrderAmount" {

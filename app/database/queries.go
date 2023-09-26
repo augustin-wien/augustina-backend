@@ -181,7 +181,7 @@ func (db *Database) CreateItem(item Item) (id int32, err error) {
 	}
 
 	// Insert the new item
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, LicenseItem, Archived) values ($1, $2, $3, $4, $5) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived).Scan(&id)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, Image, LicenseItem, Archived ) values ($1, $2, $3, $4, $5, $6) RETURNING ID", item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived).Scan(&id)
 	if err != nil {
 		log.Error(err)
 	}
@@ -348,19 +348,18 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	if count == 0 && !errorIfExists {
 		err = nil
 		payment = Payment{
-			Sender:   entry.Sender,
-			Receiver: entry.Receiver,
-			Amount:   entry.Price * entry.Quantity,
-			Order:    null.NewInt(int64(orderID), true),
+			Sender:     entry.Sender,
+			Receiver:   entry.Receiver,
+			Amount:     entry.Price * entry.Quantity,
+			Order:      null.NewInt(int64(orderID), true),
 			OrderEntry: null.NewInt(int64(entry.ID), true),
-			IsSale:   entry.IsSale,
+			IsSale:     entry.IsSale,
 		}
 		paymentID, err = createPaymentTx(tx, payment)
 	}
 
 	return
 }
-
 
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
@@ -420,7 +419,6 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 
 	return
 }
-
 
 // Payments -------------------------------------------------------------------
 
