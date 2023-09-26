@@ -41,7 +41,6 @@ func (db *Database) createDevItems() (err error) {
 		Name:        "Zeitung",
 		Description: "Aktuelle Zeitungsausgabe",
 		Price:       300,
-		LicenseItem: null.IntFrom(1),
 		Archived:    false,
 	}
 
@@ -49,7 +48,6 @@ func (db *Database) createDevItems() (err error) {
 		Name:        "Kalender",
 		Description: "Kalender für das Jahr 2024",
 		Price:       800,
-		LicenseItem: null.IntFrom(2),
 		Archived:    false,
 	}
 
@@ -57,7 +55,6 @@ func (db *Database) createDevItems() (err error) {
 		Name:        "Spende",
 		Description: "Spenden für das eigene Wohlbefinden",
 		Price:       1,
-		LicenseItem: null.IntFrom(3),
 		Archived:    false,
 	}
 
