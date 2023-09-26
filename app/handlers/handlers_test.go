@@ -101,7 +101,7 @@ func TestVendors(t *testing.T) {
 	jsonVendor := `{"firstName": "nameAfterUpdate"}`
 	utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200, adminUserToken)
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
-	err = json.Unmarshal(res.Body.Bytes(), &vendors)
+	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(vendors2))
 	require.Equal(t, "nameAfterUpdate", vendors2[0].FirstName)
@@ -190,7 +190,7 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 	writer := multipart.NewWriter(body)
 	writer.WriteField("MaxOrderAmount", strconv.Itoa(amount))
 	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
+	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200, adminUserToken)
 }
 
 func CreateTestItemWithLicense(t *testing.T) (string, string) {
@@ -198,7 +198,7 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 		"Name": "License item",
 		"Price": 123
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
+	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
 	licenseItemID := res.Body.String()
 
 	f2 := `{
@@ -206,7 +206,7 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 		"Price": 314,
 		"LicenseItem": ` + licenseItemID + `
 	}`
-	res2 := utils.TestRequestStr(t, r, "POST", "/api/items/", f2, 200)
+	res2 := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f2, 200, adminUserToken)
 	itemID := res2.Body.String()
 	return itemID, licenseItemID
 }
@@ -343,7 +343,7 @@ func timeRequest(t *testing.T, from int, to int, expectedLength int) {
 	if to != 0 {
 		path += "to=" + time.Now().UTC().Add(time.Duration(to)*time.Hour).Format(time.RFC3339)
 	}
-	response := utils.TestRequest(t, r, "GET", path, nil, 200)
+	response := utils.TestRequestWithAuth(t, r, "GET", path, nil, 200, adminUserToken)
 	err := json.Unmarshal(response.Body.Bytes(), &payments)
 	utils.CheckError(t, err)
 	require.Equal(t, expectedLength, len(payments))
@@ -417,7 +417,7 @@ func TestSettings(t *testing.T) {
 	image, _ := writer.CreateFormFile("Logo", "test.png")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
+	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200, adminUserToken)
 
 	// Read
 	var settings database.Settings
