@@ -8,7 +8,16 @@ Check out the git submodules to load the wordpress, wpcli and parser git checkou
 git submodule update --init --recursive
 ```
 
-Copy `.env.example` to `.env` and set `KEYCLOAK_HOST=http://keycloak:8080/`
+Copy `.env.example` to `.env` via
+```bash
+cp .env.example /.env
+```
+Then set `KEYCLOAK_HOST=http://keycloak:8080/` in your `.env`
+
+Copy `docker/.env.parser.example` to `docker/.env.parser` via
+```bash
+cp docker/.env.parser.example docker/.env.parser
+```
 
 Start the application with Docker:
 
@@ -214,6 +223,12 @@ In case your PDF-Parser does not work, make sure everything ran fine in yout wpc
 
 ### Credentials
 All the following credentials are needed in your `.env` file.
+VIVA_WALLET_SOURCE_CODE="6343"
+VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID="e76rpevturffktne7n18v0oxyj3m6s532r1q4y4k4xx13.apps.vivapayments.com"
+VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY="qh08FkU0dF8vMwH76jGAuBmWib9WsP"
+VIVA_WALLET_VERIFICATION_KEY="94FA5D3BA6DBC79DC56E6BC7E2F8A3F25A566EAE"
+VIVA_WALLET_API_URL="https://demo-api.vivapayments.com"
+VIVA_WALLET_ACCOUNTS_URL="https://demo-accounts.vivapayments.com"
 
 #### Source Code
 To get your Source code, follow the instructions here: https://developer.vivawallet.com/getting-started/create-a-payment-source/payment-source-for-online-payments/
@@ -225,7 +240,8 @@ To get your Smart Checkout Client ID and Client Key, follow the instructions her
 #### Verification key
 To create a new verification key, follow the instructions here: https://developer.vivawallet.com/webhooks-for-payments/#generate-a-webhook-verification-key
 
-
+#### TransactionTypeID
+To have an overview which transaction type id means what, follow this link: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
 
 ### Checkout Process
 
@@ -240,7 +256,7 @@ curl --header "Content-Type: application/json" \
 http://localhost:3000/api/transaction/
 ```
 - Here the amount is in cents, so this call requests to charge 2500 cents which is 25€
-- If successful, response is the checkout URL: `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=8958019584072636"}`
+- If successful, response in demo instance is the checkout URL: `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=8958019584072636"}`
 - Extract link and paste it to your browser or if possible click on it to move forward to next step
 
 #### 2. Test cards

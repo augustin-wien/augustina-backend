@@ -173,6 +173,13 @@
                 "summary": "Update Item",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Item Representation",
                         "name": "data",
                         "in": "body",
@@ -218,6 +225,47 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.createOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/verify/": {
+            "get": {
+                "description": "Verifies order and creates payments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Verify Payment Order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "3043685539722561",
+                        "description": "Order Code",
+                        "name": "s",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "882d641c-01cc-442f-b894-2b51250340b5",
+                        "description": "Transaction ID",
+                        "name": "t",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VerifyPaymentOrderResponse"
                         }
                     }
                 }
@@ -384,7 +432,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "List Vendors",
                 "responses": {
@@ -412,7 +460,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Create Vendor",
                 "parameters": [
@@ -480,7 +528,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -782,6 +830,9 @@
                 "mainItem": {
                     "type": "integer"
                 },
+                "maxOrderAmount": {
+                    "type": "integer"
+                },
                 "refundFees": {
                     "type": "boolean"
                 }
@@ -812,6 +863,9 @@
                 "keycloakID": {
                     "type": "string"
                 },
+                "lang": {
+                    "type": "string"
+                },
                 "lastName": {
                     "type": "string"
                 },
@@ -825,11 +879,28 @@
                 "licenseID": {
                     "$ref": "#/definitions/null.String"
                 },
+                "location": {
+                    "type": "string"
+                },
                 "longitude": {
                     "type": "number"
                 },
+                "plz": {
+                    "type": "string"
+                },
                 "urlid": {
                     "description": "This is used for the QR code",
+                    "type": "string"
+                },
+                "workingTime": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.VerifyPaymentOrderResponse": {
+            "type": "object",
+            "properties": {
+                "timeStamp": {
                     "type": "string"
                 }
             }
@@ -846,8 +917,8 @@
                 "user": {
                     "type": "string"
                 },
-                "vendor": {
-                    "type": "integer"
+                "vendorLicenseID": {
+                    "type": "string"
                 }
             }
         },

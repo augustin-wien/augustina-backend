@@ -51,6 +51,8 @@ definitions:
         type: string
       mainItem:
         type: integer
+      maxOrderAmount:
+        type: integer
       refundFees:
         type: boolean
     type: object
@@ -71,6 +73,8 @@ definitions:
         type: boolean
       keycloakID:
         type: string
+      lang:
+        type: string
       lastName:
         type: string
       lastPayout:
@@ -80,10 +84,21 @@ definitions:
         type: number
       licenseID:
         $ref: '#/definitions/null.String'
+      location:
+        type: string
       longitude:
         type: number
+      plz:
+        type: string
       urlid:
         description: This is used for the QR code
+        type: string
+      workingTime:
+        type: string
+    type: object
+  handlers.VerifyPaymentOrderResponse:
+    properties:
+      timeStamp:
         type: string
     type: object
   handlers.createOrderRequest:
@@ -94,8 +109,8 @@ definitions:
         type: array
       user:
         type: string
-      vendor:
-        type: integer
+      vendorLicenseID:
+        type: string
     type: object
   handlers.createOrderRequestEntry:
     properties:
@@ -434,6 +449,11 @@ paths:
       - application/json
       description: Requires multipart form (for image)
       parameters:
+      - description: Item ID
+        in: path
+        name: id
+        required: true
+        type: integer
       - description: Item Representation
         in: body
         name: data
@@ -472,6 +492,34 @@ paths:
           schema:
             $ref: '#/definitions/handlers.createOrderResponse'
       summary: Create Payment Order
+      tags:
+      - Orders
+  /orders/verify/:
+    get:
+      consumes:
+      - application/json
+      description: Verifies order and creates payments
+      parameters:
+      - description: Order Code
+        format: "3043685539722561"
+        in: query
+        name: s
+        required: true
+        type: string
+      - description: Transaction ID
+        format: 882d641c-01cc-442f-b894-2b51250340b5
+        in: query
+        name: t
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VerifyPaymentOrderResponse'
+      summary: Verify Payment Order
       tags:
       - Orders
   /payments/:
@@ -583,7 +631,7 @@ paths:
       - KeycloakAuth: []
       summary: List Vendors
       tags:
-      - vendors
+      - Vendors
     post:
       consumes:
       - application/json
@@ -603,7 +651,7 @@ paths:
       - KeycloakAuth: []
       summary: Create Vendor
       tags:
-      - vendors
+      - Vendors
   /vendors/{id}/:
     delete:
       consumes:
@@ -649,7 +697,7 @@ paths:
       - KeycloakAuth: []
       summary: Update Vendor
       tags:
-      - vendors
+      - Vendors
   /vendors/check/{licenseID}/:
     get:
       consumes:

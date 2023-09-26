@@ -112,7 +112,7 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 // ListVendors godoc
 //
 //	 	@Summary 		List Vendors
-//		@Tags			vendors
+//		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
 //		@Security		KeycloakAuth
@@ -126,7 +126,7 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 // CreateVendor godoc
 //
 //	 	@Summary 		Create Vendor
-//		@Tags			vendors
+//		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
@@ -309,6 +309,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 //		@Tags			Items
 //		@Accept			json
 //		@Produce		json
+//		@Param			id path int true "Item ID"
 //	    @Param		    data body database.Item true "Item Representation"
 //		@Success		200
 //		@Security		KeycloakAuth
@@ -333,10 +334,17 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var item database.Item
-	fields := mForm.Value                  // Values are stored in []string
-	fieldsClean := make(map[string]string) // Values are stored in string
+	fields := mForm.Value               // Values are stored in []string
+	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
-		fieldsClean[key] = value[0]
+		if key == "Price" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				log.Error(err)
+			}
+		} else {
+			fieldsClean[key] = value[0]
+		}
 	}
 	err = mapstructure.Decode(fieldsClean, &item)
 	if err != nil {
@@ -391,14 +399,16 @@ type createOrderRequestEntry struct {
 }
 
 type createOrderRequest struct {
-	Entries []createOrderRequestEntry
-	User    string
-	Vendor  int32
+	Entries         []createOrderRequestEntry
+	User            string
+	VendorLicenseID string
 }
 
 type createOrderResponse struct {
 	SmartCheckoutURL string
 }
+
+// PaymentOrders ---------------------------------------------------------------------
 
 // CreatePaymentOrder godoc
 //
@@ -413,9 +423,25 @@ type createOrderResponse struct {
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Read payment order from request
+	var requestData createOrderRequest
 	var order database.Order
-	err := utils.ReadJSON(w, r, &order)
+	err := utils.ReadJSON(w, r, &requestData)
 	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
+	for idx, entry := range requestData.Entries {
+		order.Entries[idx].Item = entry.Item
+		order.Entries[idx].Quantity = entry.Quantity
+	}
+
+	order.User.String = requestData.User
+	vendor, err := database.Db.GetVendorByLicenseID(requestData.VendorLicenseID)
+	order.Vendor = vendor.ID
+
+	var settings database.Settings
+	if settings, err = database.Db.GetSettings(); err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -460,6 +486,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
 		order.Entries[idx].Price = item.Price // Take current item price
+		order.Entries[idx].IsSale = true      // Will be used for sales payment
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
@@ -481,16 +508,25 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	if order.GetTotal() >= settings.MaxOrderAmount {
+		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
+		return
+	}
+
 	// Submit order to vivawallet (disabled in tests)
 	var OrderCode int
 	if database.Db.IsProduction {
 		accessToken, err := paymentprovider.AuthenticateToVivaWallet()
 		if err != nil {
 			log.Error("Authentication failed: ", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
 		}
 		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order)
 		if err != nil {
 			log.Error("Creating payment order failed: ", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
 		}
 	}
 
@@ -504,11 +540,70 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create response
-	url := "https://demo.vivapayments.com/web/checkout?ref=" + strconv.Itoa(OrderCode)
+	url := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
 	response := createOrderResponse{
 		SmartCheckoutURL: url,
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
+}
+
+type VerifyPaymentOrderResponse struct {
+	TimeStamp time.Time
+}
+
+// VerifyPaymentOrder godoc
+//
+//	 	@Summary 		Verify Payment Order
+//		@Description	Verifies order and creates payments
+//		@Tags			Orders
+//		@Accept			json
+//		@Produce		json
+//		@Success		200 {object} VerifyPaymentOrderResponse
+//		@Param			s query string true "Order Code" Format(3043685539722561)
+//		@Param			t query string true "Transaction ID" Format(882d641c-01cc-442f-b894-2b51250340b5)
+//		@Router			/orders/verify/ [get]
+func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
+
+	// Get transaction ID from URL parameter
+	OrderCode := r.URL.Query().Get("s")
+	if OrderCode == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter s"), http.StatusBadRequest)
+		return
+	}
+	TransactionID := r.URL.Query().Get("t")
+	if TransactionID == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter t"), http.StatusBadRequest)
+		return
+	}
+
+	// Get payment order from database
+	order, err := database.Db.GetOrderByOrderCode(OrderCode)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	log.Info("Order: ", order)
+	log.Info("Order timestamp: ", order.Timestamp)
+
+	if database.Db.IsProduction {
+		// Verify transaction
+		_, err := paymentprovider.VerifyTransactionID(TransactionID)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
+	if time.Now().Sub(order.Timestamp) > 900*time.Second {
+		utils.ErrorJSON(w, errors.New("Transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
+		return
+	}
+
+	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
+	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
+
+	// Create response
+	utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
 }
 
 // Payments (from one account to another account) -----------------------------
@@ -645,6 +740,12 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	cashAccount, err := database.Db.GetAccountByType("Cash")
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Check that amount is bigger than 0
+	if payoutData.Amount <= 0 {
+		utils.ErrorJSON(w, errors.New("payout amount must be bigger than 0"), http.StatusBadRequest)
 		return
 	}
 
@@ -869,6 +970,8 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 //		@Router			/settings/ [put]
 func updateSettings(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
 	// Read multipart form
 	r.ParseMultipartForm(32 << 20)
 	mForm := r.MultipartForm
@@ -879,14 +982,23 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var settings database.Settings
-	fields := mForm.Value                  // Values are stored in []string
-	fieldsClean := make(map[string]string) // Values are stored in string
+	fields := mForm.Value               // Values are stored in []string
+	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
-		fieldsClean[key] = value[0]
+		if key == "MaxOrderAmount" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				return
+			}
+		} else {
+			fieldsClean[key] = value[0]
+		}
 	}
-	err := mapstructure.Decode(fieldsClean, &settings)
+	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
-		log.Error(err)
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+		return
 	}
 
 	path, _ := updateSettingsLogo(w, r)

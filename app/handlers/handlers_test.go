@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"augustin/config"
 	"augustin/database"
 	"augustin/keycloak"
 	"augustin/utils"
@@ -78,6 +79,8 @@ func createTestVendor(t *testing.T, licenseID string) string {
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
 	keycloak.KeycloakClient.DeleteUser("test123@example.com")
+	database.Db.InitEmptyTestDb()
+
 	// Create
 	vendorID := createTestVendor(t, "testLicenseID1")
 
@@ -125,6 +128,7 @@ func CreateTestItem(t *testing.T) string {
 // TestItems tests CRUD operations on items (including images)
 // Todo: delete file after test
 func TestItems(t *testing.T) {
+	database.Db.InitEmptyTestDb()
 
 	// Create
 	itemID := CreateTestItem(t)
@@ -134,13 +138,14 @@ func TestItems(t *testing.T) {
 	var resItems []database.Item
 	err := json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(resItems))
-	require.Equal(t, "Test item", resItems[0].Name)
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Test item", resItems[1].Name)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	writer.WriteField("Name", "Updated item name")
+	writer.WriteField("Price", strconv.Itoa(10))
 	writer.WriteField("nonexistingfieldname", "10")
 	image, _ := writer.CreateFormFile("Image", "test.jpg")
 	image.Write([]byte(`i am the content of a jpg file :D`))
@@ -151,13 +156,13 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(resItems))
-	require.Equal(t, "Updated item name", resItems[0].Name)
-	require.Contains(t, resItems[0].Image, "test")
-	require.Contains(t, resItems[0].Image, ".jpg")
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Updated item name", resItems[1].Name)
+	require.Contains(t, resItems[1].Image, "test")
+	require.Contains(t, resItems[1].Image, ".jpg")
 
 	// Check file
-	file, err := os.ReadFile(".." + resItems[0].Image)
+	file, err := os.ReadFile(".." + resItems[1].Image)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 
@@ -173,18 +178,47 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(resItems))
-	require.Equal(t, "Updated item name 2", resItems[0].Name)
-	require.Equal(t, resItems[0].Image, "Test")
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Updated item name 2", resItems[1].Name)
+	require.Equal(t, resItems[1].Image, "Test")
 
+}
+
+// Set MaxOrderAmount to avoid errors
+func setMaxOrderAmount(t *testing.T, amount int) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("MaxOrderAmount", strconv.Itoa(amount))
+	writer.Close()
+	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
+}
+
+func CreateTestItemWithLicense(t *testing.T) (string, string) {
+	f := `{
+		"Name": "License item",
+		"Price": 123
+	}`
+	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
+	licenseItemID := res.Body.String()
+
+	f2 := `{
+		"Name": "Test item",
+		"Price": 314,
+		"LicenseItem": ` + licenseItemID + `
+	}`
+	res2 := utils.TestRequestStr(t, r, "POST", "/api/items/", f2, 200)
+	itemID := res2.Body.String()
+	return itemID, licenseItemID
 }
 
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
+	setMaxOrderAmount(t, 10)
 
-	itemID := CreateTestItem(t)
+	itemID, licenseItemID := CreateTestItemWithLicense(t)
 	itemIDInt, _ := strconv.Atoi(itemID)
+	licenseItemIDInt, _ := strconv.Atoi(licenseItemID)
 	vendorID := createTestVendor(t, "testLicenseID2")
 	vendorIDInt, _ := strconv.Atoi(vendorID)
 	f := `{
@@ -194,15 +228,23 @@ func TestOrders(t *testing.T) {
 			  "quantity": 315
 			}
 		  ],
-		  "vendor": ` + vendorID + `
+		  "vendorLicenseID": "testLicenseID2"
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
-	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=0"}`)
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
+
+	setMaxOrderAmount(t, 1000000)
+	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
 	order, err := database.Db.GetOrderByOrderCode("0")
 	if err != nil {
 		t.Error(err)
 	}
+
+	// Test order amount
+	orderTotal := order.GetTotal()
+	require.Equal(t, orderTotal, 314*315)
 
 	senderAccount, err := database.Db.GetAccountByType("UserAnon")
 	if err != nil {
@@ -215,16 +257,18 @@ func TestOrders(t *testing.T) {
 
 	require.Equal(t, order.Vendor, vendorIDInt)
 	require.Equal(t, order.Verified, false)
-	require.Equal(t, order.Entries[0].Item, itemIDInt)
-	require.Equal(t, order.Entries[0].Quantity, 315)
-	require.Equal(t, order.Entries[0].Price, 314)
-	require.Equal(t, order.Entries[0].Sender, senderAccount.ID)
-	require.Equal(t, order.Entries[0].Receiver, receiverAccount.ID)
+	require.Equal(t, order.Entries[0].Item, licenseItemIDInt)
+	require.Equal(t, order.Entries[1].Item, itemIDInt)
+	require.Equal(t, order.Entries[1].Quantity, 315)
+	require.Equal(t, order.Entries[1].Price, 314)
+	require.Equal(t, order.Entries[1].Sender, senderAccount.ID)
+	require.Equal(t, order.Entries[1].Receiver, receiverAccount.ID)
 
 }
 
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
+	database.Db.InitEmptyTestDb()
 
 	// Set up a payment account
 	senderAccountID, err := database.Db.CreateAccount(
@@ -318,7 +362,15 @@ func TestPaymentPayout(t *testing.T) {
 		VendorLicenseID: "testLicenseID",
 	}
 	res := utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"Payment amount must be greater than 0"}}`)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
+
+	// Create invalid payments via API
+	f = createPaymentPayoutRequest{
+		Amount:          0,
+		VendorLicenseID: "testLicenseID",
+	}
+	res = utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
 
 	// Create payments via API
 	f = createPaymentPayoutRequest{
@@ -349,11 +401,11 @@ func TestPaymentPayout(t *testing.T) {
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)
 
-	log.Info(vendor.Balance, 686)
 	require.Equal(t, vendor.Balance, 686)
 	require.Equal(t, cashAccount.Balance, 314)
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
+
 }
 
 // TestSettings tests GET and PUT operations on settings

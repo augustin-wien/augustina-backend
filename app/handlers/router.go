@@ -80,6 +80,7 @@ func GetRouter() (r *chi.Mux) {
 	// Payment orders
 	r.Route("/api/orders", func(r chi.Router) {
 		r.Post("/", CreatePaymentOrder)
+		r.Get("/verify/", VerifyPaymentOrder)
 	})
 
 	// Payments
