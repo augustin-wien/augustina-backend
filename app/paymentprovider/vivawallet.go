@@ -227,6 +227,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	// Sum up all prices of orderentries and compare with amount
 	var sum float64
 	for _, entry := range order.Entries {
+		log.Info("Entry price: ", entry.Price, " Entry quantity: ", entry.Quantity, "Entry item: ", entry.Item)
 		sum += float64(entry.Price * entry.Quantity)
 	}
 	// Amount would mismatch without converting to float64
