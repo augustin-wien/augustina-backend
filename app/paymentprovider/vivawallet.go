@@ -114,7 +114,7 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 
 	// Iterate through the order entries and retrieve item names
 	for _, entry := range order.Entries {
-		item, err := database.Db.GetItem(entry.Item) // Replace this with your logic
+		item, err := database.Db.GetItem(entry.Item) // Get item by ID
 		if err != nil {
 			log.Error("Item could not be found", zap.Error(err))
 		}
@@ -227,13 +227,14 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	// Sum up all prices of orderentries and compare with amount
 	var sum float64
 	for _, entry := range order.Entries {
-		sum += float64(entry.Price)
+		sum += float64(entry.Price * entry.Quantity)
 	}
 	// Amount would mismatch without converting to float64
 	// Note: Bad consistency by VivaWallet representing amount in cents and int vs euro and float
 	sum = float64(sum) / 100
 
 	if sum != paymentSuccessful.EventData.Amount {
+		log.Info("Amount mismatch ", sum, " vs. ", paymentSuccessful.EventData.Amount)
 		return errors.New("Amount mismatch")
 	}
 

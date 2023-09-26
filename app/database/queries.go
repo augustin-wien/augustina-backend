@@ -349,7 +349,7 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, e
 // createPaymentForOrderEntryTx creates a payment for an order entry
 func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, errorIfExists bool) (paymentID int, err error) {
 
-	log.Info("createPaymentForOrderEntryTx", zap.Int("orderID", orderID), zap.Any("entry", entry))
+	log.Info("createPaymentForOrderEntryTx ", orderID, " entry ", entry)
 	var count int
 	err = tx.QueryRow(context.Background(), "SELECT COUNT(*) FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&count)
 
