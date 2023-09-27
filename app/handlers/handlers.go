@@ -390,8 +390,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	log.Info("Request data: ", requestData)
-	log.Info("Request data entries: ", requestData.Entries)
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
 	for idx, entry := range requestData.Entries {
 		order.Entries[idx].Item = entry.Item
@@ -452,7 +450,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
-			log.Info("Entered license item")
 			licenseItem, err := database.Db.GetItem(int(item.LicenseItem.Int64))
 			if err != nil {
 				utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -467,7 +464,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				Receiver: orgaAccountID,
 			}
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
-			log.Info("Order entries after license item: ", order.Entries)
 		}
 
 	}
@@ -476,7 +472,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
 		return
 	}
-	log.Info("Order amount after MaxOrder check: ", order.GetTotal())
 
 	// Submit order to vivawallet (disabled in tests)
 	var OrderCode int
@@ -547,8 +542,6 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	log.Info("Order: ", order)
-	log.Info("Order timestamp: ", order.Timestamp)
 
 	if database.Db.IsProduction {
 		// Verify transaction
@@ -757,19 +750,6 @@ type WebhookResponse struct {
 //	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Successful Response"
 //	@Router			/webhooks/vivawallet/success [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
-	log.Info("VivaWalletWebhookSuccess entered")
-
-	// data, err := io.ReadAll(r.Body)
-
-	// if err != nil {
-
-	// 	log.Error("Reading body failed for VivaWalletWebhookPrice: ", err)
-
-	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
-
-	// }
-
-	// log.Info("VivaWalletWebhookSuccess full request: ", string(data))
 
 	var paymentSuccessful paymentprovider.TransactionDetailRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
@@ -833,20 +813,6 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 //	@Param			data body paymentprovider.TransactionPriceRequest true "Payment Price Response"
 //	@Router			/webhooks/vivawallet/price [post]
 func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
-
-	log.Info("VivaWalletWebhookPrice entered")
-
-	// data, err := io.ReadAll(r.Body)
-
-	// if err != nil {
-
-	// 	log.Error("Reading body failed for VivaWalletWebhookPrice: ", err)
-
-	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
-
-	// }
-
-	// log.Info("VivaWalletWebhookPrice full request: ", string(data))
 
 	var paymentPrice paymentprovider.TransactionPriceRequest
 	err := utils.ReadJSON(w, r, &paymentPrice)
