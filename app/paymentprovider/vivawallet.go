@@ -355,8 +355,8 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	if paymentPrice.EventData.TotalCommission == 0.0 {
 		log.Info("Entered Paypal transaction costs logic")
 
-		// Convert percentage to multiply it with total sum i.e. 1.05 for 5% transaction costs
-		convertedPercentageCosts := (config.Config.PaypalPercentageCosts + 100) / 100
+		// Convert percentage to multiply it with total sum i.e. 0.05 for 5% transaction costs
+		convertedPercentageCosts := (config.Config.PaypalPercentageCosts) / 100
 		// Calculate transaction costs
 		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
 		log.Info("paypalAmount", paypalAmount)
