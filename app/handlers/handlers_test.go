@@ -28,6 +28,11 @@ func TestMain(m *testing.M) {
 	var err error
 	database.Db.InitEmptyTestDb()
 	keycloak.InitializeOauthServer()
+	// run tests in mainfolder
+	err = os.Chdir("..")
+	if err != nil {
+		panic(err)
+	}
 	r = GetRouter()
 	defer func() {
 		keycloak.KeycloakClient.DeleteUser(adminUser)
@@ -54,11 +59,7 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(return_code)
-	// run tests in mainfolder
-	err = os.Chdir("..")
-	if err != nil {
-		panic(err)
-	}
+
 	os.Exit(m.Run())
 }
 
