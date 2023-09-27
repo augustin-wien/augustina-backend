@@ -41,7 +41,6 @@ func (db *Database) createDevItems() (err error) {
 		Name:        "Zeitung",
 		Description: "Aktuelle Zeitungsausgabe",
 		Price:       300,
-		LicenseItem: null.IntFrom(1),
 		Archived:    false,
 	}
 
@@ -49,7 +48,6 @@ func (db *Database) createDevItems() (err error) {
 		Name:        "Kalender",
 		Description: "Kalender für das Jahr 2024",
 		Price:       800,
-		LicenseItem: null.IntFrom(2),
 		Archived:    false,
 	}
 
@@ -57,7 +55,6 @@ func (db *Database) createDevItems() (err error) {
 		Name:        "Spende",
 		Description: "Spenden für das eigene Wohlbefinden",
 		Price:       1,
-		LicenseItem: null.IntFrom(3),
 		Archived:    false,
 	}
 
@@ -92,10 +89,11 @@ func (db *Database) createDevItems() (err error) {
 // CreateDevSettings creates test settings for the application
 func (db *Database) createDevSettings() (err error) {
 	settings := Settings{
-		Color:          "#008000",
-		Logo:           "/img/Augustin-Logo-Rechteck.jpg",
-		MainItem:       null.IntFrom(1),
-		MaxOrderAmount: 5000,
+		Color:                      "#FF0000",
+		Logo:                       "/img/Augustin-Logo-Rechteck.jpg",
+		MainItem:                   null.IntFrom(2),
+		MaxOrderAmount:             5000,
+		OrgaCoversTransactionCosts: true,
 	}
 
 	err = db.UpdateSettings(settings)
