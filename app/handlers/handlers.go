@@ -582,8 +582,6 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	log.Info("Order: ", order)
-	log.Info("Order timestamp: ", order.Timestamp)
 
 	if database.Db.IsProduction {
 		// Verify transaction
@@ -780,6 +778,10 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 
 }
 
+type WebhookResponse struct {
+	Status string
+}
+
 // VivaWalletCreateTransactionOrder godoc
 //
 //	@Summary		Webhook for VivaWallet successful transaction
@@ -791,6 +793,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 //	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Successful Response"
 //	@Router			/webhooks/vivawallet/success [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
+
 	var paymentSuccessful paymentprovider.TransactionDetailRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
@@ -805,7 +808,10 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, nil)
+	var response WebhookResponse
+	response.Status = "OK"
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // VivaWalletWebhookFailure godoc
@@ -833,7 +839,10 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, nil)
+	var response WebhookResponse
+	response.Status = "OK"
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // VivaWalletWebhookPrice godoc
@@ -848,34 +857,24 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 //	@Router			/webhooks/vivawallet/price [post]
 func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 
-	log.Info("VivaWalletWebhookPrice entered")
-
-	data, err := io.ReadAll(r.Body)
-
+	var paymentPrice paymentprovider.TransactionPriceRequest
+	err := utils.ReadJSON(w, r, &paymentPrice)
 	if err != nil {
-
-		log.Error("Reading body failed for VivaWalletWebhookPrice: ", err)
-
+		log.Info("Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
-
+		return
 	}
 
-	log.Info("VivaWalletWebhookPrice full request: ", string(data))
-	// var paymentPrice paymentprovider.TransactionPriceRequest
-	// err := utils.ReadJSON(w, r, &paymentPrice)
-	// if err != nil {
-	// 	log.Info("Reading JSON failed for webhook: ", err)
-	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
-	// 	return
-	// }
+	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
-	// err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
-	// if err != nil {
-	// 	log.Error(err)
-	// 	return
-	// }
+	var response WebhookResponse
+	response.Status = "OK"
 
-	// utils.WriteJSON(w, http.StatusOK, nil)
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 // VivaWalletVerificationKey godoc
