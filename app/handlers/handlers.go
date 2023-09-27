@@ -939,9 +939,9 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
 	}
-	if !(name[1] != "png" || name[1] != "PNG" || name[1] != "jpg" || name[1] != "JPG" || name[1] != "jpeg" || name[1] != "JPEG") {
+	if name[1] != "png" {
 		log.Error("wrong file ending:", name[1])
-		utils.ErrorJSON(w, errors.New("file type must be png or jpg"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("file type must be png"), http.StatusBadRequest)
 		return
 	}
 
