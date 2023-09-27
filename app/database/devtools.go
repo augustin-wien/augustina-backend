@@ -207,7 +207,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 	}
 
 	// Create transaction cost payments
-	db.CreatePayedOrderEntries(orderID, []OrderEntry{
+	err = db.CreatePayedOrderEntries(orderID, []OrderEntry{
 
 		// Vendor pays transaction costs
 		{
@@ -226,6 +226,9 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 		},
 
 	})
+	if err != nil {
+		return
+	}
 
 	return
 }
