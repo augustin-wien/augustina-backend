@@ -22,7 +22,7 @@ jobs:
     services:
       # start a postgres service container
       postgres_main:
-        image: postgres:12
+        image: postgres:16
         env:
           POSTGRES_USER: ${{ env.DB_USER }}
           POSTGRES_PASSWORD: ${{ env.DB_PASS }}
