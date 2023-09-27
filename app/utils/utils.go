@@ -27,8 +27,8 @@ func GetEnv(key, fallback string) string {
 
 // RandomString returns a random string of length n
 func RandomString(n int) string {
-	const letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	b := make([]rune, n)
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, n)
 	for i := range b {
 		b[i] = letters[RandomInt(0, len(letters))]
 	}
