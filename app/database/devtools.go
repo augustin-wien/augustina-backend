@@ -18,8 +18,14 @@ func (db *Database) CreateDevData() (err error) {
 	if err != nil {
 		return err
 	}
-	db.createDevOrdersAndPayments(vendorIDs, itemIDs)
-	db.createDevSettings()
+	err = db.createDevOrdersAndPayments(vendorIDs, itemIDs)
+	if err != nil {
+		return err
+	}
+	err = db.createDevSettings()
+	if err != nil {
+		return err
+	}
 	return err
 }
 
@@ -132,9 +138,24 @@ func (db *Database) createDevItems() (ids []int, err error) {
 func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (err error) {
 
 	buyerAccountID, err := db.GetAccountTypeID("UserAnon")
+	if err != nil {
+		return
+	}
+
 	orgaAccountID, err := db.GetAccountTypeID("Orga")
+	if err != nil {
+		return
+	}
+
 	paypalAccountID, err := db.GetAccountTypeID("Paypal")
+	if err != nil {
+		return
+	}
+
 	vendorAccount, err := db.GetAccountByVendorID(vendorIDs[0])
+	if err != nil {
+		return
+	}
 
 	// Create order
 	order := Order{
