@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 func lookupRole(roleName string, roles []*gocloak.Role) *gocloak.Role {
 	for _, role := range roles {
 		if *role.Name == roleName {
@@ -40,7 +39,7 @@ func TestKeycloak(t *testing.T) {
 
 	require.Equal(t, role_name, *role.Name)
 
-	_, err = keycloak.KeycloakClient.CreateUser("testuser", "testuser", "testuser@example.com")
+	_, err = keycloak.KeycloakClient.CreateUser("testuser", "testuser", "testuser@example.com", "password")
 	if err != nil {
 		log.Errorf("Create user failed: %v \n", err)
 	}

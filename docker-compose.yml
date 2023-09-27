@@ -51,7 +51,7 @@ services:
       - "3000:3000"
   augustin-db:
     container_name: augustin-db
-    image: postgres:14.2
+    image: postgres:16.0
     env_file:
       - .env
     environment:
@@ -73,7 +73,7 @@ services:
 
   augustin-db-test:
     container_name: augustin-db-test
-    image: postgres:14.2
+    image: postgres:16.0
     env_file:
       - .env
     environment:
@@ -102,6 +102,8 @@ services:
       KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_HOST}
       ROOT_LOGLEVEL: ALL
       KEYCLOAK_LOGLEVEL: DEBUG
+      KC_HOSTNAME_URL: ${KEYCLOAK_HOST}
+      KC_HOSTNAME_ADMIN_URL: ${KEYCLOAK_HOST}
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/realms/master"]
       interval: 5s
@@ -118,7 +120,7 @@ services:
     image: mariadb:10.6.4-focal
     # If you really want to use MySQL, uncomment the following line
     #image: mysql:8.0.27
-    command: '--default-authentication-plugin=mysql_native_password'
+    command: "--default-authentication-plugin=mysql_native_password"
     volumes:
       - wp_db_data:/var/lib/mysql
     restart: always
@@ -128,7 +130,12 @@ services:
       - MYSQL_USER=wordpress
       - MYSQL_PASSWORD=wordpress
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -p$$(echo $$MYSQL_ROOT_PASSWORD) | grep 'mysqld is alive' || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -p$$(echo $$MYSQL_ROOT_PASSWORD) | grep 'mysqld is
+          alive' || exit 1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -166,10 +173,8 @@ services:
     image: wordpress:cli
     user: 0:0
     command: >
-      sh -c "
-      chmod +x /wpcli/entrypoint.sh &&
-      /wpcli/entrypoint.sh &&
-      tail -f /dev/null"
+      sh -c " chmod +x /wpcli/entrypoint.sh && /wpcli/entrypoint.sh && tail -f
+      /dev/null"
     volumes:
       - wp_data:/var/www/html
       - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers

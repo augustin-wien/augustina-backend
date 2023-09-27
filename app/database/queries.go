@@ -84,7 +84,7 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 }
 
 // CreateVendor creates a vendor and an associated account in the database
-func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
+func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 
 	// Create vendor
 	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Lang) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING ID", vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Lang).Scan(&vendorID)
@@ -177,7 +177,7 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 }
 
 // CreateItem creates an item in the database
-func (db *Database) CreateItem(item Item) (id int32, err error) {
+func (db *Database) CreateItem(item Item) (id int, err error) {
 	// Check if the item name already exists
 	var count int
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Item WHERE Name = $1", item.Name).Scan(&count)
@@ -362,14 +362,13 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 			Amount:     entry.Price * entry.Quantity,
 			Order:      null.NewInt(int64(orderID), true),
 			OrderEntry: null.NewInt(int64(entry.ID), true),
-			IsSale:   entry.IsSale,
+			IsSale:     entry.IsSale,
 		}
 		paymentID, err = createPaymentTx(tx, payment)
 	}
 
 	return
 }
-
 
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
@@ -710,7 +709,7 @@ func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
 	SELECT * from Settings LIMIT 1
-	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees, &settings.MaxOrderAmount)
+	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts)
 	if err != nil {
 		log.Error(err)
 	}
@@ -722,9 +721,9 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `
 	UPDATE Settings
-	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4, MaxOrderAmount = $5
+	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6
 	WHERE ID = 1
-	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees, settings.MaxOrderAmount)
+	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts)
 
 	if err != nil {
 		log.Error(err)

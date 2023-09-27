@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 // WriteJSON writes the data to the response writer as json
@@ -71,6 +73,7 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	// attempt to decode the data
 	err := dec.Decode(data)
 	if err != nil {
+		log.Info(zap.Any("Body of data at ReadJSON", data))
 		log.Error(err)
 		return err
 	}

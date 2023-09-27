@@ -3,27 +3,58 @@ package handlers
 import (
 	"augustin/config"
 	"augustin/database"
+	"augustin/keycloak"
 	"augustin/utils"
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"mime/multipart"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 )
 
 var r *chi.Mux
+var adminUser string
+var adminUserToken *gocloak.JWT
 
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
+	var err error
 	database.Db.InitEmptyTestDb()
+	keycloak.InitializeOauthServer()
 	r = GetRouter()
-	os.Exit(m.Run())
+	defer func() {
+		keycloak.KeycloakClient.DeleteUser(adminUser)
+		keycloak.KeycloakClient.DeleteUser("test123@example.com")
+	}()
+	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", "testadmin@example.com", "password")
+	if err != nil {
+		log.Errorf("Create user failed: %v \n", err)
+	}
+	err = keycloak.KeycloakClient.AssignRole(adminUser, "admin")
+	if err != nil {
+		log.Errorf("Assign role failed: %v \n", err)
+	}
+	adminUserToken, err = keycloak.KeycloakClient.GetUserToken("testadmin@example.com", "password")
+	if err != nil {
+		log.Errorf("Login failed: %v \n", err)
+	}
+	fmt.Println("Admin user token: ", adminUserToken.AccessToken)
+
+	return_code := m.Run()
+	err = keycloak.KeycloakClient.DeleteUser(adminUser)
+	if err != nil {
+		log.Errorf("Delete user failed: %v \n", err)
+	}
+
+	os.Exit(return_code)
 }
 
 // TestHelloWorld tests the hello world test function
@@ -38,20 +69,23 @@ func createTestVendor(t *testing.T, licenseID string) string {
 		"urlID": "test",
 		"licenseID": "` + licenseID + `",
 		"firstName": "test1234",
-		"lastName": "test"
+		"lastName": "test",
+		"email": "test123@example.com"
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/vendors/", jsonVendor, 200)
+	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/vendors/", jsonVendor, 200, adminUserToken)
 	vendorID := res.Body.String()
 	return vendorID
 }
 
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
+	keycloak.KeycloakClient.DeleteUser("test123@example.com")
 	database.Db.InitEmptyTestDb()
 
 	// Create
 	vendorID := createTestVendor(t, "testLicenseID1")
-	res := utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
+
+	res := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	var vendors []database.Vendor
 	err := json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
@@ -66,16 +100,16 @@ func TestVendors(t *testing.T) {
 	// Update
 	var vendors2 []database.Vendor
 	jsonVendor := `{"firstName": "nameAfterUpdate"}`
-	utils.TestRequestStr(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200)
-	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
+	utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(vendors2))
 	require.Equal(t, "nameAfterUpdate", vendors2[0].FirstName)
 
 	// Delete
-	utils.TestRequest(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204)
-	res = utils.TestRequest(t, r, "GET", "/api/vendors/", nil, 200)
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
 	require.Equal(t, 0, len(vendors))
@@ -87,7 +121,7 @@ func CreateTestItem(t *testing.T) string {
 		"Name": "Test item",
 		"Price": 314
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
+	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
 	itemID := res.Body.String()
 	return itemID
 }
@@ -117,7 +151,7 @@ func TestItems(t *testing.T) {
 	image, _ := writer.CreateFormFile("Image", "test.jpg")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200)
+	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200, adminUserToken)
 
 	// Read
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
@@ -139,7 +173,7 @@ func TestItems(t *testing.T) {
 	writer.WriteField("Name", "Updated item name 2")
 	writer.WriteField("Image", "Test")
 	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200)
+	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/items/"+itemID+"/", body, writer.FormDataContentType(), 200, adminUserToken)
 
 	// Read
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
@@ -157,7 +191,7 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 	writer := multipart.NewWriter(body)
 	writer.WriteField("MaxOrderAmount", strconv.Itoa(amount))
 	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
+	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200, adminUserToken)
 }
 
 func CreateTestItemWithLicense(t *testing.T) (string, string) {
@@ -165,7 +199,7 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 		"Name": "License item",
 		"Price": 3
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/items/", f, 200)
+	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
 	licenseItemID := res.Body.String()
 
 	f2 := `{
@@ -173,7 +207,7 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 		"Price": 20,
 		"LicenseItem": ` + licenseItemID + `
 	}`
-	res2 := utils.TestRequestStr(t, r, "POST", "/api/items/", f2, 200)
+	res2 := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f2, 200, adminUserToken)
 	itemID := res2.Body.String()
 	return itemID, licenseItemID
 }
@@ -284,7 +318,7 @@ func TestPayments(t *testing.T) {
 			Receiver: receiverAccountID,
 			Amount:   314,
 		})
-	response2 := utils.TestRequest(t, r, "GET", "/api/payments/", nil, 200)
+	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 
 	// Unmarshal response
 	var payments []database.Payment
@@ -341,7 +375,7 @@ func timeRequest(t *testing.T, from int, to int, expectedLength int) {
 	if to != 0 {
 		path += "to=" + time.Now().UTC().Add(time.Duration(to)*time.Hour).Format(time.RFC3339)
 	}
-	response := utils.TestRequest(t, r, "GET", path, nil, 200)
+	response := utils.TestRequestWithAuth(t, r, "GET", path, nil, 200, adminUserToken)
 	err := json.Unmarshal(response.Body.Bytes(), &payments)
 	utils.CheckError(t, err)
 	require.Equal(t, expectedLength, len(payments))
@@ -359,7 +393,7 @@ func TestPaymentPayout(t *testing.T) {
 		Amount:          -314,
 		VendorLicenseID: "testLicenseID",
 	}
-	res := utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
+	res := utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
 
 	// Create invalid payments via API
@@ -367,7 +401,7 @@ func TestPaymentPayout(t *testing.T) {
 		Amount:          0,
 		VendorLicenseID: "testLicenseID",
 	}
-	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
+	res = utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
 
 	// Create payments via API
@@ -375,7 +409,7 @@ func TestPaymentPayout(t *testing.T) {
 		Amount:          314,
 		VendorLicenseID: "testLicenseID",
 	}
-	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 400)
+	res = utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount bigger than vendor account balance"}}`)
 
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
@@ -384,7 +418,7 @@ func TestPaymentPayout(t *testing.T) {
 	err = database.Db.UpdateAccountBalance(account.ID, 1000)
 	utils.CheckError(t, err)
 
-	res = utils.TestRequest(t, r, "POST", "/api/payments/payout/", f, 200)
+	res = utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 200, adminUserToken)
 
 	paymentID := res.Body.String()
 	paymentIDInt, err := strconv.Atoi(paymentID)
@@ -415,17 +449,17 @@ func TestSettings(t *testing.T) {
 	image, _ := writer.CreateFormFile("Logo", "test.png")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()
-	utils.TestRequestMultiPart(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200)
+	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200, adminUserToken)
 
 	// Read
 	var settings database.Settings
 	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
 	err := json.Unmarshal(res.Body.Bytes(), &settings)
 	utils.CheckError(t, err)
-	require.Equal(t, "/img/logo.png", settings.Logo)
+	require.Equal(t, "img/logo.png", settings.Logo)
 
 	// Check file
-	file, err := os.ReadFile(".." + settings.Logo)
+	file, err := os.ReadFile("../" + settings.Logo)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 }

@@ -9,7 +9,6 @@ type config struct {
 	Version                          string
 	Port                             string
 	CreateDemoData                   bool
-	OrgaCoversTransactionCosts       bool
 	TransactionCostsName             string
 	PaymentServiceProvider           string
 	VivaWalletSourceCode             string
@@ -28,7 +27,6 @@ var Config = config{
 	Version:                          "0.0.1",
 	Port:                             getEnv("PORT", "3000"),
 	CreateDemoData:                   (getEnv("CREATE_DEMO_DATA", "false") == "true"),
-	OrgaCoversTransactionCosts:       (getEnv("ORGA_COVERS_TRANSACTION_COSTS", "false") == "true"),
 	TransactionCostsName:             getEnv("TRANSACTION_COSTS_NAME", "transactionCosts"),
 	PaymentServiceProvider:           getEnv("PAYMENT_SERVICE_PROVIDER", ""),
 	VivaWalletSourceCode:             getEnv("VIVA_WALLET_SOURCE_CODE", ""),
