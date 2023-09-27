@@ -251,8 +251,6 @@ func TestOrders(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	log.Info(senderAccount, "senderAccount")
-	log.Info(receiverAccount, "receiverAccount")
 	require.Equal(t, senderAccount.Balance, -40)
 	require.Equal(t, receiverAccount.Balance, 34)
 	// 2*3 has been payed for license item
