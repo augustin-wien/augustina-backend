@@ -440,7 +440,13 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		return err
 	}
 
-	if config.Config.OrgaCoversTransactionCosts {
+	var settings database.Settings
+	settings, err = database.Db.GetSettings()
+	if err != nil {
+		return err
+	}
+
+	if settings.OrgaCoversTransactionCosts {
 
 		log.Info("OrgaCoversTransactionCosts is set to true and second entry entered")
 		log.Info("Setup of covertx entry")

@@ -11,21 +11,21 @@ import (
 
 // Vendor is a struct that is used for the vendor table
 type Vendor struct {
-	ID         int
-	KeycloakID string
-	URLID      string // This is used for the QR code
-	LicenseID  null.String
-	FirstName  string
-	LastName   string
-	Email      string
-	LastPayout null.Time `swaggertype:"string" format:"date-time"`
-	Balance    int       // This is joined in from the account
-	IsDisabled bool
-	Longitude  float64
-	Latitude   float64
-	Address	   string
-	PLZ		   string
-	Location   string
+	ID          int
+	KeycloakID  string
+	URLID       string // This is used for the QR code
+	LicenseID   null.String
+	FirstName   string
+	LastName    string
+	Email       string
+	LastPayout  null.Time `swaggertype:"string" format:"date-time"`
+	Balance     int       // This is joined in from the account
+	IsDisabled  bool
+	Longitude   float64
+	Latitude    float64
+	Address     string
+	PLZ         string
+	Location    string
 	WorkingTime string
 	Lang        string
 }
@@ -90,12 +90,13 @@ type Payment struct {
 
 // Settings is a struct that is used for the settings table
 type Settings struct {
-	ID             int
-	Color          string
-	Logo           string
-	MainItem       null.Int `swaggertype:"integer"`
-	RefundFees     bool
-	MaxOrderAmount int
+	ID                         int
+	Color                      string
+	Logo                       string
+	MainItem                   null.Int `swaggertype:"integer"`
+	RefundFees                 bool
+	MaxOrderAmount             int
+	OrgaCoversTransactionCosts bool
 }
 
 // DBSettings is a struct that is used for the dbsettings table

@@ -711,7 +711,7 @@ func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
 	SELECT * from Settings LIMIT 1
-	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees, &settings.MaxOrderAmount)
+	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts)
 	if err != nil {
 		log.Error(err)
 	}
@@ -725,7 +725,7 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 	UPDATE Settings
 	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4, MaxOrderAmount = $5
 	WHERE ID = 1
-	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees, settings.MaxOrderAmount)
+	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts)
 
 	if err != nil {
 		log.Error(err)

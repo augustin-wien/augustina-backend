@@ -80,6 +80,7 @@ CREATE TABLE Settings (
     Logo varchar(255) NOT NULL DEFAULT '',
     MainItem integer REFERENCES Item,
     RefundFees bool NOT NULL DEFAULT FALSE
+    OrgaCoversTransactionCosts bool NOT NULL DEFAULT FALSE
 );
 
 

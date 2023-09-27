@@ -89,10 +89,11 @@ func (db *Database) createDevItems() (err error) {
 // CreateDevSettings creates test settings for the application
 func (db *Database) createDevSettings() (err error) {
 	settings := Settings{
-		Color:          "#FF0000",
-		Logo:           "/img/Augustin-Logo-Rechteck.jpg",
-		MainItem:       null.IntFrom(1),
-		MaxOrderAmount: 5000,
+		Color:                      "#FF0000",
+		Logo:                       "/img/Augustin-Logo-Rechteck.jpg",
+		MainItem:                   null.IntFrom(2),
+		MaxOrderAmount:             5000,
+		OrgaCoversTransactionCosts: true,
 	}
 
 	err = db.UpdateSettings(settings)
