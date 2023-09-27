@@ -188,8 +188,6 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 }
 
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest) (err error) {
-	// Log the request body
-	log.Info("Transaction success webhook entered", paymentSuccessful)
 
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
@@ -202,7 +200,6 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	if transactionVerificationResponse.Amount != paymentSuccessful.EventData.Amount {
-		log.Info("Amount mismatch: ", "1. transactionVerificationResponse.Amount ", transactionVerificationResponse.Amount, " 2. paymentSuccessful.EventData.Amount ", paymentSuccessful.EventData.Amount)
 		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
 		webhookToFloat64 := fmt.Sprintf("%f", paymentSuccessful.EventData.Amount)
 		return errors.New("Amount mismatch:" + transactionToFloat64 + "  vs. " + webhookToFloat64)
@@ -227,7 +224,6 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	// Sum up all prices of orderentries and compare with amount
 	var sum float64
 	for _, entry := range order.Entries {
-		log.Info("Entry price: ", entry.Price, " Entry quantity: ", entry.Quantity, "Entry item: ", entry.Item)
 
 		// Check if entry is transaction costs, which are not included in the sum
 		var item database.Item
@@ -246,7 +242,6 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	sum = float64(sum) / 100
 
 	if sum != paymentSuccessful.EventData.Amount {
-		log.Info("Amount mismatch ", sum, " vs. ", paymentSuccessful.EventData.Amount)
 		return errors.New("Amount mismatch")
 	}
 
@@ -325,13 +320,12 @@ func VerifyTransactionID(transactionID string) (transactionVerificationResponse 
 }
 
 func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err error) {
-	log.Info("paymentFailure", paymentFailure)
+	// This webhook has no purpose yet, but could be used to handle failed payments
 	return
 }
 
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
 	//Log the request body
-	log.Info("Transaction price webhook entered", paymentPrice)
 
 	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
 	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId)
@@ -353,7 +347,6 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	// 3. Check: Check if TotalCommission is 0.0, which means that transaction costs are on Paypals side
 	// WARNING: This logic builds upon the assumption that there is only Paypal as a payment provider, which leads to a 0.0 TotalCommission
 	if paymentPrice.EventData.TotalCommission == 0.0 {
-		log.Info("Entered Paypal transaction costs logic")
 
 		if config.Config.PaypalPercentageCosts == 0 {
 			return errors.New("Env variable PaypalPercentageCosts is not set")
@@ -367,7 +360,6 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 		convertedPercentageCosts := (config.Config.PaypalPercentageCosts) / 100
 		// Calculate transaction costs
 		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
-		log.Info("paypalAmount", paypalAmount)
 		// Create order entries for transaction costs
 		// WARNING: int() always rounds down
 		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
@@ -376,11 +368,8 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 		}
 
 	} else {
-		log.Info("Entered VivaWallet transaction costs logic")
-
 		transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
 		// Create order entries for transaction costs
-		log.Info("transactionCosts VivaWallet", transactionCosts)
 		err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
 		if err != nil {
 			return err
@@ -393,7 +382,6 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 
 // Create payments and order entries to list transaction costs
 func CreateTransactionCostEntries(order database.Order, transactionCosts int, paymentProvider string) (err error) {
-	log.Info("CreateTransactionCostEntries entered")
 
 	if config.Config.TransactionCostsName == "" {
 		return errors.New("TransactionCostsName is not set")
@@ -417,12 +405,6 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		return err
 	}
 
-	log.Info("Setup of entry")
-	log.Info("transactionCostsItemID", transactionCostsItem.ID)
-	log.Info("transactionCosts", transactionCosts)
-	log.Info("VendorAccount ID", vendorAccount.ID)
-	log.Info("PaymentProviderID", PaymentProviderID)
-
 	// Create order entries for transaction costs
 	var entries = []database.OrderEntry{
 		{
@@ -432,7 +414,6 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 			Receiver: PaymentProviderID,       // ID of Payment Provider
 		},
 	}
-	log.Info("First transaction cost entry", entries)
 
 	// Create payment with order entries
 	err = database.Db.CreatePayedOrderEntries(order.ID, entries)
@@ -447,13 +428,6 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	}
 
 	if settings.OrgaCoversTransactionCosts {
-
-		log.Info("OrgaCoversTransactionCosts is set to true and second entry entered")
-		log.Info("Setup of covertx entry")
-		log.Info("transactionCostsItemID", transactionCostsItem.ID)
-		log.Info("transactionCosts", transactionCosts)
-		log.Info("VendorAccount ID", vendorAccount.ID)
-		log.Info("PaymentProviderID", PaymentProviderID)
 
 		// Get ID of Orga account
 		orgaAccountID, err := database.Db.GetAccountTypeID("Orga")

@@ -79,7 +79,7 @@ CREATE TABLE Settings (
     Color varchar(255) NOT NULL DEFAULT '',
     Logo varchar(255) NOT NULL DEFAULT '',
     MainItem integer REFERENCES Item,
-    RefundFees bool NOT NULL DEFAULT FALSE
+    RefundFees bool NOT NULL DEFAULT FALSE,
     OrgaCoversTransactionCosts bool NOT NULL DEFAULT FALSE
 );
 
