@@ -277,12 +277,15 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error(err)
+	}
 	// Generate unique filename
 	i := 0
 	for {
-		path = "/img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
-		_, err = os.Stat(".." + path)
+		path = "img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
+		_, err = os.Stat(dir + "/" + path)
 		if errors.Is(err, os.ErrNotExist) {
 			break
 		}
@@ -293,9 +296,10 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 			return
 		}
 	}
+	// current file path from os
 
 	// Save file with unique name
-	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
 		log.Error(err)
 	}
@@ -935,9 +939,9 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
 	}
-	if name[1] != "png" {
-		log.Error(err)
-		utils.ErrorJSON(w, errors.New("file type must be png"), http.StatusBadRequest)
+	if !(name[1] != "png" || name[1] != "PNG" || name[1] != "jpg" || name[1] != "JPG" || name[1] != "jpeg" || name[1] != "JPEG") {
+		log.Error("wrong file ending:", name[1])
+		utils.ErrorJSON(w, errors.New("file type must be png or jpg"), http.StatusBadRequest)
 		return
 	}
 
@@ -949,7 +953,11 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 
 	// Save file with name "logo"
 	path = "/img/logo.png"
-	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error(err)
+	}
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
 		log.Error(err)
 	}
@@ -972,9 +980,15 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	// Read multipart form
-	r.ParseMultipartForm(32 << 20)
+	err = r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+		return
+	}
 	mForm := r.MultipartForm
 	if mForm == nil {
+		log.Error(errors.New("form is nil"))
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
@@ -987,15 +1001,33 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		if key == "MaxOrderAmount" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
+				log.Error("MaxOrderAmount is not an integer")
 				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 				return
 			}
+		} else if key == "RefundFees" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("RefundFees is not a boolean")
+				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+
+				return
+			}
+		} else if key == "MainItem" {
+			value, err := strconv.Atoi(value[0])
+			if err != nil {
+				log.Error("MainItem is not an integer")
+				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				return
+			}
+			fieldsClean[key] = null.NewInt(int64(value), true)
 		} else {
 			fieldsClean[key] = value[0]
 		}
 	}
 	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
+		log.Error(err)
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
