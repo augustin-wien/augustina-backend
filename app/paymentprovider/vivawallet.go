@@ -355,12 +355,21 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	if paymentPrice.EventData.TotalCommission == 0.0 {
 		log.Info("Entered Paypal transaction costs logic")
 
+		if config.Config.PaypalPercentageCosts == 0 {
+			return errors.New("Env variable PaypalPercentageCosts is not set")
+		}
+
+		if config.Config.PaypalFixCosts == 0 {
+			return errors.New("Env variable PaypalFixCosts is not set")
+		}
+
 		// Convert percentage to multiply it with total sum i.e. 0.05 for 5% transaction costs
 		convertedPercentageCosts := (config.Config.PaypalPercentageCosts) / 100
 		// Calculate transaction costs
 		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
 		log.Info("paypalAmount", paypalAmount)
 		// Create order entries for transaction costs
+		// WARNING: int() always rounds down
 		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
 
 	} else {
