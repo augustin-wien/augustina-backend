@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.production
-    image: dkia/augustin-backend  
+    image: dkia/augustin-backend
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
@@ -38,7 +38,7 @@ services:
     ports:
       - "7001:3000"
   augustin-db:
-    image: postgres:14.2
+    image: postgres:16.0
     env_file:
       - .env
     environment:
@@ -94,7 +94,7 @@ services:
     image: mariadb:10.6.4-focal
     # If you really want to use MySQL, uncomment the following line
     #image: mysql:8.0.27
-    command: '--default-authentication-plugin=mysql_native_password'
+    command: "--default-authentication-plugin=mysql_native_password"
     volumes:
       - /dockerstorage/convive/augustin-backend/wp_db_data:/var/lib/mysql
     restart: always
@@ -125,10 +125,8 @@ services:
     image: wordpress:cli
     user: 0:0
     command: >
-      sh -c "
-      chmod +x /wpcli/entrypoint.sh &&
-      /wpcli/entrypoint.sh &&
-      tail -f /dev/null"
+      sh -c " chmod +x /wpcli/entrypoint.sh && /wpcli/entrypoint.sh && tail -f
+      /dev/null"
     volumes:
       - /dockerstorage/convive/augustin-backend/wp_data:/var/www/html
       - /dockerstorage/convive/augustin-backend/docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
