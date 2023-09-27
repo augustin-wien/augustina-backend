@@ -50,7 +50,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		userRoles, err := keycloak.KeycloakClient.GetUserRoles(*userinfo.Sub)
 		if err != nil {
 			log.Info("Error getting userRoles ", err)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 

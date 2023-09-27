@@ -16,14 +16,15 @@ var KeycloakClient Keycloak
 
 // Keycloak struct
 type Keycloak struct {
-	hostname     string
-	ClientID     string
-	ClientSecret string
-	Realm        string
-	Client       *gocloak.GoCloak
-	Context      context.Context
-	adminToken   *gocloak.JWT
-	clientToken  *gocloak.JWT
+	hostname               string
+	ClientID               string
+	ClientSecret           string
+	Realm                  string
+	Client                 *gocloak.GoCloak
+	Context                context.Context
+	adminToken             *gocloak.JWT
+	adminTokenCreationTime int64
+	clientToken            *gocloak.JWT
 }
 
 // InitializeOauthServer initializes the Keycloak client
@@ -44,6 +45,7 @@ func InitializeOauthServer() (err error) {
 	client := gocloak.NewClient(KeycloakClient.hostname)
 	KeycloakClient.Client = client
 	KeycloakClient.adminToken, err = KeycloakClient.Login("admin", "admin")
+	KeycloakClient.adminTokenCreationTime = utils.GetUnixTime()
 	if err != nil {
 		log.Error("Error logging in Keycloak admin ", err)
 	}
@@ -85,16 +87,33 @@ func (k *Keycloak) IntrospectToken(userToken string) (*gocloak.IntroSpectTokenRe
 
 // GetRoles function returns the roles
 func (k *Keycloak) GetRoles() ([]*gocloak.Role, error) {
+	k.checkAdminToken()
 	return k.Client.GetRealmRoles(k.Context, k.adminToken.AccessToken, k.Realm, gocloak.GetRoleParams{})
 }
 
 // GetUserRoles function returns the user roles
 func (k *Keycloak) GetUserRoles(userID string) ([]*gocloak.Role, error) {
+	k.checkAdminToken()
 	return k.Client.GetRealmRolesByUserID(k.Context, k.adminToken.AccessToken, k.Realm, userID)
+}
+func (k *Keycloak) checkAdminToken() {
+	var err error
+	if k.adminToken == nil {
+		k.adminToken, _ = k.Login("admin", "admin")
+	}
+	// admin  token is expired
+	if utils.GetUnixTime()-(k.adminTokenCreationTime+int64(k.adminToken.ExpiresIn)) > 0 {
+		k.adminToken, err = k.Login("admin", "admin")
+		if err != nil {
+			log.Error("Error logging in Keycloak admin ", err)
+		}
+		k.adminTokenCreationTime = utils.GetUnixTime()
+	}
 }
 
 // GetRole function returns the role of the given name
 func (k *Keycloak) GetRole(name string) (*gocloak.Role, error) {
+	k.checkAdminToken()
 	return k.Client.GetRealmRole(k.Context, k.adminToken.AccessToken, k.Realm, name)
 }
 
@@ -109,11 +128,13 @@ func (k *Keycloak) CreateRole(name string) error {
 
 // DeleteRole function deletes a role given by name
 func (k *Keycloak) DeleteRole(name string) error {
+	k.checkAdminToken()
 	return k.Client.DeleteRealmRole(k.Context, k.adminToken.AccessToken, k.Realm, name)
 }
 
 // AssignRole function assigns a role to a user by userID
 func (k *Keycloak) AssignRole(userID string, roleName string) error {
+	k.checkAdminToken()
 	role, err := k.GetRole(roleName)
 	if err != nil {
 		return err
@@ -123,6 +144,7 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 
 // UnassignRole function unassigns a role from a user by userID
 func (k *Keycloak) UnassignRole(userID string, roleName string) error {
+	k.checkAdminToken()
 	role, err := k.GetRole(roleName)
 	if err != nil {
 		return err
@@ -132,6 +154,7 @@ func (k *Keycloak) UnassignRole(userID string, roleName string) error {
 
 // GetUser function returns the user by username
 func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
+	k.checkAdminToken()
 	exact := true
 	p := gocloak.GetUsersParams{
 		Username: &username,
@@ -151,6 +174,7 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 
 // CreateUser function creates a user given by first_name, last_name and email returns the userID
 func (k *Keycloak) CreateUser(firstName string, lastName string, email string, password string) (userID string, err error) {
+	k.checkAdminToken()
 	credentials := []gocloak.CredentialRepresentation{
 		{
 			Type:      gocloak.StringP("password"),
@@ -171,5 +195,6 @@ func (k *Keycloak) CreateUser(firstName string, lastName string, email string, p
 
 // DeleteUser function deletes a user given by userID
 func (k *Keycloak) DeleteUser(userID string) error {
+	k.checkAdminToken()
 	return k.Client.DeleteUser(k.Context, k.adminToken.AccessToken, k.Realm, userID)
 }
