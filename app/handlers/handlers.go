@@ -244,7 +244,12 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	var err error
 	// Read multipart form
-	r.ParseMultipartForm(32 << 20)
+	err = r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
 	mForm := r.MultipartForm
 	if mForm == nil {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
