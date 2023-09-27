@@ -82,6 +82,15 @@ func (db *Database) InitDb() (err error) {
 
 // InitEmptyTestDb connects to an empty testing database and store it in the global Db variable
 func (db *Database) InitEmptyTestDb() (err error) {
+
+
+	// New system
+	err = dumpDatabase()
+    if err != nil {
+        log.Fatal("Error dumping database:", err)
+        return
+    }
+
 	err = db.initDb(false, false)
 	if err != nil {
 		return err
