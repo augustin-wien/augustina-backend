@@ -11,6 +11,7 @@ services:
       VITE_API_URL: ${BACKEND_HOST}
       VITE_KEYCLOAK_URL: ${KEYCLOAK_HOST}
       VITE_AUGUSTIN_COVER: ${AUGUSTIN_COVER}
+      VITE_AGB_URL: ${AGB_URL}
     depends_on:
       - augustin-backend
   augustin-backend:
