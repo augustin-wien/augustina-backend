@@ -598,14 +598,16 @@ func (db *Database) GetAccountByID(id int) (account Account, err error) {
 	return
 }
 
-// GetAccountByUser returns the account with the given user
-func (db *Database) GetAccountByUser(user string) (account Account, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE User = $1", user).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+// GetOrCreateAccountByUserID returns the account with the given user
+func (db *Database) GetOrCreateAccountByUserID(userID string) (account Account, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE UserID = $1", userID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
 		if err.Error() == "no rows in result set" {
-			err = errors.New("user does not exist or has no account")
+			err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Type, UserID) values ($1, $2) RETURNING *", "UserAuth", userID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+			log.Info("Created new account for user " + userID)
+		} else {
+			log.Error(err)
 		}
-		log.Error(err)
 	}
 	return
 }
