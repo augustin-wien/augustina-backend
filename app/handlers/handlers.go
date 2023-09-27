@@ -511,8 +511,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-
-	if order.GetTotal() >= settings.MaxOrderAmount {
+	// ignore MaxOrdnerAmount if its 0
+	if settings.MaxOrderAmount != 0 && order.GetTotal() >= settings.MaxOrderAmount {
 		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
 		return
 	}
