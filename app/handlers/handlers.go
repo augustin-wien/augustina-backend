@@ -755,11 +755,15 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get authenticated user
+	authenticatedUserID := r.Header.Get("X-Auth-User")
+
 	// Create payment
 	payment := database.Payment{
 		Sender:   vendorAccount.ID,
 		Receiver: cashAccount.ID,
 		Amount:   payoutData.Amount,
+		AuthorizedBy: authenticatedUserID,
 	}
 	paymentID, err := database.Db.CreatePayment(payment)
 	if err != nil {
