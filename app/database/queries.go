@@ -158,6 +158,15 @@ func (db *Database) ListItems() ([]Item, error) {
 	return items, nil
 }
 
+// GetItemByName returns the item with the given name
+func (db *Database) GetItemByName(name string) (item Item, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 // GetItem returns the item with the given ID
 func (db *Database) GetItem(id int) (item Item, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
@@ -243,7 +252,7 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 	}
 	for rows.Next() {
 		var order Order
-		err = rows.Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+		err = rows.Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
 		if err != nil {
 			log.Error(err)
 			return orders, err
@@ -260,7 +269,7 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 
 // GetOrderByID returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
 	if err != nil {
 		log.Error(err)
 		return
@@ -278,7 +287,7 @@ func (db *Database) GetOrderByID(id int) (order Order, err error) {
 // GetOrderByOrderCode returns Order by OrderCode
 func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err error) {
 
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.Timestamp, &order.User, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
 	if err != nil {
 		log.Error(err)
 		return
@@ -363,7 +372,7 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
-func (db *Database) VerifyOrderAndCreatePayments(orderID int) (err error) {
+func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID int) (err error) {
 
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())
@@ -375,9 +384,9 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int) (err error) {
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
 	UPDATE PaymentOrder
-	SET Verified = True
-	WHERE ID = $1
-	`, orderID)
+	SET Verified = True, TransactionTypeID = $1
+	WHERE ID = $2
+	`, transactionTypeID, orderID)
 	if err != nil {
 		log.Error(err)
 	}
@@ -537,7 +546,7 @@ func (db *Database) CreateAccount(account Account) (id int, err error) {
 	// 	err = new (Error)
 
 	// Define a slice of types, which should only exist once
-	existOnceTypes := []string{"Cash", "Orga", "UserAnon"}
+	existOnceTypes := []string{"Cash", "Orga", "UserAnon", "VivaWallet", "Paypal"}
 
 	// Check if an account of the specified type already exists
 	if slices.Contains(existOnceTypes, account.Type) {

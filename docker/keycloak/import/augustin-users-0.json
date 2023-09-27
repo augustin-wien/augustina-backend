@@ -119,6 +119,29 @@
     "notBefore" : 0,
     "groups" : [ "/magazin-1", "/magazin-2", "/magazin-3" ]
   }, {
+    "id" : "4539a68a-3084-45b2-a4dc-091051c72311",
+    "createdTimestamp" : 1695118443829,
+    "username" : "test_vendor",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : true,
+    "firstName" : "",
+    "lastName" : "",
+    "email" : "test_vendor@example.com",
+    "credentials" : [ {
+      "id" : "f016ccf0-d740-452d-bf68-bac15d210e31",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1695118663704,
+      "secretData" : "{\"value\":\"vUMXSey0RjfDNNlRtOYxHC9IxhGLwJjiyqmUWRmqzxg=\",\"salt\":\"CY2elsnVKuOLNS6Kv/gcdQ==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-augustin", "vendor" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
     "id" : "d5d8beb0-cb8e-4f14-807f-5cb7b4a9988d",
     "createdTimestamp" : 1685542370875,
     "username" : "user001",

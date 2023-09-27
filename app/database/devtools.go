@@ -41,6 +41,7 @@ func (db *Database) createDevItems() (err error) {
 		Name:        "Zeitung",
 		Description: "Aktuelle Zeitungsausgabe",
 		Price:       300,
+		LicenseItem: null.IntFrom(1),
 		Archived:    false,
 	}
 
@@ -52,14 +53,22 @@ func (db *Database) createDevItems() (err error) {
 		Archived:    false,
 	}
 
-	// Check if newspaper already exists, if not create it
+	donation := Item{
+		Name:        "Spende",
+		Description: "Spenden für das eigene Wohlbefinden",
+		Price:       1,
+		LicenseItem: null.IntFrom(3),
+		Archived:    false,
+	}
+
+	// Create newspaper
 	_, err = db.CreateItem(newspaper)
 	if err != nil {
 		log.Error("Dev newspaper creation failed ", zap.Error(err))
 		return err
 	}
 
-	// Check if calendar already exists, if not create it
+	// Create calendar
 	_, err = db.CreateItem(calendar)
 	if err != nil {
 		pg := err.(*pgconn.PgError)
@@ -67,6 +76,13 @@ func (db *Database) createDevItems() (err error) {
 			log.Info("Postgres details error are: ", pg.Detail)
 		}
 		log.Error("Dev newspaper creation failed ", zap.Error(err))
+		return err
+	}
+
+	// Create donation
+	_, err = db.CreateItem(donation)
+	if err != nil {
+		log.Error("Dev donation creation failed ", zap.Error(err))
 		return err
 	}
 

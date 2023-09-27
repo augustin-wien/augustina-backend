@@ -28,6 +28,28 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/hello/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Return HelloWorld as sample API call",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Core",
+                    "Auth"
+                ],
+                "summary": "Return HelloWorld",
+                "responses": {}
+            }
+        },
         "/hello/": {
             "get": {
                 "description": "Return HelloWorld as sample API call",
@@ -69,6 +91,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -102,6 +129,11 @@ const docTemplate = `{
         },
         "/items/{id}": {
             "delete": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -130,6 +162,11 @@ const docTemplate = `{
         },
         "/items/{id}/": {
             "put": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "description": "Requires multipart form (for image)",
                 "consumes": [
                     "application/json"
@@ -200,8 +237,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/orders/verify/": {
+            "get": {
+                "description": "Verifies order and creates payments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Verify Payment Order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "3043685539722561",
+                        "description": "Order Code",
+                        "name": "s",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "882d641c-01cc-442f-b894-2b51250340b5",
+                        "description": "Transaction ID",
+                        "name": "t",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VerifyPaymentOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/payments/": {
             "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    },
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -243,6 +329,11 @@ const docTemplate = `{
         },
         "/payments/payout/": {
             "post": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -300,6 +391,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "description": "Update configuration data of the system. Requires multipart form. Logo has to be a png and will always be saved under \"img/logo.png\"",
                 "consumes": [
                     "application/json"
@@ -331,6 +427,11 @@ const docTemplate = `{
         },
         "/vendors/": {
             "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -338,7 +439,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "List Vendors",
                 "responses": {
@@ -354,6 +455,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -361,7 +467,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Create Vendor",
                 "parameters": [
@@ -416,6 +522,11 @@ const docTemplate = `{
         },
         "/vendors/{id}/": {
             "put": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "description": "Warning: Unfilled fields will be set to default values",
                 "consumes": [
                     "application/json"
@@ -424,7 +535,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -452,6 +563,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -459,7 +575,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Delete Vendor",
                 "parameters": [
@@ -784,6 +900,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "workingTime": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.VerifyPaymentOrderResponse": {
+            "type": "object",
+            "properties": {
+                "timeStamp": {
                     "type": "string"
                 }
             }
@@ -1148,6 +1272,12 @@ const docTemplate = `{
     "securityDefinitions": {
         "BasicAuth": {
             "type": "basic"
+        },
+        "KeycloakAuth": {
+            "description": "\u003cb\u003ehow to generate an api key\u003c/b\u003e \u003cbr/\u003e\u003cbr/\u003e\u003ccode\u003ecurl -d 'client_id=frontend' -d 'username=test_superuser' -d 'password=Test123!' -d 'grant_type=password'     'http://localhost:8080/realms/augustin/protocol/openid-connect/token' |     python -m json.tool | grep access_token\u003c/code\u003e\u003cbr/\u003e\u003cbr/\u003e\u003cbr/\u003eInsert the output into the field below the value of the access_token field.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     },
     "externalDocs": {

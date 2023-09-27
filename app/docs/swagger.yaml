@@ -96,6 +96,11 @@ definitions:
       workingTime:
         type: string
     type: object
+  handlers.VerifyPaymentOrderResponse:
+    properties:
+      timeStamp:
+        type: string
+    type: object
   handlers.createOrderRequest:
     properties:
       entries:
@@ -355,6 +360,20 @@ info:
   title: Augustin Swagger
   version: 0.0.1
 paths:
+  /auth/hello/:
+    get:
+      consumes:
+      - application/json
+      description: Return HelloWorld as sample API call
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - KeycloakAuth: []
+      summary: Return HelloWorld
+      tags:
+      - Core
+      - Auth
   /hello/:
     get:
       consumes:
@@ -399,6 +418,8 @@ paths:
           description: OK
           schema:
             type: integer
+      security:
+      - KeycloakAuth: []
       summary: Create Item
       tags:
       - Items
@@ -417,6 +438,8 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Delete Item
       tags:
       - Items
@@ -442,6 +465,8 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Update Item
       tags:
       - Items
@@ -469,6 +494,34 @@ paths:
       summary: Create Payment Order
       tags:
       - Orders
+  /orders/verify/:
+    get:
+      consumes:
+      - application/json
+      description: Verifies order and creates payments
+      parameters:
+      - description: Order Code
+        format: "3043685539722561"
+        in: query
+        name: s
+        required: true
+        type: string
+      - description: Transaction ID
+        format: 882d641c-01cc-442f-b894-2b51250340b5
+        in: query
+        name: t
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VerifyPaymentOrderResponse'
+      summary: Verify Payment Order
+      tags:
+      - Orders
   /payments/:
     get:
       consumes:
@@ -493,6 +546,9 @@ paths:
             items:
               $ref: '#/definitions/database.Payment'
             type: array
+      security:
+      - KeycloakAuth: []
+      - KeycloakAuth: []
       summary: Get list of all payments
       tags:
       - Payments
@@ -514,6 +570,8 @@ paths:
           description: OK
           schema:
             type: integer
+      security:
+      - KeycloakAuth: []
       summary: Create a payment from a vendor account to cash
       tags:
       - Payments
@@ -551,6 +609,8 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Update settings
       tags:
       - Core
@@ -567,9 +627,11 @@ paths:
             items:
               $ref: '#/definitions/database.Vendor'
             type: array
+      security:
+      - KeycloakAuth: []
       summary: List Vendors
       tags:
-      - vendors
+      - Vendors
     post:
       consumes:
       - application/json
@@ -585,9 +647,11 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Create Vendor
       tags:
-      - vendors
+      - Vendors
   /vendors/{id}/:
     delete:
       consumes:
@@ -603,9 +667,11 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Delete Vendor
       tags:
-      - vendors
+      - Vendors
     put:
       consumes:
       - application/json
@@ -627,9 +693,11 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - KeycloakAuth: []
       summary: Update Vendor
       tags:
-      - vendors
+      - Vendors
   /vendors/check/{licenseID}/:
     get:
       consumes:
@@ -762,4 +830,12 @@ paths:
 securityDefinitions:
   BasicAuth:
     type: basic
+  KeycloakAuth:
+    description: <b>how to generate an api key</b> <br/><br/><code>curl -d 'client_id=frontend'
+      -d 'username=test_superuser' -d 'password=Test123!' -d 'grant_type=password'     'http://localhost:8080/realms/augustin/protocol/openid-connect/token'
+      |     python -m json.tool | grep access_token</code><br/><br/><br/>Insert the
+      output into the field below the value of the access_token field.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
