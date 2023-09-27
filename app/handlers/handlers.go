@@ -1003,7 +1003,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	path, _ := updateSettingsLogo(w, r)
 	if path != "" {
-		settings.Logo = path
+		settings.Logo = "img/logo.png"
 	}
 
 	// Save settings to database

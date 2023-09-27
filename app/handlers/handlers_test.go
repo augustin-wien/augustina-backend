@@ -424,10 +424,10 @@ func TestSettings(t *testing.T) {
 	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
 	err := json.Unmarshal(res.Body.Bytes(), &settings)
 	utils.CheckError(t, err)
-	require.Equal(t, "/img/logo.png", settings.Logo)
+	require.Equal(t, "img/logo.png", settings.Logo)
 
 	// Check file
-	file, err := os.ReadFile(".." + settings.Logo)
+	file, err := os.ReadFile("../" + settings.Logo)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 }
