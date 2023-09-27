@@ -721,7 +721,7 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `
 	UPDATE Settings
-	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4, MaxOrderAmount = $5
+	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6
 	WHERE ID = 1
 	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts)
 
