@@ -371,6 +371,9 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 		// Create order entries for transaction costs
 		// WARNING: int() always rounds down
 		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
+		if err != nil {
+			return err
+		}
 
 	} else {
 		log.Info("Entered VivaWallet transaction costs logic")
@@ -379,6 +382,9 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 		// Create order entries for transaction costs
 		log.Info("transactionCosts VivaWallet", transactionCosts)
 		err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
+		if err != nil {
+			return err
+		}
 
 	}
 
@@ -389,15 +395,32 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 func CreateTransactionCostEntries(order database.Order, transactionCosts int, paymentProvider string) (err error) {
 	log.Info("CreateTransactionCostEntries entered")
 
+	if config.Config.TransactionCostsName == "" {
+		return errors.New("TransactionCostsName is not set")
+	}
+
 	// Get ID of transaction costs item
 	transactionCostsItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
+	if err != nil {
+		return err
+	}
+
 	// Get ID of VivaWallet account
 	PaymentProviderID, err := database.Db.GetAccountTypeID(paymentProvider)
+	if err != nil {
+		return err
+	}
+
+	// Get ID of vendor account
+	vendorAccount, err := database.Db.GetAccountByVendorID(order.Vendor)
+	if err != nil {
+		return err
+	}
 
 	log.Info("Setup of entry")
 	log.Info("transactionCostsItemID", transactionCostsItem.ID)
 	log.Info("transactionCosts", transactionCosts)
-	log.Info("OrderVendor", order.Vendor)
+	log.Info("VendorAccount ID", vendorAccount.ID)
 	log.Info("PaymentProviderID", PaymentProviderID)
 
 	// Create order entries for transaction costs
@@ -405,7 +428,7 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		{
 			Item:     transactionCostsItem.ID, // ID of transaction costs item
 			Quantity: transactionCosts,        // Amount of transaction costs
-			Sender:   order.Vendor,            // ID of vendor
+			Sender:   vendorAccount.ID,        // ID of vendor
 			Receiver: PaymentProviderID,       // ID of Payment Provider
 		},
 	}
@@ -423,18 +446,21 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		log.Info("Setup of covertx entry")
 		log.Info("transactionCostsItemID", transactionCostsItem.ID)
 		log.Info("transactionCosts", transactionCosts)
-		log.Info("OrderVendor", order.Vendor)
+		log.Info("VendorAccount ID", vendorAccount.ID)
 		log.Info("PaymentProviderID", PaymentProviderID)
 
 		// Get ID of Orga account
 		orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
+		if err != nil {
+			return err
+		}
 		// Create payment for covering transaction costs by Organization
 		var entries = []database.OrderEntry{
 			{
 				Item:     transactionCostsItem.ID, // ID of transaction costs item
 				Quantity: transactionCosts,        // Amount of transaction costs
 				Sender:   orgaAccountID,           // ID of Orga
-				Receiver: order.Vendor,            // ID of vendor
+				Receiver: vendorAccount.ID,        // ID of vendor
 			},
 		}
 		// append transaction cost entries here
