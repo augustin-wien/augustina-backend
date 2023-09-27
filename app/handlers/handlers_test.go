@@ -5,6 +5,7 @@ import (
 	"augustin/database"
 	"augustin/utils"
 	"bytes"
+	"context"
 	"encoding/json"
 	"mime/multipart"
 	"os"
@@ -255,6 +256,14 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, senderAccount.Balance, -40)
 	require.Equal(t, receiverAccount.Balance, 34)
 	// 2*3 has been payed for license item
+
+	// Clean up after test
+	_, err = database.Db.Dbpool.Exec(context.Background(), `
+	DELETE FROM Payment
+	`)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 // TestPayments tests CRUD operations on payments
