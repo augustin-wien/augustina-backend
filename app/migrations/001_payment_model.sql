@@ -17,7 +17,7 @@ CREATE TABLE Vendor (
     Location varchar(255) NOT NULL DEFAULT '',
     WorkingTime varchar(1) NOT NULL DEFAULT '',
     Lang varchar(255) NOT NULL DEFAULT '',
-    Comment text NOT NULL DEFAULT '',
+    Comment text NOT NULL DEFAULT ''
 );
 
 CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash', 'Paypal', 'VivaWallet');  -- UserAnon, Orga, and Cash, VivaWallet, Paypal should only exist once
