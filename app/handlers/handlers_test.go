@@ -22,6 +22,7 @@ import (
 
 var r *chi.Mux
 var adminUser string
+var adminUserEmail string
 var adminUserToken *gocloak.JWT
 
 // TestMain is executed before all tests and initializes an empty database
@@ -35,11 +36,12 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	r = GetRouter()
+	adminUserEmail = "testadmin@example.com"
 	defer func() {
 		keycloak.KeycloakClient.DeleteUser(adminUser)
-		keycloak.KeycloakClient.DeleteUser("test123@example.com")
+		keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	}()
-	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", "testadmin@example.com", "password")
+	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", adminUserEmail, "password")
 	if err != nil {
 		log.Errorf("Create user failed: %v \n", err)
 	}
@@ -47,7 +49,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Errorf("Assign role failed: %v \n", err)
 	}
-	adminUserToken, err = keycloak.KeycloakClient.GetUserToken("testadmin@example.com", "password")
+	adminUserToken, err = keycloak.KeycloakClient.GetUserToken(adminUserEmail, "password")
 	if err != nil {
 		log.Errorf("Login failed: %v \n", err)
 	}
@@ -440,6 +442,7 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, payment.Amount, 314)
 	require.Equal(t, payment.Sender, account.ID)
 	require.Equal(t, payment.Receiver, cashAccount.ID)
+	require.Equal(t, payment.AuthorizedBy, adminUserEmail)
 
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)

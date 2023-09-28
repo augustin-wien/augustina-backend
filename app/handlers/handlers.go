@@ -452,7 +452,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Get accounts
 	var buyerAccountID int
-	authenticatedUserID := r.Header.Get("X-Auth-User")
+	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
 	if authenticatedUserID != "" {
 		buyerAccount, err := database.Db.GetOrCreateAccountByUserID(authenticatedUserID)
 		if err != nil {
@@ -759,13 +759,13 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get authenticated user
-	authenticatedUserID := r.Header.Get("X-Auth-User")
+	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
 
 	// Create payment
 	payment := database.Payment{
-		Sender:   vendorAccount.ID,
-		Receiver: cashAccount.ID,
-		Amount:   payoutData.Amount,
+		Sender:       vendorAccount.ID,
+		Receiver:     cashAccount.ID,
+		Amount:       payoutData.Amount,
 		AuthorizedBy: authenticatedUserID,
 	}
 	paymentID, err := database.Db.CreatePayment(payment)
