@@ -145,7 +145,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 		Vendor:    vendorIDs[0],
 		Entries: []OrderEntry{
 			{
-				Item:     items[3].ID, // Digital Newspaper
+				Item:     items[4].ID, // Digital Newspaper
 				Quantity: 2,
 				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
@@ -154,7 +154,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 
 			// License for newspaper is paid to orga
 			{
-				Item:     items[4].ID, // Newspaper License
+				Item:     items[3].ID, // Newspaper License
 				Quantity: 2,
 				Sender:   vendorAccount.ID,
 				Receiver: orgaAccountID,
@@ -186,7 +186,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 
 		// Vendor pays transaction costs
 		{
-			Item:     items[3].ID, // Transaction cost
+			Item:     items[2].ID, // Transaction cost
 			Quantity: 27,          // 27 cents transaction cost
 			Sender:   vendorAccount.ID,
 			Receiver: paypalAccountID,
@@ -194,7 +194,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 
 		// Vendor gets transaction costs back from orga
 		{
-			Item:     items[3].ID, // Transaction cost
+			Item:     items[2].ID, // Transaction cost
 			Quantity: 27,          // 27 cents transaction cost
 			Sender:   orgaAccountID,
 			Receiver: vendorAccount.ID,
