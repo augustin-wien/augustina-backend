@@ -103,6 +103,14 @@ func TestVendors(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/testLicenseID1/", nil, 200)
 	require.Equal(t, res.Body.String(), `{"FirstName":"test1234"}`)
 
+	// Get
+	utils.TestRequest(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 401)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 200, adminUserToken)
+	var vendor database.Vendor
+	err = json.Unmarshal(res.Body.Bytes(), &vendor)
+	utils.CheckError(t, err)
+	require.Equal(t, "test1234", vendor.FirstName)
+
 	// Update
 	var vendors2 []database.Vendor
 	jsonVendor := `{"firstName": "nameAfterUpdate"}`
