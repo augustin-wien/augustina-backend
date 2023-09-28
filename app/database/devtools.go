@@ -113,7 +113,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 
 // CreateDevOrdersAndPayments creates test orders and payments
 // This function replicates what happens in CreateOrder handler
-// User buys 2 newspapers (-600), 1 calendar (-800), 200 donations (-200)
+// User buys 2 newspapers (-600), 1 calendar (-800)
 // Orga gets 2 licenses (100) and looses 27 transaction costs (-27)
 // Vendor gets all sales (1600) and pays 2 licenses (-100)
 func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (err error) {
@@ -144,7 +144,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 		Vendor:    vendorIDs[0],
 		Entries: []OrderEntry{
 			{
-				Item:     itemIDs[3], // Digital Newspaper
+				Item:     itemIDs[0], // Digital Newspaper
 				Quantity: 2,
 				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
@@ -153,21 +153,14 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 
 			// License for newspaper is paid to orga
 			{
-				Item:     itemIDs[4], // Newspaper License
+				Item:     itemIDs[1], // Newspaper License
 				Quantity: 2,
 				Sender:   vendorAccount.ID,
 				Receiver: orgaAccountID,
 			},
 			{
-				Item:     itemIDs[5], // Calendar
+				Item:     itemIDs[2], // Calendar
 				Quantity: 1,
-				Sender:   buyerAccountID,
-				Receiver: vendorAccount.ID,
-				IsSale:   true,
-			},
-			{
-				Item:     itemIDs[1], // Donation
-				Quantity: 200,
 				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
 				IsSale:   true,
