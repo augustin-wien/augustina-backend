@@ -53,7 +53,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 
 	digitaNnewspaperLicense := Item{
 		Name:        "Digitale Zeitung (Lizenz)",
-		Description: "Lizenz für aktuelle Zeitungsausgabe",
+		Description: "Lizenz für digitale Zeitungsausgabe",
 		Price:       50,
 		Archived:    false,
 	}
@@ -66,7 +66,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 
 	digitalNewspaper := Item{
 		Name:        "Digitale Zeitung",
-		Description: "Aktuelle Zeitungsausgabe",
+		Description: "Digitale Zeitungsausgabe",
 		Price:       300,
 		LicenseItem: null.NewInt(int64(diitalNewspaperLicenseID), true),
 		Archived:    false,

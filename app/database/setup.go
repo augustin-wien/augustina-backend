@@ -33,7 +33,7 @@ func (db *Database) InitiateItems() (err error) {
 
 	donation := Item{
 		Name:        "Spende",
-		Description: "",
+		Description: "Spende pro Einkauf",
 		Price:       1,
 		Archived:    false,
 	}
