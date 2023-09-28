@@ -257,6 +257,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	// Check if order has been payed via Paypal i.e. TransactionTypeId == 48
+	// Check TransactionTypeId here: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
 	if paymentSuccessful.EventData.TransactionTypeId == 48 {
 
 		// Check if PaypalPercentageCosts and PaypalFixCosts are set
