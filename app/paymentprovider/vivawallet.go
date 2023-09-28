@@ -30,7 +30,11 @@ func AuthenticateToVivaWallet() (string, error) {
 	}
 	resource := "/connect/token"
 	jsonPost := []byte(`grant_type=client_credentials`)
-	u, _ := url.ParseRequestURI(apiURL)
+	u, err := url.ParseRequestURI(apiURL)
+	if err != nil {
+		log.Error("Parsing URL failed: ", err)
+		return "", err
+	}
 	u.Path = resource
 	urlStr := u.String()
 
