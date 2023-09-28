@@ -137,17 +137,17 @@ func (db *Database) createDevItems() (ids []int, err error) {
 // Vendor gets all sales (1600) and pays 2 licenses (-100)
 func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (err error) {
 
-	buyerAccountID, err := db.GetAccountTypeID("UserAnon")
+	buyerAccount, err := db.GetAccountByType("UserAnon")
 	if err != nil {
 		return
 	}
 
-	orgaAccountID, err := db.GetAccountTypeID("Orga")
+	orgaAccount, err := db.GetAccountByType("Orga")
 	if err != nil {
 		return
 	}
 
-	paypalAccountID, err := db.GetAccountTypeID("Paypal")
+	paypalAccount, err := db.GetAccountByType("Paypal")
 	if err != nil {
 		return
 	}
@@ -160,36 +160,44 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 	// Create order
 	order := Order{
 		OrderCode: null.NewString("devOrder1", true),
-		Vendor: vendorIDs[0],
+		Vendor:    vendorIDs[0],
 		Entries: []OrderEntry{
 			{
-				Item:   itemIDs[0], // Newspaper
-				Quantity: 2,
-				Sender: buyerAccountID,
-				Receiver: vendorAccount.ID,
-				IsSale: true,
+				Item:         itemIDs[0], // Newspaper
+				Quantity:     2,
+				Sender:       buyerAccount.ID,
+				Receiver:     vendorAccount.ID,
+				SenderName:   buyerAccount.Name,
+				ReceiverName: vendorAccount.Name,
+				IsSale:       true,
 			},
 
 			// License for newspaper is paid to orga
 			{
-				Item:   itemIDs[1], // Newspaper License
-				Quantity: 2,
-				Sender: vendorAccount.ID,
-				Receiver: orgaAccountID,
+				Item:         itemIDs[1], // Newspaper License
+				Quantity:     2,
+				Sender:       vendorAccount.ID,
+				Receiver:     orgaAccount.ID,
+				SenderName:   vendorAccount.Name,
+				ReceiverName: orgaAccount.Name,
 			},
 			{
-				Item:   itemIDs[2], // Calendar
-				Quantity: 1,
-				Sender: buyerAccountID,
-				Receiver: vendorAccount.ID,
-				IsSale: true,
+				Item:         itemIDs[2], // Calendar
+				Quantity:     1,
+				Sender:       buyerAccount.ID,
+				Receiver:     vendorAccount.ID,
+				SenderName:   buyerAccount.Name,
+				ReceiverName: vendorAccount.Name,
+				IsSale:       true,
 			},
 			{
-				Item:   itemIDs[3], // Donation
-				Quantity: 200,  // 2 Euros donation
-				Sender: buyerAccountID,
-				Receiver: vendorAccount.ID,
-				IsSale: true,
+				Item:         itemIDs[3], // Donation
+				Quantity:     200,        // 2 Euros donation
+				Sender:       buyerAccount.ID,
+				Receiver:     vendorAccount.ID,
+				SenderName:   buyerAccount.Name,
+				ReceiverName: vendorAccount.Name,
+				IsSale:       true,
 			},
 		},
 	}
@@ -211,20 +219,23 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 
 		// Vendor pays transaction costs
 		{
-			Item:   itemIDs[4], // Transaction cost
-			Quantity: 27,  // 27 cents transaction cost
-			Sender: vendorAccount.ID,
-			Receiver: paypalAccountID,
+			Item:         itemIDs[4], // Transaction cost
+			Quantity:     27,         // 27 cents transaction cost
+			Sender:       vendorAccount.ID,
+			Receiver:     paypalAccount.ID,
+			SenderName:   vendorAccount.Name,
+			ReceiverName: paypalAccount.Name,
 		},
 
 		// Vendor gets transaction costs back from orga
 		{
-			Item:   itemIDs[4], // Transaction cost
-			Quantity: 27,  // 27 cents transaction cost
-			Sender: orgaAccountID,
-			Receiver: vendorAccount.ID,
+			Item:         itemIDs[4], // Transaction cost
+			Quantity:     27,         // 27 cents transaction cost
+			Sender:       orgaAccount.ID,
+			Receiver:     vendorAccount.ID,
+			SenderName:   orgaAccount.Name,
+			ReceiverName: vendorAccount.Name,
 		},
-
 	})
 	if err != nil {
 		return

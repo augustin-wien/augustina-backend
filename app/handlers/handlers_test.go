@@ -315,19 +315,21 @@ func TestPayments(t *testing.T) {
 
 	// Set up a payment account
 	senderAccountID, err := database.Db.CreateAccount(
-		database.Account{Name: "Test account"},
+		database.Account{Name: "Test sender"},
 	)
 	receiverAccountID, err := database.Db.CreateAccount(
-		database.Account{Name: "Test account"},
+		database.Account{Name: "Test receiver"},
 	)
 	utils.CheckError(t, err)
 
 	// Create payments via API
 	database.Db.CreatePayment(
 		database.Payment{
-			Sender:   senderAccountID,
-			Receiver: receiverAccountID,
-			Amount:   314,
+			Sender:       senderAccountID,
+			Receiver:     receiverAccountID,
+			SenderName:   "Test sender",
+			ReceiverName: "Test receiver",
+			Amount:       314,
 		})
 	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 
@@ -348,6 +350,8 @@ func TestPayments(t *testing.T) {
 	require.Equal(t, payments[0].Amount, 314)
 	require.Equal(t, payments[0].Sender, senderAccountID)
 	require.Equal(t, payments[0].Receiver, receiverAccountID)
+	require.Equal(t, payments[0].SenderName, "Test sender")
+	require.Equal(t, payments[0].ReceiverName, "Test receiver")
 	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
 	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
 
@@ -439,7 +443,9 @@ func TestPaymentPayout(t *testing.T) {
 
 	require.Equal(t, payment.Amount, 314)
 	require.Equal(t, payment.Sender, account.ID)
+	require.Equal(t, payment.SenderName, account.Name)
 	require.Equal(t, payment.Receiver, cashAccount.ID)
+	require.Equal(t, payment.ReceiverName, cashAccount.Name)
 
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)
