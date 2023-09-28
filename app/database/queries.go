@@ -72,7 +72,8 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 	// Get vendor data
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Lang)
 	if err != nil {
-		log.Error(err)
+		log.Error("Couldn't get vendor", licenseID, err)
+		return vendor, err
 	}
 
 	// Get vendor balance
@@ -80,7 +81,7 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 	if err != nil {
 		log.Error(err)
 	}
-	return
+	return vendor, err
 }
 
 // CreateVendor creates a vendor and an associated account in the database
