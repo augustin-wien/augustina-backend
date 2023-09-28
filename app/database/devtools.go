@@ -134,13 +134,18 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 		return
 	}
 
+	items, err := db.ListItems()
+	if err != nil {
+		return
+	}
+
 	// Create order
 	order := Order{
 		OrderCode: null.NewString("devOrder1", true),
 		Vendor:    vendorIDs[0],
 		Entries: []OrderEntry{
 			{
-				Item:     itemIDs[0], // Digital Newspaper
+				Item:     items[3].ID, // Digital Newspaper
 				Quantity: 2,
 				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
@@ -149,13 +154,13 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 
 			// License for newspaper is paid to orga
 			{
-				Item:     itemIDs[1], // Newspaper License
+				Item:     items[4].ID, // Newspaper License
 				Quantity: 2,
 				Sender:   vendorAccount.ID,
 				Receiver: orgaAccountID,
 			},
 			{
-				Item:     itemIDs[2], // Calendar
+				Item:     items[5].ID, // Calendar
 				Quantity: 1,
 				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
@@ -181,16 +186,16 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 
 		// Vendor pays transaction costs
 		{
-			Item:     itemIDs[4], // Transaction cost
-			Quantity: 27,         // 27 cents transaction cost
+			Item:     items[3].ID, // Transaction cost
+			Quantity: 27,          // 27 cents transaction cost
 			Sender:   vendorAccount.ID,
 			Receiver: paypalAccountID,
 		},
 
 		// Vendor gets transaction costs back from orga
 		{
-			Item:     itemIDs[4], // Transaction cost
-			Quantity: 27,         // 27 cents transaction cost
+			Item:     items[3].ID, // Transaction cost
+			Quantity: 27,          // 27 cents transaction cost
 			Sender:   orgaAccountID,
 			Receiver: vendorAccount.ID,
 		},
