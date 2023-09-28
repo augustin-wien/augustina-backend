@@ -23,6 +23,21 @@ func (db *Database) InitiateAccounts() (err error) {
 
 // InitiateItems creates default item for transaction costs
 func (db *Database) InitiateItems() (err error) {
+
+	newspaper := Item{
+		Name:        "Zeitung",
+		Description: "Aktuelle Zeitungsausgabe",
+		Price:       300,
+		Archived:    false,
+	}
+
+	donation := Item{
+		Name:        "Spende",
+		Description: "",
+		Price:       1,
+		Archived:    false,
+	}
+
 	transactionCost := Item{
 		Name:        config.Config.TransactionCostsName,
 		Description: "Transaktionskosten der Zahlungsanbieter",
@@ -30,10 +45,24 @@ func (db *Database) InitiateItems() (err error) {
 		Archived:    false,
 	}
 
+	// Create newspaper
+	_, err = db.CreateItem(newspaper)
+	if err != nil {
+		log.Error("InitiateItem creation failed for newspaper ", zap.Error(err))
+		return
+	}
+
+	// Create donation
+	_, err = db.CreateItem(donation)
+	if err != nil {
+		log.Error("InitiateItem creation failed for donation ", zap.Error(err))
+		return
+	}
+
 	// Create item transaction cost
 	_, err = db.CreateItem(transactionCost)
 	if err != nil {
-		log.Error("InitiateItem creation failed for transaction costs", zap.Error(err))
+		log.Error("InitiateItem creation failed for transaction costs ", zap.Error(err))
 		return err
 	}
 	return
