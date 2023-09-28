@@ -4,6 +4,7 @@ import (
 	"augustin/config"
 	"math/rand"
 	"os"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -37,4 +38,9 @@ func RandomString(n int) string {
 // RandomInt returns a random int between min and max
 func RandomInt(min, max int) int {
 	return min + rand.Intn(max-min)
+}
+
+// GetUnixTime returns the current unix time in seconds
+func GetUnixTime() int64 {
+	return time.Now().Unix()
 }

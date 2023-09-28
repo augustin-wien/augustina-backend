@@ -28,6 +28,11 @@ func TestMain(m *testing.M) {
 	var err error
 	database.Db.InitEmptyTestDb()
 	keycloak.InitializeOauthServer()
+	// run tests in mainfolder
+	err = os.Chdir("..")
+	if err != nil {
+		panic(err)
+	}
 	r = GetRouter()
 	defer func() {
 		keycloak.KeycloakClient.DeleteUser(adminUser)
@@ -54,6 +59,8 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(return_code)
+
+	os.Exit(m.Run())
 }
 
 // TestHelloWorld tests the hello world test function
@@ -162,7 +169,11 @@ func TestItems(t *testing.T) {
 	require.Contains(t, resItems[1].Image, ".jpg")
 
 	// Check file
-	file, err := os.ReadFile(".." + resItems[1].Image)
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	file, err := os.ReadFile(dir + "/" + resItems[1].Image)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 
@@ -414,6 +425,8 @@ func TestSettings(t *testing.T) {
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
+	writer.WriteField("MaxOrderAmount", strconv.Itoa(10))
+	writer.WriteField("RefundFees", "true")
 	image, _ := writer.CreateFormFile("Logo", "test.png")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()
@@ -427,7 +440,11 @@ func TestSettings(t *testing.T) {
 	require.Equal(t, "img/logo.png", settings.Logo)
 
 	// Check file
-	file, err := os.ReadFile("../" + settings.Logo)
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	file, err := os.ReadFile(dir + "/" + settings.Logo)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 }
