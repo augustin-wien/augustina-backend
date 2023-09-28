@@ -398,7 +398,7 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	}
 
 	// Get ID of VivaWallet account
-	PaymentProviderID, err := database.Db.GetAccountTypeID(paymentProvider)
+	paymentProviderAccount, err := database.Db.GetAccountByType(paymentProvider)
 	if err != nil {
 		return err
 	}
@@ -412,10 +412,12 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	// Create order entries for transaction costs
 	var entries = []database.OrderEntry{
 		{
-			Item:     transactionCostsItem.ID, // ID of transaction costs item
-			Quantity: transactionCosts,        // Amount of transaction costs
-			Sender:   vendorAccount.ID,        // ID of vendor
-			Receiver: PaymentProviderID,       // ID of Payment Provider
+			Item:         transactionCostsItem.ID,     // ID of transaction costs item
+			Quantity:     transactionCosts,            // Amount of transaction costs
+			Sender:       vendorAccount.ID,            // ID of vendor
+			Receiver:     paymentProviderAccount.ID,   // ID of Payment Provider
+			SenderName:   vendorAccount.Name,          // Name of vendor
+			ReceiverName: paymentProviderAccount.Name, // Name of Payment Provider
 		},
 	}
 
@@ -434,17 +436,19 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	if settings.OrgaCoversTransactionCosts {
 
 		// Get ID of Orga account
-		orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
+		orgaAccount, err := database.Db.GetAccountByType("Orga")
 		if err != nil {
 			return err
 		}
 		// Create payment for covering transaction costs by Organization
 		var entries = []database.OrderEntry{
 			{
-				Item:     transactionCostsItem.ID, // ID of transaction costs item
-				Quantity: transactionCosts,        // Amount of transaction costs
-				Sender:   orgaAccountID,           // ID of Orga
-				Receiver: vendorAccount.ID,        // ID of vendor
+				Item:         transactionCostsItem.ID, // ID of transaction costs item
+				Quantity:     transactionCosts,        // Amount of transaction costs
+				Sender:       orgaAccount.ID,          // ID of Orga
+				Receiver:     vendorAccount.ID,        // ID of vendor
+				SenderName:   orgaAccount.Name,        // Name of Orga
+				ReceiverName: vendorAccount.Name,      // Name of vendor
 			},
 		}
 		// append transaction cost entries here
