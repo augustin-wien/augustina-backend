@@ -87,8 +87,8 @@ func (db *Database) createDevItems() (ids []int, err error) {
 	}
 
 	transactionCost := Item{
-		Name:        "Transaktionskosten",
-		Description: "Transaktionskosten",
+		Name:        "Transaktionskosten2",
+		Description: "Transaktionskosten2",
 		Price:       1,
 		Archived:    false,
 	}
