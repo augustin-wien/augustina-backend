@@ -67,111 +67,111 @@ type TransactionVerificationResponse struct {
 }
 
 type PriceEventData struct {
-	OrderCode       int     `json:"OrderCode"`
-	MerchantID      string  `json:"MerchantId"`
-	IsvFee          float64 `json:"IsvFee"`
-	ResellerID      string  `json:"ResellerId"`
-	TransactionId   string  `json:"TransactionId"`
 	CurrencyCode    string  `json:"CurrencyCode"`
 	Interchange     float64 `json:"Interchange"`
+	IsvFee          float64 `json:"IsvFee"`
+	MerchantID      string  `json:"MerchantId"`
+	OrderCode       int     `json:"OrderCode"`
+	ResellerID      *any    `json:"ResellerId"`
 	TotalCommission float64 `json:"TotalCommission"`
+	TransactionId   string  `json:"TransactionId"`
 }
 
 type TransactionPriceRequest struct {
-	Url           string         `json:"Url"`
-	EventData     PriceEventData `json:"EventData"`
-	Created       time.Time      `json:"Created"`
 	CorrelationId string         `json:"CorrelationId"`
+	Created       time.Time      `json:"Created"`
+	Delay         *any           `json:"Delay"`
+	EventData     PriceEventData `json:"EventData"`
 	EventTypeId   int            `json:"EventTypeId"`
-	Delay         *int           `json:"Delay"`
 	MessageId     string         `json:"MessageId"`
-	RecipientId   string         `json:"RecipientId"`
 	MessageTypeId int            `json:"MessageTypeId"`
+	RecipientId   string         `json:"RecipientId"`
+	Url           string         `json:"Url"`
 }
 
 type TransactionDetailRequest struct {
-	Url           string    `json:"Url"`
-	EventData     EventData `json:"EventData"`
-	Created       time.Time `json:"Created"`
 	CorrelationId string    `json:"CorrelationId"`
+	Created       time.Time `json:"Created"`
+	Delay         *any      `json:"Delay"`
+	EventData     EventData `json:"EventData"`
 	EventTypeId   int       `json:"EventTypeId"`
-	Delay         any       `json:"Delay"`
 	MessageId     string    `json:"MessageId"`
-	RecipientId   string    `json:"RecipientId"`
 	MessageTypeId int       `json:"MessageTypeId"`
+	RecipientId   string    `json:"RecipientId"`
+	Url           string    `json:"Url"`
 }
 
 type EventData struct {
-	Moto                        bool     `json:"Moto"`
-	BinId                       int      `json:"BinId"`
-	Ucaf                        string   `json:"Ucaf"`
-	Email                       string   `json:"Email"`
-	Phone                       string   `json:"Phone"`
-	BankId                      string   `json:"BankId"`
-	Systemic                    bool     `json:"Systemic"`
-	Switching                   bool     `json:"Switching"`
-	ParentId                    any      `json:"ParentId"`
-	Amount                      float64  `json:"Amount"`
-	ChannelId                   string   `json:"ChannelId"`
-	TerminalId                  int      `json:"TerminalId"`
-	MerchantId                  string   `json:"MerchantId"`
-	OrderCode                   int      `json:"OrderCode"`
-	ProductId                   any      `json:"ProductId"`
-	StatusId                    string   `json:"StatusId"`
-	FullName                    string   `json:"FullName"`
-	ResellerId                  any      `json:"ResellerId"`
-	DualMessage                 bool     `json:"DualMessage"`
-	InsDate                     string   `json:"InsDate"`
-	TotalFee                    float64  `json:"TotalFee"`
-	CardToken                   string   `json:"CardToken"`
-	CardNumber                  string   `json:"CardNumber"`
-	TipAmount                   float64  `json:"TipAmount"`
-	SourceCode                  string   `json:"SourceCode"`
-	SourceName                  string   `json:"SourceName"`
-	Latitude                    any      `json:"Latitude"`
-	Longitude                   any      `json:"Longitude"`
-	CompanyName                 any      `json:"CompanyName"`
-	TransactionId               string   `json:"TransactionId"`
-	CompanyTitle                any      `json:"CompanyTitle"`
-	PanEntryMode                string   `json:"PanEntryMode"`
-	ReferenceNumber             int      `json:"ReferenceNumber"`
-	ResponseCode                string   `json:"ResponseCode"`
-	CurrencyCode                string   `json:"CurrencyCode"`
-	OrderCulture                string   `json:"OrderCulture"`
-	MerchantTrns                string   `json:"MerchantTrns"`
-	CustomerTrns                string   `json:"CustomerTrns"`
-	IsManualRefund              bool     `json:"IsManualRefund"`
-	TargetPersonId              any      `json:"TargetPersonId"`
-	TargetWalletId              any      `json:"TargetWalletId"`
-	AcquirerApproved            bool     `json:"AcquirerApproved"`
-	LoyaltyTriggered            bool     `json:"LoyaltyTriggered"`
-	TransactionTypeId           int      `json:"TransactionTypeId"`
-	AuthorizationId             string   `json:"AuthorizationId"`
-	TotalInstallments           int      `json:"TotalInstallments"`
-	CardCountryCode             any      `json:"CardCountryCode"`
-	CardIssuingBank             any      `json:"CardIssuingBank"`
-	RedeemedAmount              float64  `json:"RedeemedAmount"`
-	ClearanceDate               any      `json:"ClearanceDate"`
-	CurrentInstallment          int      `json:"CurrentInstallment"`
-	Tags                        []string `json:"Tags"`
-	BillId                      any      `json:"BillId"`
-	ConnectedAccountId          any      `json:"ConnectedAccountId"`
-	ResellerSourceCode          any      `json:"ResellerSourceCode"`
-	ResellerSourceName          any      `json:"ResellerSourceName"`
-	MerchantCategoryCode        int      `json:"MerchantCategoryCode"`
-	ResellerCompanyName         any      `json:"ResellerCompanyName"`
-	CardUniqueReference         string   `json:"CardUniqueReference"`
-	ResellerSourceAddress       any      `json:"ResellerSourceAddress"`
-	CardExpirationDate          string   `json:"CardExpirationDate"`
-	ServiceId                   any      `json:"ServiceId"`
-	RetrievalReferenceNumber    string   `json:"RetrievalReferenceNumber"`
-	AssignedMerchantUsers       []any    `json:"AssignedMerchantUsers"`
-	AssignedResellerUsers       []any    `json:"AssignedResellerUsers"`
-	CardTypeId                  int      `json:"CardTypeId"`
-	ResponseEventId             any      `json:"ResponseEventId"`
-	ElectronicCommerceIndicator string   `json:"ElectronicCommerceIndicator"`
-	OrderServiceId              int      `json:"OrderServiceId"`
-	DigitalWalletId             any      `json:"DigitalWalletId"`
+	AcquirerApproved            bool
+	Amount                      float64
+	AssignedMerchantUsers       []interface{}
+	AssignedResellerUsers       []interface{}
+	AuthorizationId             string
+	BankId                      string
+	BillId                      *interface{}
+	BinId                       int
+	CardCountryCode             string
+	CardExpirationDate          string
+	CardIssuingBank             string
+	CardNumber                  string
+	CardToken                   string
+	CardTypeId                  int
+	CardUniqueReference         string
+	ChannelId                   string
+	ClearanceDate               *interface{}
+	CompanyName                 string
+	CompanyTitle                string
+	ConnectedAccountId          *interface{}
+	CurrencyCode                string
+	CurrentInstallment          int
+	CustomerTrns                string
+	DigitalWalletId             *interface{}
+	DualMessage                 bool
+	ElectronicCommerceIndicator string
+	Email                       string
+	FullName                    string
+	InsDate                     string
+	IsManualRefund              bool
+	Latitude                    *interface{}
+	Longitude                   *interface{}
+	LoyaltyTriggered            bool
+	MerchantCategoryCode        int
+	MerchantId                  string
+	MerchantTrns                string
+	Moto                        bool
+	OrderCode                   int
+	OrderCulture                string
+	OrderServiceId              int
+	PanEntryMode                string
+	ParentId                    interface{}
+	Phone                       string
+	ProductId                   interface{}
+	RedeemedAmount              float64
+	ReferenceNumber             int
+	ResellerCompanyName         interface{}
+	ResellerId                  interface{}
+	ResellerSourceAddress       interface{}
+	ResellerSourceCode          interface{}
+	ResellerSourceName          interface{}
+	ResponseCode                string
+	ResponseEventId             interface{}
+	RetrievalReferenceNumber    string
+	ServiceId                   interface{}
+	SourceCode                  string
+	SourceName                  string
+	StatusId                    string
+	Switching                   bool
+	Systemic                    bool
+	Tags                        []string
+	TargetPersonId              interface{}
+	TargetWalletId              interface{}
+	TerminalId                  int
+	TipAmount                   float64
+	TotalFee                    float64
+	TotalInstallments           int
+	TransactionId               string
+	TransactionTypeId           int
+	Ucaf                        string
 }
 
 type VivaWalletVerificationKeyResponse struct {
