@@ -94,7 +94,6 @@ type Settings struct {
 	Color                      string
 	Logo                       string
 	MainItem                   null.Int `swaggertype:"integer"`
-	RefundFees                 bool
 	MaxOrderAmount             int
 	OrgaCoversTransactionCosts bool
 }
