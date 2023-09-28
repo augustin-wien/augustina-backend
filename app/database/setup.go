@@ -4,6 +4,7 @@ import (
 	"augustin/config"
 
 	"go.uber.org/zap"
+	"gopkg.in/guregu/null.v4"
 )
 
 // InitiateAccounts creates default settings if they don't exist
@@ -66,4 +67,22 @@ func (db *Database) InitiateItems() (err error) {
 		return err
 	}
 	return
+}
+
+// CreateDevSettings creates test settings for the application
+func (db *Database) UpdateInitialSettings() (err error) {
+	settings := Settings{
+		Color:                      "#FF0000",
+		Logo:                       "/img/Augustin-Logo-Rechteck.jpg",
+		MainItem:                   null.IntFrom(0),
+		MaxOrderAmount:             5000,
+		OrgaCoversTransactionCosts: true,
+	}
+
+	err = db.UpdateSettings(settings)
+	if err != nil {
+		log.Error("InitiateSettings creation failed ", zap.Error(err))
+	}
+
+	return err
 }
