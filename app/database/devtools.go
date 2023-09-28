@@ -160,36 +160,36 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 	// Create order
 	order := Order{
 		OrderCode: null.NewString("devOrder1", true),
-		Vendor: vendorIDs[0],
+		Vendor:    vendorIDs[0],
 		Entries: []OrderEntry{
 			{
-				Item:   itemIDs[0], // Newspaper
+				Item:     itemIDs[0], // Newspaper
 				Quantity: 2,
-				Sender: buyerAccountID,
+				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
-				IsSale: true,
+				IsSale:   true,
 			},
 
 			// License for newspaper is paid to orga
 			{
-				Item:   itemIDs[1], // Newspaper License
+				Item:     itemIDs[1], // Newspaper License
 				Quantity: 2,
-				Sender: vendorAccount.ID,
+				Sender:   vendorAccount.ID,
 				Receiver: orgaAccountID,
 			},
 			{
-				Item:   itemIDs[2], // Calendar
+				Item:     itemIDs[2], // Calendar
 				Quantity: 1,
-				Sender: buyerAccountID,
+				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
-				IsSale: true,
+				IsSale:   true,
 			},
 			{
-				Item:   itemIDs[3], // Donation
-				Quantity: 200,  // 2 Euros donation
-				Sender: buyerAccountID,
+				Item:     itemIDs[3], // Donation
+				Quantity: 200,        // 2 Euros donation
+				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
-				IsSale: true,
+				IsSale:   true,
 			},
 		},
 	}
@@ -211,20 +211,19 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 
 		// Vendor pays transaction costs
 		{
-			Item:   itemIDs[4], // Transaction cost
-			Quantity: 27,  // 27 cents transaction cost
-			Sender: vendorAccount.ID,
+			Item:     itemIDs[4], // Transaction cost
+			Quantity: 27,         // 27 cents transaction cost
+			Sender:   vendorAccount.ID,
 			Receiver: paypalAccountID,
 		},
 
 		// Vendor gets transaction costs back from orga
 		{
-			Item:   itemIDs[4], // Transaction cost
-			Quantity: 27,  // 27 cents transaction cost
-			Sender: orgaAccountID,
+			Item:     itemIDs[4], // Transaction cost
+			Quantity: 27,         // 27 cents transaction cost
+			Sender:   orgaAccountID,
 			Receiver: vendorAccount.ID,
 		},
-
 	})
 	if err != nil {
 		return
@@ -237,6 +236,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 func (db *Database) createDevSettings() (err error) {
 	settings := Settings{
 		Color:                      "#FF0000",
+		FontColor:                  "#FFFFFF",
 		Logo:                       "/img/Augustin-Logo-Rechteck.jpg",
 		MainItem:                   null.IntFrom(2),
 		MaxOrderAmount:             5000,

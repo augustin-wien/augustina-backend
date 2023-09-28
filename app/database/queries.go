@@ -710,7 +710,7 @@ func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
 	SELECT * from Settings LIMIT 1
-	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts)
+	`).Scan(&settings.ID, &settings.Color, &settings.FontColor, &settings.Logo, &settings.MainItem, &settings.RefundFees, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts)
 	if err != nil {
 		log.Error(err)
 	}
@@ -722,9 +722,9 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `
 	UPDATE Settings
-	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6
+	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, RefundFees = $5, MaxOrderAmount = $6, OrgaCoversTransactionCosts = $7
 	WHERE ID = 1
-	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts)
+	`, settings.Color, settings.FontColor, settings.Logo, settings.MainItem, settings.RefundFees, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts)
 
 	if err != nil {
 		log.Error(err)

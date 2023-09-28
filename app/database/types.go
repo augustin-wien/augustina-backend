@@ -92,6 +92,7 @@ type Payment struct {
 type Settings struct {
 	ID                         int
 	Color                      string
+	FontColor                  string
 	Logo                       string
 	MainItem                   null.Int `swaggertype:"integer"`
 	RefundFees                 bool

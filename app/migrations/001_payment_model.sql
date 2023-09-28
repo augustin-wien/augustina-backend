@@ -77,6 +77,7 @@ CREATE TABLE Payment (
 CREATE TABLE Settings (
     ID integer UNIQUE PRIMARY KEY CHECK (ID = 1) DEFAULT 1,
     Color varchar(255) NOT NULL DEFAULT '',
+    FontColor varchar(255) NOT NULL DEFAULT '',
     Logo varchar(255) NOT NULL DEFAULT '',
     MainItem integer REFERENCES Item,
     RefundFees bool NOT NULL DEFAULT FALSE,
