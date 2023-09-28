@@ -28,6 +28,7 @@ type Vendor struct {
 	Location    string
 	WorkingTime string
 	Lang        string
+	Comment     string
 }
 
 // Account is a struct that is used for the account table
