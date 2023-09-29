@@ -230,6 +230,11 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	var sum float64
 	for _, entry := range order.Entries {
 
+		// Check for TransactionCostsName
+		if config.Config.TransactionCostsName == "" {
+			return errors.New("TransactionCostsName is not set")
+		}
+
 		// Check if entry is transaction costs, which are not included in the sum
 		var item database.Item
 		item, err = database.Db.GetItemByName(config.Config.TransactionCostsName)
@@ -424,10 +429,10 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	// Create order entries for transaction costs
 	var entries = []database.OrderEntry{
 		{
-			Item:         transactionCostsItem.ID,     // ID of transaction costs item
-			Quantity:     transactionCosts,            // Amount of transaction costs
-			Sender:       vendorAccount.ID,            // ID of vendor
-			Receiver:     paymentProviderAccountID,   // ID of Payment Provider
+			Item:     transactionCostsItem.ID,  // ID of transaction costs item
+			Quantity: transactionCosts,         // Amount of transaction costs
+			Sender:   vendorAccount.ID,         // ID of vendor
+			Receiver: paymentProviderAccountID, // ID of Payment Provider
 		},
 	}
 
@@ -453,10 +458,10 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		// Create payment for covering transaction costs by Organization
 		var entries = []database.OrderEntry{
 			{
-				Item:         transactionCostsItem.ID, // ID of transaction costs item
-				Quantity:     transactionCosts,        // Amount of transaction costs
-				Sender:       orgaAccountID,          // ID of Orga
-				Receiver:     vendorAccount.ID,        // ID of vendor
+				Item:     transactionCostsItem.ID, // ID of transaction costs item
+				Quantity: transactionCosts,        // Amount of transaction costs
+				Sender:   orgaAccountID,           // ID of Orga
+				Receiver: vendorAccount.ID,        // ID of vendor
 			},
 		}
 		// append transaction cost entries here

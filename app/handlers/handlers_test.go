@@ -257,6 +257,13 @@ func TestOrders(t *testing.T) {
 
 	setMaxOrderAmount(t, 1000000)
 	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+
+	// Check if VivaWalletSmartCheckoutURL is set
+	if config.Config.VivaWalletSmartCheckoutURL == "" {
+		t.Error("VivaWalletSmartCheckoutURL is not set")
+		return
+	}
+
 	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
 	order, err := database.Db.GetOrderByOrderCode("0")

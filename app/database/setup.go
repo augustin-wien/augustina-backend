@@ -39,6 +39,11 @@ func (db *Database) InitiateItems() (err error) {
 		Archived:    false,
 	}
 
+	if config.Config.TransactionCostsName == "" {
+		log.Error("TransactionCostsName is not set")
+		return
+	}
+
 	transactionCost := Item{
 		Name:        config.Config.TransactionCostsName,
 		Description: "Transaktionskosten der Zahlungsanbieter",

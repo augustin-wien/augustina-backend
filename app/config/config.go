@@ -10,8 +10,6 @@ type config struct {
 	Port                              string
 	CreateDemoData                    bool
 	TransactionCostsName              string
-	PaymentServiceProvider            string
-	VivaWalletSourceCode              string
 	VivaWalletVerificationKey         string
 	VivaWalletApiURL                  string
 	VivaWalletAccountsURL             string
@@ -29,8 +27,6 @@ var Config = config{
 	Port:                              getEnv("PORT", "3000"),
 	CreateDemoData:                    (getEnv("CREATE_DEMO_DATA", "false") == "true"),
 	TransactionCostsName:              getEnv("TRANSACTION_COSTS_NAME", "transactionCosts"),
-	PaymentServiceProvider:            getEnv("PAYMENT_SERVICE_PROVIDER", ""),
-	VivaWalletSourceCode:              getEnv("VIVA_WALLET_SOURCE_CODE", ""),
 	VivaWalletVerificationKey:         getEnv("VIVA_WALLET_VERIFICATION_KEY", ""),
 	VivaWalletApiURL:                  getEnv("VIVA_WALLET_API_URL", ""),
 	VivaWalletAccountsURL:             getEnv("VIVA_WALLET_ACCOUNTS_URL", ""),
