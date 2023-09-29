@@ -451,15 +451,17 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get accounts
-	var buyerAccount database.Account
-	if order.User.Valid {
-		buyerAccount, err = database.Db.GetAccountByUser(order.User.String)
+	var buyerAccountID int
+	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
+	if authenticatedUserID != "" {
+		buyerAccount, err := database.Db.GetOrCreateAccountByUserID(authenticatedUserID)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
+		buyerAccountID = buyerAccount.ID
 	} else {
-		buyerAccount, err = database.Db.GetAccountByType("UserAnon")
+		buyerAccountID, err = database.Db.GetAccountTypeID("UserAnon")
 	}
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -486,10 +488,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Define flow of money from buyer to vendor
-		order.Entries[idx].Sender = buyerAccount.ID
+		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
-		order.Entries[idx].SenderName = buyerAccount.Name
-		order.Entries[idx].ReceiverName = vendorAccount.Name
 		order.Entries[idx].Price = item.Price // Take current item price
 		order.Entries[idx].IsSale = true      // Will be used for sales payment
 
@@ -760,13 +760,15 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get authenticated user
+	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
+
 	// Create payment
 	payment := database.Payment{
 		Sender:       vendorAccount.ID,
 		Receiver:     cashAccount.ID,
-		SenderName:   vendorAccount.Name,
-		ReceiverName: cashAccount.Name,
 		Amount:       payoutData.Amount,
+		AuthorizedBy: authenticatedUserID,
 	}
 	paymentID, err := database.Db.CreatePayment(payment)
 	if err != nil {
@@ -1007,14 +1009,14 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("MaxOrderAmount is not an integer")
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				utils.ErrorJSON(w, errors.New("MaxOrderAmount is not an integer"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "RefundFees" {
+		} else if key == "OrgaCoversTransactionCosts" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error("RefundFees is not a boolean")
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				log.Error("OrgaCoversTransactionCosts is not a boolean")
+				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
 
 				return
 			}
@@ -1022,7 +1024,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			value, err := strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("MainItem is not an integer")
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				utils.ErrorJSON(w, errors.New("MainItem is not an integer"), http.StatusBadRequest)
 				return
 			}
 			fieldsClean[key] = null.NewInt(int64(value), true)

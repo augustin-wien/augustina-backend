@@ -14,15 +14,11 @@ func (db *Database) CreateDevData() (err error) {
 	if err != nil {
 		return err
 	}
-	itemIDs, err := db.createDevItems()
+	_, err = db.createDevItems()
 	if err != nil {
 		return err
 	}
-	err = db.createDevOrdersAndPayments(vendorIDs, itemIDs)
-	if err != nil {
-		return err
-	}
-	err = db.createDevSettings()
+	err = db.createDevOrdersAndPayments(vendorIDs)
 	if err != nil {
 		return err
 	}
@@ -51,24 +47,24 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 // CreateDevItems creates test items for the application
 func (db *Database) createDevItems() (ids []int, err error) {
 
-	newspaperLicense := Item{
-		Name:        "Zeitung (Lizenz)",
-		Description: "Lizenz für aktuelle Zeitungsausgabe",
+	digitalNewspaperLicense := Item{
+		Name:        "Digitale Zeitung (Lizenz)",
+		Description: "Lizenz für digitale Zeitungsausgabe",
 		Price:       50,
 		Archived:    false,
 	}
 
-	newspaperLicenseID, err := db.CreateItem(newspaperLicense)
+	digitalNewspaperLicenseID, err := db.CreateItem(digitalNewspaperLicense)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
-	newspaper := Item{
-		Name:        "Zeitung",
-		Description: "Aktuelle Zeitungsausgabe",
+	digitalNewspaper := Item{
+		Name:        "Digitale Zeitung",
+		Description: "Digitale Zeitungsausgabe",
 		Price:       300,
-		LicenseItem: null.NewInt(int64(newspaperLicenseID), true),
+		LicenseItem: null.NewInt(int64(digitalNewspaperLicenseID), true),
 		Archived:    false,
 	}
 
@@ -79,29 +75,15 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Archived:    false,
 	}
 
-	donation := Item{
-		Name:        "Spende",
-		Description: "Spenden für das eigene Wohlbefinden",
-		Price:       1,
-		Archived:    false,
-	}
-
-	transactionCost := Item{
-		Name:        "Transaktionskosten2",
-		Description: "Transaktionskosten2",
-		Price:       1,
-		Archived:    false,
-	}
-
 	// Create newspaper
-	newspaperID, err := db.CreateItem(newspaper)
+	_, err = db.CreateItem(digitalNewspaper)
 	if err != nil {
 		log.Error("Dev newspaper creation failed ", zap.Error(err))
 		return
 	}
 
 	// Create calendar
-	calendarID, err := db.CreateItem(calendar)
+	_, err = db.CreateItem(calendar)
 	if err != nil {
 		pg := err.(*pgconn.PgError)
 		if reflect.TypeOf(err) == reflect.TypeOf(&pgconn.PgError{}) {
@@ -111,31 +93,24 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		return
 	}
 
-	// Create donation
-	donationID, err := db.CreateItem(donation)
-	if err != nil {
-		log.Error("Dev donation creation failed ", zap.Error(err))
-		return
-	}
-
-	// Create donation
-	transactionCostID, err := db.CreateItem(transactionCost)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-
-	ids = append(ids, newspaperID, newspaperLicenseID, calendarID, donationID, transactionCostID)
-
 	return ids, err
 }
 
+//After initializing items and calling the function above, the database should look like this:
+// item[0] = Newspaper
+// item[1] = Donation
+// item[2] = Transaction cost
+// item[3] = Digital newspaper
+// item[4] = Digital newspaper license
+// item[5] = Calendar
+//
+
 // CreateDevOrdersAndPayments creates test orders and payments
 // This function replicates what happens in CreateOrder handler
-// User buys 2 newspapers (-600), 1 calendar (-800), 200 donations (-200)
+// User buys 2 newspapers (-600), 1 calendar (-800)
 // Orga gets 2 licenses (100) and looses 27 transaction costs (-27)
 // Vendor gets all sales (1600) and pays 2 licenses (-100)
-func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (err error) {
+func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 
 	buyerAccount, err := db.GetAccountByType("UserAnon")
 	if err != nil {
@@ -157,47 +132,37 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 		return
 	}
 
+	items, err := db.ListItems()
+	if err != nil {
+		return
+	}
+
 	// Create order
 	order := Order{
 		OrderCode: null.NewString("devOrder1", true),
 		Vendor:    vendorIDs[0],
 		Entries: []OrderEntry{
 			{
-				Item:         itemIDs[0], // Newspaper
-				Quantity:     2,
-				Sender:       buyerAccount.ID,
-				Receiver:     vendorAccount.ID,
-				SenderName:   buyerAccount.Name,
-				ReceiverName: vendorAccount.Name,
-				IsSale:       true,
+				Item:     items[4].ID, // Digital Newspaper
+				Quantity: 2,
+				Sender:   buyerAccountID,
+				Receiver: vendorAccount.ID,
+				IsSale:   true,
 			},
 
 			// License for newspaper is paid to orga
 			{
-				Item:         itemIDs[1], // Newspaper License
-				Quantity:     2,
-				Sender:       vendorAccount.ID,
-				Receiver:     orgaAccount.ID,
-				SenderName:   vendorAccount.Name,
-				ReceiverName: orgaAccount.Name,
+				Item:     items[3].ID, // Newspaper License
+				Quantity: 2,
+				Sender:   vendorAccount.ID,
+				Receiver: orgaAccountID,
 			},
 			{
-				Item:         itemIDs[2], // Calendar
-				Quantity:     1,
-				Sender:       buyerAccount.ID,
-				Receiver:     vendorAccount.ID,
-				SenderName:   buyerAccount.Name,
-				ReceiverName: vendorAccount.Name,
-				IsSale:       true,
-			},
-			{
-				Item:         itemIDs[3], // Donation
-				Quantity:     200,        // 2 Euros donation
-				Sender:       buyerAccount.ID,
-				Receiver:     vendorAccount.ID,
-				SenderName:   buyerAccount.Name,
-				ReceiverName: vendorAccount.Name,
-				IsSale:       true,
+				Item:     items[5].ID, // Calendar
+				Quantity: 1,
+				Sender:   buyerAccountID,
+				Receiver: vendorAccount.ID,
+				IsSale:   true,
 			},
 		},
 	}
@@ -219,22 +184,18 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 
 		// Vendor pays transaction costs
 		{
-			Item:         itemIDs[4], // Transaction cost
-			Quantity:     27,         // 27 cents transaction cost
-			Sender:       vendorAccount.ID,
-			Receiver:     paypalAccount.ID,
-			SenderName:   vendorAccount.Name,
-			ReceiverName: paypalAccount.Name,
+			Item:     items[2].ID, // Transaction cost
+			Quantity: 27,          // 27 cents transaction cost
+			Sender:   vendorAccount.ID,
+			Receiver: paypalAccountID,
 		},
 
 		// Vendor gets transaction costs back from orga
 		{
-			Item:         itemIDs[4], // Transaction cost
-			Quantity:     27,         // 27 cents transaction cost
-			Sender:       orgaAccount.ID,
-			Receiver:     vendorAccount.ID,
-			SenderName:   orgaAccount.Name,
-			ReceiverName: vendorAccount.Name,
+			Item:     items[2].ID, // Transaction cost
+			Quantity: 27,          // 27 cents transaction cost
+			Sender:   orgaAccountID,
+			Receiver: vendorAccount.ID,
 		},
 	})
 	if err != nil {
@@ -242,22 +203,4 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (
 	}
 
 	return
-}
-
-// CreateDevSettings creates test settings for the application
-func (db *Database) createDevSettings() (err error) {
-	settings := Settings{
-		Color:                      "#FF0000",
-		Logo:                       "/img/Augustin-Logo-Rechteck.jpg",
-		MainItem:                   null.IntFrom(2),
-		MaxOrderAmount:             5000,
-		OrgaCoversTransactionCosts: true,
-	}
-
-	err = db.UpdateSettings(settings)
-	if err != nil {
-		log.Error("Dev settings creation failed ", zap.Error(err))
-	}
-
-	return err
 }
