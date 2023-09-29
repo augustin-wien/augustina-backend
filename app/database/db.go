@@ -70,7 +70,6 @@ func initData(db *Database) (err error) {
 		if err != nil {
 			log.Error("Settings creation failed ", zap.Error(err))
 		}
-
 		err = db.UpdateInitialSettings()
 		if err != nil {
 			log.Error("Updating initial Settings failed ", zap.Error(err))
