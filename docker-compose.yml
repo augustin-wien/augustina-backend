@@ -181,7 +181,7 @@ services:
       - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
       - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
       - ./docker/wpcli/:/wpcli/
-      - ./docker/.env.parser:/wpcli/.env.parser
+      - "./docker/.env.parser:/wpcli/.env.parser"
 
     environment:
       - WORDPRESS_DB_HOST=wordpress-db
