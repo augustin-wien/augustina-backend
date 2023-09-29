@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -449,20 +450,45 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 // Payments -------------------------------------------------------------------
 
 // ListPayments returns the payments from the database
-func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments []Payment, err error) {
+func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool) (payments []Payment, err error) {
 	var rows pgx.Rows
 
-	// TODO: JOIN with Account to get account names
-	// Query based on parameters
-	if !minDate.IsZero() && !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
-	} else if !minDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp >= $1", minDate)
-	} else if !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp <= $1", maxDate)
-	} else {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver")
+	// Create filters
+	var filters []string
+	var vendor Vendor
+	var vendorAccount Account
+	var cashAccountID int
+	if !minDate.IsZero() {
+		filters = append(filters, "Timestamp >= $1")
 	}
+	if !maxDate.IsZero() {
+		filters = append(filters, "Timestamp <= $2")
+	}
+	if vendorLicenseID != "" {
+		vendor, err = db.GetVendorByLicenseID(vendorLicenseID)
+		if err != nil {
+			return
+		}
+		vendorAccount, err = db.GetAccountByVendorID(vendor.ID)
+		if err != nil {
+			return
+		}
+		filters = append(filters, "Sender = $3")
+	}
+	if filterPayouts {
+		cashAccountID, err = db.GetAccountTypeID("Cash")
+		if err != nil {
+			return
+		}
+		filters = append(filters, "Receiver = $4") // This defines payouts
+	}
+
+	// Query based on parameters
+	query := "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver"
+	if len(filters) > 0 {
+		query += " WHERE " + strings.Join(filters, " AND ")
+	}
+	rows, err = db.Dbpool.Query(context.Background(), query, minDate, maxDate, vendorAccount.ID, cashAccountID)
 	if err != nil {
 		log.Error(err)
 		return payments, err
@@ -472,49 +498,6 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 	for rows.Next() {
 		var payment Payment
 		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
-		if err != nil {
-			return payments, err
-		}
-		payments = append(payments, payment)
-	}
-	return payments, nil
-}
-
-// ListPayouts returns the payments from the database
-func (db *Database) ListPayouts(minDate time.Time, maxDate time.Time, vendorLicenseID string) (payments []Payment, err error) {
-	var rows pgx.Rows
-
-	// Filter from vendor to cash
-	vendorID, err := db.GetVendorByLicenseID(vendorLicenseID)
-	if err != nil {
-		return
-	}
-
-	vendorAccountID, err := db.GetAccountByVendorID(vendorID)
-	if err != nil {
-		return
-	}
-
-
-	// Query based on parameters
-	if !minDate.IsZero() && !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
-	} else if !minDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1", minDate)
-	} else if !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp <= $1", maxDate)
-	} else {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment")
-	}
-	if err != nil {
-		log.Error(err)
-		return payments, err
-	}
-
-	// Scan rows
-	for rows.Next() {
-		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 		if err != nil {
 			return payments, err
 		}

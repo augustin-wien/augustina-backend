@@ -670,7 +670,7 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get payments with optional parameters
-	payments, err := database.Db.ListPayments(minDate, maxDate)
+	payments, err := database.Db.ListPayments(minDate, maxDate, "", false)
 	respond(w, err, payments)
 }
 
@@ -709,7 +709,7 @@ func ListPayouts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get payments with optional parameters
-	payments, err := database.Db.ListPayouts(minDate, maxDate, vendor)
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, true)
 	respond(w, err, payments)
 }
 
