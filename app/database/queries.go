@@ -110,7 +110,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 	}
 
 	// Create vendor account
-	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Vendor) values (0, $2, $1) RETURNING ID", vendorID, "Vendor")
+	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, "Vendor", vendorID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -243,14 +243,14 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // GetOrderEntries returns all entries of an order
 func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price, Sender, Receiver, IsSale FROM OrderEntry WHERE paymentorder = $1", orderID)
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT OrderEntry.ID, Item, Quantity, Price, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, IsSale FROM OrderEntry JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE paymentorder = $1 ", orderID)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	for rows.Next() {
 		var entry OrderEntry
-		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver, &entry.IsSale)
+		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver, &entry.SenderName, &entry.ReceiverName, &entry.IsSale)
 		if err != nil {
 			log.Error(err)
 			return
@@ -374,12 +374,12 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	if count == 0 && !errorIfExists {
 		err = nil
 		payment = Payment{
-			Sender:     entry.Sender,
-			Receiver:   entry.Receiver,
-			Amount:     entry.Price * entry.Quantity,
-			Order:      null.NewInt(int64(orderID), true),
-			OrderEntry: null.NewInt(int64(entry.ID), true),
-			IsSale:     entry.IsSale,
+			Sender:       entry.Sender,
+			Receiver:     entry.Receiver,
+			Amount:       entry.Price * entry.Quantity,
+			Order:        null.NewInt(int64(orderID), true),
+			OrderEntry:   null.NewInt(int64(entry.ID), true),
+			IsSale:       entry.IsSale,
 		}
 		paymentID, err = createPaymentTx(tx, payment)
 	}
@@ -452,15 +452,16 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments []Payment, err error) {
 	var rows pgx.Rows
 
+	// TODO: JOIN with Account to get account names
 	// Query based on parameters
 	if !minDate.IsZero() && !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
 	} else if !minDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1", minDate)
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp >= $1", minDate)
 	} else if !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp <= $1", maxDate)
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp <= $1", maxDate)
 	} else {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment")
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver")
 	}
 	if err != nil {
 		log.Error(err)
@@ -470,7 +471,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 	// Scan rows
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 		if err != nil {
 			return payments, err
 		}
@@ -524,7 +525,7 @@ func (db *Database) ListPayouts(minDate time.Time, maxDate time.Time, vendorLice
 
 // GetPayment
 func (db *Database) GetPayment(id int) (payment Payment, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Payment WHERE ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 	if err != nil {
 		log.Error(err)
 	}
