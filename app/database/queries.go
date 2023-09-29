@@ -439,13 +439,13 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 	// TODO: JOIN with Account to get account names
 	// Query based on parameters
 	if !minDate.IsZero() && !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
 	} else if !minDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1", minDate)
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp >= $1", minDate)
 	} else if !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp <= $1", maxDate)
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp <= $1", maxDate)
 	} else {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment")
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver")
 	}
 	if err != nil {
 		log.Error(err)
@@ -455,7 +455,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 	// Scan rows
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 		if err != nil {
 			return payments, err
 		}
@@ -466,7 +466,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 
 // GetPayment
 func (db *Database) GetPayment(id int) (payment Payment, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Payment WHERE ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 	if err != nil {
 		log.Error(err)
 	}
