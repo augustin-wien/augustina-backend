@@ -646,19 +646,20 @@ func parseBool(value string) (bool, error) {
 
 // ListPayments godoc
 //
-//	 	@Summary 		Get list of all payments
-//		@Tags			Payments
-//		@Accept			json
-//		@Produce		json
-//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
-//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
-//		@Param			vendor query string false "Vendor LicenseID"
-//      @Param			payouts query bool false "Payouts only"
-//      @Param          sales query bool false "Sales only"
-//		@Success		200	{array}	database.Payment
-//		@Security		KeycloakAuth
-//		@Security		KeycloakAuth
-//		@Router			/payments/ [get]
+//		 	@Summary 		Get list of all payments
+//			@Description 	Filter by date, vendor, payouts, sales. If payouts set true, all payments are removed that are not payouts. Same for sales. So sales and payouts can't be true at the same time.
+//			@Tags			Payments
+//			@Accept			json
+//			@Produce		json
+//			@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//			@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//			@Param			vendor query string false "Vendor LicenseID"
+//	     @Param			payouts query bool false "Payouts only"
+//	     @Param          sales query bool false "Sales only"
+//			@Success		200	{array}	database.Payment
+//			@Security		KeycloakAuth
+//			@Security		KeycloakAuth
+//			@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
 	var err error
 
