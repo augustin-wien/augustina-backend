@@ -102,6 +102,10 @@ type Settings struct {
 	MainItem                   null.Int `swaggertype:"integer"`
 	MaxOrderAmount             int
 	OrgaCoversTransactionCosts bool
+	MainItemName			   null.String
+	MainItemPrice			   null.Int
+	MainItemDescription		   null.String
+	MainItemImage			   null.String
 }
 
 // DBSettings is a struct that is used for the dbsettings table

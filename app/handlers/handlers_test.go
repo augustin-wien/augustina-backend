@@ -499,10 +499,13 @@ func TestPaymentPayout(t *testing.T) {
 // TestSettings tests GET and PUT operations on settings
 func TestSettings(t *testing.T) {
 
+	itemID := CreateTestItem(t)
+
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	writer.WriteField("MaxOrderAmount", strconv.Itoa(10))
+	writer.WriteField("MainItem", itemID)
 	image, _ := writer.CreateFormFile("Logo", "test.png")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()
@@ -515,6 +518,10 @@ func TestSettings(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, "img/logo.png", settings.Logo)
 
+	// Check item join
+	require.Equal(t, "Test item", settings.MainItemName.String)
+	require.Equal(t, int64(314), settings.MainItemPrice.Int64)
+
 	// Check file
 	dir, err := os.Getwd()
 	if err != nil {
@@ -523,4 +530,5 @@ func TestSettings(t *testing.T) {
 	file, err := os.ReadFile(dir + "/" + settings.Logo)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
+
 }
