@@ -466,6 +466,34 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
 
+	// Test GET payment filters for payout
+	createTestVendor(t, "testOTHERLicenseID")
+	database.Db.CreatePayment(database.Payment{})
+
+	var payouts []database.Payment
+	response := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true&vendor=testLicenseID", nil, 200, adminUserToken)
+	err = json.Unmarshal(response.Body.Bytes(), &payouts)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(payouts))
+	require.Equal(t, payouts[0].Amount, 314)
+
+	response1 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true", nil, 200, adminUserToken)
+	err = json.Unmarshal(response1.Body.Bytes(), &payouts)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(payouts))
+
+	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true&vendor=testOTHERLicenseID", nil, 200, adminUserToken)
+	err = json.Unmarshal(response2.Body.Bytes(), &payouts)
+	utils.CheckError(t, err)
+	require.Equal(t, 0, len(payouts))
+
+	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
+	err = json.Unmarshal(response3.Body.Bytes(), &payouts)
+	utils.CheckError(t, err)
+	require.Equal(t, 2, len(payouts))
+
+
+
 }
 
 // TestSettings tests GET and PUT operations on settings

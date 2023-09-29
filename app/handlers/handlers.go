@@ -645,12 +645,12 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
-//		@Param			vendor query string true "Vendor LicenseID"
+//		@Param			vendor query string false "Vendor LicenseID"
 //      @Param			payouts query bool false "Payouts only"
 //		@Success		200	{array}	database.Payment
 //		@Security		KeycloakAuth
 //		@Security		KeycloakAuth
-//		@Router			/payments/payouts/ [get]
+//		@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
 	var err error
 
