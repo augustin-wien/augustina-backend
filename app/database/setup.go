@@ -73,7 +73,7 @@ func (db *Database) InitiateItems() (err error) {
 func (db *Database) UpdateInitialSettings() (err error) {
 	settings := Settings{
 		Color:                      "#FF0000",
-		Logo:                       "/img/Augustin-Logo-Rechteck.jpg",
+		Logo:                       "/img/logo.png",
 		MainItem:                   null.IntFrom(0),
 		MaxOrderAmount:             5000,
 		OrgaCoversTransactionCosts: true,

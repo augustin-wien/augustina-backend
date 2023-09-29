@@ -14,11 +14,11 @@ func (db *Database) CreateDevData() (err error) {
 	if err != nil {
 		return err
 	}
-	itemIDs, err := db.createDevItems()
+	_, err = db.createDevItems()
 	if err != nil {
 		return err
 	}
-	err = db.createDevOrdersAndPayments(vendorIDs, itemIDs)
+	err = db.createDevOrdersAndPayments(vendorIDs)
 	if err != nil {
 		return err
 	}
@@ -47,14 +47,14 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 // CreateDevItems creates test items for the application
 func (db *Database) createDevItems() (ids []int, err error) {
 
-	digitaNnewspaperLicense := Item{
+	digitalNewspaperLicense := Item{
 		Name:        "Digitale Zeitung (Lizenz)",
 		Description: "Lizenz für digitale Zeitungsausgabe",
 		Price:       50,
 		Archived:    false,
 	}
 
-	diitalNewspaperLicenseID, err := db.CreateItem(digitaNnewspaperLicense)
+	digitalNewspaperLicenseID, err := db.CreateItem(digitalNewspaperLicense)
 	if err != nil {
 		log.Error(err)
 		return
@@ -64,7 +64,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Name:        "Digitale Zeitung",
 		Description: "Digitale Zeitungsausgabe",
 		Price:       300,
-		LicenseItem: null.NewInt(int64(diitalNewspaperLicenseID), true),
+		LicenseItem: null.NewInt(int64(digitalNewspaperLicenseID), true),
 		Archived:    false,
 	}
 
@@ -76,14 +76,14 @@ func (db *Database) createDevItems() (ids []int, err error) {
 	}
 
 	// Create newspaper
-	digitalNewspaperID, err := db.CreateItem(digitalNewspaper)
+	_, err = db.CreateItem(digitalNewspaper)
 	if err != nil {
 		log.Error("Dev newspaper creation failed ", zap.Error(err))
 		return
 	}
 
 	// Create calendar
-	calendarID, err := db.CreateItem(calendar)
+	_, err = db.CreateItem(calendar)
 	if err != nil {
 		pg := err.(*pgconn.PgError)
 		if reflect.TypeOf(err) == reflect.TypeOf(&pgconn.PgError{}) {
@@ -92,8 +92,6 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		log.Error("Dev newspaper creation failed ", zap.Error(err))
 		return
 	}
-
-	ids = append(ids, digitalNewspaperID, diitalNewspaperLicenseID, calendarID)
 
 	return ids, err
 }
@@ -112,7 +110,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 // User buys 2 newspapers (-600), 1 calendar (-800)
 // Orga gets 2 licenses (100) and looses 27 transaction costs (-27)
 // Vendor gets all sales (1600) and pays 2 licenses (-100)
-func (db *Database) createDevOrdersAndPayments(vendorIDs []int, itemIDs []int) (err error) {
+func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 
 	buyerAccountID, err := db.GetAccountTypeID("UserAnon")
 	if err != nil {
