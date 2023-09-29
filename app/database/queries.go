@@ -84,6 +84,22 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 	return vendor, err
 }
 
+// GetVendor returns the vendor with the given id
+func (db *Database) GetVendor(vendorId int) (vendor Vendor, err error) {
+	// Get vendor data
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorId).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Lang)
+	if err != nil {
+		log.Error("Couldn't get vendor", vendorId, err)
+		return vendor, err
+	}
+	// Get vendor balance
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
+	if err != nil {
+		log.Error(err)
+	}
+	return vendor, err
+}
+
 // CreateVendor creates a vendor and an associated account in the database
 func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 
@@ -619,7 +635,7 @@ func (db *Database) GetAccountByVendorID(vendorID int) (account Account, err err
 		if err.Error() == "no rows in result set" {
 			err = errors.New("vendor does not exist or has no account")
 		}
-		log.Error(err)
+		log.Error(err, vendorID)
 	}
 	return
 }
@@ -712,7 +728,7 @@ func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
 	SELECT * from Settings LIMIT 1
-	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts)
+	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts)
 	if err != nil {
 		log.Error(err)
 	}
@@ -724,9 +740,9 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `
 	UPDATE Settings
-	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6
+	SET Color = $1, Logo = $2, MainItem = $3, MaxOrderAmount = $4, OrgaCoversTransactionCosts = $5
 	WHERE ID = 1
-	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts)
+	`, settings.Color, settings.Logo, settings.MainItem, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts)
 
 	if err != nil {
 		log.Error(err)

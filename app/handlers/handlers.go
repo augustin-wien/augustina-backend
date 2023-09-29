@@ -157,11 +157,35 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, id)
 }
 
+// GetVendor godoc
+//
+//	 	@Summary 		Get Vendor
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//		@Security		KeycloakAuth
+//		@Param          id   path int  true  "Vendor ID"
+//		@Router			/vendors/{id}/ [get]
+func GetVendor(w http.ResponseWriter, r *http.Request) {
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	vendor, err := database.Db.GetVendor(vendorID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	respond(w, err, vendor)
+}
+
 // UpdateVendor godoc
 //
 //	 	@Summary 		Update Vendor
 //		@Description	Warning: Unfilled fields will be set to default values
-//		@Tags			vendors
+//		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
@@ -378,7 +402,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 //			@Success		200
 //			@Security		KeycloakAuth
 //	     @Param          id   path int  true  "Item ID"
-//			@Router			/items/{id} [delete]
+//			@Router			/items/{id}/ [delete]
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -1007,14 +1031,14 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("MaxOrderAmount is not an integer")
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				utils.ErrorJSON(w, errors.New("MaxOrderAmount is not an integer"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "RefundFees" {
+		} else if key == "OrgaCoversTransactionCosts" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error("RefundFees is not a boolean")
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				log.Error("OrgaCoversTransactionCosts is not a boolean")
+				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
 
 				return
 			}
@@ -1022,7 +1046,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			value, err := strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("MainItem is not an integer")
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				utils.ErrorJSON(w, errors.New("MainItem is not an integer"), http.StatusBadRequest)
 				return
 			}
 			fieldsClean[key] = null.NewInt(int64(value), true)

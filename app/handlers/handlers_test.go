@@ -106,6 +106,14 @@ func TestVendors(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/testLicenseID1/", nil, 200)
 	require.Equal(t, res.Body.String(), `{"FirstName":"test1234"}`)
 
+	// Get
+	utils.TestRequest(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 401)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 200, adminUserToken)
+	var vendor database.Vendor
+	err = json.Unmarshal(res.Body.Bytes(), &vendor)
+	utils.CheckError(t, err)
+	require.Equal(t, "test1234", vendor.FirstName)
+
 	// Update
 	var vendors2 []database.Vendor
 	jsonVendor := `{"firstName": "nameAfterUpdate"}`
@@ -148,8 +156,8 @@ func TestItems(t *testing.T) {
 	var resItems []database.Item
 	err := json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 2, len(resItems))
-	require.Equal(t, "Test item", resItems[1].Name)
+	require.Equal(t, 4, len(resItems))
+	require.Equal(t, "Test item", resItems[3].Name)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
@@ -166,17 +174,17 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 2, len(resItems))
-	require.Equal(t, "Updated item name", resItems[1].Name)
-	require.Contains(t, resItems[1].Image, "test")
-	require.Contains(t, resItems[1].Image, ".jpg")
+	require.Equal(t, 4, len(resItems))
+	require.Equal(t, "Updated item name", resItems[3].Name)
+	require.Contains(t, resItems[3].Image, "test")
+	require.Contains(t, resItems[3].Image, ".jpg")
 
 	// Check file
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	file, err := os.ReadFile(dir + "/" + resItems[1].Image)
+	file, err := os.ReadFile(dir + "/" + resItems[3].Image)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 
@@ -192,9 +200,9 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 2, len(resItems))
-	require.Equal(t, "Updated item name 2", resItems[1].Name)
-	require.Equal(t, resItems[1].Image, "Test")
+	require.Equal(t, 4, len(resItems))
+	require.Equal(t, "Updated item name 2", resItems[3].Name)
+	require.Equal(t, resItems[3].Image, "Test")
 
 }
 
@@ -461,7 +469,6 @@ func TestSettings(t *testing.T) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	writer.WriteField("MaxOrderAmount", strconv.Itoa(10))
-	writer.WriteField("RefundFees", "true")
 	image, _ := writer.CreateFormFile("Logo", "test.png")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()

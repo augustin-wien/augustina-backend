@@ -62,6 +62,7 @@ func GetRouter() (r *chi.Mux) {
 			r.Route("/{id}", func(r chi.Router) {
 				r.Put("/", UpdateVendor)
 				r.Delete("/", DeleteVendor)
+				r.Get("/", GetVendor)
 			})
 		})
 	})
