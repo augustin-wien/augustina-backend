@@ -256,9 +256,14 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 		return err
 	}
 
+	// Check if PaypalTransactionTypeID is set
+	if config.Config.VivaWalletTransactionTypeIDPaypal == 0 {
+		return errors.New("Env variable PaypalTransactionTypeID is not set")
+	}
+
 	// Check if order has been payed via Paypal i.e. TransactionTypeId == 48
 	// Check TransactionTypeId here: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
-	if paymentSuccessful.EventData.TransactionTypeId == 48 {
+	if paymentSuccessful.EventData.TransactionTypeId == config.Config.VivaWalletTransactionTypeIDPaypal {
 
 		// Check if PaypalPercentageCosts and PaypalFixCosts are set
 		if config.Config.PaypalPercentageCosts == 0 {
