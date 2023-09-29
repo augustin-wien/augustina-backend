@@ -150,13 +150,11 @@ func TestItems(t *testing.T) {
 
 	// Create
 	itemID := CreateTestItem(t)
-	itemIDInt, err := strconv.Atoi(itemID)
-	utils.CheckError(t, err)
 
 	// Read
 	res := utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	var resItems []database.Item
-	err = json.Unmarshal(res.Body.Bytes(), &resItems)
+	err := json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
 	require.Equal(t, 4, len(resItems))
 	require.Equal(t, "Test item", resItems[3].Name)
@@ -205,8 +203,6 @@ func TestItems(t *testing.T) {
 	require.Equal(t, 4, len(resItems))
 	require.Equal(t, "Updated item name 2", resItems[3].Name)
 	require.Equal(t, resItems[3].Image, "Test")
-
-	database.Db.DeleteItem(itemIDInt)
 
 }
 
@@ -514,8 +510,6 @@ func CreateTestMainItem(t *testing.T) string {
 func TestSettings(t *testing.T) {
 
 	itemID := CreateTestMainItem(t)
-	itemIDInt, err := strconv.Atoi(itemID)
-	utils.CheckError(t, err)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
@@ -530,7 +524,7 @@ func TestSettings(t *testing.T) {
 	// Read
 	var settings database.Settings
 	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
-	err = json.Unmarshal(res.Body.Bytes(), &settings)
+	err := json.Unmarshal(res.Body.Bytes(), &settings)
 	utils.CheckError(t, err)
 	require.Equal(t, "img/logo.png", settings.Logo)
 
@@ -546,7 +540,5 @@ func TestSettings(t *testing.T) {
 	file, err := os.ReadFile(dir + "/" + settings.Logo)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
-
-	database.Db.DeleteItem(itemIDInt)
 
 }
