@@ -645,55 +645,32 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
-//		@Success		200	{array}	database.Payment
-//		@Security		KeycloakAuth
-//		@Security		KeycloakAuth
-//		@Router			/payments/ [get]
-func ListPayments(w http.ResponseWriter, r *http.Request) {
-
-	// Get minDate and maxDate parameters
-	minDateRaw := r.URL.Query().Get("from")
-	maxDateRaw := r.URL.Query().Get("to")
-	var err error
-	var minDate, maxDate time.Time
-	if minDateRaw != "" {
-		minDate, err = time.Parse(time.RFC3339, minDateRaw)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-		}
-	}
-	if maxDateRaw != "" {
-		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-		}
-	}
-
-	// Get payments with optional parameters
-	payments, err := database.Db.ListPayments(minDate, maxDate, "", false)
-	respond(w, err, payments)
-}
-
-// ListPayouts godoc
-//
-//	 	@Summary 		Get list of all payments
-//		@Tags			Payments
-//		@Accept			json
-//		@Produce		json
-//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
-//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Param			vendor query string true "Vendor LicenseID"
+//      @Param			payouts query bool false "Payouts only"
 //		@Success		200	{array}	database.Payment
 //		@Security		KeycloakAuth
 //		@Security		KeycloakAuth
 //		@Router			/payments/payouts/ [get]
-func ListPayouts(w http.ResponseWriter, r *http.Request) {
+func ListPayments(w http.ResponseWriter, r *http.Request) {
+	var err error
 
-	// Get minDate and maxDate parameters
+	// Get filter parameters
 	minDateRaw := r.URL.Query().Get("from")
 	maxDateRaw := r.URL.Query().Get("to")
+	payoutRaw := r.URL.Query().Get("payouts")
 	vendor := r.URL.Query().Get("vendor")
-	var err error
+
+	// Parse filter parameters
+	var payout bool
+	if payoutRaw == "" {
+		payout = false
+	} else {
+		payout, err = strconv.ParseBool(payoutRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
 	var minDate, maxDate time.Time
 	if minDateRaw != "" {
 		minDate, err = time.Parse(time.RFC3339, minDateRaw)
@@ -708,8 +685,8 @@ func ListPayouts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Get payments with optional parameters
-	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, true)
+	// Get payments with filter parameters
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, payout)
 	respond(w, err, payments)
 }
 
