@@ -398,7 +398,7 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	}
 
 	// Get ID of VivaWallet account
-	PaymentProviderID, err := database.Db.GetAccountTypeID(paymentProvider)
+	paymentProviderAccountID, err := database.Db.GetAccountTypeID(paymentProvider)
 	if err != nil {
 		return err
 	}
@@ -412,10 +412,10 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	// Create order entries for transaction costs
 	var entries = []database.OrderEntry{
 		{
-			Item:     transactionCostsItem.ID, // ID of transaction costs item
-			Quantity: transactionCosts,        // Amount of transaction costs
-			Sender:   vendorAccount.ID,        // ID of vendor
-			Receiver: PaymentProviderID,       // ID of Payment Provider
+			Item:         transactionCostsItem.ID,     // ID of transaction costs item
+			Quantity:     transactionCosts,            // Amount of transaction costs
+			Sender:       vendorAccount.ID,            // ID of vendor
+			Receiver:     paymentProviderAccountID,   // ID of Payment Provider
 		},
 	}
 
@@ -441,10 +441,10 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		// Create payment for covering transaction costs by Organization
 		var entries = []database.OrderEntry{
 			{
-				Item:     transactionCostsItem.ID, // ID of transaction costs item
-				Quantity: transactionCosts,        // Amount of transaction costs
-				Sender:   orgaAccountID,           // ID of Orga
-				Receiver: vendorAccount.ID,        // ID of vendor
+				Item:         transactionCostsItem.ID, // ID of transaction costs item
+				Quantity:     transactionCosts,        // Amount of transaction costs
+				Sender:       orgaAccountID,          // ID of Orga
+				Receiver:     vendorAccount.ID,        // ID of vendor
 			},
 		}
 		// append transaction cost entries here
