@@ -120,39 +120,6 @@
                 }
             }
         },
-        "/items/{id}": {
-            "delete": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Items"
-                ],
-                "summary": "Delete Item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Item ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/items/{id}/": {
             "put": {
                 "security": [
@@ -187,6 +154,37 @@
                         "schema": {
                             "$ref": "#/definitions/database.Item"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Delete Item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -514,6 +512,37 @@
             }
         },
         "/vendors/{id}/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Get Vendor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -798,6 +827,9 @@
                 "id": {
                     "type": "integer"
                 },
+                "isSale": {
+                    "type": "boolean"
+                },
                 "order": {
                     "type": "integer"
                 },
@@ -821,6 +853,9 @@
                 "color": {
                     "type": "string"
                 },
+                "fontColor": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -833,7 +868,7 @@
                 "maxOrderAmount": {
                     "type": "integer"
                 },
-                "refundFees": {
+                "orgaCoversTransactionCosts": {
                     "type": "boolean"
                 }
             }
@@ -847,6 +882,9 @@
                 "balance": {
                     "description": "This is joined in from the account",
                     "type": "integer"
+                },
+                "comment": {
+                    "type": "string"
                 },
                 "email": {
                     "type": "string"
@@ -990,177 +1028,185 @@
         "paymentprovider.EventData": {
             "type": "object",
             "properties": {
-                "AcquirerApproved": {
+                "acquirerApproved": {
                     "type": "boolean"
                 },
-                "Amount": {
+                "amount": {
                     "type": "number"
                 },
-                "AssignedMerchantUsers": {
+                "assignedMerchantUsers": {
                     "type": "array",
                     "items": {}
                 },
-                "AssignedResellerUsers": {
+                "assignedResellerUsers": {
                     "type": "array",
                     "items": {}
                 },
-                "AuthorizationId": {
+                "authorizationId": {
                     "type": "string"
                 },
-                "BankId": {
+                "bankId": {
                     "type": "string"
                 },
-                "BillId": {},
-                "BinId": {
+                "billId": {},
+                "binId": {
                     "type": "integer"
                 },
-                "CardCountryCode": {},
-                "CardExpirationDate": {
+                "cardCountryCode": {
                     "type": "string"
                 },
-                "CardIssuingBank": {},
-                "CardNumber": {
+                "cardExpirationDate": {
                     "type": "string"
                 },
-                "CardToken": {
+                "cardIssuingBank": {
                     "type": "string"
                 },
-                "CardTypeId": {
+                "cardNumber": {
+                    "type": "string"
+                },
+                "cardToken": {
+                    "type": "string"
+                },
+                "cardTypeId": {
                     "type": "integer"
                 },
-                "CardUniqueReference": {
+                "cardUniqueReference": {
                     "type": "string"
                 },
-                "ChannelId": {
+                "channelId": {
                     "type": "string"
                 },
-                "ClearanceDate": {},
-                "CompanyName": {},
-                "CompanyTitle": {},
-                "ConnectedAccountId": {},
-                "CurrencyCode": {
+                "clearanceDate": {},
+                "companyName": {
                     "type": "string"
                 },
-                "CurrentInstallment": {
+                "companyTitle": {
+                    "type": "string"
+                },
+                "connectedAccountId": {},
+                "currencyCode": {
+                    "type": "string"
+                },
+                "currentInstallment": {
                     "type": "integer"
                 },
-                "CustomerTrns": {
+                "customerTrns": {
                     "type": "string"
                 },
-                "DigitalWalletId": {},
-                "DualMessage": {
+                "digitalWalletId": {},
+                "dualMessage": {
                     "type": "boolean"
                 },
-                "ElectronicCommerceIndicator": {
+                "electronicCommerceIndicator": {
                     "type": "string"
                 },
-                "Email": {
+                "email": {
                     "type": "string"
                 },
-                "FullName": {
+                "fullName": {
                     "type": "string"
                 },
-                "InsDate": {
+                "insDate": {
                     "type": "string"
                 },
-                "IsManualRefund": {
+                "isManualRefund": {
                     "type": "boolean"
                 },
-                "Latitude": {},
-                "Longitude": {},
-                "LoyaltyTriggered": {
+                "latitude": {},
+                "longitude": {},
+                "loyaltyTriggered": {
                     "type": "boolean"
                 },
-                "MerchantCategoryCode": {
+                "merchantCategoryCode": {
                     "type": "integer"
                 },
-                "MerchantId": {
+                "merchantId": {
                     "type": "string"
                 },
-                "MerchantTrns": {
+                "merchantTrns": {
                     "type": "string"
                 },
-                "Moto": {
+                "moto": {
                     "type": "boolean"
                 },
-                "OrderCode": {
+                "orderCode": {
                     "type": "integer"
                 },
-                "OrderCulture": {
+                "orderCulture": {
                     "type": "string"
                 },
-                "OrderServiceId": {
+                "orderServiceId": {
                     "type": "integer"
                 },
-                "PanEntryMode": {
+                "panEntryMode": {
                     "type": "string"
                 },
-                "ParentId": {},
-                "Phone": {
+                "parentId": {},
+                "phone": {
                     "type": "string"
                 },
-                "ProductId": {},
-                "RedeemedAmount": {
+                "productId": {},
+                "redeemedAmount": {
                     "type": "number"
                 },
-                "ReferenceNumber": {
+                "referenceNumber": {
                     "type": "integer"
                 },
-                "ResellerCompanyName": {},
-                "ResellerId": {},
-                "ResellerSourceAddress": {},
-                "ResellerSourceCode": {},
-                "ResellerSourceName": {},
-                "ResponseCode": {
+                "resellerCompanyName": {},
+                "resellerId": {},
+                "resellerSourceAddress": {},
+                "resellerSourceCode": {},
+                "resellerSourceName": {},
+                "responseCode": {
                     "type": "string"
                 },
-                "ResponseEventId": {},
-                "RetrievalReferenceNumber": {
+                "responseEventId": {},
+                "retrievalReferenceNumber": {
                     "type": "string"
                 },
-                "ServiceId": {},
-                "SourceCode": {
+                "serviceId": {},
+                "sourceCode": {
                     "type": "string"
                 },
-                "SourceName": {
+                "sourceName": {
                     "type": "string"
                 },
-                "StatusId": {
+                "statusId": {
                     "type": "string"
                 },
-                "Switching": {
+                "switching": {
                     "type": "boolean"
                 },
-                "Systemic": {
+                "systemic": {
                     "type": "boolean"
                 },
-                "Tags": {
+                "tags": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "TargetPersonId": {},
-                "TargetWalletId": {},
-                "TerminalId": {
+                "targetPersonId": {},
+                "targetWalletId": {},
+                "terminalId": {
                     "type": "integer"
                 },
-                "TipAmount": {
+                "tipAmount": {
                     "type": "number"
                 },
-                "TotalFee": {
+                "totalFee": {
                     "type": "number"
                 },
-                "TotalInstallments": {
+                "totalInstallments": {
                     "type": "integer"
                 },
-                "TransactionId": {
+                "transactionId": {
                     "type": "string"
                 },
-                "TransactionTypeId": {
+                "transactionTypeId": {
                     "type": "integer"
                 },
-                "Ucaf": {
+                "ucaf": {
                     "type": "string"
                 }
             }
@@ -1183,6 +1229,7 @@
                 "OrderCode": {
                     "type": "integer"
                 },
+                "ResellerId": {},
                 "TotalCommission": {
                     "type": "number"
                 },
@@ -1230,9 +1277,7 @@
                 "Created": {
                     "type": "string"
                 },
-                "Delay": {
-                    "type": "integer"
-                },
+                "Delay": {},
                 "EventData": {
                     "$ref": "#/definitions/paymentprovider.PriceEventData"
                 },

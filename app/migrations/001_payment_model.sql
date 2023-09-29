@@ -16,7 +16,8 @@ CREATE TABLE Vendor (
     PLZ varchar(255) NOT NULL DEFAULT '',
     Location varchar(255) NOT NULL DEFAULT '',
     WorkingTime varchar(1) NOT NULL DEFAULT '',
-    Lang varchar(255) NOT NULL DEFAULT ''
+    Lang varchar(255) NOT NULL DEFAULT '',
+    Comment text NOT NULL DEFAULT ''
 );
 
 CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash', 'Paypal', 'VivaWallet');  -- UserAnon, Orga, and Cash, VivaWallet, Paypal should only exist once
@@ -77,9 +78,9 @@ CREATE TABLE Payment (
 CREATE TABLE Settings (
     ID integer UNIQUE PRIMARY KEY CHECK (ID = 1) DEFAULT 1,
     Color varchar(255) NOT NULL DEFAULT '',
+    FontColor varchar(255) NOT NULL DEFAULT '',
     Logo varchar(255) NOT NULL DEFAULT '',
     MainItem integer REFERENCES Item,
-    RefundFees bool NOT NULL DEFAULT FALSE,
     MaxOrderAmount integer NOT NULL DEFAULT 10000,  -- Default value is 10000, which equals 100€
     OrgaCoversTransactionCosts bool NOT NULL DEFAULT FALSE
 );

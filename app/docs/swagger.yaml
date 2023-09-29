@@ -30,6 +30,8 @@ definitions:
         type: string
       id:
         type: integer
+      isSale:
+        type: boolean
       order:
         type: integer
       orderEntry:
@@ -45,6 +47,8 @@ definitions:
     properties:
       color:
         type: string
+      fontColor:
+        type: string
       id:
         type: integer
       logo:
@@ -53,7 +57,7 @@ definitions:
         type: integer
       maxOrderAmount:
         type: integer
-      refundFees:
+      orgaCoversTransactionCosts:
         type: boolean
     type: object
   database.Vendor:
@@ -63,6 +67,8 @@ definitions:
       balance:
         description: This is joined in from the account
         type: integer
+      comment:
+        type: string
       email:
         type: string
       firstName:
@@ -156,128 +162,132 @@ definitions:
     type: object
   paymentprovider.EventData:
     properties:
-      AcquirerApproved:
+      acquirerApproved:
         type: boolean
-      Amount:
+      amount:
         type: number
-      AssignedMerchantUsers:
+      assignedMerchantUsers:
         items: {}
         type: array
-      AssignedResellerUsers:
+      assignedResellerUsers:
         items: {}
         type: array
-      AuthorizationId:
+      authorizationId:
         type: string
-      BankId:
+      bankId:
         type: string
-      BillId: {}
-      BinId:
+      billId: {}
+      binId:
         type: integer
-      CardCountryCode: {}
-      CardExpirationDate:
+      cardCountryCode:
         type: string
-      CardIssuingBank: {}
-      CardNumber:
+      cardExpirationDate:
         type: string
-      CardToken:
+      cardIssuingBank:
         type: string
-      CardTypeId:
+      cardNumber:
+        type: string
+      cardToken:
+        type: string
+      cardTypeId:
         type: integer
-      CardUniqueReference:
+      cardUniqueReference:
         type: string
-      ChannelId:
+      channelId:
         type: string
-      ClearanceDate: {}
-      CompanyName: {}
-      CompanyTitle: {}
-      ConnectedAccountId: {}
-      CurrencyCode:
+      clearanceDate: {}
+      companyName:
         type: string
-      CurrentInstallment:
+      companyTitle:
+        type: string
+      connectedAccountId: {}
+      currencyCode:
+        type: string
+      currentInstallment:
         type: integer
-      CustomerTrns:
+      customerTrns:
         type: string
-      DigitalWalletId: {}
-      DualMessage:
+      digitalWalletId: {}
+      dualMessage:
         type: boolean
-      ElectronicCommerceIndicator:
+      electronicCommerceIndicator:
         type: string
-      Email:
+      email:
         type: string
-      FullName:
+      fullName:
         type: string
-      InsDate:
+      insDate:
         type: string
-      IsManualRefund:
+      isManualRefund:
         type: boolean
-      Latitude: {}
-      Longitude: {}
-      LoyaltyTriggered:
+      latitude: {}
+      longitude: {}
+      loyaltyTriggered:
         type: boolean
-      MerchantCategoryCode:
+      merchantCategoryCode:
         type: integer
-      MerchantId:
+      merchantId:
         type: string
-      MerchantTrns:
+      merchantTrns:
         type: string
-      Moto:
+      moto:
         type: boolean
-      OrderCode:
+      orderCode:
         type: integer
-      OrderCulture:
+      orderCulture:
         type: string
-      OrderServiceId:
+      orderServiceId:
         type: integer
-      PanEntryMode:
+      panEntryMode:
         type: string
-      ParentId: {}
-      Phone:
+      parentId: {}
+      phone:
         type: string
-      ProductId: {}
-      RedeemedAmount:
+      productId: {}
+      redeemedAmount:
         type: number
-      ReferenceNumber:
+      referenceNumber:
         type: integer
-      ResellerCompanyName: {}
-      ResellerId: {}
-      ResellerSourceAddress: {}
-      ResellerSourceCode: {}
-      ResellerSourceName: {}
-      ResponseCode:
+      resellerCompanyName: {}
+      resellerId: {}
+      resellerSourceAddress: {}
+      resellerSourceCode: {}
+      resellerSourceName: {}
+      responseCode:
         type: string
-      ResponseEventId: {}
-      RetrievalReferenceNumber:
+      responseEventId: {}
+      retrievalReferenceNumber:
         type: string
-      ServiceId: {}
-      SourceCode:
+      serviceId: {}
+      sourceCode:
         type: string
-      SourceName:
+      sourceName:
         type: string
-      StatusId:
+      statusId:
         type: string
-      Switching:
+      switching:
         type: boolean
-      Systemic:
+      systemic:
         type: boolean
-      Tags:
+      tags:
         items:
           type: string
         type: array
-      TargetPersonId: {}
-      TargetWalletId: {}
-      TerminalId:
+      targetPersonId: {}
+      targetWalletId: {}
+      terminalId:
         type: integer
-      TipAmount:
+      tipAmount:
         type: number
-      TotalFee:
+      totalFee:
         type: number
-      TotalInstallments:
+      totalInstallments:
         type: integer
-      TransactionId:
+      transactionId:
         type: string
-      TransactionTypeId:
+      transactionTypeId:
         type: integer
-      Ucaf:
+      ucaf:
         type: string
     type: object
   paymentprovider.PriceEventData:
@@ -292,6 +302,7 @@ definitions:
         type: string
       OrderCode:
         type: integer
+      ResellerId: {}
       TotalCommission:
         type: number
       TransactionId:
@@ -323,8 +334,7 @@ definitions:
         type: string
       Created:
         type: string
-      Delay:
-        type: integer
+      Delay: {}
       EventData:
         $ref: '#/definitions/paymentprovider.PriceEventData'
       EventTypeId:
@@ -423,7 +433,7 @@ paths:
       summary: Create Item
       tags:
       - Items
-  /items/{id}:
+  /items/{id}/:
     delete:
       consumes:
       - application/json
@@ -443,7 +453,6 @@ paths:
       summary: Delete Item
       tags:
       - Items
-  /items/{id}/:
     put:
       consumes:
       - application/json
@@ -670,6 +679,25 @@ paths:
       security:
       - KeycloakAuth: []
       summary: Delete Vendor
+      tags:
+      - Vendors
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - KeycloakAuth: []
+      summary: Get Vendor
       tags:
       - Vendors
     put:

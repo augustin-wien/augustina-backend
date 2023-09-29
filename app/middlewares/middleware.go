@@ -3,6 +3,7 @@ package middlewares
 import (
 	"augustin/keycloak"
 	"augustin/utils"
+	"errors"
 	"net/http"
 	"strings"
 )
@@ -21,7 +22,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		if r.Header.Get("Authorization") == "" {
 			log.Info("No Authorization header")
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			utils.ErrorJSON(w, errors.New("Unauthorized"), http.StatusUnauthorized)
 			return
 		}
 		splitToken := strings.Split(r.Header.Get("Authorization"), " ")
@@ -38,19 +39,20 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		userinfo, err := keycloak.KeycloakClient.GetUserInfo(userToken)
 		if err != nil {
 			log.Info("Error getting userinfo ", err)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			utils.ErrorJSON(w, errors.New("Unauthorized"), http.StatusUnauthorized)
 			return
 		}
 
 		// set user headers
 		r.Header.Set("X-Auth-User", *userinfo.Sub)
+		r.Header.Set("X-Auth-User-Name", *userinfo.PreferredUsername)
 		r.Header.Set("X-Auth-User-Validated", "true")
 
 		// set user roles headers
 		userRoles, err := keycloak.KeycloakClient.GetUserRoles(*userinfo.Sub)
 		if err != nil {
 			log.Info("Error getting userRoles ", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.ErrorJSON(w, errors.New("Internal Server Error"), http.StatusInternalServerError)
 			return
 		}
 

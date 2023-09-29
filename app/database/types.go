@@ -28,6 +28,7 @@ type Vendor struct {
 	Location    string
 	WorkingTime string
 	Lang        string
+	Comment     string
 }
 
 // Account is a struct that is used for the account table
@@ -66,13 +67,15 @@ type Order struct {
 
 // OrderEntry is a struct that is used for the order_entry table
 type OrderEntry struct {
-	ID       int
-	Item     int
-	Quantity int
-	Price    int // Price at time of purchase in cents
-	Sender   int
-	Receiver int
-	IsSale   bool // Whether to include this item in sales payment
+	ID           int
+	Item         int
+	Quantity     int
+	Price        int // Price at time of purchase in cents
+	Sender       int
+	Receiver     int
+	SenderName   string
+	ReceiverName string
+	IsSale       bool // Whether to include this item in sales payment
 }
 
 // Payment is a struct that is used for the payment table
@@ -81,6 +84,8 @@ type Payment struct {
 	Timestamp    time.Time
 	Sender       int
 	Receiver     int
+	SenderName   string
+	ReceiverName string
 	Amount       int
 	AuthorizedBy string
 	Order        null.Int `swaggertype:"integer"`
@@ -92,9 +97,9 @@ type Payment struct {
 type Settings struct {
 	ID                         int
 	Color                      string
+	FontColor                  string
 	Logo                       string
 	MainItem                   null.Int `swaggertype:"integer"`
-	RefundFees                 bool
 	MaxOrderAmount             int
 	OrgaCoversTransactionCosts bool
 }
