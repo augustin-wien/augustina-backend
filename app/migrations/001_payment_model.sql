@@ -59,8 +59,6 @@ CREATE TABLE OrderEntry (
     PaymentOrder integer REFERENCES PaymentOrder,
     Sender integer NOT NULL REFERENCES Account,
     Receiver integer NOT NULL REFERENCES Account,
-    SenderName varchar(255) NOT NULL,
-    ReceiverName varchar(255) NOT NULL,
     IsSale bool NOT NULL DEFAULT FALSE
 );
 
@@ -69,8 +67,6 @@ CREATE TABLE Payment (
     Timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Sender integer NOT NULL REFERENCES Account,
     Receiver integer NOT NULL REFERENCES Account,
-    SenderName varchar(255) NOT NULL,
-    ReceiverName varchar(255) NOT NULL,
     Amount integer NOT NULL,  -- Price in cents
     AuthorizedBy varchar(255) NOT NULL DEFAULT '',
     PaymentOrder integer REFERENCES PaymentOrder,

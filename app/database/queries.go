@@ -227,7 +227,7 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // GetOrderEntries returns all entries of an order
 func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price, Sender, Receiver, SenderName, ReceiverName, IsSale FROM OrderEntry WHERE paymentorder = $1", orderID)
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT OrderEntry.ID, Item, Quantity, Price, Sender, Receiver, IsSale FROM OrderEntry JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE paymentorder = $1 ", orderID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -340,7 +340,7 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, e
 	entry.Price = item.Price
 
 	// Create order entry
-	err = tx.QueryRow(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver, SenderName, ReceiverName, IsSale) values ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING ID", entry.Item, entry.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver, entry.SenderName, entry.ReceiverName, entry.IsSale).Scan(&entry.ID)
+	err = tx.QueryRow(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver, IsSale) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", entry.Item, entry.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver, entry.IsSale).Scan(&entry.ID)
 	if err != nil {
 		log.Error(err)
 	}
@@ -360,8 +360,6 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 		payment = Payment{
 			Sender:       entry.Sender,
 			Receiver:     entry.Receiver,
-			SenderName:   entry.SenderName,
-			ReceiverName: entry.ReceiverName,
 			Amount:       entry.Price * entry.Quantity,
 			Order:        null.NewInt(int64(orderID), true),
 			OrderEntry:   null.NewInt(int64(entry.ID), true),
@@ -438,6 +436,7 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments []Payment, err error) {
 	var rows pgx.Rows
 
+	// TODO: JOIN with Account to get account names
 	// Query based on parameters
 	if !minDate.IsZero() && !maxDate.IsZero() {
 		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
@@ -456,7 +455,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 	// Scan rows
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 		if err != nil {
 			return payments, err
 		}
