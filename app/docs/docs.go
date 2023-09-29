@@ -563,7 +563,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "vendors"
+                    "Vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -859,6 +859,9 @@ const docTemplate = `{
                 "color": {
                     "type": "string"
                 },
+                "fontColor": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -885,6 +888,9 @@ const docTemplate = `{
                 "balance": {
                     "description": "This is joined in from the account",
                     "type": "integer"
+                },
+                "comment": {
+                    "type": "string"
                 },
                 "email": {
                     "type": "string"
