@@ -126,39 +126,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/items/{id}": {
-            "delete": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Items"
-                ],
-                "summary": "Delete Item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Item ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/items/{id}/": {
             "put": {
                 "security": [
@@ -193,6 +160,37 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/database.Item"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "Delete Item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Item ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -520,6 +518,37 @@ const docTemplate = `{
             }
         },
         "/vendors/{id}/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Get Vendor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Vendor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
