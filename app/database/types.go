@@ -91,7 +91,6 @@ type Payment struct {
 	Order        null.Int `swaggertype:"integer"`
 	OrderEntry   null.Int `swaggertype:"integer"`
 	IsSale       bool
-	TransactionTypeID null.Int  // JOIN from Order
 }
 
 // Settings is a struct that is used for the settings table

@@ -493,11 +493,10 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	if filterSales {
 		filterValues = append(filterValues, true)
 		filters = append(filters, "IsSale = $" + strconv.Itoa(len(filterValues)))
-
 	}
 
 	// Query based on parameters
-	query := "SELECT PA.ID, PA.Timestamp, PA.Sender, PA.Receiver, SA.Name, RA.Name, PA.Amount, PA.AuthorizedBy, PA.PaymentOrder, PA.OrderEntry, PA.IsSale, PO.TransactionTypeID FROM Payment PA LEFT JOIN PaymentOrder PO ON PO.ID = PA.PaymentOrder RIGHT JOIN Account SA ON SA.ID = Sender RIGHT JOIN Account RA ON RA.ID = Receiver "
+	query := "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1"
 	if len(filters) > 0 {
 		query += " WHERE " + strings.Join(filters, " AND ")
 	}
@@ -511,7 +510,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	// Scan rows
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale, &payment.TransactionTypeID)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 		if err != nil {
 			log.Error(err)
 			return payments, err
@@ -525,7 +524,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 
 // GetPayment
 func (db *Database) GetPayment(id int) (payment Payment, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale) //, &payment.TransactionTypeID)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 	if err != nil {
 		log.Error(err)
 	}
