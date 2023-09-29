@@ -496,7 +496,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
+	orgaAccount, err := database.Db.GetAccountByType("Orga")
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -526,11 +526,13 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			}
 			// Define flow of money from vendor to orga
 			licenseItemEntry := database.OrderEntry{
-				Item:     int(item.LicenseItem.Int64),
-				Quantity: entry.Quantity,
-				Price:    licenseItem.Price,
-				Sender:   vendorAccount.ID,
-				Receiver: orgaAccountID,
+				Item:         int(item.LicenseItem.Int64),
+				Quantity:     entry.Quantity,
+				Price:        licenseItem.Price,
+				Sender:       vendorAccount.ID,
+				Receiver:     orgaAccount.ID,
+				SenderName:   vendorAccount.Name,
+				ReceiverName: orgaAccount.Name,
 			}
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
 		}
