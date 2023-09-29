@@ -80,7 +80,7 @@ CREATE TABLE Settings (
     Color varchar(255) NOT NULL DEFAULT '#FF0000',
     FontColor varchar(255) NOT NULL DEFAULT '#FFFFFF',
     Logo varchar(255) NOT NULL DEFAULT 'img/logo.png',
-    MainItem integer REFERENCES Item,
+    MainItem integer REFERENCES Item DEFAULT 1,
     MaxOrderAmount integer NOT NULL DEFAULT 10000,  -- Default value is 10000, which equals 100€
     OrgaCoversTransactionCosts bool NOT NULL DEFAULT TRUE
 );
