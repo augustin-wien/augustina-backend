@@ -156,7 +156,7 @@ func TestItems(t *testing.T) {
 	// Read
 	res := utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	var resItems []database.Item
-	err := json.Unmarshal(res.Body.Bytes(), &resItems)
+	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
 	require.Equal(t, 4, len(resItems))
 	require.Equal(t, "Test item", resItems[3].Name)
