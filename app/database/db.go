@@ -65,16 +65,6 @@ func initData(db *Database) (err error) {
 
 	if !dbSettings.IsInitialized {
 
-		// Create default settings
-		err = db.InitiateSettings()
-		if err != nil {
-			log.Error("Settings creation failed ", zap.Error(err))
-		}
-		err = db.UpdateInitialSettings()
-		if err != nil {
-			log.Error("Updating initial Settings failed ", zap.Error(err))
-		}
-
 		// Create default accounts
 		err = db.InitiateAccounts()
 		if err != nil {
@@ -92,6 +82,16 @@ func initData(db *Database) (err error) {
 			if err != nil {
 				log.Error("Dev data creation failed ", zap.Error(err))
 			}
+		}
+
+		// Create default settings
+		err = db.InitiateSettings()
+		if err != nil {
+			log.Error("Settings creation failed ", zap.Error(err))
+		}
+		err = db.UpdateInitialSettings()
+		if err != nil {
+			log.Error("Updating initial Settings failed ", zap.Error(err))
 		}
 
 		// Update DBSettings to initialized
