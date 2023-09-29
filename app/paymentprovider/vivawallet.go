@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -261,6 +262,11 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 		return err
 	}
 
+	log.Info("TransactionTypeID before entering paypal check: ", paymentSuccessful.EventData.TransactionTypeId)
+	log.Info("Type of TransactionTypeID before entering paypal check: ", reflect.TypeOf(paymentSuccessful.EventData.TransactionTypeId))
+	log.Info("VivaWalletTransactionTypeIDPaypal: ", config.Config.VivaWalletTransactionTypeIDPaypal)
+	log.Info("Type of VivaWalletTransactionTypeIDPaypal: ", reflect.TypeOf(config.Config.VivaWalletTransactionTypeIDPaypal))
+
 	// Check if VivaWalletTransactionTypeIDPaypal is set
 	if config.Config.VivaWalletTransactionTypeIDPaypal == 0 {
 		return errors.New("Env variable VivaWalletTransactionTypeIDPaypal is not set")
@@ -269,6 +275,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	// Check if order has been payed via Paypal i.e. TransactionTypeId == 48
 	// Check TransactionTypeId here: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
 	if paymentSuccessful.EventData.TransactionTypeId == config.Config.VivaWalletTransactionTypeIDPaypal {
+		log.Info("Entered Paypal check")
 
 		// Check if PaypalPercentageCosts and PaypalFixCosts are set
 		if config.Config.PaypalPercentageCosts == 0 {
@@ -288,6 +295,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 		// Paypal rounds down on 3.4 ct to 3 ct, this means we round down on 3.4 ct to 3 ct as well
 		// Math.round example shown here: https://go.dev/play/p/yeBhVUE3pxa
 		paypalAmount = math.Round(paypalAmount)
+		log.Info("PaypalAmount: ", paypalAmount)
 
 		// Create order entries for transaction costs
 		// WARNING: int() always rounds down in case you stop using math.Round
