@@ -500,10 +500,20 @@ func TestPaymentPayout(t *testing.T) {
 
 }
 
+func CreateTestMainItem(t *testing.T) string {
+	f := `{
+		"Name": "Test main item",
+		"Price": 314
+	}`
+	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
+	itemID := res.Body.String()
+	return itemID
+}
+
 // TestSettings tests GET and PUT operations on settings
 func TestSettings(t *testing.T) {
 
-	itemID := CreateTestItem(t)
+	itemID := CreateTestMainItem(t)
 	itemIDInt, err := strconv.Atoi(itemID)
 	utils.CheckError(t, err)
 
@@ -525,7 +535,7 @@ func TestSettings(t *testing.T) {
 	require.Equal(t, "img/logo.png", settings.Logo)
 
 	// Check item join
-	require.Equal(t, "Test item", settings.MainItemName.String)
+	require.Equal(t, "Test main item", settings.MainItemName.String)
 	require.Equal(t, int64(314), settings.MainItemPrice.Int64)
 
 	// Check file
