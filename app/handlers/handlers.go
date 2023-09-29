@@ -476,8 +476,9 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Get accounts
 	var buyerAccountID int
-	if order.User.Valid {
-		buyerAccount, err := database.Db.GetAccountByUser(order.User.String)
+	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
+	if authenticatedUserID != "" {
+		buyerAccount, err := database.Db.GetOrCreateAccountByUserID(authenticatedUserID)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
@@ -781,11 +782,15 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get authenticated user
+	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
+
 	// Create payment
 	payment := database.Payment{
-		Sender:   vendorAccount.ID,
-		Receiver: cashAccount.ID,
-		Amount:   payoutData.Amount,
+		Sender:       vendorAccount.ID,
+		Receiver:     cashAccount.ID,
+		Amount:       payoutData.Amount,
+		AuthorizedBy: authenticatedUserID,
 	}
 	paymentID, err := database.Db.CreatePayment(payment)
 	if err != nil {
@@ -1026,14 +1031,14 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("MaxOrderAmount is not an integer")
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				utils.ErrorJSON(w, errors.New("MaxOrderAmount is not an integer"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "RefundFees" {
+		} else if key == "OrgaCoversTransactionCosts" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error("RefundFees is not a boolean")
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				log.Error("OrgaCoversTransactionCosts is not a boolean")
+				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
 
 				return
 			}
@@ -1041,7 +1046,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			value, err := strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("MainItem is not an integer")
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				utils.ErrorJSON(w, errors.New("MainItem is not an integer"), http.StatusBadRequest)
 				return
 			}
 			fieldsClean[key] = null.NewInt(int64(value), true)

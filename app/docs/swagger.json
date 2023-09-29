@@ -1,1322 +1,1172 @@
 {
-    "consumes": [
-        "application/json"
-    ],
-    "swagger": "2.0",
-    "info": {
-        "description": "This swagger describes every endpoint of this project.",
-        "title": "Augustin Swagger",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "GNU Affero General Public License",
-            "url": "https://www.gnu.org/licenses/agpl-3.0.txt"
-        },
-        "version": "0.0.1"
+  "consumes": ["application/json"],
+  "swagger": "2.0",
+  "info": {
+    "description": "This swagger describes every endpoint of this project.",
+    "title": "Augustin Swagger",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.swagger.io/support",
+      "email": "support@swagger.io"
     },
-    "host": "localhost:3000",
-    "basePath": "/api",
-    "paths": {
-        "/auth/hello/": {
-            "get": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "description": "Return HelloWorld as sample API call",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Core",
-                    "Auth"
-                ],
-                "summary": "Return HelloWorld",
-                "responses": {}
+    "license": {
+      "name": "GNU Affero General Public License",
+      "url": "https://www.gnu.org/licenses/agpl-3.0.txt"
+    },
+    "version": "0.0.1"
+  },
+  "host": "localhost:3000",
+  "basePath": "/api",
+  "paths": {
+    "/auth/hello/": {
+      "get": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "description": "Return HelloWorld as sample API call",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Core", "Auth"],
+        "summary": "Return HelloWorld",
+        "responses": {}
+      }
+    },
+    "/hello/": {
+      "get": {
+        "description": "Return HelloWorld as sample API call",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Core"],
+        "summary": "Return HelloWorld",
+        "responses": {}
+      }
+    },
+    "/items/": {
+      "get": {
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Items"],
+        "summary": "List Items",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/database.Item"
+              }
             }
-        },
-        "/hello/": {
-            "get": {
-                "description": "Return HelloWorld as sample API call",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Core"
-                ],
-                "summary": "Return HelloWorld",
-                "responses": {}
-            }
-        },
-        "/items/": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Items"
-                ],
-                "summary": "List Items",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.Item"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Items"
-                ],
-                "summary": "Create Item",
-                "parameters": [
-                    {
-                        "description": "Item Representation",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Item"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                }
-            }
-        },
-        "/items/{id}/": {
-            "put": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "description": "Requires multipart form (for image)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Items"
-                ],
-                "summary": "Update Item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Item ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Item Representation",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Item"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Items"
-                ],
-                "summary": "Delete Item",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Item ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/orders/": {
-            "post": {
-                "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Create Payment Order",
-                "parameters": [
-                    {
-                        "description": "Payment Order",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createOrderRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createOrderResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/orders/verify/": {
-            "get": {
-                "description": "Verifies order and creates payments",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Verify Payment Order",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "3043685539722561",
-                        "description": "Order Code",
-                        "name": "s",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "format": "882d641c-01cc-442f-b894-2b51250340b5",
-                        "description": "Transaction ID",
-                        "name": "t",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.VerifyPaymentOrderResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/payments/": {
-            "get": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    },
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Get list of all payments",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "example": "2006-01-02T15:04:05Z",
-                        "description": "Minimum date (RFC3339, UTC)",
-                        "name": "from",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "2006-01-02T15:04:05Z",
-                        "description": "Maximum date (RFC3339, UTC)",
-                        "name": "to",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.Payment"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/payments/payout/": {
-            "post": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Create a payment from a vendor account to cash",
-                "parameters": [
-                    {
-                        "description": " Create Payment",
-                        "name": "amount",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createPaymentPayoutRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                }
-            }
-        },
-        "/settings/": {
-            "get": {
-                "description": "Return configuration data of the system",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Core"
-                ],
-                "summary": "Return settings",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.Settings"
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "description": "Update configuration data of the system. Requires multipart form. Logo has to be a png and will always be saved under \"img/logo.png\"",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Core"
-                ],
-                "summary": "Update settings",
-                "parameters": [
-                    {
-                        "description": "Settings Representation",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Settings"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/vendors/": {
-            "get": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Vendors"
-                ],
-                "summary": "List Vendors",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.Vendor"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Vendors"
-                ],
-                "summary": "Create Vendor",
-                "parameters": [
-                    {
-                        "description": "Vendor Representation",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Vendor"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/vendors/check/{licenseID}/": {
-            "get": {
-                "description": "Check if license id exists, return first name of vendor if it does",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Vendors"
-                ],
-                "summary": "Check for license id",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "License ID",
-                        "name": "licenseID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/vendors/{id}/": {
-            "get": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Vendors"
-                ],
-                "summary": "Get Vendor",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Vendor ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "description": "Warning: Unfilled fields will be set to default values",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Vendors"
-                ],
-                "summary": "Update Vendor",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Vendor ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Vendor Representation",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/database.Vendor"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Vendors"
-                ],
-                "summary": "Delete Vendor",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Vendor ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/webhooks/vivawallet/failure": {
-            "get": {
-                "description": "Return VivaWallet verification key",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "VivaWallet Webhooks"
-                ],
-                "summary": "Return VivaWallet verification key",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Webhook for VivaWallet failed transaction",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "VivaWallet Webhooks"
-                ],
-                "summary": "Webhook for VivaWallet failed transaction",
-                "parameters": [
-                    {
-                        "description": "Payment Failure Response",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/webhooks/vivawallet/price": {
-            "get": {
-                "description": "Return VivaWallet verification key",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "VivaWallet Webhooks"
-                ],
-                "summary": "Return VivaWallet verification key",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Webhook for VivaWallet transaction prices",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "VivaWallet Webhooks"
-                ],
-                "summary": "Webhook for VivaWallet transaction prices",
-                "parameters": [
-                    {
-                        "description": "Payment Price Response",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/paymentprovider.TransactionPriceRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/webhooks/vivawallet/success": {
-            "get": {
-                "description": "Return VivaWallet verification key",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "VivaWallet Webhooks"
-                ],
-                "summary": "Return VivaWallet verification key",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Webhook for VivaWallet successful transaction",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "VivaWallet Webhooks"
-                ],
-                "summary": "Webhook for VivaWallet successful transaction",
-                "parameters": [
-                    {
-                        "description": "Payment Successful Response",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
+          }
         }
-    },
-    "definitions": {
-        "database.Item": {
-            "type": "object",
-            "properties": {
-                "archived": {
-                    "type": "boolean"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "image": {
-                    "type": "string"
-                },
-                "licenseItem": {
-                    "description": "License has to be bought before item",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/null.Int"
-                        }
-                    ]
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "description": "Price in cents",
-                    "type": "integer"
-                }
+      },
+      "post": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Items"],
+        "summary": "Create Item",
+        "parameters": [
+          {
+            "description": "Item Representation",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/database.Item"
             }
-        },
-        "database.Payment": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "integer"
-                },
-                "authorizedBy": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "isSale": {
-                    "type": "boolean"
-                },
-                "order": {
-                    "type": "integer"
-                },
-                "orderEntry": {
-                    "type": "integer"
-                },
-                "receiver": {
-                    "type": "integer"
-                },
-                "sender": {
-                    "type": "integer"
-                },
-                "timestamp": {
-                    "type": "string"
-                }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "integer"
             }
-        },
-        "database.Settings": {
-            "type": "object",
-            "properties": {
-                "color": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "logo": {
-                    "type": "string"
-                },
-                "mainItem": {
-                    "type": "integer"
-                },
-                "maxOrderAmount": {
-                    "type": "integer"
-                },
-                "orgaCoversTransactionCosts": {
-                    "type": "boolean"
-                },
-                "refundFees": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "database.Vendor": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "balance": {
-                    "description": "This is joined in from the account",
-                    "type": "integer"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "firstName": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "isDisabled": {
-                    "type": "boolean"
-                },
-                "keycloakID": {
-                    "type": "string"
-                },
-                "lang": {
-                    "type": "string"
-                },
-                "lastName": {
-                    "type": "string"
-                },
-                "lastPayout": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "latitude": {
-                    "type": "number"
-                },
-                "licenseID": {
-                    "$ref": "#/definitions/null.String"
-                },
-                "location": {
-                    "type": "string"
-                },
-                "longitude": {
-                    "type": "number"
-                },
-                "plz": {
-                    "type": "string"
-                },
-                "urlid": {
-                    "description": "This is used for the QR code",
-                    "type": "string"
-                },
-                "workingTime": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.VerifyPaymentOrderResponse": {
-            "type": "object",
-            "properties": {
-                "timeStamp": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.createOrderRequest": {
-            "type": "object",
-            "properties": {
-                "entries": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.createOrderRequestEntry"
-                    }
-                },
-                "user": {
-                    "type": "string"
-                },
-                "vendorLicenseID": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.createOrderRequestEntry": {
-            "type": "object",
-            "properties": {
-                "item": {
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.createOrderResponse": {
-            "type": "object",
-            "properties": {
-                "smartCheckoutURL": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.createPaymentPayoutRequest": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "integer"
-                },
-                "vendorLicenseID": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.createPaymentsRequest": {
-            "type": "object",
-            "properties": {
-                "payments": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.Payment"
-                    }
-                }
-            }
-        },
-        "null.Int": {
-            "type": "object",
-            "properties": {
-                "int64": {
-                    "type": "integer"
-                },
-                "valid": {
-                    "description": "Valid is true if Int64 is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
-        "null.String": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if String is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
-        "paymentprovider.EventData": {
-            "type": "object",
-            "properties": {
-                "acquirerApproved": {
-                    "type": "boolean"
-                },
-                "amount": {
-                    "type": "number"
-                },
-                "assignedMerchantUsers": {
-                    "type": "array",
-                    "items": {}
-                },
-                "assignedResellerUsers": {
-                    "type": "array",
-                    "items": {}
-                },
-                "authorizationId": {
-                    "type": "string"
-                },
-                "bankId": {
-                    "type": "string"
-                },
-                "billId": {},
-                "binId": {
-                    "type": "integer"
-                },
-                "cardCountryCode": {
-                    "type": "string"
-                },
-                "cardExpirationDate": {
-                    "type": "string"
-                },
-                "cardIssuingBank": {
-                    "type": "string"
-                },
-                "cardNumber": {
-                    "type": "string"
-                },
-                "cardToken": {
-                    "type": "string"
-                },
-                "cardTypeId": {
-                    "type": "integer"
-                },
-                "cardUniqueReference": {
-                    "type": "string"
-                },
-                "channelId": {
-                    "type": "string"
-                },
-                "clearanceDate": {},
-                "companyName": {
-                    "type": "string"
-                },
-                "companyTitle": {
-                    "type": "string"
-                },
-                "connectedAccountId": {},
-                "currencyCode": {
-                    "type": "string"
-                },
-                "currentInstallment": {
-                    "type": "integer"
-                },
-                "customerTrns": {
-                    "type": "string"
-                },
-                "digitalWalletId": {},
-                "dualMessage": {
-                    "type": "boolean"
-                },
-                "electronicCommerceIndicator": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "fullName": {
-                    "type": "string"
-                },
-                "insDate": {
-                    "type": "string"
-                },
-                "isManualRefund": {
-                    "type": "boolean"
-                },
-                "latitude": {},
-                "longitude": {},
-                "loyaltyTriggered": {
-                    "type": "boolean"
-                },
-                "merchantCategoryCode": {
-                    "type": "integer"
-                },
-                "merchantId": {
-                    "type": "string"
-                },
-                "merchantTrns": {
-                    "type": "string"
-                },
-                "moto": {
-                    "type": "boolean"
-                },
-                "orderCode": {
-                    "type": "integer"
-                },
-                "orderCulture": {
-                    "type": "string"
-                },
-                "orderServiceId": {
-                    "type": "integer"
-                },
-                "panEntryMode": {
-                    "type": "string"
-                },
-                "parentId": {},
-                "phone": {
-                    "type": "string"
-                },
-                "productId": {},
-                "redeemedAmount": {
-                    "type": "number"
-                },
-                "referenceNumber": {
-                    "type": "integer"
-                },
-                "resellerCompanyName": {},
-                "resellerId": {},
-                "resellerSourceAddress": {},
-                "resellerSourceCode": {},
-                "resellerSourceName": {},
-                "responseCode": {
-                    "type": "string"
-                },
-                "responseEventId": {},
-                "retrievalReferenceNumber": {
-                    "type": "string"
-                },
-                "serviceId": {},
-                "sourceCode": {
-                    "type": "string"
-                },
-                "sourceName": {
-                    "type": "string"
-                },
-                "statusId": {
-                    "type": "string"
-                },
-                "switching": {
-                    "type": "boolean"
-                },
-                "systemic": {
-                    "type": "boolean"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "targetPersonId": {},
-                "targetWalletId": {},
-                "terminalId": {
-                    "type": "integer"
-                },
-                "tipAmount": {
-                    "type": "number"
-                },
-                "totalFee": {
-                    "type": "number"
-                },
-                "totalInstallments": {
-                    "type": "integer"
-                },
-                "transactionId": {
-                    "type": "string"
-                },
-                "transactionTypeId": {
-                    "type": "integer"
-                },
-                "ucaf": {
-                    "type": "string"
-                }
-            }
-        },
-        "paymentprovider.PriceEventData": {
-            "type": "object",
-            "properties": {
-                "CurrencyCode": {
-                    "type": "string"
-                },
-                "Interchange": {
-                    "type": "number"
-                },
-                "IsvFee": {
-                    "type": "number"
-                },
-                "MerchantId": {
-                    "type": "string"
-                },
-                "OrderCode": {
-                    "type": "integer"
-                },
-                "ResellerId": {},
-                "TotalCommission": {
-                    "type": "number"
-                },
-                "TransactionId": {
-                    "type": "string"
-                }
-            }
-        },
-        "paymentprovider.TransactionDetailRequest": {
-            "type": "object",
-            "properties": {
-                "CorrelationId": {
-                    "type": "string"
-                },
-                "Created": {
-                    "type": "string"
-                },
-                "Delay": {},
-                "EventData": {
-                    "$ref": "#/definitions/paymentprovider.EventData"
-                },
-                "EventTypeId": {
-                    "type": "integer"
-                },
-                "MessageId": {
-                    "type": "string"
-                },
-                "MessageTypeId": {
-                    "type": "integer"
-                },
-                "RecipientId": {
-                    "type": "string"
-                },
-                "Url": {
-                    "type": "string"
-                }
-            }
-        },
-        "paymentprovider.TransactionPriceRequest": {
-            "type": "object",
-            "properties": {
-                "CorrelationId": {
-                    "type": "string"
-                },
-                "Created": {
-                    "type": "string"
-                },
-                "Delay": {},
-                "EventData": {
-                    "$ref": "#/definitions/paymentprovider.PriceEventData"
-                },
-                "EventTypeId": {
-                    "type": "integer"
-                },
-                "MessageId": {
-                    "type": "string"
-                },
-                "MessageTypeId": {
-                    "type": "integer"
-                },
-                "RecipientId": {
-                    "type": "string"
-                },
-                "Url": {
-                    "type": "string"
-                }
-            }
-        },
-        "paymentprovider.VivaWalletVerificationKeyResponse": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
-                }
-            }
+          }
         }
+      }
     },
-    "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
-        },
-        "KeycloakAuth": {
-            "description": "\u003cb\u003ehow to generate an api key\u003c/b\u003e \u003cbr/\u003e\u003cbr/\u003e\u003ccode\u003ecurl -d 'client_id=frontend' -d 'username=test_superuser' -d 'password=Test123!' -d 'grant_type=password'     'http://localhost:8080/realms/augustin/protocol/openid-connect/token' |     python -m json.tool | grep access_token\u003c/code\u003e\u003cbr/\u003e\u003cbr/\u003e\u003cbr/\u003eInsert the output into the field below the value of the access_token field.",
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
+    "/items/{id}/": {
+      "put": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "description": "Requires multipart form (for image)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Items"],
+        "summary": "Update Item",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Item ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Item Representation",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/database.Item"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
         }
+      },
+      "delete": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Items"],
+        "summary": "Delete Item",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Item ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     },
-    "externalDocs": {
-        "description": "OpenAPI",
-        "url": "https://swagger.io/resources/open-api/"
+    "/orders/": {
+      "post": {
+        "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Orders"],
+        "summary": "Create Payment Order",
+        "parameters": [
+          {
+            "description": "Payment Order",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/handlers.createOrderRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/handlers.createOrderResponse"
+            }
+          }
+        }
+      }
+    },
+    "/orders/verify/": {
+      "get": {
+        "description": "Verifies order and creates payments",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Orders"],
+        "summary": "Verify Payment Order",
+        "parameters": [
+          {
+            "type": "string",
+            "format": "3043685539722561",
+            "description": "Order Code",
+            "name": "s",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "882d641c-01cc-442f-b894-2b51250340b5",
+            "description": "Transaction ID",
+            "name": "t",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/handlers.VerifyPaymentOrderResponse"
+            }
+          }
+        }
+      }
+    },
+    "/payments/": {
+      "get": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          },
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Payments"],
+        "summary": "Get list of all payments",
+        "parameters": [
+          {
+            "type": "string",
+            "example": "2006-01-02T15:04:05Z",
+            "description": "Minimum date (RFC3339, UTC)",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "example": "2006-01-02T15:04:05Z",
+            "description": "Maximum date (RFC3339, UTC)",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/database.Payment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/payout/": {
+      "post": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Payments"],
+        "summary": "Create a payment from a vendor account to cash",
+        "parameters": [
+          {
+            "description": " Create Payment",
+            "name": "amount",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/handlers.createPaymentPayoutRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "/settings/": {
+      "get": {
+        "description": "Return configuration data of the system",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Core"],
+        "summary": "Return settings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/database.Settings"
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "description": "Update configuration data of the system. Requires multipart form. Logo has to be a png and will always be saved under \"img/logo.png\"",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Core"],
+        "summary": "Update settings",
+        "parameters": [
+          {
+            "description": "Settings Representation",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/database.Settings"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/vendors/": {
+      "get": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Vendors"],
+        "summary": "List Vendors",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/database.Vendor"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Vendors"],
+        "summary": "Create Vendor",
+        "parameters": [
+          {
+            "description": "Vendor Representation",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/database.Vendor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/vendors/check/{licenseID}/": {
+      "get": {
+        "description": "Check if license id exists, return first name of vendor if it does",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Vendors"],
+        "summary": "Check for license id",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "License ID",
+            "name": "licenseID",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/vendors/{id}/": {
+      "get": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Vendors"],
+        "summary": "Get Vendor",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Vendor ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "description": "Warning: Unfilled fields will be set to default values",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["vendors"],
+        "summary": "Update Vendor",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Vendor ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Vendor Representation",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/database.Vendor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "KeycloakAuth": []
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Vendors"],
+        "summary": "Delete Vendor",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Vendor ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/webhooks/vivawallet/failure": {
+      "get": {
+        "description": "Return VivaWallet verification key",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["VivaWallet Webhooks"],
+        "summary": "Return VivaWallet verification key",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Webhook for VivaWallet failed transaction",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["VivaWallet Webhooks"],
+        "summary": "Webhook for VivaWallet failed transaction",
+        "parameters": [
+          {
+            "description": "Payment Failure Response",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/webhooks/vivawallet/price": {
+      "get": {
+        "description": "Return VivaWallet verification key",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["VivaWallet Webhooks"],
+        "summary": "Return VivaWallet verification key",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Webhook for VivaWallet transaction prices",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["VivaWallet Webhooks"],
+        "summary": "Webhook for VivaWallet transaction prices",
+        "parameters": [
+          {
+            "description": "Payment Price Response",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/paymentprovider.TransactionPriceRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/webhooks/vivawallet/success": {
+      "get": {
+        "description": "Return VivaWallet verification key",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["VivaWallet Webhooks"],
+        "summary": "Return VivaWallet verification key",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Webhook for VivaWallet successful transaction",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["VivaWallet Webhooks"],
+        "summary": "Webhook for VivaWallet successful transaction",
+        "parameters": [
+          {
+            "description": "Payment Successful Response",
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
+  },
+  "definitions": {
+    "database.Item": {
+      "type": "object",
+      "properties": {
+        "archived": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "image": {
+          "type": "string"
+        },
+        "licenseItem": {
+          "description": "License has to be bought before item",
+          "allOf": [
+            {
+              "$ref": "#/definitions/null.Int"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "price": {
+          "description": "Price in cents",
+          "type": "integer"
+        }
+      }
+    },
+    "database.Payment": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "integer"
+        },
+        "authorizedBy": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "isSale": {
+          "type": "boolean"
+        },
+        "order": {
+          "type": "integer"
+        },
+        "orderEntry": {
+          "type": "integer"
+        },
+        "receiver": {
+          "type": "integer"
+        },
+        "sender": {
+          "type": "integer"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "database.Settings": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "logo": {
+          "type": "string"
+        },
+        "mainItem": {
+          "type": "integer"
+        },
+        "maxOrderAmount": {
+          "type": "integer"
+        },
+        "orgaCoversTransactionCosts": {
+          "type": "boolean"
+        }
+      }
+    },
+    "database.Vendor": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "balance": {
+          "description": "This is joined in from the account",
+          "type": "integer"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "isDisabled": {
+          "type": "boolean"
+        },
+        "keycloakID": {
+          "type": "string"
+        },
+        "lang": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "lastPayout": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "latitude": {
+          "type": "number"
+        },
+        "licenseID": {
+          "$ref": "#/definitions/null.String"
+        },
+        "location": {
+          "type": "string"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "plz": {
+          "type": "string"
+        },
+        "urlid": {
+          "description": "This is used for the QR code",
+          "type": "string"
+        },
+        "workingTime": {
+          "type": "string"
+        }
+      }
+    },
+    "handlers.VerifyPaymentOrderResponse": {
+      "type": "object",
+      "properties": {
+        "timeStamp": {
+          "type": "string"
+        }
+      }
+    },
+    "handlers.createOrderRequest": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/handlers.createOrderRequestEntry"
+          }
+        },
+        "user": {
+          "type": "string"
+        },
+        "vendorLicenseID": {
+          "type": "string"
+        }
+      }
+    },
+    "handlers.createOrderRequestEntry": {
+      "type": "object",
+      "properties": {
+        "item": {
+          "type": "integer"
+        },
+        "quantity": {
+          "type": "integer"
+        }
+      }
+    },
+    "handlers.createOrderResponse": {
+      "type": "object",
+      "properties": {
+        "smartCheckoutURL": {
+          "type": "string"
+        }
+      }
+    },
+    "handlers.createPaymentPayoutRequest": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "integer"
+        },
+        "vendorLicenseID": {
+          "type": "string"
+        }
+      }
+    },
+    "handlers.createPaymentsRequest": {
+      "type": "object",
+      "properties": {
+        "payments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/database.Payment"
+          }
+        }
+      }
+    },
+    "null.Int": {
+      "type": "object",
+      "properties": {
+        "int64": {
+          "type": "integer"
+        },
+        "valid": {
+          "description": "Valid is true if Int64 is not NULL",
+          "type": "boolean"
+        }
+      }
+    },
+    "null.String": {
+      "type": "object",
+      "properties": {
+        "string": {
+          "type": "string"
+        },
+        "valid": {
+          "description": "Valid is true if String is not NULL",
+          "type": "boolean"
+        }
+      }
+    },
+    "paymentprovider.EventData": {
+      "type": "object",
+      "properties": {
+        "acquirerApproved": {
+          "type": "boolean"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "assignedMerchantUsers": {
+          "type": "array",
+          "items": {}
+        },
+        "assignedResellerUsers": {
+          "type": "array",
+          "items": {}
+        },
+        "authorizationId": {
+          "type": "string"
+        },
+        "bankId": {
+          "type": "string"
+        },
+        "billId": {},
+        "binId": {
+          "type": "integer"
+        },
+        "cardCountryCode": {
+          "type": "string"
+        },
+        "cardExpirationDate": {
+          "type": "string"
+        },
+        "cardIssuingBank": {
+          "type": "string"
+        },
+        "cardNumber": {
+          "type": "string"
+        },
+        "cardToken": {
+          "type": "string"
+        },
+        "cardTypeId": {
+          "type": "integer"
+        },
+        "cardUniqueReference": {
+          "type": "string"
+        },
+        "channelId": {
+          "type": "string"
+        },
+        "clearanceDate": {},
+        "companyName": {
+          "type": "string"
+        },
+        "companyTitle": {
+          "type": "string"
+        },
+        "connectedAccountId": {},
+        "currencyCode": {
+          "type": "string"
+        },
+        "currentInstallment": {
+          "type": "integer"
+        },
+        "customerTrns": {
+          "type": "string"
+        },
+        "digitalWalletId": {},
+        "dualMessage": {
+          "type": "boolean"
+        },
+        "electronicCommerceIndicator": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "insDate": {
+          "type": "string"
+        },
+        "isManualRefund": {
+          "type": "boolean"
+        },
+        "latitude": {},
+        "longitude": {},
+        "loyaltyTriggered": {
+          "type": "boolean"
+        },
+        "merchantCategoryCode": {
+          "type": "integer"
+        },
+        "merchantId": {
+          "type": "string"
+        },
+        "merchantTrns": {
+          "type": "string"
+        },
+        "moto": {
+          "type": "boolean"
+        },
+        "orderCode": {
+          "type": "integer"
+        },
+        "orderCulture": {
+          "type": "string"
+        },
+        "orderServiceId": {
+          "type": "integer"
+        },
+        "panEntryMode": {
+          "type": "string"
+        },
+        "parentId": {},
+        "phone": {
+          "type": "string"
+        },
+        "productId": {},
+        "redeemedAmount": {
+          "type": "number"
+        },
+        "referenceNumber": {
+          "type": "integer"
+        },
+        "resellerCompanyName": {},
+        "resellerId": {},
+        "resellerSourceAddress": {},
+        "resellerSourceCode": {},
+        "resellerSourceName": {},
+        "responseCode": {
+          "type": "string"
+        },
+        "responseEventId": {},
+        "retrievalReferenceNumber": {
+          "type": "string"
+        },
+        "serviceId": {},
+        "sourceCode": {
+          "type": "string"
+        },
+        "sourceName": {
+          "type": "string"
+        },
+        "statusId": {
+          "type": "string"
+        },
+        "switching": {
+          "type": "boolean"
+        },
+        "systemic": {
+          "type": "boolean"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "targetPersonId": {},
+        "targetWalletId": {},
+        "terminalId": {
+          "type": "integer"
+        },
+        "tipAmount": {
+          "type": "number"
+        },
+        "totalFee": {
+          "type": "number"
+        },
+        "totalInstallments": {
+          "type": "integer"
+        },
+        "transactionId": {
+          "type": "string"
+        },
+        "transactionTypeId": {
+          "type": "integer"
+        },
+        "ucaf": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentprovider.PriceEventData": {
+      "type": "object",
+      "properties": {
+        "CurrencyCode": {
+          "type": "string"
+        },
+        "Interchange": {
+          "type": "number"
+        },
+        "IsvFee": {
+          "type": "number"
+        },
+        "MerchantId": {
+          "type": "string"
+        },
+        "OrderCode": {
+          "type": "integer"
+        },
+        "ResellerId": {},
+        "TotalCommission": {
+          "type": "number"
+        },
+        "TransactionId": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentprovider.TransactionDetailRequest": {
+      "type": "object",
+      "properties": {
+        "CorrelationId": {
+          "type": "string"
+        },
+        "Created": {
+          "type": "string"
+        },
+        "Delay": {},
+        "EventData": {
+          "$ref": "#/definitions/paymentprovider.EventData"
+        },
+        "EventTypeId": {
+          "type": "integer"
+        },
+        "MessageId": {
+          "type": "string"
+        },
+        "MessageTypeId": {
+          "type": "integer"
+        },
+        "RecipientId": {
+          "type": "string"
+        },
+        "Url": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentprovider.TransactionPriceRequest": {
+      "type": "object",
+      "properties": {
+        "CorrelationId": {
+          "type": "string"
+        },
+        "Created": {
+          "type": "string"
+        },
+        "Delay": {},
+        "EventData": {
+          "$ref": "#/definitions/paymentprovider.PriceEventData"
+        },
+        "EventTypeId": {
+          "type": "integer"
+        },
+        "MessageId": {
+          "type": "string"
+        },
+        "MessageTypeId": {
+          "type": "integer"
+        },
+        "RecipientId": {
+          "type": "string"
+        },
+        "Url": {
+          "type": "string"
+        }
+      }
+    },
+    "paymentprovider.VivaWalletVerificationKeyResponse": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "BasicAuth": {
+      "type": "basic"
+    },
+    "KeycloakAuth": {
+      "description": "\u003cb\u003ehow to generate an api key\u003c/b\u003e \u003cbr/\u003e\u003cbr/\u003e\u003ccode\u003ecurl -d 'client_id=frontend' -d 'username=test_superuser' -d 'password=Test123!' -d 'grant_type=password'     'http://localhost:8080/realms/augustin/protocol/openid-connect/token' |     python -m json.tool | grep access_token\u003c/code\u003e\u003cbr/\u003e\u003cbr/\u003e\u003cbr/\u003eInsert the output into the field below the value of the access_token field.",
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "externalDocs": {
+    "description": "OpenAPI",
+    "url": "https://swagger.io/resources/open-api/"
+  }
 }

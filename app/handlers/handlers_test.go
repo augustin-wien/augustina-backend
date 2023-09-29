@@ -6,6 +6,7 @@ import (
 	"augustin/keycloak"
 	"augustin/utils"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"mime/multipart"
@@ -21,6 +22,7 @@ import (
 
 var r *chi.Mux
 var adminUser string
+var adminUserEmail string
 var adminUserToken *gocloak.JWT
 
 // TestMain is executed before all tests and initializes an empty database
@@ -34,11 +36,12 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	r = GetRouter()
+	adminUserEmail = "testadmin@example.com"
 	defer func() {
 		keycloak.KeycloakClient.DeleteUser(adminUser)
-		keycloak.KeycloakClient.DeleteUser("test123@example.com")
+		keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	}()
-	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", "testadmin@example.com", "password")
+	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", adminUserEmail, "password")
 	if err != nil {
 		log.Errorf("Create user failed: %v \n", err)
 	}
@@ -46,7 +49,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Errorf("Assign role failed: %v \n", err)
 	}
-	adminUserToken, err = keycloak.KeycloakClient.GetUserToken("testadmin@example.com", "password")
+	adminUserToken, err = keycloak.KeycloakClient.GetUserToken(adminUserEmail, "password")
 	if err != nil {
 		log.Errorf("Login failed: %v \n", err)
 	}
@@ -153,8 +156,8 @@ func TestItems(t *testing.T) {
 	var resItems []database.Item
 	err := json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 2, len(resItems))
-	require.Equal(t, "Test item", resItems[1].Name)
+	require.Equal(t, 4, len(resItems))
+	require.Equal(t, "Test item", resItems[3].Name)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
@@ -171,17 +174,17 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 2, len(resItems))
-	require.Equal(t, "Updated item name", resItems[1].Name)
-	require.Contains(t, resItems[1].Image, "test")
-	require.Contains(t, resItems[1].Image, ".jpg")
+	require.Equal(t, 4, len(resItems))
+	require.Equal(t, "Updated item name", resItems[3].Name)
+	require.Contains(t, resItems[3].Image, "test")
+	require.Contains(t, resItems[3].Image, ".jpg")
 
 	// Check file
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	file, err := os.ReadFile(dir + "/" + resItems[1].Image)
+	file, err := os.ReadFile(dir + "/" + resItems[3].Image)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 
@@ -197,9 +200,9 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 2, len(resItems))
-	require.Equal(t, "Updated item name 2", resItems[1].Name)
-	require.Equal(t, resItems[1].Image, "Test")
+	require.Equal(t, 4, len(resItems))
+	require.Equal(t, "Updated item name 2", resItems[3].Name)
+	require.Equal(t, resItems[3].Image, "Test")
 
 }
 
@@ -215,14 +218,14 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 func CreateTestItemWithLicense(t *testing.T) (string, string) {
 	f := `{
 		"Name": "License item",
-		"Price": 123
+		"Price": 3
 	}`
 	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
 	licenseItemID := res.Body.String()
 
 	f2 := `{
 		"Name": "Test item",
-		"Price": 314,
+		"Price": 20,
 		"LicenseItem": ` + licenseItemID + `
 	}`
 	res2 := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f2, 200, adminUserToken)
@@ -244,7 +247,7 @@ func TestOrders(t *testing.T) {
 		"entries": [
 			{
 			  "item": ` + itemID + `,
-			  "quantity": 315
+			  "quantity": 2
 			}
 		  ],
 		  "vendorLicenseID": "testLicenseID2"
@@ -263,7 +266,7 @@ func TestOrders(t *testing.T) {
 
 	// Test order amount
 	orderTotal := order.GetTotal()
-	require.Equal(t, orderTotal, 314*315)
+	require.Equal(t, orderTotal, 20*2)
 
 	senderAccount, err := database.Db.GetAccountByType("UserAnon")
 	if err != nil {
@@ -278,11 +281,42 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, order.Verified, false)
 	require.Equal(t, order.Entries[0].Item, licenseItemIDInt)
 	require.Equal(t, order.Entries[1].Item, itemIDInt)
-	require.Equal(t, order.Entries[1].Quantity, 315)
-	require.Equal(t, order.Entries[1].Price, 314)
+	require.Equal(t, order.Entries[1].Quantity, 2)
+	require.Equal(t, order.Entries[1].Price, 20)
 	require.Equal(t, order.Entries[1].Sender, senderAccount.ID)
 	require.Equal(t, order.Entries[1].Receiver, receiverAccount.ID)
 
+	// Verify order and create payments
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 5)
+
+	// Check payments
+	payments, err := database.Db.ListPayments(time.Time{}, time.Time{})
+	if err != nil {
+		t.Error(err)
+	}
+	require.Equal(t, 2, len(payments))
+	require.Equal(t, payments[1].Amount, 20*2)
+
+	// Check balances
+	senderAccount, err = database.Db.GetAccountByType("UserAnon")
+	if err != nil {
+		t.Error(err)
+	}
+	receiverAccount, err = database.Db.GetAccountByVendorID(vendorIDInt)
+	if err != nil {
+		t.Error(err)
+	}
+	require.Equal(t, senderAccount.Balance, -40)
+	require.Equal(t, receiverAccount.Balance, 34)
+	// 2*3 has been payed for license item
+
+	// Clean up after test
+	_, err = database.Db.Dbpool.Exec(context.Background(), `
+	DELETE FROM Payment
+	`)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 // TestPayments tests CRUD operations on payments
@@ -416,6 +450,7 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, payment.Amount, 314)
 	require.Equal(t, payment.Sender, account.ID)
 	require.Equal(t, payment.Receiver, cashAccount.ID)
+	require.Equal(t, payment.AuthorizedBy, adminUserEmail)
 
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)
@@ -434,7 +469,6 @@ func TestSettings(t *testing.T) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	writer.WriteField("MaxOrderAmount", strconv.Itoa(10))
-	writer.WriteField("RefundFees", "true")
 	image, _ := writer.CreateFormFile("Logo", "test.png")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()

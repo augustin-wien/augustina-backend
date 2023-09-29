@@ -1,6 +1,6 @@
 basePath: /api
 consumes:
-- application/json
+  - application/json
 definitions:
   database.Item:
     properties:
@@ -14,7 +14,7 @@ definitions:
         type: string
       licenseItem:
         allOf:
-        - $ref: '#/definitions/null.Int'
+          - $ref: "#/definitions/null.Int"
         description: License has to be bought before item
       name:
         type: string
@@ -57,8 +57,6 @@ definitions:
         type: integer
       orgaCoversTransactionCosts:
         type: boolean
-      refundFees:
-        type: boolean
     type: object
   database.Vendor:
     properties:
@@ -87,7 +85,7 @@ definitions:
       latitude:
         type: number
       licenseID:
-        $ref: '#/definitions/null.String'
+        $ref: "#/definitions/null.String"
       location:
         type: string
       longitude:
@@ -109,7 +107,7 @@ definitions:
     properties:
       entries:
         items:
-          $ref: '#/definitions/handlers.createOrderRequestEntry'
+          $ref: "#/definitions/handlers.createOrderRequestEntry"
         type: array
       user:
         type: string
@@ -139,7 +137,7 @@ definitions:
     properties:
       payments:
         items:
-          $ref: '#/definitions/database.Payment'
+          $ref: "#/definitions/database.Payment"
         type: array
     type: object
   null.Int:
@@ -314,7 +312,7 @@ definitions:
         type: string
       Delay: {}
       EventData:
-        $ref: '#/definitions/paymentprovider.EventData'
+        $ref: "#/definitions/paymentprovider.EventData"
       EventTypeId:
         type: integer
       MessageId:
@@ -334,7 +332,7 @@ definitions:
         type: string
       Delay: {}
       EventData:
-        $ref: '#/definitions/paymentprovider.PriceEventData'
+        $ref: "#/definitions/paymentprovider.PriceEventData"
       EventTypeId:
         type: integer
       MessageId:
@@ -371,372 +369,374 @@ paths:
   /auth/hello/:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Return HelloWorld as sample API call
       produces:
-      - application/json
+        - application/json
       responses: {}
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Return HelloWorld
       tags:
-      - Core
-      - Auth
+        - Core
+        - Auth
   /hello/:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Return HelloWorld as sample API call
       produces:
-      - application/json
+        - application/json
       responses: {}
       summary: Return HelloWorld
       tags:
-      - Core
+        - Core
   /items/:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Item'
+              $ref: "#/definitions/database.Item"
             type: array
       summary: List Items
       tags:
-      - Items
+        - Items
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Item Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Item'
+        - description: Item Representation
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/database.Item"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             type: integer
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Create Item
       tags:
-      - Items
+        - Items
   /items/{id}/:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Item ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Item ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Delete Item
       tags:
-      - Items
+        - Items
     put:
       consumes:
-      - application/json
+        - application/json
       description: Requires multipart form (for image)
       parameters:
-      - description: Item ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Item Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Item'
+        - description: Item ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: Item Representation
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/database.Item"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Update Item
       tags:
-      - Items
+        - Items
   /orders/:
     post:
       consumes:
-      - application/json
-      description: Submits payment order to provider & saves it to database. Entries
+        - application/json
+      description:
+        Submits payment order to provider & saves it to database. Entries
         need to have an item id and a quantity (for entries without a price like tips,
         the quantity is the amount of cents). If no user is given, the order is anonymous.
       parameters:
-      - description: Payment Order
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.createOrderRequest'
+        - description: Payment Order
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/handlers.createOrderRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.createOrderResponse'
+            $ref: "#/definitions/handlers.createOrderResponse"
       summary: Create Payment Order
       tags:
-      - Orders
+        - Orders
   /orders/verify/:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Verifies order and creates payments
       parameters:
-      - description: Order Code
-        format: "3043685539722561"
-        in: query
-        name: s
-        required: true
-        type: string
-      - description: Transaction ID
-        format: 882d641c-01cc-442f-b894-2b51250340b5
-        in: query
-        name: t
-        required: true
-        type: string
+        - description: Order Code
+          format: "3043685539722561"
+          in: query
+          name: s
+          required: true
+          type: string
+        - description: Transaction ID
+          format: 882d641c-01cc-442f-b894-2b51250340b5
+          in: query
+          name: t
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.VerifyPaymentOrderResponse'
+            $ref: "#/definitions/handlers.VerifyPaymentOrderResponse"
       summary: Verify Payment Order
       tags:
-      - Orders
+        - Orders
   /payments/:
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Minimum date (RFC3339, UTC)
-        example: "2006-01-02T15:04:05Z"
-        in: query
-        name: from
-        type: string
-      - description: Maximum date (RFC3339, UTC)
-        example: "2006-01-02T15:04:05Z"
-        in: query
-        name: to
-        type: string
+        - description: Minimum date (RFC3339, UTC)
+          example: "2006-01-02T15:04:05Z"
+          in: query
+          name: from
+          type: string
+        - description: Maximum date (RFC3339, UTC)
+          example: "2006-01-02T15:04:05Z"
+          in: query
+          name: to
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Payment'
+              $ref: "#/definitions/database.Payment"
             type: array
       security:
-      - KeycloakAuth: []
-      - KeycloakAuth: []
+        - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Get list of all payments
       tags:
-      - Payments
+        - Payments
   /payments/payout/:
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: ' Create Payment'
-        in: body
-        name: amount
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.createPaymentPayoutRequest'
+        - description: " Create Payment"
+          in: body
+          name: amount
+          required: true
+          schema:
+            $ref: "#/definitions/handlers.createPaymentPayoutRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             type: integer
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Create a payment from a vendor account to cash
       tags:
-      - Payments
+        - Payments
   /settings/:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Return configuration data of the system
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Settings'
+              $ref: "#/definitions/database.Settings"
             type: array
       summary: Return settings
       tags:
-      - Core
+        - Core
     put:
       consumes:
-      - application/json
-      description: Update configuration data of the system. Requires multipart form.
+        - application/json
+      description:
+        Update configuration data of the system. Requires multipart form.
         Logo has to be a png and will always be saved under "img/logo.png"
       parameters:
-      - description: Settings Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Settings'
+        - description: Settings Representation
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/database.Settings"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Update settings
       tags:
-      - Core
+        - Core
   /vendors/:
     get:
       consumes:
-      - application/json
+        - application/json
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Vendor'
+              $ref: "#/definitions/database.Vendor"
             type: array
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: List Vendors
       tags:
-      - Vendors
+        - Vendors
     post:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Vendor Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Vendor'
+        - description: Vendor Representation
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/database.Vendor"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Create Vendor
       tags:
-      - Vendors
+        - Vendors
   /vendors/{id}/:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Vendor ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Vendor ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Delete Vendor
       tags:
-      - Vendors
+        - Vendors
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: Vendor ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: Vendor ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Get Vendor
       tags:
-      - Vendors
+        - Vendors
     put:
       consumes:
-      - application/json
-      description: 'Warning: Unfilled fields will be set to default values'
+        - application/json
+      description: "Warning: Unfilled fields will be set to default values"
       parameters:
-      - description: Vendor ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Vendor Representation
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/database.Vendor'
+        - description: Vendor ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: Vendor Representation
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/database.Vendor"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       security:
-      - KeycloakAuth: []
+        - KeycloakAuth: []
       summary: Update Vendor
       tags:
-      - Vendors
+        - vendors
   /vendors/check/{licenseID}/:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Check if license id exists, return first name of vendor if it does
       parameters:
-      - description: License ID
-        in: path
-        name: licenseID
-        required: true
-        type: string
+        - description: License ID
+          in: path
+          name: licenseID
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -744,120 +744,121 @@ paths:
             type: string
       summary: Check for license id
       tags:
-      - Vendors
+        - Vendors
   /webhooks/vivawallet/failure:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Return VivaWallet verification key
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/paymentprovider.VivaWalletVerificationKeyResponse'
+              $ref: "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - VivaWallet Webhooks
+        - VivaWallet Webhooks
     post:
       consumes:
-      - application/json
+        - application/json
       description: Webhook for VivaWallet failed transaction
       parameters:
-      - description: Payment Failure Response
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/paymentprovider.TransactionDetailRequest'
+        - description: Payment Failure Response
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/paymentprovider.TransactionDetailRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Webhook for VivaWallet failed transaction
       tags:
-      - VivaWallet Webhooks
+        - VivaWallet Webhooks
   /webhooks/vivawallet/price:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Return VivaWallet verification key
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/paymentprovider.VivaWalletVerificationKeyResponse'
+              $ref: "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - VivaWallet Webhooks
+        - VivaWallet Webhooks
     post:
       consumes:
-      - application/json
+        - application/json
       description: Webhook for VivaWallet transaction prices
       parameters:
-      - description: Payment Price Response
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/paymentprovider.TransactionPriceRequest'
+        - description: Payment Price Response
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/paymentprovider.TransactionPriceRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Webhook for VivaWallet transaction prices
       tags:
-      - VivaWallet Webhooks
+        - VivaWallet Webhooks
   /webhooks/vivawallet/success:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Return VivaWallet verification key
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/paymentprovider.VivaWalletVerificationKeyResponse'
+              $ref: "#/definitions/paymentprovider.VivaWalletVerificationKeyResponse"
             type: array
       summary: Return VivaWallet verification key
       tags:
-      - VivaWallet Webhooks
+        - VivaWallet Webhooks
     post:
       consumes:
-      - application/json
+        - application/json
       description: Webhook for VivaWallet successful transaction
       parameters:
-      - description: Payment Successful Response
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/paymentprovider.TransactionDetailRequest'
+        - description: Payment Successful Response
+          in: body
+          name: data
+          required: true
+          schema:
+            $ref: "#/definitions/paymentprovider.TransactionDetailRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
       summary: Webhook for VivaWallet successful transaction
       tags:
-      - VivaWallet Webhooks
+        - VivaWallet Webhooks
 securityDefinitions:
   BasicAuth:
     type: basic
   KeycloakAuth:
-    description: <b>how to generate an api key</b> <br/><br/><code>curl -d 'client_id=frontend'
+    description:
+      <b>how to generate an api key</b> <br/><br/><code>curl -d 'client_id=frontend'
       -d 'username=test_superuser' -d 'password=Test123!' -d 'grant_type=password'     'http://localhost:8080/realms/augustin/protocol/openid-connect/token'
       |     python -m json.tool | grep access_token</code><br/><br/><br/>Insert the
       output into the field below the value of the access_token field.

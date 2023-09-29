@@ -45,6 +45,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// set user headers
 		r.Header.Set("X-Auth-User", *userinfo.Sub)
+		r.Header.Set("X-Auth-User-Name", *userinfo.PreferredUsername)
 		r.Header.Set("X-Auth-User-Validated", "true")
 
 		// set user roles headers

@@ -563,7 +563,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Vendors"
+                    "vendors"
                 ],
                 "summary": "Update Vendor",
                 "parameters": [
@@ -872,9 +872,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "orgaCoversTransactionCosts": {
-                    "type": "boolean"
-                },
-                "refundFees": {
                     "type": "boolean"
                 }
             }
