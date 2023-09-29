@@ -73,7 +73,8 @@ func (db *Database) InitiateItems() (err error) {
 func (db *Database) UpdateInitialSettings() (err error) {
 	settings := Settings{
 		Color:                      "#FF0000",
-		Logo:                       "/img/logo.png",
+		FontColor:                  "#FFFFFF",
+		Logo:                       "img/logo.png",
 		MainItem:                   null.IntFrom(0),
 		MaxOrderAmount:             5000,
 		OrgaCoversTransactionCosts: true,
