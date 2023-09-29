@@ -81,7 +81,6 @@ CREATE TABLE Settings (
     FontColor varchar(255) NOT NULL DEFAULT '',
     Logo varchar(255) NOT NULL DEFAULT '',
     MainItem integer REFERENCES Item,
-    RefundFees bool NOT NULL DEFAULT FALSE,
     MaxOrderAmount integer NOT NULL DEFAULT 10000,  -- Default value is 10000, which equals 100€
     OrgaCoversTransactionCosts bool NOT NULL DEFAULT FALSE
 );

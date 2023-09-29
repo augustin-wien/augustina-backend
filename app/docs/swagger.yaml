@@ -59,8 +59,6 @@ definitions:
         type: integer
       orgaCoversTransactionCosts:
         type: boolean
-      refundFees:
-        type: boolean
     type: object
   database.Vendor:
     properties:
@@ -435,7 +433,7 @@ paths:
       summary: Create Item
       tags:
       - Items
-  /items/{id}:
+  /items/{id}/:
     delete:
       consumes:
       - application/json
@@ -455,7 +453,6 @@ paths:
       summary: Delete Item
       tags:
       - Items
-  /items/{id}/:
     put:
       consumes:
       - application/json
@@ -684,6 +681,25 @@ paths:
       summary: Delete Vendor
       tags:
       - Vendors
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Vendor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - KeycloakAuth: []
+      summary: Get Vendor
+      tags:
+      - Vendors
     put:
       consumes:
       - application/json
@@ -709,7 +725,7 @@ paths:
       - KeycloakAuth: []
       summary: Update Vendor
       tags:
-      - vendors
+      - Vendors
   /vendors/check/{licenseID}/:
     get:
       consumes:
