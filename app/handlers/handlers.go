@@ -637,6 +637,13 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 // Payments (from one account to another account) -----------------------------
 
+func parseBool(value string) (bool, error) {
+	if value == "" {
+		return false, nil
+	}
+	return strconv.ParseBool(value)
+}
+
 // ListPayments godoc
 //
 //	 	@Summary 		Get list of all payments
@@ -647,6 +654,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 //		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Param			vendor query string false "Vendor LicenseID"
 //      @Param			payouts query bool false "Payouts only"
+//      @Param          sales query bool false "Sales only"
 //		@Success		200	{array}	database.Payment
 //		@Security		KeycloakAuth
 //		@Security		KeycloakAuth
@@ -658,18 +666,19 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	minDateRaw := r.URL.Query().Get("from")
 	maxDateRaw := r.URL.Query().Get("to")
 	payoutRaw := r.URL.Query().Get("payouts")
+	salesRaw := r.URL.Query().Get("sales")
 	vendor := r.URL.Query().Get("vendor")
 
 	// Parse filter parameters
-	var payout bool
-	if payoutRaw == "" {
-		payout = false
-	} else {
-		payout, err = strconv.ParseBool(payoutRaw)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
+	payout, err := parseBool(payoutRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	sales, err := parseBool(salesRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 	var minDate, maxDate time.Time
 	if minDateRaw != "" {
@@ -686,7 +695,7 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get payments with filter parameters
-	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, payout)
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, payout, sales)
 	respond(w, err, payments)
 }
 

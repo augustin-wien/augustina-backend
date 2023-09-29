@@ -84,13 +84,14 @@ type Payment struct {
 	Timestamp    time.Time
 	Sender       int
 	Receiver     int
-	SenderName   string
-	ReceiverName string
+	SenderName   string  // JOIN from Sender Account
+	ReceiverName string  // JOIN from Receiver Account
 	Amount       int
 	AuthorizedBy string
 	Order        null.Int `swaggertype:"integer"`
 	OrderEntry   null.Int `swaggertype:"integer"`
 	IsSale       bool
+	TransactionTypeID null.Int  // JOIN from Order
 }
 
 // Settings is a struct that is used for the settings table

@@ -290,7 +290,7 @@ func TestOrders(t *testing.T) {
 	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 5)
 
 	// Check payments
-	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false)
+	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false)
 	if err != nil {
 		t.Error(err)
 	}
