@@ -28,6 +28,7 @@ type Vendor struct {
 	Location    string
 	WorkingTime string
 	Lang        string
+	Comment     string
 }
 
 // Account is a struct that is used for the account table
@@ -96,6 +97,7 @@ type Payment struct {
 type Settings struct {
 	ID                         int
 	Color                      string
+	FontColor                  string
 	Logo                       string
 	MainItem                   null.Int `swaggertype:"integer"`
 	MaxOrderAmount             int
