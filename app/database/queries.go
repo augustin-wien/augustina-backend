@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
@@ -455,14 +456,19 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 
 	// Create filters
 	var filters []string
+	var filterValues []any
 	var vendor Vendor
 	var vendorAccount Account
 	var cashAccountID int
 	if !minDate.IsZero() {
-		filters = append(filters, "Timestamp >= $1")
+		filterValues = append(filterValues, minDate)
+		filters = append(filters, "Timestamp >= $" + strconv.Itoa(len(filterValues)))
+
 	}
 	if !maxDate.IsZero() {
-		filters = append(filters, "Timestamp <= $2")
+		filterValues = append(filterValues, maxDate)
+		filters = append(filters, "Timestamp <= $" + strconv.Itoa(len(filterValues)))
+
 	}
 	if vendorLicenseID != "" {
 		vendor, err = db.GetVendorByLicenseID(vendorLicenseID)
@@ -473,14 +479,18 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		if err != nil {
 			return
 		}
-		filters = append(filters, "Sender = $3")
+		filterValues = append(filterValues, vendorAccount.ID)
+		filters = append(filters, "Sender = $" + strconv.Itoa(len(filterValues)))
+
 	}
 	if filterPayouts {
 		cashAccountID, err = db.GetAccountTypeID("Cash")
 		if err != nil {
 			return
 		}
-		filters = append(filters, "Receiver = $4") // This defines payouts
+		filterValues = append(filterValues, cashAccountID)
+		filters = append(filters, "Receiver = $" + strconv.Itoa(len(filterValues)))
+
 	}
 
 	// Query based on parameters
@@ -488,7 +498,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	if len(filters) > 0 {
 		query += " WHERE " + strings.Join(filters, " AND ")
 	}
-	rows, err = db.Dbpool.Query(context.Background(), query, minDate, maxDate, vendorAccount.ID, cashAccountID)
+	rows, err = db.Dbpool.Query(context.Background(), query, filterValues...)
 	if err != nil {
 		log.Error(err)
 		return payments, err
