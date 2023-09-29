@@ -227,7 +227,7 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // GetOrderEntries returns all entries of an order
 func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT OrderEntry.ID, Item, Quantity, Price, Sender, Receiver, IsSale FROM OrderEntry JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE paymentorder = $1 ", orderID)
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT OrderEntry.ID, Item, Quantity, Price, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, IsSale FROM OrderEntry JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE paymentorder = $1 ", orderID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -466,7 +466,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 
 // GetPayment
 func (db *Database) GetPayment(id int) (payment Payment, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Payment WHERE ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Payment WHERE ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 	if err != nil {
 		log.Error(err)
 	}
@@ -483,7 +483,7 @@ func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 	}
 
 	// Create payment
-	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, SenderName, ReceiverName, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale) values ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING ID", payment.Sender, payment.Receiver, payment.SenderName, payment.ReceiverName, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry, payment.IsSale).Scan(&paymentID)
+	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry, payment.IsSale).Scan(&paymentID)
 	if err != nil {
 		log.Error(err)
 		return
