@@ -479,6 +479,49 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 	return payments, nil
 }
 
+// ListPayouts returns the payments from the database
+func (db *Database) ListPayouts(minDate time.Time, maxDate time.Time, vendorLicenseID string) (payments []Payment, err error) {
+	var rows pgx.Rows
+
+	// Filter from vendor to cash
+	vendorID, err := db.GetVendorByLicenseID(vendorLicenseID)
+	if err != nil {
+		return
+	}
+
+	vendorAccountID, err := db.GetAccountByVendorID(vendorID)
+	if err != nil {
+		return
+	}
+
+
+	// Query based on parameters
+	if !minDate.IsZero() && !maxDate.IsZero() {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
+	} else if !minDate.IsZero() {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1", minDate)
+	} else if !maxDate.IsZero() {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp <= $1", maxDate)
+	} else {
+		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment")
+	}
+	if err != nil {
+		log.Error(err)
+		return payments, err
+	}
+
+	// Scan rows
+	for rows.Next() {
+		var payment Payment
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+		if err != nil {
+			return payments, err
+		}
+		payments = append(payments, payment)
+	}
+	return payments, nil
+}
+
 // GetPayment
 func (db *Database) GetPayment(id int) (payment Payment, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Payment WHERE ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)

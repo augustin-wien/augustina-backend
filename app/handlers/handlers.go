@@ -672,6 +672,45 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, payments)
 }
 
+// ListPayouts godoc
+//
+//	 	@Summary 		Get list of all payments
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			vendor query string true "Vendor LicenseID"
+//		@Success		200	{array}	database.Payment
+//		@Security		KeycloakAuth
+//		@Security		KeycloakAuth
+//		@Router			/payments/payouts/ [get]
+func ListPayouts(w http.ResponseWriter, r *http.Request) {
+
+	// Get minDate and maxDate parameters
+	minDateRaw := r.URL.Query().Get("from")
+	maxDateRaw := r.URL.Query().Get("to")
+	vendor := r.URL.Query().Get("vendor")
+	var err error
+	var minDate, maxDate time.Time
+	if minDateRaw != "" {
+		minDate, err = time.Parse(time.RFC3339, minDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+	if maxDateRaw != "" {
+		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+
+	// Get payments with optional parameters
+	payments, err := database.Db.ListPayouts(minDate, maxDate, vendor)
+	respond(w, err, payments)
+}
+
 // CreatePayment godoc
 //
 //	 	@Summary 		Create a payment
