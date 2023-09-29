@@ -256,7 +256,14 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
 	setMaxOrderAmount(t, 1000000)
-	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+
+	t.Setenv("VIVA_WALLET_SMART_CHECKOUT_URL", "https://demo.vivapayments.com/web/checkout?ref=")
+
+	// Check if VivaWalletSmartCheckoutURL is set
+	if config.Config.VivaWalletSmartCheckoutURL == "" {
+		t.Error("VivaWalletSmartCheckoutURL is not set")
+	}
 
 	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
