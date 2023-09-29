@@ -99,5 +99,5 @@ func TestHelloWorldAuth(t *testing.T) {
 	utils.CheckResponse(t, 401, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, "Unauthorized\n", response.Body.String())
+	require.Equal(t, "{\"error\":{\"message\":\"Unauthorized\"}}", response.Body.String())
 }

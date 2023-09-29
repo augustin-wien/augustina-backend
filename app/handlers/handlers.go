@@ -157,11 +157,35 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, id)
 }
 
+// GetVendor godoc
+//
+//	 	@Summary 		Get Vendor
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//		@Security		KeycloakAuth
+//		@Param          id   path int  true  "Vendor ID"
+//		@Router			/vendors/{id}/ [get]
+func GetVendor(w http.ResponseWriter, r *http.Request) {
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	vendor, err := database.Db.GetVendor(vendorID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	respond(w, err, vendor)
+}
+
 // UpdateVendor godoc
 //
 //	 	@Summary 		Update Vendor
 //		@Description	Warning: Unfilled fields will be set to default values
-//		@Tags			vendors
+//		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
@@ -378,7 +402,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 //			@Success		200
 //			@Security		KeycloakAuth
 //	     @Param          id   path int  true  "Item ID"
-//			@Router			/items/{id} [delete]
+//			@Router			/items/{id}/ [delete]
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
