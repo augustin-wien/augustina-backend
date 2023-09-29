@@ -112,17 +112,17 @@ func (db *Database) createDevItems() (ids []int, err error) {
 // Vendor gets all sales (1600) and pays 2 licenses (-100)
 func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 
-	buyerAccount, err := db.GetAccountByType("UserAnon")
+	buyerAccountID, err := db.GetAccountTypeID("UserAnon")
 	if err != nil {
 		return
 	}
 
-	orgaAccount, err := db.GetAccountByType("Orga")
+	orgaAccountID, err := db.GetAccountTypeID("Orga")
 	if err != nil {
 		return
 	}
 
-	paypalAccount, err := db.GetAccountByType("Paypal")
+	paypalAccountID, err := db.GetAccountTypeID("Paypal")
 	if err != nil {
 		return
 	}
