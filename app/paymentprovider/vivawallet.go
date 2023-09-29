@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 	"strings"
 
@@ -229,6 +230,11 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	var sum float64
 	for _, entry := range order.Entries {
 
+		// Check for TransactionCostsName
+		if config.Config.TransactionCostsName == "" {
+			return errors.New("TransactionCostsName is not set")
+		}
+
 		// Check if entry is transaction costs, which are not included in the sum
 		var item database.Item
 		item, err = database.Db.GetItemByName(config.Config.TransactionCostsName)
@@ -253,6 +259,42 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeId)
 	if err != nil {
 		return err
+	}
+
+	// Check if VivaWalletTransactionTypeIDPaypal is set
+	if config.Config.VivaWalletTransactionTypeIDPaypal == 0 {
+		return errors.New("Env variable VivaWalletTransactionTypeIDPaypal is not set")
+	}
+
+	// Check if order has been payed via Paypal i.e. TransactionTypeId == 48
+	// Check TransactionTypeId here: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
+	if paymentSuccessful.EventData.TransactionTypeId == config.Config.VivaWalletTransactionTypeIDPaypal {
+
+		// Check if PaypalPercentageCosts and PaypalFixCosts are set
+		if config.Config.PaypalPercentageCosts == 0 {
+			return errors.New("Env variable PaypalPercentageCosts is not set")
+		}
+
+		if config.Config.PaypalFixCosts == 0 {
+			return errors.New("Env variable PaypalFixCosts is not set")
+		}
+
+		// Convert percentage to multiply it with total sum i.e. 0.05 for 5% transaction costs
+		convertedPercentageCosts := (config.Config.PaypalPercentageCosts) / 100
+
+		// Calculate transaction costs i.e. 0.034 * 100ct + 35 = 38.4ct
+		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
+
+		// Paypal rounds down on 3.4 ct to 3 ct, this means we round down on 3.4 ct to 3 ct as well
+		// Math.round example shown here: https://go.dev/play/p/yeBhVUE3pxa
+		paypalAmount = math.Round(paypalAmount)
+
+		// Create order entries for transaction costs
+		// WARNING: int() always rounds down in case you stop using math.Round
+		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
+		if err != nil {
+			return err
+		}
 	}
 
 	return
@@ -343,34 +385,9 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 		return err
 	}
 
-	// TODO: Add Paypal API call to get transaction costs
-	// TODO: Test if VivaWallet still sends a 0.0 TotalCommission by an amount of 10€
-	// TOTHINKABOUT: Should we save which payment provider has been used for our transaction in the database i.e. Paypal or VivaWallet?
-	// Easy to do in success webhook with this param: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
-
-	// 3. Check: Check if TotalCommission is 0.0, which means that transaction costs are on Paypals side
-	// WARNING: This logic builds upon the assumption that there is only Paypal as a payment provider, which leads to a 0.0 TotalCommission
+	// 3. Check: If TotalCommission is 0.0, return without creating transaction costs
 	if paymentPrice.EventData.TotalCommission == 0.0 {
-
-		if config.Config.PaypalPercentageCosts == 0 {
-			return errors.New("Env variable PaypalPercentageCosts is not set")
-		}
-
-		if config.Config.PaypalFixCosts == 0 {
-			return errors.New("Env variable PaypalFixCosts is not set")
-		}
-
-		// Convert percentage to multiply it with total sum i.e. 0.05 for 5% transaction costs
-		convertedPercentageCosts := (config.Config.PaypalPercentageCosts) / 100
-		// Calculate transaction costs
-		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
-		// Create order entries for transaction costs
-		// WARNING: int() always rounds down
-		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
-		if err != nil {
-			return err
-		}
-
+		return
 	} else {
 		transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
 		// Create order entries for transaction costs
@@ -412,10 +429,10 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	// Create order entries for transaction costs
 	var entries = []database.OrderEntry{
 		{
-			Item:         transactionCostsItem.ID,     // ID of transaction costs item
-			Quantity:     transactionCosts,            // Amount of transaction costs
-			Sender:       vendorAccount.ID,            // ID of vendor
-			Receiver:     paymentProviderAccountID,   // ID of Payment Provider
+			Item:     transactionCostsItem.ID,  // ID of transaction costs item
+			Quantity: transactionCosts,         // Amount of transaction costs
+			Sender:   vendorAccount.ID,         // ID of vendor
+			Receiver: paymentProviderAccountID, // ID of Payment Provider
 		},
 	}
 
@@ -441,10 +458,10 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		// Create payment for covering transaction costs by Organization
 		var entries = []database.OrderEntry{
 			{
-				Item:         transactionCostsItem.ID, // ID of transaction costs item
-				Quantity:     transactionCosts,        // Amount of transaction costs
-				Sender:       orgaAccountID,          // ID of Orga
-				Receiver:     vendorAccount.ID,        // ID of vendor
+				Item:     transactionCostsItem.ID, // ID of transaction costs item
+				Quantity: transactionCosts,        // Amount of transaction costs
+				Sender:   orgaAccountID,           // ID of Orga
+				Receiver: vendorAccount.ID,        // ID of vendor
 			},
 		}
 		// append transaction cost entries here
