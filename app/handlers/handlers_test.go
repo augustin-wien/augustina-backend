@@ -17,6 +17,7 @@ import (
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 )
 
@@ -236,6 +237,8 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
+	godotenv.Load("../.env")
+
 	setMaxOrderAmount(t, 10)
 
 	itemID, licenseItemID := CreateTestItemWithLicense(t)
@@ -256,7 +259,7 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
 	setMaxOrderAmount(t, 1000000)
-	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 
 	t.Setenv("VIVA_WALLET_SMART_CHECKOUT_URL", "https://demo.vivapayments.com/web/checkout?ref=")
 
