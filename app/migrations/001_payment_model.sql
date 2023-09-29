@@ -77,10 +77,10 @@ CREATE TABLE Payment (
 
 CREATE TABLE Settings (
     ID integer UNIQUE PRIMARY KEY CHECK (ID = 1) DEFAULT 1,
-    Color varchar(255) NOT NULL DEFAULT '#FF0000',
+    Color varchar(255) NOT NULL DEFAULT '#008000',
     FontColor varchar(255) NOT NULL DEFAULT '#FFFFFF',
     Logo varchar(255) NOT NULL DEFAULT 'img/logo.png',
-    MainItem integer REFERENCES Item DEFAULT 1,
+    MainItem integer REFERENCES Item,
     MaxOrderAmount integer NOT NULL DEFAULT 10000,  -- Default value is 10000, which equals 100€
     OrgaCoversTransactionCosts bool NOT NULL DEFAULT TRUE
 );
