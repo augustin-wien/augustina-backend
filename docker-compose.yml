@@ -198,8 +198,6 @@ services:
   parser:
     build:
       context: ./docker/augustin-plugin
-    env_file:
-      - ./docker/.env.parser
     ports:
       - "8070:8000"
     volumes:

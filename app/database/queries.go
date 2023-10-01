@@ -376,12 +376,12 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	if count == 0 && !errorIfExists {
 		err = nil
 		payment = Payment{
-			Sender:       entry.Sender,
-			Receiver:     entry.Receiver,
-			Amount:       entry.Price * entry.Quantity,
-			Order:        null.NewInt(int64(orderID), true),
-			OrderEntry:   null.NewInt(int64(entry.ID), true),
-			IsSale:       entry.IsSale,
+			Sender:     entry.Sender,
+			Receiver:   entry.Receiver,
+			Amount:     entry.Price * entry.Quantity,
+			Order:      null.NewInt(int64(orderID), true),
+			OrderEntry: null.NewInt(int64(entry.ID), true),
+			IsSale:     entry.IsSale,
 		}
 		paymentID, err = createPaymentTx(tx, payment)
 	}
