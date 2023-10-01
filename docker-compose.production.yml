@@ -39,7 +39,7 @@ services:
     ports:
       - "7001:3000"
   augustin-db:
-    image: postgres:16.0
+    image: postgres:15.0
     env_file:
       - .env
     environment:
