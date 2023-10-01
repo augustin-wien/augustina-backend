@@ -82,16 +82,18 @@ func initData(db *Database) (err error) {
 			log.Error("Default items creation failed ", zap.Error(err))
 		}
 
-		if config.Config.CreateDemoData && !db.IsProduction {
-			err = db.CreateDevData()
+		if db.IsProduction {
+			err = db.UpdateInitialSettings()
 			if err != nil {
-				log.Error("Dev data creation failed ", zap.Error(err))
+				log.Error("Updating initial Settings failed ", zap.Error(err))
 			}
-		}
 
-		err = db.UpdateInitialSettings()
-		if err != nil {
-			log.Error("Updating initial Settings failed ", zap.Error(err))
+			if config.Config.CreateDemoData {
+				err = db.CreateDevData()
+				if err != nil {
+					log.Error("Dev data creation failed ", zap.Error(err))
+				}
+			}
 		}
 
 		// Update DBSettings to initialized
