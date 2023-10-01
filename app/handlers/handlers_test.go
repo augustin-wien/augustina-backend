@@ -254,8 +254,10 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
 	setMaxOrderAmount(t, 1000000)
+
+	// TODO: Load envs in CI
 	// This 400 error fails locally but not on github actions
-	// TODO Load envs in CI
+	// To succeed this error, change 400 to 200 below
 	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
 
 	//require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
