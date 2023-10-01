@@ -80,7 +80,7 @@ func (db *Database) UpdateInitialSettings() (err error) {
 		Color:                      "#FF0000",
 		FontColor:                  "#FFFFFF",
 		Logo:                       "img/logo.png",
-		MainItem:                   null.IntFrom(0),
+		MainItem:                   null.IntFrom(1),
 		MaxOrderAmount:             5000,
 		OrgaCoversTransactionCosts: true,
 	}
