@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"augustin/config"
 	"augustin/database"
 	"augustin/keycloak"
 	"augustin/utils"
@@ -257,8 +258,10 @@ func TestOrders(t *testing.T) {
 	setMaxOrderAmount(t, 1000000)
 	res = utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 
-	t.Setenv("VIVA_WALLET_SMART_CHECKOUT_URL", "https://demo.vivapayments.com/web/checkout?ref=")
-	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=0"}`)
+	require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
+
+	// t.Setenv("VIVA_WALLET_SMART_CHECKOUT_URL", "https://demo.vivapayments.com/web/checkout?ref=")
+	// require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"https://demo.vivapayments.com/web/checkout?ref=0"}`)
 
 	order, err := database.Db.GetOrderByOrderCode("0")
 	if err != nil {

@@ -571,10 +571,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if VivaWalletSmartCheckoutURL is set
-	if config.Config.VivaWalletSmartCheckoutURL == "" {
-		utils.ErrorJSON(w, errors.New("VivaWalletSmartCheckoutURL is not set"), http.StatusBadRequest)
-		return
-	}
+	// if config.Config.VivaWalletSmartCheckoutURL == "" {
+	// 	utils.ErrorJSON(w, errors.New("VivaWalletSmartCheckoutURL is not set"), http.StatusBadRequest)
+	// 	return
+	// }
 
 	// Create response
 	url := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
