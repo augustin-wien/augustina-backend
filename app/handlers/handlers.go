@@ -119,8 +119,8 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 //		@Success		200	{array}	database.Vendor
 //		@Router			/vendors/ [get]
 func ListVendors(w http.ResponseWriter, r *http.Request) {
-	users, err := database.Db.ListVendors()
-	respond(w, err, users)
+	vendors, err := database.Db.ListVendors()
+	respond(w, err, vendors)
 }
 
 // CreateVendor godoc
