@@ -643,24 +643,50 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 // Payments (from one account to another account) -----------------------------
 
+func parseBool(value string) (bool, error) {
+	if value == "" {
+		return false, nil
+	}
+	return strconv.ParseBool(value)
+}
+
 // ListPayments godoc
 //
-//	 	@Summary 		Get list of all payments
-//		@Tags			Payments
-//		@Accept			json
-//		@Produce		json
-//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
-//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
-//		@Success		200	{array}	database.Payment
-//		@Security		KeycloakAuth
-//		@Security		KeycloakAuth
-//		@Router			/payments/ [get]
+//		 	@Summary 		Get list of all payments
+//			@Description 	Filter by date, vendor, payouts, sales. If payouts set true, all payments are removed that are not payouts. Same for sales. So sales and payouts can't be true at the same time.
+//			@Tags			Payments
+//			@Accept			json
+//			@Produce		json
+//			@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//			@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//			@Param			vendor query string false "Vendor LicenseID"
+//	     @Param			payouts query bool false "Payouts only"
+//	     @Param          sales query bool false "Sales only"
+//			@Success		200	{array}	database.Payment
+//			@Security		KeycloakAuth
+//			@Security		KeycloakAuth
+//			@Router			/payments/ [get]
 func ListPayments(w http.ResponseWriter, r *http.Request) {
+	var err error
 
-	// Get minDate and maxDate parameters
+	// Get filter parameters
 	minDateRaw := r.URL.Query().Get("from")
 	maxDateRaw := r.URL.Query().Get("to")
-	var err error
+	payoutRaw := r.URL.Query().Get("payouts")
+	salesRaw := r.URL.Query().Get("sales")
+	vendor := r.URL.Query().Get("vendor")
+
+	// Parse filter parameters
+	payout, err := parseBool(payoutRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	sales, err := parseBool(salesRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	var minDate, maxDate time.Time
 	if minDateRaw != "" {
 		minDate, err = time.Parse(time.RFC3339, minDateRaw)
@@ -675,8 +701,8 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Get payments with optional parameters
-	payments, err := database.Db.ListPayments(minDate, maxDate)
+	// Get payments with filter parameters
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, payout, sales)
 	respond(w, err, payments)
 }
 

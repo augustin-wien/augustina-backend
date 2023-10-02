@@ -303,6 +303,18 @@
                         "description": "Maximum date (RFC3339, UTC)",
                         "name": "to",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Vendor LicenseID",
+                        "name": "vendor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Payouts only",
+                        "name": "payouts",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -839,8 +851,14 @@
                 "receiver": {
                     "type": "integer"
                 },
+                "receiverName": {
+                    "type": "string"
+                },
                 "sender": {
                     "type": "integer"
+                },
+                "senderName": {
+                    "type": "string"
                 },
                 "timestamp": {
                     "type": "string"

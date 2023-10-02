@@ -3,6 +3,8 @@ package database
 import (
 	"context"
 	"errors"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -449,20 +451,56 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 // Payments -------------------------------------------------------------------
 
 // ListPayments returns the payments from the database
-func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments []Payment, err error) {
+func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool, filterSales bool) (payments []Payment, err error) {
 	var rows pgx.Rows
 
-	// TODO: JOIN with Account to get account names
-	// Query based on parameters
-	if !minDate.IsZero() && !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
-	} else if !minDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp >= $1", minDate)
-	} else if !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Timestamp <= $1", maxDate)
-	} else {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver")
+	// Create filters
+	var filters []string
+	var filterValues []any
+	var vendor Vendor
+	var vendorAccount Account
+	var cashAccountID int
+	if !minDate.IsZero() {
+		filterValues = append(filterValues, minDate)
+		filters = append(filters, "Timestamp >= $" + strconv.Itoa(len(filterValues)))
 	}
+	if !maxDate.IsZero() {
+		filterValues = append(filterValues, maxDate)
+		filters = append(filters, "Timestamp <= $" + strconv.Itoa(len(filterValues)))
+
+	}
+	if vendorLicenseID != "" {
+		vendor, err = db.GetVendorByLicenseID(vendorLicenseID)
+		if err != nil {
+			return
+		}
+		vendorAccount, err = db.GetAccountByVendorID(vendor.ID)
+		if err != nil {
+			return
+		}
+		filterValues = append(filterValues, vendorAccount.ID)
+		filters = append(filters, "Sender = $" + strconv.Itoa(len(filterValues)))
+
+	}
+	if filterPayouts {
+		cashAccountID, err = db.GetAccountTypeID("Cash")
+		if err != nil {
+			return
+		}
+		filterValues = append(filterValues, cashAccountID)
+		filters = append(filters, "Receiver = $" + strconv.Itoa(len(filterValues)))
+	}
+	if filterSales {
+		filterValues = append(filterValues, true)
+		filters = append(filters, "IsSale = $" + strconv.Itoa(len(filterValues)))
+	}
+
+	// Query based on parameters
+	query := "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver"
+	if len(filters) > 0 {
+		query += " WHERE " + strings.Join(filters, " AND ")
+	}
+	rows, err = db.Dbpool.Query(context.Background(), query, filterValues...)
 	if err != nil {
 		log.Error(err)
 		return payments, err
@@ -473,16 +511,19 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 		var payment Payment
 		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 		if err != nil {
+			log.Error(err)
 			return payments, err
 		}
 		payments = append(payments, payment)
 	}
+
+
 	return payments, nil
 }
 
 // GetPayment
 func (db *Database) GetPayment(id int) (payment Payment, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 	if err != nil {
 		log.Error(err)
 	}
@@ -728,8 +769,8 @@ func (db *Database) InitiateSettings() (err error) {
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
-	SELECT * from Settings LIMIT 1
-	`).Scan(&settings.ID, &settings.Color, &settings.FontColor, &settings.Logo, &settings.MainItem, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts)
+	SELECT Settings.ID, Color, FontColor, Logo, MainItem, MaxOrderAmount, OrgaCoversTransactionCosts, Name, Price, Description, Image from Settings LEFT JOIN Item ON Item.ID = MainItem LIMIT 1
+	`).Scan(&settings.ID, &settings.Color, &settings.FontColor, &settings.Logo, &settings.MainItem, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts, &settings.MainItemName, &settings.MainItemPrice, &settings.MainItemDescription, &settings.MainItemImage)
 	if err != nil {
 		log.Error(err)
 	}

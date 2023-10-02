@@ -293,7 +293,7 @@ func TestOrders(t *testing.T) {
 	// err = database.Db.VerifyOrderAndCreatePayments(order.ID, 48)
 
 	// // Check payments
-	// payments, err := database.Db.ListPayments(time.Time{}, time.Time{})
+	// payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false)
 	// if err != nil {
 	// 	t.Error(err)
 	// }
@@ -469,15 +469,54 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
 
+	// Test GET payment filters for payout
+	createTestVendor(t, "testOTHERLicenseID")
+	database.Db.CreatePayment(database.Payment{})
+
+	var payouts []database.Payment
+	response := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true&vendor=testLicenseID", nil, 200, adminUserToken)
+	err = json.Unmarshal(response.Body.Bytes(), &payouts)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(payouts))
+	require.Equal(t, payouts[0].Amount, 314)
+
+	response1 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true", nil, 200, adminUserToken)
+	err = json.Unmarshal(response1.Body.Bytes(), &payouts)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(payouts))
+
+	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true&vendor=testOTHERLicenseID", nil, 200, adminUserToken)
+	err = json.Unmarshal(response2.Body.Bytes(), &payouts)
+	utils.CheckError(t, err)
+	require.Equal(t, 0, len(payouts))
+
+	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
+	err = json.Unmarshal(response3.Body.Bytes(), &payouts)
+	utils.CheckError(t, err)
+	require.Equal(t, 2, len(payouts))
+
+}
+
+func CreateTestMainItem(t *testing.T) string {
+	f := `{
+		"Name": "Test main item",
+		"Price": 314
+	}`
+	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
+	itemID := res.Body.String()
+	return itemID
 }
 
 // TestSettings tests GET and PUT operations on settings
 func TestSettings(t *testing.T) {
 
+	itemID := CreateTestMainItem(t)
+
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	writer.WriteField("MaxOrderAmount", strconv.Itoa(10))
+	writer.WriteField("MainItem", itemID)
 	image, _ := writer.CreateFormFile("Logo", "test.png")
 	image.Write([]byte(`i am the content of a jpg file :D`))
 	writer.Close()
@@ -490,6 +529,10 @@ func TestSettings(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, "img/logo.png", settings.Logo)
 
+	// Check item join
+	require.Equal(t, "Test main item", settings.MainItemName.String)
+	require.Equal(t, int64(314), settings.MainItemPrice.Int64)
+
 	// Check file
 	dir, err := os.Getwd()
 	if err != nil {
@@ -498,4 +541,5 @@ func TestSettings(t *testing.T) {
 	file, err := os.ReadFile(dir + "/" + settings.Logo)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
+
 }

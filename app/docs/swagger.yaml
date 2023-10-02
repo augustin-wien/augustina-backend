@@ -38,8 +38,12 @@ definitions:
         type: integer
       receiver:
         type: integer
+      receiverName:
+        type: string
       sender:
         type: integer
+      senderName:
+        type: string
       timestamp:
         type: string
     type: object
@@ -546,6 +550,14 @@ paths:
         in: query
         name: to
         type: string
+      - description: Vendor LicenseID
+        in: query
+        name: vendor
+        type: string
+      - description: Payouts only
+        in: query
+        name: payouts
+        type: boolean
       produces:
       - application/json
       responses:
