@@ -74,7 +74,7 @@ func (db *Database) InitiateItems() (err error) {
 	return
 }
 
-// CreateDevSettings creates test settings for the application
+// UpdateInitialSettings creates test settings for the application
 func (db *Database) UpdateInitialSettings() (err error) {
 	settings := Settings{
 		Color:                      "#FF0000",

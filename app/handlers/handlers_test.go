@@ -53,13 +53,13 @@ func TestMain(m *testing.M) {
 	}
 	fmt.Println("Admin user token: ", adminUserToken.AccessToken)
 
-	return_code := m.Run()
+	returnCode := m.Run()
 	err = keycloak.KeycloakClient.DeleteUser(adminUser)
 	if err != nil {
 		log.Errorf("Delete user failed: %v \n", err)
 	}
 
-	os.Exit(return_code)
+	os.Exit(returnCode)
 
 	os.Exit(m.Run())
 }

@@ -71,6 +71,7 @@ func (k *Keycloak) GetUserInfo(userToken string) (*gocloak.UserInfo, error) {
 	return k.Client.GetUserInfo(k.Context, userToken, k.Realm)
 }
 
+// GetUserToken function returns the user token
 func (k *Keycloak) GetUserToken(user, password string) (*gocloak.JWT, error) {
 	return k.Client.Login(k.Context, k.ClientID, k.ClientSecret, k.Realm, user, password)
 }
