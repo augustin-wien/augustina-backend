@@ -11,24 +11,29 @@ import (
 
 // Vendor is a struct that is used for the vendor table
 type Vendor struct {
-	ID          int
-	KeycloakID  string
-	URLID       string // This is used for the QR code
-	LicenseID   null.String
-	FirstName   string
-	LastName    string
-	Email       string
-	LastPayout  null.Time `swaggertype:"string" format:"date-time"`
-	Balance     int       // This is joined in from the account
-	IsDisabled  bool
-	Longitude   float64
-	Latitude    float64
-	Address     string
-	PLZ         string
-	Location    string
-	WorkingTime string
-	Lang        string
-	Comment     string
+	ID               int
+	KeycloakID       string
+	URLID            string // This is used for the QR code
+	LicenseID        null.String
+	FirstName        string
+	LastName         string
+	Email            string
+	LastPayout       null.Time `swaggertype:"string" format:"date-time"`
+	Balance          int       // This is joined in from the account
+	IsDisabled       bool
+	Longitude        float64
+	Latitude         float64
+	Address          string
+	PLZ              string
+	Location         string
+	WorkingTime      string
+	Lang             string
+	Comment          string
+	Telephone        string
+	RegistrationDate string
+	VendorSince      string
+	OnlineMap        bool
+	HasSmartphone    bool
 }
 
 // Account is a struct that is used for the account table
@@ -84,8 +89,8 @@ type Payment struct {
 	Timestamp    time.Time
 	Sender       int
 	Receiver     int
-	SenderName   string  // JOIN from Sender Account
-	ReceiverName string  // JOIN from Receiver Account
+	SenderName   string // JOIN from Sender Account
+	ReceiverName string // JOIN from Receiver Account
 	Amount       int
 	AuthorizedBy string
 	Order        null.Int `swaggertype:"integer"`
@@ -102,10 +107,10 @@ type Settings struct {
 	MainItem                   null.Int `swaggertype:"integer"`
 	MaxOrderAmount             int
 	OrgaCoversTransactionCosts bool
-	MainItemName			   null.String
-	MainItemPrice			   null.Int
-	MainItemDescription		   null.String
-	MainItemImage			   null.String
+	MainItemName               null.String
+	MainItemPrice              null.Int
+	MainItemDescription        null.String
+	MainItemImage              null.String
 }
 
 // DBSettings is a struct that is used for the dbsettings table
