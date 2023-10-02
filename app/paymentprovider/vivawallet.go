@@ -362,6 +362,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction.")
 	}
 
+	// Only check isOrderVerified status if checkDBStatus is true
 	if checkDBStatus {
 		// 2. Check: Verify that transaction has been verified in database
 		order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(transactionVerificationResponse.OrderCode))
