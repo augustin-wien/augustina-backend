@@ -588,7 +588,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
-type verifyPaymentOrderResponse struct {
+// VerifyPaymentOrderResponse is the response to VerifyPaymentOrder
+type VerifyPaymentOrderResponse struct {
 	TimeStamp time.Time
 }
 
@@ -638,7 +639,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var verifyPaymentOrderResponse verifyPaymentOrderResponse
+	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
 	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
 
 	// Create response
@@ -861,7 +862,7 @@ type webhookResponse struct {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
-//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Successful Response"
+//	@Param			data body paymentprovider.TransactionSuccessRequest true "Payment Successful Response"
 //	@Router			/webhooks/vivawallet/success [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
@@ -893,7 +894,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
-//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Failure Response"
+//	@Param			data body paymentprovider.TransactionSuccessRequest true "Payment Failure Response"
 //	@Router			/webhooks/vivawallet/failure [post]
 func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 	var paymentFailure paymentprovider.TransactionSuccessRequest
