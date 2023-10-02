@@ -379,7 +379,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 			return transactionVerificationResponse, err
 		}
 		if !order.Verified {
-			log.Error("Order has not been verified in database but needs to be for frontend call")
+			log.Info("Order has not been verified in database but needs to be for frontend call")
 			return transactionVerificationResponse, errors.New("Order has not been verified in database but needs to be for frontend call")
 		}
 	}
