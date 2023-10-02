@@ -987,6 +987,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
+	path = ""
 
 	// Get file from image field
 	file, header, err := r.FormFile("Logo")
@@ -1095,7 +1096,11 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, _ := updateSettingsLogo(w, r)
+	path, err := updateSettingsLogo(w, r)
+	if err != nil {
+		return
+	}
+
 	if path != "" {
 		settings.Logo = "img/logo.png"
 	}
