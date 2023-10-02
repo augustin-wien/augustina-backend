@@ -23,6 +23,7 @@ import (
 
 var log = utils.GetLogger()
 
+// AuthenticateToVivaWallet authenticates to VivaWallet and returns an access token
 func AuthenticateToVivaWallet() (string, error) {
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletAccountsURL
@@ -94,9 +95,10 @@ func AuthenticateToVivaWallet() (string, error) {
 	return authResponse.AccessToken, nil
 }
 
+// CreatePaymentOrder creates a payment order and returns the order code
 func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 	// Create a new request URL using http
-	apiURL := config.Config.VivaWalletApiURL
+	apiURL := config.Config.VivaWalletAPIURL
 	if apiURL == "" {
 		return 0, errors.New("VivaWalletApiURL is not set")
 	}
@@ -192,11 +194,16 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 
 }
 
-func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest) (err error) {
+// HandlePaymentSuccessfulResponse handles the webhook response for a successful payment
+func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest) (err error) {
 
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
-	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionId)
+	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionID, false)
+	if err != nil {
+		log.Error("TransactionID could not be verified: ", err)
+		return err
+	}
 
 	// 1. Check: Verify that webhook request and API response match all three fields
 
@@ -210,7 +217,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 		return errors.New("Amount mismatch:" + transactionToFloat64 + "  vs. " + webhookToFloat64)
 	}
 
-	if transactionVerificationResponse.StatusId != paymentSuccessful.EventData.StatusId {
+	if transactionVerificationResponse.StatusID != paymentSuccessful.EventData.StatusID {
 		return errors.New("StatusId mismatch")
 	}
 
@@ -256,7 +263,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	// Since every check passed, now set verification status of order and create payments
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeId)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeID)
 	if err != nil {
 		return err
 	}
@@ -268,7 +275,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 
 	// Check if order has been payed via Paypal i.e. TransactionTypeId == 48
 	// Check TransactionTypeId here: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
-	if paymentSuccessful.EventData.TransactionTypeId == config.Config.VivaWalletTransactionTypeIDPaypal {
+	if paymentSuccessful.EventData.TransactionTypeID == config.Config.VivaWalletTransactionTypeIDPaypal {
 
 		// Check if PaypalPercentageCosts and PaypalFixCosts are set
 		if config.Config.PaypalPercentageCosts == 0 {
@@ -300,10 +307,11 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	return
 }
 
-func VerifyTransactionID(transactionID string) (transactionVerificationResponse TransactionVerificationResponse, err error) {
+// VerifyTransactionID verifies that the transactionID belongs to VivaWallet and returns the transaction details
+func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionVerificationResponse TransactionVerificationResponse, err error) {
 
 	// Create a new request URL using http
-	apiURL := config.Config.VivaWalletApiURL
+	apiURL := config.Config.VivaWalletAPIURL
 	if apiURL == "" {
 		return transactionVerificationResponse, errors.New("VivaWalletApiURL is not set")
 	}
@@ -358,23 +366,39 @@ func VerifyTransactionID(transactionID string) (transactionVerificationResponse 
 	}
 
 	// 1. Check: Verify that transaction has correct status, only status "F" and "MW" is allowed according to VivaWallet
-	if transactionVerificationResponse.StatusId != "F" && transactionVerificationResponse.StatusId != "MW" {
-		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction.")
+	if transactionVerificationResponse.StatusID != "F" && transactionVerificationResponse.StatusID != "MW" {
+		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction")
+	}
+
+	// Only check isOrderVerified status if checkDBStatus is true
+	if checkDBStatus {
+		// 2. Check: Verify that transaction has been verified in database
+		order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(transactionVerificationResponse.OrderCode))
+		if err != nil {
+			log.Error("Getting order from database failed: ", err)
+			return transactionVerificationResponse, err
+		}
+		if !order.Verified {
+			log.Error("Order has not been verified in database but needs to be for frontend call")
+			return transactionVerificationResponse, errors.New("Order has not been verified in database but needs to be for frontend call")
+		}
 	}
 
 	return transactionVerificationResponse, err
 }
 
-func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err error) {
+// HandlePaymentFailureResponse handles the webhook response for a failed payment
+func HandlePaymentFailureResponse(paymentFailure TransactionSuccessRequest) (err error) {
 	// This webhook has no purpose yet, but could be used to handle failed payments
 	return
 }
 
+// HandlePaymentPriceResponse handles the webhook response for a price change for now only for Card transactions
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
 	//Log the request body
 
 	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
-	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId)
+	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionID, false)
 	if err != nil {
 		return err
 	}
@@ -388,20 +412,19 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	// 3. Check: If TotalCommission is 0.0, return without creating transaction costs
 	if paymentPrice.EventData.TotalCommission == 0.0 {
 		return
-	} else {
-		transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
-		// Create order entries for transaction costs
-		err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
-		if err != nil {
-			return err
-		}
+	}
 
+	transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
+	// Create order entries for transaction costs
+	err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
+	if err != nil {
+		return err
 	}
 
 	return
 }
 
-// Create payments and order entries to list transaction costs
+// CreateTransactionCostEntries creates payments and order entries to list transaction costs
 func CreateTransactionCostEntries(order database.Order, transactionCosts int, paymentProvider string) (err error) {
 
 	if config.Config.TransactionCostsName == "" {

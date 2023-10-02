@@ -87,11 +87,11 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 }
 
 // GetVendor returns the vendor with the given id
-func (db *Database) GetVendor(vendorId int) (vendor Vendor, err error) {
+func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
 	// Get vendor data
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorId).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Lang, &vendor.Comment)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Lang, &vendor.Comment)
 	if err != nil {
-		log.Error("Couldn't get vendor", vendorId, err)
+		log.Error("Couldn't get vendor", vendorID, err)
 		return vendor, err
 	}
 	// Get vendor balance
@@ -374,7 +374,6 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	// If no payment exists for this entry, create one
 	var payment Payment
 	if count == 0 && !errorIfExists {
-		err = nil
 		payment = Payment{
 			Sender:     entry.Sender,
 			Receiver:   entry.Receiver,
@@ -462,11 +461,11 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	var cashAccountID int
 	if !minDate.IsZero() {
 		filterValues = append(filterValues, minDate)
-		filters = append(filters, "Timestamp >= $" + strconv.Itoa(len(filterValues)))
+		filters = append(filters, "Timestamp >= $"+strconv.Itoa(len(filterValues)))
 	}
 	if !maxDate.IsZero() {
 		filterValues = append(filterValues, maxDate)
-		filters = append(filters, "Timestamp <= $" + strconv.Itoa(len(filterValues)))
+		filters = append(filters, "Timestamp <= $"+strconv.Itoa(len(filterValues)))
 
 	}
 	if vendorLicenseID != "" {
@@ -479,7 +478,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 			return
 		}
 		filterValues = append(filterValues, vendorAccount.ID)
-		filters = append(filters, "Sender = $" + strconv.Itoa(len(filterValues)))
+		filters = append(filters, "Sender = $"+strconv.Itoa(len(filterValues)))
 
 	}
 	if filterPayouts {
@@ -488,11 +487,11 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 			return
 		}
 		filterValues = append(filterValues, cashAccountID)
-		filters = append(filters, "Receiver = $" + strconv.Itoa(len(filterValues)))
+		filters = append(filters, "Receiver = $"+strconv.Itoa(len(filterValues)))
 	}
 	if filterSales {
 		filterValues = append(filterValues, true)
-		filters = append(filters, "IsSale = $" + strconv.Itoa(len(filterValues)))
+		filters = append(filters, "IsSale = $"+strconv.Itoa(len(filterValues)))
 	}
 
 	// Query based on parameters
@@ -517,11 +516,10 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		payments = append(payments, payment)
 	}
 
-
 	return payments, nil
 }
 
-// GetPayment
+// GetPayment returns the payment with the given ID
 func (db *Database) GetPayment(id int) (payment Payment, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
 	if err != nil {

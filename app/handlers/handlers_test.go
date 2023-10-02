@@ -53,13 +53,13 @@ func TestMain(m *testing.M) {
 	}
 	fmt.Println("Admin user token: ", adminUserToken.AccessToken)
 
-	return_code := m.Run()
+	returnCode := m.Run()
 	err = keycloak.KeycloakClient.DeleteUser(adminUser)
 	if err != nil {
 		log.Errorf("Delete user failed: %v \n", err)
 	}
 
-	os.Exit(return_code)
+	os.Exit(returnCode)
 
 	os.Exit(m.Run())
 }
@@ -330,9 +330,17 @@ func TestPayments(t *testing.T) {
 	senderAccountID, err := database.Db.CreateAccount(
 		database.Account{Name: "Test sender"},
 	)
+	if err != nil {
+		t.Error(err)
+	}
+
 	receiverAccountID, err := database.Db.CreateAccount(
 		database.Account{Name: "Test receiver"},
 	)
+	if err != nil {
+		t.Error(err)
+	}
+
 	utils.CheckError(t, err)
 
 	// Create payments via API
@@ -450,9 +458,19 @@ func TestPaymentPayout(t *testing.T) {
 
 	paymentID := res.Body.String()
 	paymentIDInt, err := strconv.Atoi(paymentID)
+	if err != nil {
+		t.Error(err)
+	}
 
 	payment, err := database.Db.GetPayment(paymentIDInt)
+	if err != nil {
+		t.Error(err)
+	}
+
 	cashAccount, err := database.Db.GetAccountByType("Cash")
+	if err != nil {
+		t.Error(err)
+	}
 
 	require.Equal(t, payment.Amount, 314)
 	require.Equal(t, payment.Sender, account.ID)

@@ -101,7 +101,7 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 
 	users, err := database.Db.GetVendorByLicenseID(licenseID)
 	if err != nil {
-		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id."), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id"), http.StatusBadRequest)
 		return
 	}
 
@@ -466,6 +466,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	order.User.String = requestData.User
 	vendor, err := database.Db.GetVendorByLicenseID(requestData.VendorLicenseID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	order.Vendor = vendor.ID
 
 	var settings database.Settings
@@ -584,7 +588,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
-type VerifyPaymentOrderResponse struct {
+type verifyPaymentOrderResponse struct {
 	TimeStamp time.Time
 }
 
@@ -622,7 +626,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	if database.Db.IsProduction {
 		// Verify transaction
-		_, err := paymentprovider.VerifyTransactionID(TransactionID)
+		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
@@ -634,7 +638,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
+	var verifyPaymentOrderResponse verifyPaymentOrderResponse
 	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
 
 	// Create response
@@ -845,11 +849,11 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 
 }
 
-type WebhookResponse struct {
+type webhookResponse struct {
 	Status string
 }
 
-// VivaWalletCreateTransactionOrder godoc
+// VivaWalletWebhookSuccess godoc
 //
 //	@Summary		Webhook for VivaWallet successful transaction
 //	@Description	Webhook for VivaWallet successful transaction
@@ -861,7 +865,7 @@ type WebhookResponse struct {
 //	@Router			/webhooks/vivawallet/success [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
-	var paymentSuccessful paymentprovider.TransactionDetailRequest
+	var paymentSuccessful paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
 		log.Info("Reading JSON failed for webhook: ", err)
@@ -875,7 +879,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var response WebhookResponse
+	var response webhookResponse
 	response.Status = "OK"
 
 	utils.WriteJSON(w, http.StatusOK, response)
@@ -892,7 +896,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 //	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Failure Response"
 //	@Router			/webhooks/vivawallet/failure [post]
 func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
-	var paymentFailure paymentprovider.TransactionDetailRequest
+	var paymentFailure paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentFailure)
 	if err != nil {
 		log.Info("Reading JSON failed for webhook: ", err)
@@ -906,7 +910,7 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var response WebhookResponse
+	var response webhookResponse
 	response.Status = "OK"
 
 	utils.WriteJSON(w, http.StatusOK, response)
@@ -938,7 +942,7 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var response WebhookResponse
+	var response webhookResponse
 	response.Status = "OK"
 
 	utils.WriteJSON(w, http.StatusOK, response)

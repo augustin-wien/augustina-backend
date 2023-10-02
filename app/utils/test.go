@@ -60,6 +60,7 @@ func TestRequest(t *testing.T, router *chi.Mux, method string, url string, body 
 	return res
 }
 
+// TestRequestWithAuth is a simple utility to test a request including auth
 func TestRequestWithAuth(t *testing.T, router *chi.Mux, method string, url string, body any, expectedResponseCode int, auth *gocloak.JWT) (res *httptest.ResponseRecorder) {
 	var bodyJSON bytes.Buffer
 	err := json.NewEncoder(&bodyJSON).Encode(body)
