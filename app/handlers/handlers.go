@@ -582,6 +582,24 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Create response
 	url := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
+
+	// Add color code to URL
+	if settings.Color != "" {
+		var colorCode string
+		// Check if color code is valid with # at the beginning
+		if settings.Color[0] == '#' {
+			// Remove # from color code due to VivaWallet's policy
+			colorCode = settings.Color[1:]
+		} else {
+			log.Info("Color code is not valid: ", settings.Color)
+		}
+		// Make color code lowercase
+		colorCode = strings.ToLower(colorCode)
+
+		// Add color code to URL
+		url += "&color=" + colorCode
+	}
+
 	response := createOrderResponse{
 		SmartCheckoutURL: url,
 	}

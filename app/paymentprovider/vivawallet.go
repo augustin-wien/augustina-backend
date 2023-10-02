@@ -110,8 +110,8 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 	// Create a new sample customer
 	// TODO once registration is possible: Check if user is "UserAnon" and if not change this to customer fields
 	customer := Customer{
-		Email:       "verein@augustin.or.at",
-		Fullname:    "Augustin Straßenzeitung",
+		Email:       "",
+		Fullname:    "",
 		CountryCode: "AT",
 		RequestLang: "de-AT",
 	}
@@ -140,8 +140,8 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 		PaymentNotification: true,
 		TipAmount:           0,
 		DisableExactAmount:  false,
-		DisableCash:         true,
-		DisableWallet:       true,
+		DisableCash:         false,
+		DisableWallet:       false,
 		SourceCode:          utils.GetEnv("VIVA_WALLET_SOURCE_CODE", ""),
 		MerchantTrns:        "Die Augustin Familie bedankt sich für Ihre Überweisung!",
 		Tags:                items,
