@@ -591,6 +591,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 // VerifyPaymentOrderResponse is the response to VerifyPaymentOrder
 type VerifyPaymentOrderResponse struct {
 	TimeStamp time.Time
+	FirstName string
 }
 
 // VerifyPaymentOrder godoc
@@ -640,7 +641,18 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
+
+	// Declare timestamp from order
 	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
+
+	// Get first name of vendor from vendor id in order
+	vendor, err := database.Db.GetVendor(order.Vendor)
+	if err != nil {
+		log.Error("Getting vendor's first name failed: ", err)
+		return
+	}
+	// Declare first name from vendor
+	verifyPaymentOrderResponse.FirstName = vendor.FirstName
 
 	// Create response
 	utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
