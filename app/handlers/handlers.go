@@ -466,6 +466,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	order.User.String = requestData.User
 	vendor, err := database.Db.GetVendorByLicenseID(requestData.VendorLicenseID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	order.Vendor = vendor.ID
 
 	var settings database.Settings

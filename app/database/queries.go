@@ -374,7 +374,6 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	// If no payment exists for this entry, create one
 	var payment Payment
 	if count == 0 && !errorIfExists {
-		err = nil
 		payment = Payment{
 			Sender:     entry.Sender,
 			Receiver:   entry.Receiver,

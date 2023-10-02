@@ -200,6 +200,10 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
 	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionID, false)
+	if err != nil {
+		log.Error("TransactionID could not be verified: ", err)
+		return err
+	}
 
 	// 1. Check: Verify that webhook request and API response match all three fields
 
