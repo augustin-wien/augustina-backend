@@ -622,7 +622,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	if database.Db.IsProduction {
 		// Verify transaction
-		_, err := paymentprovider.VerifyTransactionID(TransactionID)
+		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return

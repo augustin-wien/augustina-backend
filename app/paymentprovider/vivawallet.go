@@ -196,7 +196,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
-	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionId)
+	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionId, false)
 
 	// 1. Check: Verify that webhook request and API response match all three fields
 
@@ -300,7 +300,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	return
 }
 
-func VerifyTransactionID(transactionID string) (transactionVerificationResponse TransactionVerificationResponse, err error) {
+func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionVerificationResponse TransactionVerificationResponse, err error) {
 
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletApiURL
@@ -362,6 +362,19 @@ func VerifyTransactionID(transactionID string) (transactionVerificationResponse 
 		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction.")
 	}
 
+	if checkDBStatus {
+		// 2. Check: Verify that transaction has been verified in database
+		order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(transactionVerificationResponse.OrderCode))
+		if err != nil {
+			log.Error("Getting order from database failed: ", err)
+			return transactionVerificationResponse, err
+		}
+		if !order.Verified {
+			log.Error("Order has not been verified in database but needs to be for frontend call")
+			return transactionVerificationResponse, errors.New("Order has not been verified in database but needs to be for frontend call")
+		}
+	}
+
 	return transactionVerificationResponse, err
 }
 
@@ -374,7 +387,7 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	//Log the request body
 
 	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
-	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId)
+	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId, false)
 	if err != nil {
 		return err
 	}
