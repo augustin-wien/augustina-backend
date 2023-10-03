@@ -617,7 +617,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	url := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
 
 	// Add color code to URL
-	if settings.Color != "" {
+	if settings.Color == "" {
 		utils.ErrorJSON(w, errors.New("No color code is set"), http.StatusBadRequest)
 	} else {
 
