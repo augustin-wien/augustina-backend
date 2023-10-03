@@ -273,27 +273,30 @@ func TestOrders(t *testing.T) {
 
 	setMaxOrderAmount(t, 10)
 
-	// itemID, licenseItemID := CreateTestItemWithLicense(t)
+	itemID, _ := CreateTestItemWithLicense(t)
 	// itemIDInt, _ := strconv.Atoi(itemID)
 	// licenseItemIDInt, _ := strconv.Atoi(licenseItemID)
-	// vendorID := createTestVendor(t, "testLicenseID2")
+	createTestVendor(t, "testLicenseID2")
 	// vendorIDInt, _ := strconv.Atoi(vendorID)
 
 	f := `{
 		"entries": [
 			{
-			  "item": 1,
+			  "item": ` + itemID + `,
 			  "quantity": 2
 			}
 		  ],
 		  "vendorLicenseID": "testLicenseID2"
 	}`
-	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	// The commented error quote should actually be triggered
 	// require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"MainItem has to be in entries and be the first item"}}`)
 
 	setMaxOrderAmount(t, 5000)
 
-	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"MainItem has to be in entries and be the first item"}}`)
 
 	//require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
