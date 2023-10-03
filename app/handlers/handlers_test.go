@@ -219,6 +219,13 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 	writer.WriteField("MaxOrderAmount", strconv.Itoa(amount))
 	writer.Close()
 	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200, adminUserToken)
+
+	// Check if maxOrderAmount is set
+	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
+	var settings database.Settings
+	err := json.Unmarshal(res.Body.Bytes(), &settings)
+	utils.CheckError(t, err)
+	require.Equal(t, amount, settings.MaxOrderAmount)
 }
 
 func CreateTestItemWithLicense(t *testing.T) (string, string) {
@@ -261,7 +268,7 @@ func TestOrders(t *testing.T) {
 	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
 	// require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
-	setMaxOrderAmount(t, 1000000)
+	setMaxOrderAmount(t, 5000)
 
 	// TODO: Load envs in CI
 	// This 400 error fails locally but not on github actions
@@ -554,6 +561,7 @@ func TestSettings(t *testing.T) {
 	err := json.Unmarshal(res.Body.Bytes(), &settings)
 	utils.CheckError(t, err)
 	require.Equal(t, "img/logo.png", settings.Logo)
+	require.Equal(t, 10, settings.MaxOrderAmount)
 
 	// Check item join
 	require.Equal(t, "Test main item", settings.MainItemName.String)

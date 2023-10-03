@@ -1115,7 +1115,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	path, err := updateSettingsLogo(w, r)
 	if err != nil {
-		return
+		log.Info("No new image provided")
 	}
 
 	if path != "" {
