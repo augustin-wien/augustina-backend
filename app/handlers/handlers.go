@@ -461,17 +461,13 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Security checks for entries
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
-	log.Info("Entries: ", requestData.Entries)
 	for idx, entry := range requestData.Entries {
 
-		// 1. Check: First has to be MainItem and be the first item in entries
-		// TODO: This needs to be adjusted once a webshop is implemented
-		log.Info("Entry: ", entry)
-		log.Info("Entry.Item: ", entry.Item)
-		log.Info("Entry.Quantity: ", entry.Quantity)
-		log.Info("idx: ", idx)
+		// 1. Check: First item (idx == 0) has to be MainItem (id == 1)
+		// TODO: This needs to be adjusted once a webshop is implemented and you can purchase something without a main item
 		if idx == 0 && entry.Item != 1 {
 			utils.ErrorJSON(w, errors.New("MainItem has to be in entries and be the first item"), http.StatusBadRequest)
+			return
 		}
 
 		// 2. Check: Quantity has to be > 0
@@ -488,7 +484,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// 4. Check: Item[2] -> Transaction costs are not allowed to be in entries
-		if entry.Item == 2 {
+		if entry.Item == 3 {
 			utils.ErrorJSON(w, errors.New("Nice try! Transaction costs are not allowed to be in entries"), http.StatusBadRequest)
 			return
 		}
