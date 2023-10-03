@@ -937,6 +937,9 @@ const docTemplate = `{
                 "firstName": {
                     "type": "string"
                 },
+                "hasBankAccount": {
+                    "type": "boolean"
+                },
                 "hasSmartphone": {
                     "type": "boolean"
                 },
@@ -949,7 +952,7 @@ const docTemplate = `{
                 "keycloakID": {
                     "type": "string"
                 },
-                "lang": {
+                "language": {
                     "type": "string"
                 },
                 "lastName": {
@@ -998,6 +1001,9 @@ const docTemplate = `{
         "handlers.VerifyPaymentOrderResponse": {
             "type": "object",
             "properties": {
+                "firstName": {
+                    "type": "string"
+                },
                 "timeStamp": {
                     "type": "string"
                 }

@@ -87,6 +87,8 @@ definitions:
         type: string
       firstName:
         type: string
+      hasBankAccount:
+        type: boolean
       hasSmartphone:
         type: boolean
       id:
@@ -95,7 +97,7 @@ definitions:
         type: boolean
       keycloakID:
         type: string
-      lang:
+      language:
         type: string
       lastName:
         type: string
@@ -128,6 +130,8 @@ definitions:
     type: object
   handlers.VerifyPaymentOrderResponse:
     properties:
+      firstName:
+        type: string
       timeStamp:
         type: string
     type: object

@@ -931,6 +931,9 @@
                 "firstName": {
                     "type": "string"
                 },
+                "hasBankAccount": {
+                    "type": "boolean"
+                },
                 "hasSmartphone": {
                     "type": "boolean"
                 },
@@ -943,7 +946,7 @@
                 "keycloakID": {
                     "type": "string"
                 },
-                "lang": {
+                "language": {
                     "type": "string"
                 },
                 "lastName": {
@@ -992,6 +995,9 @@
         "handlers.VerifyPaymentOrderResponse": {
             "type": "object",
             "properties": {
+                "firstName": {
+                    "type": "string"
+                },
                 "timeStamp": {
                     "type": "string"
                 }
