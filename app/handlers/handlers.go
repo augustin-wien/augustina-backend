@@ -34,7 +34,10 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, payload)
+	err = utils.WriteJSON(w, http.StatusOK, payload)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // HelloWorld godoc
@@ -53,7 +56,10 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, greeting)
+	err = utils.WriteJSON(w, http.StatusOK, greeting)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // HelloWorldAuth godoc
@@ -73,7 +79,10 @@ func HelloWorldAuth(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, greeting)
+	err = utils.WriteJSON(w, http.StatusOK, greeting)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // Users ----------------------------------------------------------------------
@@ -107,7 +116,10 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := checkLicenseIDResponse{FirstName: users.FirstName}
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // ListVendors godoc
@@ -120,8 +132,8 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 //		@Success		200	{array}	database.Vendor
 //		@Router			/vendors/ [get]
 func ListVendors(w http.ResponseWriter, r *http.Request) {
-	users, err := database.Db.ListVendors()
-	respond(w, err, users)
+	vendors, err := database.Db.ListVendors()
+	respond(w, err, vendors)
 }
 
 // CreateVendor godoc
@@ -354,7 +366,11 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read multipart form
-	r.ParseMultipartForm(32 << 20)
+	err = r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	mForm := r.MultipartForm
 	if mForm == nil {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
@@ -645,8 +661,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
-type verifyPaymentOrderResponse struct {
+// VerifyPaymentOrderResponse is the response to VerifyPaymentOrder
+type VerifyPaymentOrderResponse struct {
 	TimeStamp time.Time
+	FirstName string
 }
 
 // VerifyPaymentOrder godoc
@@ -690,13 +708,24 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
-	if time.Now().Sub(order.Timestamp) > 900*time.Second {
+	if time.Since(order.Timestamp) > 900*time.Second {
 		utils.ErrorJSON(w, errors.New("Transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
 		return
 	}
 
-	var verifyPaymentOrderResponse verifyPaymentOrderResponse
+	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
+
+	// Declare timestamp from order
 	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
+
+	// Get first name of vendor from vendor id in order
+	vendor, err := database.Db.GetVendor(order.Vendor)
+	if err != nil {
+		log.Error("Getting vendor's first name failed: ", err)
+		return
+	}
+	// Declare first name from vendor
+	verifyPaymentOrderResponse.FirstName = vendor.FirstName
 
 	// Create response
 	utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
@@ -918,7 +947,7 @@ type webhookResponse struct {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
-//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Successful Response"
+//	@Param			data body paymentprovider.TransactionSuccessRequest true "Payment Successful Response"
 //	@Router			/webhooks/vivawallet/success [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
@@ -950,7 +979,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
-//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Failure Response"
+//	@Param			data body paymentprovider.TransactionSuccessRequest true "Payment Failure Response"
 //	@Router			/webhooks/vivawallet/failure [post]
 func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 	var paymentFailure paymentprovider.TransactionSuccessRequest
@@ -1159,7 +1188,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	path, err := updateSettingsLogo(w, r)
 	if err != nil {
-		return
+		log.Info("No new image provided")
 	}
 
 	if path != "" {

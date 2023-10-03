@@ -38,7 +38,6 @@ func (db *Database) InitiateItems() (err error) {
 		Price:       1,
 		Archived:    false,
 	}
-
 	if config.Config.TransactionCostsName == "" {
 		log.Error("TransactionCostsName is not set")
 		return

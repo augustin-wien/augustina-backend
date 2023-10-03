@@ -10,20 +10,31 @@ import (
 )
 
 var log = utils.GetLogger()
-var conf = config.Config
 
 func main() {
+	// Initialize config
+	config.InitConfig()
+	conf := config.Config
+
 	log.Info("Starting Augustin Server v", conf.Version)
 
 	// Initialize Keycloak client
-	keycloak.InitializeOauthServer()
+	err := keycloak.InitializeOauthServer()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Initialize database
-	go database.Db.InitDb()
+	go func() {
+		err = database.Db.InitDb()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	// Initialize server
 	log.Info("Listening on port ", conf.Port)
-	err := http.ListenAndServe(":" + conf.Port, handlers.GetRouter())
+	err = http.ListenAndServe(":"+conf.Port, handlers.GetRouter())
 	if err != nil {
 		log.Fatal(err)
 	}

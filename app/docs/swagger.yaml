@@ -39,10 +39,12 @@ definitions:
       receiver:
         type: integer
       receiverName:
+        description: JOIN from Receiver Account
         type: string
       sender:
         type: integer
       senderName:
+        description: JOIN from Sender Account
         type: string
       timestamp:
         type: string
@@ -59,6 +61,14 @@ definitions:
         type: string
       mainItem:
         type: integer
+      mainItemDescription:
+        $ref: '#/definitions/null.String'
+      mainItemImage:
+        $ref: '#/definitions/null.String'
+      mainItemName:
+        $ref: '#/definitions/null.String'
+      mainItemPrice:
+        $ref: '#/definitions/null.Int'
       maxOrderAmount:
         type: integer
       orgaCoversTransactionCosts:
@@ -77,13 +87,17 @@ definitions:
         type: string
       firstName:
         type: string
+      hasBankAccount:
+        type: boolean
+      hasSmartphone:
+        type: boolean
       id:
         type: integer
       isDisabled:
         type: boolean
       keycloakID:
         type: string
-      lang:
+      language:
         type: string
       lastName:
         type: string
@@ -98,16 +112,26 @@ definitions:
         type: string
       longitude:
         type: number
+      onlineMap:
+        type: boolean
       plz:
+        type: string
+      registrationDate:
+        type: string
+      telephone:
         type: string
       urlid:
         description: This is used for the QR code
+        type: string
+      vendorSince:
         type: string
       workingTime:
         type: string
     type: object
   handlers.VerifyPaymentOrderResponse:
     properties:
+      firstName:
+        type: string
       timeStamp:
         type: string
     type: object
@@ -176,12 +200,12 @@ definitions:
       assignedResellerUsers:
         items: {}
         type: array
-      authorizationId:
+      authorizationID:
         type: string
-      bankId:
+      bankID:
         type: string
-      billId: {}
-      binId:
+      billID: {}
+      binID:
         type: integer
       cardCountryCode:
         type: string
@@ -193,25 +217,25 @@ definitions:
         type: string
       cardToken:
         type: string
-      cardTypeId:
+      cardTypeID:
         type: integer
       cardUniqueReference:
         type: string
-      channelId:
+      channelID:
         type: string
       clearanceDate: {}
       companyName:
         type: string
       companyTitle:
         type: string
-      connectedAccountId: {}
+      connectedAccountID: {}
       currencyCode:
         type: string
       currentInstallment:
         type: integer
       customerTrns:
         type: string
-      digitalWalletId: {}
+      digitalWalletID: {}
       dualMessage:
         type: boolean
       electronicCommerceIndicator:
@@ -230,7 +254,7 @@ definitions:
         type: boolean
       merchantCategoryCode:
         type: integer
-      merchantId:
+      merchantID:
         type: string
       merchantTrns:
         type: string
@@ -240,34 +264,34 @@ definitions:
         type: integer
       orderCulture:
         type: string
-      orderServiceId:
+      orderServiceID:
         type: integer
       panEntryMode:
         type: string
-      parentId: {}
+      parentID: {}
       phone:
         type: string
-      productId: {}
+      productID: {}
       redeemedAmount:
         type: number
       referenceNumber:
         type: integer
       resellerCompanyName: {}
-      resellerId: {}
+      resellerID: {}
       resellerSourceAddress: {}
       resellerSourceCode: {}
       resellerSourceName: {}
       responseCode:
         type: string
-      responseEventId: {}
+      responseEventID: {}
       retrievalReferenceNumber:
         type: string
-      serviceId: {}
+      serviceID: {}
       sourceCode:
         type: string
       sourceName:
         type: string
-      statusId:
+      statusID:
         type: string
       switching:
         type: boolean
@@ -277,9 +301,9 @@ definitions:
         items:
           type: string
         type: array
-      targetPersonId: {}
-      targetWalletId: {}
-      terminalId:
+      targetPersonID: {}
+      targetWalletID: {}
+      terminalID:
         type: integer
       tipAmount:
         type: number
@@ -287,9 +311,9 @@ definitions:
         type: number
       totalInstallments:
         type: integer
-      transactionId:
+      transactionID:
         type: string
-      transactionTypeId:
+      transactionTypeID:
         type: integer
       ucaf:
         type: string
@@ -312,7 +336,7 @@ definitions:
       TransactionId:
         type: string
     type: object
-  paymentprovider.TransactionDetailRequest:
+  paymentprovider.TransactionPriceRequest:
     properties:
       CorrelationId:
         type: string
@@ -320,7 +344,7 @@ definitions:
         type: string
       Delay: {}
       EventData:
-        $ref: '#/definitions/paymentprovider.EventData'
+        $ref: '#/definitions/paymentprovider.PriceEventData'
       EventTypeId:
         type: integer
       MessageId:
@@ -332,7 +356,7 @@ definitions:
       Url:
         type: string
     type: object
-  paymentprovider.TransactionPriceRequest:
+  paymentprovider.TransactionSuccessRequest:
     properties:
       CorrelationId:
         type: string
@@ -340,7 +364,7 @@ definitions:
         type: string
       Delay: {}
       EventData:
-        $ref: '#/definitions/paymentprovider.PriceEventData'
+        $ref: '#/definitions/paymentprovider.EventData'
       EventTypeId:
         type: integer
       MessageId:
@@ -539,6 +563,9 @@ paths:
     get:
       consumes:
       - application/json
+      description: Filter by date, vendor, payouts, sales. If payouts set true, all
+        payments are removed that are not payouts. Same for sales. So sales and payouts
+        can't be true at the same time.
       parameters:
       - description: Minimum date (RFC3339, UTC)
         example: "2006-01-02T15:04:05Z"
@@ -557,6 +584,10 @@ paths:
       - description: Payouts only
         in: query
         name: payouts
+        type: boolean
+      - description: Sales only
+        in: query
+        name: sales
         type: boolean
       produces:
       - application/json
@@ -786,7 +817,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/paymentprovider.TransactionDetailRequest'
+          $ref: '#/definitions/paymentprovider.TransactionSuccessRequest'
       produces:
       - application/json
       responses:
@@ -858,7 +889,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/paymentprovider.TransactionDetailRequest'
+          $ref: '#/definitions/paymentprovider.TransactionSuccessRequest'
       produces:
       - application/json
       responses:

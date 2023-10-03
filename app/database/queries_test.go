@@ -1,6 +1,7 @@
 package database
 
 import (
+	"augustin/config"
 	"augustin/utils"
 	"context"
 	"os"
@@ -13,6 +14,12 @@ import (
 
 // TestMain is the main function for the database tests and initializes the database
 func TestMain(m *testing.M) {
+	// run tests in mainfolder
+	err := os.Chdir("..")
+	if err != nil {
+		panic(err)
+	}
+	config.InitConfig()
 	Db.InitEmptyTestDb()
 	os.Exit(m.Run())
 }
@@ -100,6 +107,41 @@ func TestAccounts(t *testing.T) {
 	utils.CheckError(t, err)
 
 	require.Equal(t, "test", account.Name)
+}
+
+func TestVendors(t *testing.T) {
+	// Create new vendor
+	vendor := Vendor{
+		FirstName:      "test",
+		LastName:       "test",
+		LicenseID:      null.StringFrom("tt-123"),
+		HasBankAccount: true,
+	}
+	id, err := Db.CreateVendor(vendor)
+	utils.CheckError(t, err)
+
+	// Get vendor by ID
+	vendor, err = Db.GetVendor(id)
+	utils.CheckError(t, err)
+
+	require.Equal(t, "test", vendor.FirstName)
+	require.Equal(t, true, vendor.HasBankAccount)
+
+	// Update vendor
+	vendor.FirstName = "test2"
+	vendor.HasBankAccount = false
+	err = Db.UpdateVendor(id, vendor)
+	utils.CheckError(t, err)
+
+	// Get vendor by ID
+	vendor, err = Db.GetVendor(id)
+	utils.CheckError(t, err)
+
+	require.Equal(t, "test2", vendor.FirstName)
+
+	// Delete vendor
+	err = Db.DeleteVendor(id)
+	utils.CheckError(t, err)
 }
 
 // TODO: This test breaks the CI pipeline as it somehow runs in parallel

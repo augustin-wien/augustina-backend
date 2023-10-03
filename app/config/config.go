@@ -1,8 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 type config struct {
@@ -23,21 +26,34 @@ type config struct {
 }
 
 // Config is the global configuration variable
-var Config = config{
-	Version:                           "0.0.1",
-	Port:                              getEnv("PORT", "3000"),
-	CreateDemoData:                    (getEnv("CREATE_DEMO_DATA", "false") == "true"),
-	PaypalFixCosts:                    getEnvFloat("PAYPAL_FIX_COSTS", 0.00),
-	PaypalPercentageCosts:             getEnvFloat("PAYPAL_PERCENTAGE_COSTS", 0.00),
-	TransactionCostsName:              getEnv("TRANSACTION_COSTS_NAME", "transactionCosts"),
-	VivaWalletVerificationKey:         getEnv("VIVA_WALLET_VERIFICATION_KEY", ""),
-	VivaWalletAPIURL:                  getEnv("VIVA_WALLET_API_URL", ""),
-	VivaWalletAccountsURL:             getEnv("VIVA_WALLET_ACCOUNTS_URL", ""),
-	VivaWalletSmartCheckoutURL:        getEnv("VIVA_WALLET_SMART_CHECKOUT_URL", ""),
-	VivaWalletSmartCheckoutClientID:   getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID", ""),
-	VivaWalletSmartCheckoutClientKey:  getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY", ""),
-	VivaWalletSourceCode:              getEnv("VIVA_WALLET_SOURCE_CODE", ""),
-	VivaWalletTransactionTypeIDPaypal: getEnvInt("VIVA_WALLET_TRANSACTION_TYPE_ID_PAYPAL", 0),
+var Config config
+
+func InitConfig() {
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	err = godotenv.Load(pwd + "/.env")
+	if err != nil {
+		// ignore error
+		fmt.Println(err)
+	}
+	Config = config{
+		Version:                           "0.0.1",
+		Port:                              getEnv("PORT", "3000"),
+		CreateDemoData:                    (getEnv("CREATE_DEMO_DATA", "false") == "true"),
+		PaypalFixCosts:                    getEnvFloat("PAYPAL_FIX_COSTS", 0.00),
+		PaypalPercentageCosts:             getEnvFloat("PAYPAL_PERCENTAGE_COSTS", 0.00),
+		TransactionCostsName:              getEnv("TRANSACTION_COSTS_NAME", "transactionCosts"),
+		VivaWalletVerificationKey:         getEnv("VIVA_WALLET_VERIFICATION_KEY", ""),
+		VivaWalletAPIURL:                  getEnv("VIVA_WALLET_API_URL", ""),
+		VivaWalletAccountsURL:             getEnv("VIVA_WALLET_ACCOUNTS_URL", ""),
+		VivaWalletSmartCheckoutURL:        getEnv("VIVA_WALLET_SMART_CHECKOUT_URL", ""),
+		VivaWalletSmartCheckoutClientID:   getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID", ""),
+		VivaWalletSmartCheckoutClientKey:  getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY", ""),
+		VivaWalletTransactionTypeIDPaypal: getEnvInt("VIVA_WALLET_TRANSACTION_TYPE_ID_PAYPAL", 0),
+	}
 }
 
 // Local copy of utils.GetEnv to avoid circular dependency

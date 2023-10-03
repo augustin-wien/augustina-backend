@@ -279,6 +279,7 @@
                         "KeycloakAuth": []
                     }
                 ],
+                "description": "Filter by date, vendor, payouts, sales. If payouts set true, all payments are removed that are not payouts. Same for sales. So sales and payouts can't be true at the same time.",
                 "consumes": [
                     "application/json"
                 ],
@@ -314,6 +315,12 @@
                         "type": "boolean",
                         "description": "Payouts only",
                         "name": "payouts",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Sales only",
+                        "name": "sales",
                         "in": "query"
                     }
                 ],
@@ -672,7 +679,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
+                            "$ref": "#/definitions/paymentprovider.TransactionSuccessRequest"
                         }
                     }
                 ],
@@ -782,7 +789,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/paymentprovider.TransactionDetailRequest"
+                            "$ref": "#/definitions/paymentprovider.TransactionSuccessRequest"
                         }
                     }
                 ],
@@ -852,12 +859,14 @@
                     "type": "integer"
                 },
                 "receiverName": {
+                    "description": "JOIN from Receiver Account",
                     "type": "string"
                 },
                 "sender": {
                     "type": "integer"
                 },
                 "senderName": {
+                    "description": "JOIN from Sender Account",
                     "type": "string"
                 },
                 "timestamp": {
@@ -882,6 +891,18 @@
                 },
                 "mainItem": {
                     "type": "integer"
+                },
+                "mainItemDescription": {
+                    "$ref": "#/definitions/null.String"
+                },
+                "mainItemImage": {
+                    "$ref": "#/definitions/null.String"
+                },
+                "mainItemName": {
+                    "$ref": "#/definitions/null.String"
+                },
+                "mainItemPrice": {
+                    "$ref": "#/definitions/null.Int"
                 },
                 "maxOrderAmount": {
                     "type": "integer"
@@ -910,6 +931,12 @@
                 "firstName": {
                     "type": "string"
                 },
+                "hasBankAccount": {
+                    "type": "boolean"
+                },
+                "hasSmartphone": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -919,7 +946,7 @@
                 "keycloakID": {
                     "type": "string"
                 },
-                "lang": {
+                "language": {
                     "type": "string"
                 },
                 "lastName": {
@@ -941,11 +968,23 @@
                 "longitude": {
                     "type": "number"
                 },
+                "onlineMap": {
+                    "type": "boolean"
+                },
                 "plz": {
+                    "type": "string"
+                },
+                "registrationDate": {
+                    "type": "string"
+                },
+                "telephone": {
                     "type": "string"
                 },
                 "urlid": {
                     "description": "This is used for the QR code",
+                    "type": "string"
+                },
+                "vendorSince": {
                     "type": "string"
                 },
                 "workingTime": {
@@ -956,6 +995,9 @@
         "handlers.VerifyPaymentOrderResponse": {
             "type": "object",
             "properties": {
+                "firstName": {
+                    "type": "string"
+                },
                 "timeStamp": {
                     "type": "string"
                 }
@@ -1060,14 +1102,14 @@
                     "type": "array",
                     "items": {}
                 },
-                "authorizationId": {
+                "authorizationID": {
                     "type": "string"
                 },
-                "bankId": {
+                "bankID": {
                     "type": "string"
                 },
-                "billId": {},
-                "binId": {
+                "billID": {},
+                "binID": {
                     "type": "integer"
                 },
                 "cardCountryCode": {
@@ -1085,13 +1127,13 @@
                 "cardToken": {
                     "type": "string"
                 },
-                "cardTypeId": {
+                "cardTypeID": {
                     "type": "integer"
                 },
                 "cardUniqueReference": {
                     "type": "string"
                 },
-                "channelId": {
+                "channelID": {
                     "type": "string"
                 },
                 "clearanceDate": {},
@@ -1101,7 +1143,7 @@
                 "companyTitle": {
                     "type": "string"
                 },
-                "connectedAccountId": {},
+                "connectedAccountID": {},
                 "currencyCode": {
                     "type": "string"
                 },
@@ -1111,7 +1153,7 @@
                 "customerTrns": {
                     "type": "string"
                 },
-                "digitalWalletId": {},
+                "digitalWalletID": {},
                 "dualMessage": {
                     "type": "boolean"
                 },
@@ -1138,7 +1180,7 @@
                 "merchantCategoryCode": {
                     "type": "integer"
                 },
-                "merchantId": {
+                "merchantID": {
                     "type": "string"
                 },
                 "merchantTrns": {
@@ -1153,17 +1195,17 @@
                 "orderCulture": {
                     "type": "string"
                 },
-                "orderServiceId": {
+                "orderServiceID": {
                     "type": "integer"
                 },
                 "panEntryMode": {
                     "type": "string"
                 },
-                "parentId": {},
+                "parentID": {},
                 "phone": {
                     "type": "string"
                 },
-                "productId": {},
+                "productID": {},
                 "redeemedAmount": {
                     "type": "number"
                 },
@@ -1171,25 +1213,25 @@
                     "type": "integer"
                 },
                 "resellerCompanyName": {},
-                "resellerId": {},
+                "resellerID": {},
                 "resellerSourceAddress": {},
                 "resellerSourceCode": {},
                 "resellerSourceName": {},
                 "responseCode": {
                     "type": "string"
                 },
-                "responseEventId": {},
+                "responseEventID": {},
                 "retrievalReferenceNumber": {
                     "type": "string"
                 },
-                "serviceId": {},
+                "serviceID": {},
                 "sourceCode": {
                     "type": "string"
                 },
                 "sourceName": {
                     "type": "string"
                 },
-                "statusId": {
+                "statusID": {
                     "type": "string"
                 },
                 "switching": {
@@ -1204,9 +1246,9 @@
                         "type": "string"
                     }
                 },
-                "targetPersonId": {},
-                "targetWalletId": {},
-                "terminalId": {
+                "targetPersonID": {},
+                "targetWalletID": {},
+                "terminalID": {
                     "type": "integer"
                 },
                 "tipAmount": {
@@ -1218,10 +1260,10 @@
                 "totalInstallments": {
                     "type": "integer"
                 },
-                "transactionId": {
+                "transactionID": {
                     "type": "string"
                 },
-                "transactionTypeId": {
+                "transactionTypeID": {
                     "type": "integer"
                 },
                 "ucaf": {
@@ -1256,7 +1298,7 @@
                 }
             }
         },
-        "paymentprovider.TransactionDetailRequest": {
+        "paymentprovider.TransactionPriceRequest": {
             "type": "object",
             "properties": {
                 "CorrelationId": {
@@ -1267,7 +1309,7 @@
                 },
                 "Delay": {},
                 "EventData": {
-                    "$ref": "#/definitions/paymentprovider.EventData"
+                    "$ref": "#/definitions/paymentprovider.PriceEventData"
                 },
                 "EventTypeId": {
                     "type": "integer"
@@ -1286,7 +1328,7 @@
                 }
             }
         },
-        "paymentprovider.TransactionPriceRequest": {
+        "paymentprovider.TransactionSuccessRequest": {
             "type": "object",
             "properties": {
                 "CorrelationId": {
@@ -1297,7 +1339,7 @@
                 },
                 "Delay": {},
                 "EventData": {
-                    "$ref": "#/definitions/paymentprovider.PriceEventData"
+                    "$ref": "#/definitions/paymentprovider.EventData"
                 },
                 "EventTypeId": {
                     "type": "integer"

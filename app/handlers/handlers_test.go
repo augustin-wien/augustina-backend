@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"augustin/config"
 	"augustin/database"
 	"augustin/keycloak"
 	"augustin/utils"
@@ -26,13 +27,24 @@ var adminUserToken *gocloak.JWT
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
 	var err error
-	database.Db.InitEmptyTestDb()
-	keycloak.InitializeOauthServer()
 	// run tests in mainfolder
 	err = os.Chdir("..")
 	if err != nil {
 		panic(err)
 	}
+	config.InitConfig()
+
+	// Initialize database and empty it
+	err = database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+	// Initialize keycloak
+	err = keycloak.InitializeOauthServer()
+	if err != nil {
+		panic(err)
+	}
+
 	r = GetRouter()
 	adminUserEmail = "testadmin@example.com"
 	defer func() {
@@ -77,7 +89,10 @@ func createTestVendor(t *testing.T, licenseID string) string {
 		"licenseID": "` + licenseID + `",
 		"firstName": "test1234",
 		"lastName": "test",
-		"email": "test123@example.com"
+		"email": "test123@example.com",
+		"telephone": "+43123456789",
+		"VendorSince": "1/22",
+		"PLZ": "1234"
 	}`
 	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/vendors/", jsonVendor, 200, adminUserToken)
 	vendorID := res.Body.String()
@@ -87,30 +102,40 @@ func createTestVendor(t *testing.T, licenseID string) string {
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
 	keycloak.KeycloakClient.DeleteUser("test123@example.com")
-	database.Db.InitEmptyTestDb()
+
+	// Initialize database and empty it
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
 
 	// Create
 	vendorID := createTestVendor(t, "testLicenseID1")
 
+	// Query ListVendors only returns few fields (not all) under /api/vendors/
 	res := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	var vendors []database.Vendor
-	err := json.Unmarshal(res.Body.Bytes(), &vendors)
+	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(vendors))
 	require.Equal(t, "test1234", vendors[0].FirstName)
 	require.Equal(t, "testLicenseID1", vendors[0].LicenseID.String)
+	require.Equal(t, "test", vendors[0].LastName)
 
 	// Check if licenseID exists and returns first name of vendor
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/testLicenseID1/", nil, 200)
 	require.Equal(t, res.Body.String(), `{"FirstName":"test1234"}`)
 
-	// Get
+	// GetVendorByID returns all fields under /api/vendors/{id}/
 	utils.TestRequest(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 401)
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 200, adminUserToken)
 	var vendor database.Vendor
 	err = json.Unmarshal(res.Body.Bytes(), &vendor)
 	utils.CheckError(t, err)
 	require.Equal(t, "test1234", vendor.FirstName)
+	require.Equal(t, "+43123456789", vendor.Telephone)
+	require.Equal(t, "1/22", vendor.VendorSince)
+	require.Equal(t, "1234", vendor.PLZ)
 
 	// Update
 	var vendors2 []database.Vendor
@@ -144,7 +169,11 @@ func CreateTestItem(t *testing.T) string {
 // TestItems tests CRUD operations on items (including images)
 // Todo: delete file after test
 func TestItems(t *testing.T) {
-	database.Db.InitEmptyTestDb()
+	// Initialize database and empty it
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
 
 	// Create
 	itemID := CreateTestItem(t)
@@ -152,7 +181,7 @@ func TestItems(t *testing.T) {
 	// Read
 	res := utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	var resItems []database.Item
-	err := json.Unmarshal(res.Body.Bytes(), &resItems)
+	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
 	require.Equal(t, 4, len(resItems))
 	require.Equal(t, "Test item", resItems[3].Name)
@@ -211,6 +240,13 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 	writer.WriteField("MaxOrderAmount", strconv.Itoa(amount))
 	writer.Close()
 	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200, adminUserToken)
+
+	// Check if maxOrderAmount is set
+	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
+	var settings database.Settings
+	err := json.Unmarshal(res.Body.Bytes(), &settings)
+	utils.CheckError(t, err)
+	require.Equal(t, amount, settings.MaxOrderAmount)
 }
 
 func CreateTestItemWithLicense(t *testing.T) (string, string) {
@@ -255,12 +291,10 @@ func TestOrders(t *testing.T) {
 	}`
 	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
 	// require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
-	setMaxOrderAmount(t, 1000000)
 
-	// TODO: Load envs in CI
-	// This 400 error fails locally but not on github actions
-	// To succeed this error, change 400 to 200 below
-	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	setMaxOrderAmount(t, 5000)
+
+	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 
 	//require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
@@ -328,7 +362,11 @@ func TestOrders(t *testing.T) {
 
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
-	database.Db.InitEmptyTestDb()
+	// Initialize database and empty it
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
 
 	// Set up a payment account
 	senderAccountID, err := database.Db.CreateAccount(
@@ -550,6 +588,7 @@ func TestSettings(t *testing.T) {
 	err := json.Unmarshal(res.Body.Bytes(), &settings)
 	utils.CheckError(t, err)
 	require.Equal(t, "img/logo.png", settings.Logo)
+	require.Equal(t, 10, settings.MaxOrderAmount)
 
 	// Check item join
 	require.Equal(t, "Test main item", settings.MainItemName.String)
