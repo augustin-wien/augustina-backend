@@ -27,7 +27,7 @@ type Vendor struct {
 	PLZ              string
 	Location         string
 	WorkingTime      string
-	Lang             string
+	Language         string
 	Comment          string
 	Telephone        string
 	RegistrationDate string

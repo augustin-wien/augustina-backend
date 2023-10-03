@@ -16,7 +16,7 @@ CREATE TABLE Vendor (
     PLZ varchar(255) NOT NULL DEFAULT '',
     Location varchar(255) NOT NULL DEFAULT '',
     WorkingTime varchar(1) NOT NULL DEFAULT '',
-    Lang varchar(255) NOT NULL DEFAULT '',
+    Language varchar(255) NOT NULL DEFAULT '',
     Comment text NOT NULL DEFAULT '',
     Telephone varchar(255) NOT NULL DEFAULT '',
     RegistrationDate varchar(255) NOT NULL DEFAULT '',
