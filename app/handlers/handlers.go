@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -614,11 +615,11 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create response
-	url := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
+	checkoutURL := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
 
 	// Add color code to URL
-	if settings.Color == "" {
-		utils.ErrorJSON(w, errors.New("No color code is set"), http.StatusBadRequest)
+	if settings.Color != "" {
+		utils.ErrorJSON(w, errors.New("Color code is not set"), http.StatusBadRequest)
 	} else {
 
 		var colorCode string
@@ -632,14 +633,18 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		// Make color code lowercase
 		colorCode = strings.ToLower(colorCode)
 
-		colorCodeAttachment := fmt.Sprintf("%s %s", "&color=", colorCode)
+		// Add color code and necessary attachment to URL
+		colorCodeAttachment := fmt.Sprintf("%s%s", "&color=", colorCode)
+
+		// Use url.QueryEscape to ensure proper URL encoding
+		colorCodeAttachment = url.QueryEscape(colorCodeAttachment)
 
 		// Add color code to URL
-		url = fmt.Sprintf("%s %s", url, colorCodeAttachment)
+		checkoutURL = fmt.Sprintf("%s%s", checkoutURL, colorCodeAttachment)
 	}
 
 	response := createOrderResponse{
-		SmartCheckoutURL: url,
+		SmartCheckoutURL: checkoutURL,
 	}
 	utils.WriteJSON(w, http.StatusOK, response)
 }
