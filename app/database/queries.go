@@ -339,7 +339,11 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 
 	// Create order items
 	for _, entry := range order.Entries {
-		createOrderEntryTx(tx, orderID, entry)
+		_, err = createOrderEntryTx(tx, orderID, entry)
+		if err != nil {
+			log.Error(err)
+			return
+		}
 	}
 
 	return

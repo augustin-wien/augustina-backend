@@ -33,7 +33,10 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, payload)
+	err = utils.WriteJSON(w, http.StatusOK, payload)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // HelloWorld godoc
@@ -52,7 +55,10 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, greeting)
+	err = utils.WriteJSON(w, http.StatusOK, greeting)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // HelloWorldAuth godoc
@@ -72,7 +78,10 @@ func HelloWorldAuth(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, greeting)
+	err = utils.WriteJSON(w, http.StatusOK, greeting)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // Users ----------------------------------------------------------------------
@@ -106,7 +115,10 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := checkLicenseIDResponse{FirstName: users.FirstName}
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // ListVendors godoc
@@ -353,7 +365,11 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read multipart form
-	r.ParseMultipartForm(32 << 20)
+	err = r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	mForm := r.MultipartForm
 	if mForm == nil {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
@@ -635,7 +651,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
-	if time.Now().Sub(order.Timestamp) > 900*time.Second {
+	if time.Since(order.Timestamp) > 900*time.Second {
 		utils.ErrorJSON(w, errors.New("Transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
 		return
 	}

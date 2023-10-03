@@ -27,7 +27,10 @@ var adminUserToken *gocloak.JWT
 func TestMain(m *testing.M) {
 	var err error
 	database.Db.InitEmptyTestDb()
-	keycloak.InitializeOauthServer()
+	err = keycloak.InitializeOauthServer()
+	if err != nil {
+		panic(err)
+	}
 	// run tests in mainfolder
 	err = os.Chdir("..")
 	if err != nil {
