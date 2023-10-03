@@ -34,6 +34,7 @@ type Vendor struct {
 	VendorSince      string
 	OnlineMap        bool
 	HasSmartphone    bool
+	HasBankAccount   bool
 }
 
 // Account is a struct that is used for the account table

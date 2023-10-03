@@ -22,7 +22,8 @@ CREATE TABLE Vendor (
     RegistrationDate varchar(255) NOT NULL DEFAULT '',
     VendorSince varchar(255) NOT NULL DEFAULT '',
     OnlineMap bool NOT NULL DEFAULT FALSE,
-    HasSmartphone bool NOT NULL DEFAULT FALSE
+    HasSmartphone bool NOT NULL DEFAULT FALSE,
+    HasBankAccount bool NOT NULL DEFAULT FALSE
 );
 
 CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash', 'Paypal', 'VivaWallet');  -- UserAnon, Orga, and Cash, VivaWallet, Paypal should only exist once
