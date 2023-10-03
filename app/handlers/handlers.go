@@ -392,7 +392,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
-	utils.WriteJSON(w, http.StatusOK, nil)
+	utils.WriteJSON(w, http.StatusOK, err)
 }
 
 // DeleteItem godoc
@@ -477,6 +477,9 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, errors.New("Nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
 			return
 		}
+
+		log.Info("Entry: ", entry)
+		log.Info("Item: ", entry.Item)
 
 		// 3. Check: All items have to exist
 		_, err := database.Db.GetItem(entry.Item)
@@ -637,7 +640,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		colorCodeAttachment := fmt.Sprintf("%s%s", "&color=", colorCode)
 
 		// Use url.QueryEscape to ensure proper URL encoding
-		colorCodeAttachment = url.PathEscape(colorCodeAttachment)
+		colorCodeAttachment = url.QueryEscape(colorCodeAttachment)
 
 		// Add color code to URL
 		checkoutURL = fmt.Sprintf("%s%s", checkoutURL, colorCodeAttachment)
@@ -1176,5 +1179,5 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, nil)
+	utils.WriteJSON(w, http.StatusOK, err)
 }
