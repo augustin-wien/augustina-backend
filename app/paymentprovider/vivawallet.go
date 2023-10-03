@@ -128,6 +128,10 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 		items = append(items, item.Name)
 	}
 
+	if config.Config.VivaWalletSourceCode == "" {
+		return 0, errors.New("VIVA_WALLET_SOURCE_CODE is not set")
+	}
+
 	// Create a new sample payment order
 	paymentOrderRequest := PaymentOrderRequest{
 		Amount:              order.GetTotal(),
@@ -142,8 +146,8 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 		DisableExactAmount:  false,
 		DisableCash:         false,
 		DisableWallet:       false,
-		SourceCode:          utils.GetEnv("VIVA_WALLET_SOURCE_CODE", ""),
-		MerchantTrns:        "Die Augustin Familie bedankt sich für Ihre Überweisung!",
+		SourceCode:          config.Config.VivaWalletSourceCode,
+		MerchantTrns:        "Ein gutes Leben für alle!",
 		Tags:                items,
 	}
 
