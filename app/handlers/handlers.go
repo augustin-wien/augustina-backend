@@ -472,7 +472,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		// 2. Check: Quantity has to be > 0
 		if entry.Quantity <= 0 {
-			utils.ErrorJSON(w, errors.New("MainItem has to be in entries and quantity has to be > 0"), http.StatusBadRequest)
+			utils.ErrorJSON(w, errors.New("Nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
 			return
 		}
 
