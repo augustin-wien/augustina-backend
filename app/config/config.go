@@ -28,9 +28,15 @@ type config struct {
 var Config config
 
 func InitConfig() {
-	err := godotenv.Load(".env")
+	pwd, err := os.Getwd()
 	if err != nil {
-		fmt.Print("Error loading .env file", err)
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	err = godotenv.Load(pwd + "/.env")
+	if err != nil {
+		// ignore error
+		fmt.Println(err)
 	}
 	Config = config{
 		Version:                           "0.0.1",
