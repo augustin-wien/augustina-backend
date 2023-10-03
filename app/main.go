@@ -10,11 +10,11 @@ import (
 )
 
 var log = utils.GetLogger()
-var conf = config.Config
 
 func main() {
 	// Initialize config
 	config.InitConfig()
+	conf := config.Config
 
 	log.Info("Starting Augustin Server v", conf.Version)
 
