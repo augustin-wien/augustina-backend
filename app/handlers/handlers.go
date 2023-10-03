@@ -480,7 +480,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		log.Info("Item id", entry.Item)
 		_, err := database.Db.GetItem(entry.Item)
 		if err != nil {
-			utils.ErrorJSON(w, errors.New("Item does not exist"), http.StatusBadRequest)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
 
