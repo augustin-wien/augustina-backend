@@ -276,10 +276,7 @@ func TestOrders(t *testing.T) {
 
 	setMaxOrderAmount(t, 5000)
 
-	// TODO: Load envs in CI
-	// This 400 error fails locally but not on github actions
-	// To succeed this error, change 400 to 200 below
-	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 
 	//require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
