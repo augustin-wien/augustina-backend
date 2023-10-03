@@ -1,6 +1,7 @@
 package database
 
 import (
+	"augustin/config"
 	"augustin/utils"
 	"context"
 	"os"
@@ -13,6 +14,12 @@ import (
 
 // TestMain is the main function for the database tests and initializes the database
 func TestMain(m *testing.M) {
+	// run tests in mainfolder
+	err := os.Chdir("..")
+	if err != nil {
+		panic(err)
+	}
+	config.InitConfig()
 	Db.InitEmptyTestDb()
 	os.Exit(m.Run())
 }

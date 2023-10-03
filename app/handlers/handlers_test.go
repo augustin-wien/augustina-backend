@@ -27,17 +27,18 @@ var adminUserToken *gocloak.JWT
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
 	var err error
+	// run tests in mainfolder
+	err = os.Chdir("..")
+	if err != nil {
+		panic(err)
+	}
 	config.InitConfig()
 	database.Db.InitEmptyTestDb()
 	err = keycloak.InitializeOauthServer()
 	if err != nil {
 		panic(err)
 	}
-	// run tests in mainfolder
-	err = os.Chdir("..")
-	if err != nil {
-		panic(err)
-	}
+
 	r = GetRouter()
 	adminUserEmail = "testadmin@example.com"
 	defer func() {
