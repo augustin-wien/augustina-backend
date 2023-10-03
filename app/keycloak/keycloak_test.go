@@ -25,8 +25,11 @@ func lookupRole(roleName string, roles []*gocloak.Role) *gocloak.Role {
 
 func TestKeycloak(t *testing.T) {
 	// Test the keycloak functions
-	keycloak.InitializeOauthServer()
 	var err error
+	err = keycloak.InitializeOauthServer()
+	if err != nil {
+		log.Fatal(err)
+	}
 	role_name := "testrole"
 	err = keycloak.KeycloakClient.CreateRole(role_name)
 	if err != nil {
