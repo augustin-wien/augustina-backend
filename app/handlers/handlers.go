@@ -461,10 +461,15 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Security checks for entries
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
+	log.Info("Entries: ", requestData.Entries)
 	for idx, entry := range requestData.Entries {
 
 		// 1. Check: First has to be MainItem and be the first item in entries
 		// TODO: This needs to be adjusted once a webshop is implemented
+		log.Info("Entry: ", entry)
+		log.Info("Entry.Item: ", entry.Item)
+		log.Info("Entry.Quantity: ", entry.Quantity)
+		log.Info("idx: ", idx)
 		if idx == 0 && entry.Item != 0 {
 			utils.ErrorJSON(w, errors.New("MainItem has to be in entries and be the first item"), http.StatusBadRequest)
 		}
