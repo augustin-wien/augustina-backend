@@ -477,9 +477,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Info("Entry: ", entry)
-		log.Info("Item: ", entry.Item)
-
 		// 3. Check: All items have to exist
 		_, err := database.Db.GetItem(entry.Item)
 		if err != nil {
@@ -637,9 +634,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		// Add color code and necessary attachment to URL
 		colorCodeAttachment := fmt.Sprintf("%s%s", "&color=", colorCode)
-
-		// Use url.QueryEscape to ensure proper URL encoding
-		// colorCodeAttachment = url.QueryEscape(colorCodeAttachment)
 
 		// Add color code to URL
 		checkoutURL = fmt.Sprintf("%s%s", checkoutURL, colorCodeAttachment)
