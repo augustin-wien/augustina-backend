@@ -477,16 +477,15 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// 3. Check: All items have to exist
-		log.Info("Item id", entry.Item)
 		_, err := database.Db.GetItem(entry.Item)
 		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			utils.ErrorJSON(w, errors.New("Nice try! Item does not exist"), http.StatusBadRequest)
 			return
 		}
 
 		// 4. Check: Transaction costs (id == 3) are not allowed to be in entries
 		if entry.Item == 3 {
-			utils.ErrorJSON(w, errors.New("Nice try! Transaction costs are not allowed to be in entries"), http.StatusBadRequest)
+			utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
 			return
 		}
 	}
