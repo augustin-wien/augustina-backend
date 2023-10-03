@@ -470,7 +470,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		log.Info("Entry.Item: ", entry.Item)
 		log.Info("Entry.Quantity: ", entry.Quantity)
 		log.Info("idx: ", idx)
-		if idx == 0 && entry.Item != 0 {
+		if idx == 0 && entry.Item != 1 {
 			utils.ErrorJSON(w, errors.New("MainItem has to be in entries and be the first item"), http.StatusBadRequest)
 		}
 
