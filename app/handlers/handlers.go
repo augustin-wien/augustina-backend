@@ -5,6 +5,7 @@ import (
 	"augustin/utils"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -264,7 +265,10 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, items)
+	err = utils.WriteJSON(w, http.StatusOK, items)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // CreateItem godoc
@@ -289,7 +293,10 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, id)
+	err = utils.WriteJSON(w, http.StatusOK, id)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
@@ -406,7 +413,10 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
-	utils.WriteJSON(w, http.StatusOK, nil)
+	err = utils.WriteJSON(w, http.StatusOK, err)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // DeleteItem godoc
@@ -474,6 +484,38 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+
+	// Security checks for entries
+	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
+	for idx, entry := range requestData.Entries {
+
+		// 1. Check: First item (idx == 0) has to be MainItem (id == 1)
+		// TODO: This needs to be adjusted once a webshop is implemented and you can purchase something without a main item
+		if idx == 0 && entry.Item != 1 {
+			utils.ErrorJSON(w, errors.New("MainItem has to be in entries and be the first item"), http.StatusBadRequest)
+			return
+		}
+
+		// 2. Check: Quantity has to be > 0
+		if entry.Quantity <= 0 {
+			utils.ErrorJSON(w, errors.New("Nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
+			return
+		}
+
+		// 3. Check: All items have to exist
+		_, err := database.Db.GetItem(entry.Item)
+		if err != nil {
+			utils.ErrorJSON(w, errors.New("Nice try! Item does not exist"), http.StatusBadRequest)
+			return
+		}
+
+		// 4. Check: Transaction costs (id == 3) are not allowed to be in entries
+		if entry.Item == 3 {
+			utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
+			return
+		}
+	}
+
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
 	for idx, entry := range requestData.Entries {
 		order.Entries[idx].Item = entry.Item
@@ -597,11 +639,38 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create response
-	url := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
-	response := createOrderResponse{
-		SmartCheckoutURL: url,
+	checkoutURL := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
+
+	// Add color code to URL
+	if settings.Color == "" {
+		log.Info("Color code is not set")
+	} else {
+
+		var colorCode string
+		// Check if color code is valid with # at the beginning
+		if settings.Color[0] == '#' {
+			// Remove # from color code due to VivaWallet's policy
+			colorCode = settings.Color[1:]
+		} else {
+			log.Info("Color code is not valid: ", settings.Color)
+		}
+		// Make color code lowercase
+		colorCode = strings.ToLower(colorCode)
+
+		// Add color code and necessary attachment to URL
+		colorCodeAttachment := fmt.Sprintf("%s%s", "&color=", colorCode)
+
+		// Add color code to URL
+		checkoutURL = fmt.Sprintf("%s%s", checkoutURL, colorCodeAttachment)
 	}
-	utils.WriteJSON(w, http.StatusOK, response)
+
+	response := createOrderResponse{
+		SmartCheckoutURL: checkoutURL,
+	}
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VerifyPaymentOrderResponse is the response to VerifyPaymentOrder
@@ -671,7 +740,10 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	verifyPaymentOrderResponse.FirstName = vendor.FirstName
 
 	// Create response
-	utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
+	err = utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // Payments (from one account to another account) -----------------------------
@@ -761,7 +833,10 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, paymentID)
+	err = utils.WriteJSON(w, http.StatusOK, paymentID)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 type createPaymentsRequest struct {
@@ -874,7 +949,10 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, paymentID)
+	err = utils.WriteJSON(w, http.StatusOK, paymentID)
+	if err != nil {
+		log.Error(err)
+	}
 
 }
 
@@ -911,7 +989,10 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 	var response webhookResponse
 	response.Status = "OK"
 
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VivaWalletWebhookFailure godoc
@@ -942,7 +1023,10 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 	var response webhookResponse
 	response.Status = "OK"
 
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VivaWalletWebhookPrice godoc
@@ -974,7 +1058,10 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 	var response webhookResponse
 	response.Status = "OK"
 
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VivaWalletVerificationKey godoc
@@ -996,7 +1083,10 @@ func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := paymentprovider.VivaWalletVerificationKeyResponse{Key: key}
-	utils.WriteJSON(w, http.StatusOK, response)
+	err := utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // Settings -------------------------------------------------------------------
@@ -1016,7 +1106,10 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, settings)
+	err = utils.WriteJSON(w, http.StatusOK, settings)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
@@ -1144,5 +1237,8 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, nil)
+	err = utils.WriteJSON(w, http.StatusOK, err)
+	if err != nil {
+		log.Error(err)
+	}
 }

@@ -12,6 +12,8 @@ type config struct {
 	Version                           string
 	Port                              string
 	CreateDemoData                    bool
+	PaypalFixCosts                    float64
+	PaypalPercentageCosts             float64
 	TransactionCostsName              string
 	VivaWalletVerificationKey         string
 	VivaWalletAPIURL                  string
@@ -19,8 +21,7 @@ type config struct {
 	VivaWalletSmartCheckoutURL        string
 	VivaWalletSmartCheckoutClientID   string
 	VivaWalletSmartCheckoutClientKey  string
-	PaypalFixCosts                    float64
-	PaypalPercentageCosts             float64
+	VivaWalletSourceCode              string
 	VivaWalletTransactionTypeIDPaypal int
 }
 
@@ -42,6 +43,8 @@ func InitConfig() {
 		Version:                           "0.0.1",
 		Port:                              getEnv("PORT", "3000"),
 		CreateDemoData:                    (getEnv("CREATE_DEMO_DATA", "false") == "true"),
+		PaypalFixCosts:                    getEnvFloat("PAYPAL_FIX_COSTS", 0.00),
+		PaypalPercentageCosts:             getEnvFloat("PAYPAL_PERCENTAGE_COSTS", 0.00),
 		TransactionCostsName:              getEnv("TRANSACTION_COSTS_NAME", "transactionCosts"),
 		VivaWalletVerificationKey:         getEnv("VIVA_WALLET_VERIFICATION_KEY", ""),
 		VivaWalletAPIURL:                  getEnv("VIVA_WALLET_API_URL", ""),
@@ -50,8 +53,6 @@ func InitConfig() {
 		VivaWalletSmartCheckoutClientID:   getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID", ""),
 		VivaWalletSmartCheckoutClientKey:  getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY", ""),
 		VivaWalletTransactionTypeIDPaypal: getEnvInt("VIVA_WALLET_TRANSACTION_TYPE_ID_PAYPAL", 0),
-		PaypalFixCosts:                    getEnvFloat("PAYPAL_FIX_COSTS", 0.00),
-		PaypalPercentageCosts:             getEnvFloat("PAYPAL_PERCENTAGE_COSTS", 0.00),
 	}
 }
 
