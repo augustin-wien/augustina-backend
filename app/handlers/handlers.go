@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -640,7 +639,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		colorCodeAttachment := fmt.Sprintf("%s%s", "&color=", colorCode)
 
 		// Use url.QueryEscape to ensure proper URL encoding
-		colorCodeAttachment = url.QueryEscape(colorCodeAttachment)
+		// colorCodeAttachment = url.QueryEscape(colorCodeAttachment)
 
 		// Add color code to URL
 		checkoutURL = fmt.Sprintf("%s%s", checkoutURL, colorCodeAttachment)
