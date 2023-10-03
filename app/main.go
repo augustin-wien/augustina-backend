@@ -13,6 +13,9 @@ var log = utils.GetLogger()
 var conf = config.Config
 
 func main() {
+	// Initialize config
+	config.InitConfig()
+
 	log.Info("Starting Augustin Server v", conf.Version)
 
 	// Initialize Keycloak client

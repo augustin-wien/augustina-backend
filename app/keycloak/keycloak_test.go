@@ -2,11 +2,13 @@
 package keycloak_test
 
 import (
+	"augustin/config"
 	"augustin/database"
 	"augustin/handlers"
 	"augustin/keycloak"
 	"augustin/utils"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -26,6 +28,12 @@ func lookupRole(roleName string, roles []*gocloak.Role) *gocloak.Role {
 func TestKeycloak(t *testing.T) {
 	// Test the keycloak functions
 	var err error
+	// run tests in mainfolder
+	err = os.Chdir("..")
+	if err != nil {
+		panic(err)
+	}
+	config.InitConfig()
 	err = keycloak.InitializeOauthServer()
 	if err != nil {
 		log.Fatal(err)
