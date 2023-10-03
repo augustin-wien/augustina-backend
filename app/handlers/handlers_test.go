@@ -270,7 +270,6 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
-	database.Db.InitEmptyTestDb()
 
 	setMaxOrderAmount(t, 10)
 

@@ -265,7 +265,10 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, items)
+	err = utils.WriteJSON(w, http.StatusOK, items)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // CreateItem godoc
@@ -290,7 +293,10 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, id)
+	err = utils.WriteJSON(w, http.StatusOK, id)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
@@ -407,7 +413,10 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
-	utils.WriteJSON(w, http.StatusOK, err)
+	err = utils.WriteJSON(w, http.StatusOK, err)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // DeleteItem godoc
@@ -658,7 +667,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	response := createOrderResponse{
 		SmartCheckoutURL: checkoutURL,
 	}
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VerifyPaymentOrderResponse is the response to VerifyPaymentOrder
@@ -728,7 +740,10 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	verifyPaymentOrderResponse.FirstName = vendor.FirstName
 
 	// Create response
-	utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
+	err = utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // Payments (from one account to another account) -----------------------------
@@ -818,7 +833,10 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, paymentID)
+	err = utils.WriteJSON(w, http.StatusOK, paymentID)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 type createPaymentsRequest struct {
@@ -931,7 +949,10 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, paymentID)
+	err = utils.WriteJSON(w, http.StatusOK, paymentID)
+	if err != nil {
+		log.Error(err)
+	}
 
 }
 
@@ -968,7 +989,10 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 	var response webhookResponse
 	response.Status = "OK"
 
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VivaWalletWebhookFailure godoc
@@ -999,7 +1023,10 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 	var response webhookResponse
 	response.Status = "OK"
 
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VivaWalletWebhookPrice godoc
@@ -1031,7 +1058,10 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 	var response webhookResponse
 	response.Status = "OK"
 
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VivaWalletVerificationKey godoc
@@ -1053,7 +1083,10 @@ func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := paymentprovider.VivaWalletVerificationKeyResponse{Key: key}
-	utils.WriteJSON(w, http.StatusOK, response)
+	err := utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // Settings -------------------------------------------------------------------
@@ -1073,7 +1106,10 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, settings)
+	err = utils.WriteJSON(w, http.StatusOK, settings)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
@@ -1201,5 +1237,8 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, err)
+	err = utils.WriteJSON(w, http.StatusOK, err)
+	if err != nil {
+		log.Error(err)
+	}
 }
