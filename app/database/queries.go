@@ -192,6 +192,7 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 	if err != nil {
 		log.Error(err)
 	}
+	log.Info("Entered item")
 	return
 }
 
