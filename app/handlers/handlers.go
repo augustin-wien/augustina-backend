@@ -5,6 +5,7 @@ import (
 	"augustin/utils"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -617,6 +618,9 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Add color code to URL
 	if settings.Color != "" {
+		utils.ErrorJSON(w, errors.New("No color code is set"), http.StatusBadRequest)
+	} else {
+
 		var colorCode string
 		// Check if color code is valid with # at the beginning
 		if settings.Color[0] == '#' {
@@ -628,8 +632,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		// Make color code lowercase
 		colorCode = strings.ToLower(colorCode)
 
+		colorCodeAttachment := fmt.Sprintf("%s %s", "&color=", colorCode)
+
 		// Add color code to URL
-		url += "&color=" + colorCode
+		url = fmt.Sprintf("%s %s", url, colorCodeAttachment)
 	}
 
 	response := createOrderResponse{
