@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"augustin/config"
 	"augustin/database"
 	"augustin/keycloak"
 	"augustin/utils"
@@ -26,6 +27,7 @@ var adminUserToken *gocloak.JWT
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
 	var err error
+	config.InitConfig()
 	database.Db.InitEmptyTestDb()
 	keycloak.InitializeOauthServer()
 	// run tests in mainfolder

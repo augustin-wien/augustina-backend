@@ -13,6 +13,9 @@ var log = utils.GetLogger()
 var conf = config.Config
 
 func main() {
+	// Initialize config
+	config.InitConfig()
+
 	log.Info("Starting Augustin Server v", conf.Version)
 
 	// Initialize Keycloak client
@@ -23,7 +26,7 @@ func main() {
 
 	// Initialize server
 	log.Info("Listening on port ", conf.Port)
-	err := http.ListenAndServe(":" + conf.Port, handlers.GetRouter())
+	err := http.ListenAndServe(":"+conf.Port, handlers.GetRouter())
 	if err != nil {
 		log.Fatal(err)
 	}
