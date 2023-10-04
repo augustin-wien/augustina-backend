@@ -52,6 +52,7 @@ func InitConfig() {
 		VivaWalletSmartCheckoutURL:        getEnv("VIVA_WALLET_SMART_CHECKOUT_URL", ""),
 		VivaWalletSmartCheckoutClientID:   getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID", ""),
 		VivaWalletSmartCheckoutClientKey:  getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY", ""),
+		VivaWalletSourceCode:              getEnv("VIVA_WALLET_SOURCE_CODE", ""),
 		VivaWalletTransactionTypeIDPaypal: getEnvInt("VIVA_WALLET_TRANSACTION_TYPE_ID_PAYPAL", 0),
 	}
 }
