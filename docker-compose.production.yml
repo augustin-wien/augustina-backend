@@ -21,6 +21,9 @@ services:
       context: .
       dockerfile: ./Dockerfile.production
     image: dkia/augustin-backend
+    volumes:
+      - /dockerstorage/convive/augustin/data/backend/img:/app/img
+
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}

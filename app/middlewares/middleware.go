@@ -52,7 +52,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		userRoles, err := keycloak.KeycloakClient.GetUserRoles(*userinfo.Sub)
 		if err != nil {
 			log.Info("Error getting userRoles ", err)
-			utils.ErrorJSON(w, errors.New("Internal Server Error"), http.StatusInternalServerError)
+			utils.ErrorJSON(w, errors.New("internal Server Error"), http.StatusInternalServerError)
 			return
 		}
 
