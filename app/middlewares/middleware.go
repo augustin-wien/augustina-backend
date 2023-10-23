@@ -21,7 +21,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if r.Header.Get("Authorization") == "" {
-			log.Info("No Authorization header")
+			log.Info("Unauthorization: No Authorization header on auth from incoming request ", utils.ReadUserIP(r))
 			utils.ErrorJSON(w, errors.New("Unauthorized"), http.StatusUnauthorized)
 			return
 		}
@@ -74,12 +74,13 @@ func VendorAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if r.Header.Get("X-Auth-User-Validated") == "false" {
-			log.Info("No Authorization header")
+
+			log.Info("VendorAuthMiddleware: No validated user", r.Header.Get("X-Auth-User"))
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 		if r.Header.Get("X-Auth-Roles-vendor") == "" || r.Header.Get("X-Auth-Roles-admin") == "" {
-			log.Info("No Authorization header")
+			log.Info("VendorAuthMiddleware: user is missing vendor role", r.Header.Get("X-Auth-User"))
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -99,12 +100,12 @@ func AdminAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if r.Header.Get("X-Auth-User-Validated") == "false" {
-			log.Info("No Authorization header")
+			log.Info("AdminAuthMiddleware: No validated user", r.Header.Get("X-Auth-User"))
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 		if r.Header.Get("X-Auth-Roles-admin") == "" {
-			log.Info("No Authorization header")
+			log.Infof("AdminAuthMiddleware: User %v has no admin role", r.Header.Get("X-Auth-User"))
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
