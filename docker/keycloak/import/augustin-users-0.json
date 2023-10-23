@@ -13,9 +13,9 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-augustin" ],
     "clientRoles" : {
-      "realm-management" : [ "manage-users" ],
-      "GoClient" : [ "uma_protection" ],
-      "account" : [ "view-groups" ]
+      "realm-management" : [ "realm-admin", "manage-realm", "manage-users", "query-users", "query-groups", "view-realm", "view-users" ],
+      "GoClient" : [ "uma_protection", "go-admin", "go-vendor", "go-customer" ],
+      "account" : [ "manage-account", "manage-account-links", "manage-consent", "view-profile", "view-groups", "delete-account" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
