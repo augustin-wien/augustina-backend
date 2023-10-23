@@ -755,6 +755,42 @@ func parseBool(value string) (bool, error) {
 	return strconv.ParseBool(value)
 }
 
+// ListPaymentsForPayout godoc
+//
+//		 	@Summary 		Get list of all payments for payout
+//			@Description 	Filter by date, vendor, payouts, sales. If payouts set true, all payments are removed that are not payouts. Same for sales. So sales and payouts can't be true at the same time.
+//			@Tags			Payments
+//			@Accept			json
+//			@Produce		json
+//			@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//			@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//			@Param			vendor query string false "Vendor LicenseID"
+//			@Success		200	{array}	database.Payment
+//			@Security		KeycloakAuth
+//			@Security		KeycloakAuth
+//			@Router			/payments/forpayout/ [get]
+func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
+	var err error
+	minDateRaw := r.URL.Query().Get("from")
+	maxDateRaw := r.URL.Query().Get("to")
+	vendor := r.URL.Query().Get("vendor")
+	var minDate, maxDate time.Time
+	if minDateRaw != "" {
+		minDate, err = time.Parse(time.RFC3339, minDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+	if maxDateRaw != "" {
+		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, false,true,true)
+	respond(w, err, payments)
+}
+
 // ListPayments godoc
 //
 //		 	@Summary 		Get list of all payments
@@ -807,7 +843,7 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get payments with filter parameters
-	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, payout, sales)
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, payout, sales, false)
 	respond(w, err, payments)
 }
 
@@ -868,7 +904,8 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 
 type createPaymentPayoutRequest struct {
 	VendorLicenseID string
-	Amount          int
+	From 		    time.Time
+	To				time.Time
 }
 
 // CreatePaymentPayout godoc
@@ -877,7 +914,7 @@ type createPaymentPayoutRequest struct {
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
-//		@Param			amount body createPaymentPayoutRequest true " Create Payment"
+//		@Param			amount body createPaymentPayoutRequest true "Create Payment"
 //		@Success		200 {integer} id
 //		@Security		KeycloakAuth
 //		@Router			/payments/payout/ [post]
@@ -905,21 +942,25 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get cash account
-	cashAccount, err := database.Db.GetAccountByType("Cash")
+	// Get amount of money for payout
+	paymentsToBePaidOut, err := database.Db.ListPaymentsForPayout(payoutData.From, payoutData.To, payoutData.VendorLicenseID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	var amount int
+	for _, payment := range paymentsToBePaidOut {
+		amount += payment.Amount
+	}
 
 	// Check that amount is bigger than 0
-	if payoutData.Amount <= 0 {
+	if amount <= 0 {
 		utils.ErrorJSON(w, errors.New("payout amount must be bigger than 0"), http.StatusBadRequest)
 		return
 	}
 
 	// Check if vendor has enough money
-	if vendorAccount.Balance < payoutData.Amount {
+	if vendorAccount.Balance < amount {
 		utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
 		return
 	}
@@ -927,28 +968,14 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	// Get authenticated user
 	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
 
-	// Create payment
-	payment := database.Payment{
-		Sender:       vendorAccount.ID,
-		Receiver:     cashAccount.ID,
-		Amount:       payoutData.Amount,
-		AuthorizedBy: authenticatedUserID,
-	}
-	paymentID, err := database.Db.CreatePayment(payment)
+	// Execute payout
+	paymentID, err := database.Db.CreatePaymentPayout(vendor, vendorAccount.ID, authenticatedUserID, amount, paymentsToBePaidOut)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Update last payout date
-	// TODO: Should be transaction together with above DB request
-	vendor.LastPayout = null.NewTime(time.Now(), true)
-	err = database.Db.UpdateVendor(vendor.ID, vendor)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
+	// Return success with paymentID
 	err = utils.WriteJSON(w, http.StatusOK, paymentID)
 	if err != nil {
 		log.Error(err)

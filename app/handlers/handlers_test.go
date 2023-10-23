@@ -467,46 +467,52 @@ func TestPaymentPayout(t *testing.T) {
 
 	vendorID := createTestVendor(t, "testLicenseID")
 	vendorIDInt, _ := strconv.Atoi(vendorID)
+	vendorAccount, err := database.Db.GetAccountByVendorID(vendorIDInt)
+	anonUserAccount, err := database.Db.GetAccountByType("UserAnon")
+
+	_, err = database.Db.CreatePayment(
+	database.Payment{
+		Sender:       anonUserAccount.ID,
+		Receiver:     vendorAccount.ID,
+		Amount:       314,
+		IsSale:       true,
+	})
 
 	// Create invalid payments via API
 	f := createPaymentPayoutRequest{
-		Amount:          -314,
 		VendorLicenseID: "testLicenseID",
+		From: time.Now().Add(time.Duration(-200)*time.Hour),
+		To: time.Now().Add(time.Duration(-100)*time.Hour),
 	}
 	res := utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
 
-	// Create invalid payments via API
-	f = createPaymentPayoutRequest{
-		Amount:          0,
-		VendorLicenseID: "testLicenseID",
-	}
-	res = utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
-
 	// Create payments via API
 	f = createPaymentPayoutRequest{
-		Amount:          314,
 		VendorLicenseID: "testLicenseID",
+		From: time.Now().Add(time.Duration(-100)*time.Hour),
+		To: time.Now().Add(time.Duration(+100)*time.Hour),
 	}
-	res = utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount bigger than vendor account balance"}}`)
 
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
 	utils.CheckError(t, err)
 
-	err = database.Db.UpdateAccountBalance(account.ID, 1000)
+	// Try to check first
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/", f, 200, adminUserToken)
+	var payments []database.Payment
+	err = json.Unmarshal(res.Body.Bytes(), &payments)
 	utils.CheckError(t, err)
+	require.Equal(t, 1, len(payments))
 
 	res = utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 200, adminUserToken)
 
-	paymentID := res.Body.String()
-	paymentIDInt, err := strconv.Atoi(paymentID)
+	payoutPaymentID := res.Body.String()
+	payoutPaymentIDInt, err := strconv.Atoi(payoutPaymentID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	payment, err := database.Db.GetPayment(paymentIDInt)
+	payoutPayment, err := database.Db.GetPayment(payoutPaymentIDInt)
 	if err != nil {
 		t.Error(err)
 	}
@@ -516,17 +522,17 @@ func TestPaymentPayout(t *testing.T) {
 		t.Error(err)
 	}
 
-	require.Equal(t, payment.Amount, 314)
-	require.Equal(t, payment.Sender, account.ID)
-	require.Equal(t, payment.SenderName, account.Name)
-	require.Equal(t, payment.Receiver, cashAccount.ID)
-	require.Equal(t, payment.ReceiverName, cashAccount.Name)
-	require.Equal(t, payment.AuthorizedBy, adminUserEmail)
+	require.Equal(t, payoutPayment.Amount, 314)
+	require.Equal(t, payoutPayment.Sender, account.ID)
+	require.Equal(t, payoutPayment.SenderName, account.Name)
+	require.Equal(t, payoutPayment.Receiver, cashAccount.ID)
+	require.Equal(t, payoutPayment.ReceiverName, cashAccount.Name)
+	require.Equal(t, payoutPayment.AuthorizedBy, adminUserEmail)
 
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)
 
-	require.Equal(t, vendor.Balance, 686)
+	require.Equal(t, vendor.Balance, 0)
 	require.Equal(t, cashAccount.Balance, 314)
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
@@ -555,7 +561,7 @@ func TestPaymentPayout(t *testing.T) {
 	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 	err = json.Unmarshal(response3.Body.Bytes(), &payouts)
 	utils.CheckError(t, err)
-	require.Equal(t, 2, len(payouts))
+	require.Equal(t, 3, len(payouts))
 
 }
 

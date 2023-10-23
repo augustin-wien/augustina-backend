@@ -454,7 +454,7 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 // Payments -------------------------------------------------------------------
 
 // ListPayments returns the payments from the database
-func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool, filterSales bool) (payments []Payment, err error) {
+func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool, filterSales bool, filterNoPayout bool) (payments []Payment, err error) {
 	var rows pgx.Rows
 
 	// Create filters
@@ -482,8 +482,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 			return
 		}
 		filterValues = append(filterValues, vendorAccount.ID)
-		filters = append(filters, "Sender = $"+strconv.Itoa(len(filterValues)))
-
+		filters = append(filters, "(Sender = $"+strconv.Itoa(len(filterValues))+" OR Receiver = $"+strconv.Itoa(len(filterValues))+")" )
 	}
 	if filterPayouts {
 		cashAccountID, err = db.GetAccountTypeID("Cash")
@@ -492,6 +491,9 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		}
 		filterValues = append(filterValues, cashAccountID)
 		filters = append(filters, "Receiver = $"+strconv.Itoa(len(filterValues)))
+	}
+	if filterNoPayout {
+		filters = append(filters, "Payout IS NULL")
 	}
 	if filterSales {
 		filterValues = append(filterValues, true)
@@ -521,6 +523,11 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	}
 
 	return payments, nil
+}
+
+// ListPaymentsForPayout returns sales payments that have not been paid out yet
+func (db *Database) ListPaymentsForPayout(minDate time.Time, maxDate time.Time, vendorLicenseID string) (payments []Payment, err error) {
+	return db.ListPayments(minDate, maxDate, vendorLicenseID, false, true, true)
 }
 
 // GetPayment returns the payment with the given ID
@@ -595,6 +602,61 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 		}
 	}
 	return nil
+}
+
+// CreatePaymentPayout creates a payout for a range of payments
+func (db *Database) CreatePaymentPayout(vendor Vendor, vendorAccountID int, authorizedBy string, amount int, payments []Payment) (paymentID int, err error) {
+
+	// Create a transaction to insert all payments at once
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	defer func() { err = deferTx(tx, err) }()
+
+	// Get cash account
+	cashAccount, err := db.GetAccountByType("Cash")
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	payment := Payment{
+		Sender:       vendorAccountID,
+		Receiver:     cashAccount.ID,
+		Amount:       amount,
+		AuthorizedBy: authorizedBy,
+	}
+
+	// Insert payments within the transaction
+	paymentID, err = createPaymentTx(tx, payment)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Document that these payments have a payout
+	for _, payment := range payments {
+		_, err = tx.Exec(context.Background(), `
+		UPDATE Payment
+		SET Payout = $1
+		WHERE ID = $2
+		`, paymentID, payment.ID)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+	// Update last payout date
+	vendor.LastPayout = null.NewTime(time.Now(), true)
+	err = db.UpdateVendor(vendor.ID, vendor)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	return
 }
 
 // Accounts -------------------------------------------------------------------
