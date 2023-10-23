@@ -427,7 +427,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 //			@Produce		json
 //			@Success		200
 //			@Security		KeycloakAuth
-//	     @Param          id   path int  true  "Item ID"
+//	     	@Param          id   path int  true  "Item ID"
 //			@Router			/items/{id}/ [delete]
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -758,7 +758,7 @@ func parseBool(value string) (bool, error) {
 // ListPaymentsForPayout godoc
 //
 //		 	@Summary 		Get list of all payments for payout
-//			@Description 	Filter by date, vendor, payouts, sales. If payouts set true, all payments are removed that are not payouts. Same for sales. So sales and payouts can't be true at the same time.
+//			@Description 	Payments that the vendor has received through sales
 //			@Tags			Payments
 //			@Accept			json
 //			@Produce		json
