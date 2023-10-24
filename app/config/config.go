@@ -15,6 +15,7 @@ type config struct {
 	PaypalFixCosts                    float64
 	PaypalPercentageCosts             float64
 	TransactionCostsName              string
+	DonationName                      string
 	VivaWalletVerificationKey         string
 	VivaWalletAPIURL                  string
 	VivaWalletAccountsURL             string
@@ -45,6 +46,7 @@ func InitConfig() {
 		CreateDemoData:                    (getEnv("CREATE_DEMO_DATA", "false") == "true"),
 		PaypalFixCosts:                    getEnvFloat("PAYPAL_FIX_COSTS", 0.00),
 		PaypalPercentageCosts:             getEnvFloat("PAYPAL_PERCENTAGE_COSTS", 0.00),
+		DonationName:                      getEnv("DONATION_NAME", "donation"),
 		TransactionCostsName:              getEnv("TRANSACTION_COSTS_NAME", "transactionCosts"),
 		VivaWalletVerificationKey:         getEnv("VIVA_WALLET_VERIFICATION_KEY", ""),
 		VivaWalletAPIURL:                  getEnv("VIVA_WALLET_API_URL", ""),

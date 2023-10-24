@@ -48,10 +48,11 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 func (db *Database) createDevItems() (ids []int, err error) {
 
 	digitalNewspaperLicense := Item{
-		Name:        "Digitale Zeitung (Lizenz)",
-		Description: "Lizenz für digitale Zeitungsausgabe",
-		Price:       50,
-		Archived:    false,
+		Name:          "Digitale Zeitung (Lizenz)",
+		Description:   "Lizenz für digitale Zeitungsausgabe",
+		Price:         50,
+		Archived:      false,
+		IsLicenseItem: true,
 	}
 
 	digitalNewspaperLicenseID, err := db.CreateItem(digitalNewspaperLicense)
@@ -122,17 +123,17 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 		return
 	}
 
-	paypalAccountID, err := db.GetAccountTypeID("Paypal")
-	if err != nil {
-		return
-	}
+	// paypalAccountID, err := db.GetAccountTypeID("Paypal")
+	// if err != nil {
+	// 	return
+	// }
 
 	vendorAccount, err := db.GetAccountByVendorID(vendorIDs[0])
 	if err != nil {
 		return
 	}
 
-	items, err := db.ListItems()
+	items, err := db.ListItems(false)
 	if err != nil {
 		return
 	}
@@ -143,7 +144,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 		Vendor:    vendorIDs[0],
 		Entries: []OrderEntry{
 			{
-				Item:     items[4].ID, // Digital Newspaper
+				Item:     items[2].ID, // Digital Newspaper
 				Quantity: 2,
 				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
@@ -152,13 +153,13 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 
 			// License for newspaper is paid to orga
 			{
-				Item:     items[3].ID, // Newspaper License
+				Item:     items[1].ID, // Newspaper License
 				Quantity: 2,
 				Sender:   vendorAccount.ID,
 				Receiver: orgaAccountID,
 			},
 			{
-				Item:     items[5].ID, // Calendar
+				Item:     items[3].ID, // Calendar
 				Quantity: 1,
 				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
@@ -180,27 +181,27 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 	}
 
 	// Create transaction cost payments
-	err = db.CreatePayedOrderEntries(orderID, []OrderEntry{
+	// err = db.CreatePayedOrderEntries(orderID, []OrderEntry{
 
-		// Vendor pays transaction costs
-		{
-			Item:     items[2].ID, // Transaction cost
-			Quantity: 27,          // 27 cents transaction cost
-			Sender:   vendorAccount.ID,
-			Receiver: paypalAccountID,
-		},
+	// 	// Vendor pays transaction costs
+	// 	{
+	// 		Item:     items[2].ID, // Transaction cost
+	// 		Quantity: 27,          // 27 cents transaction cost
+	// 		Sender:   vendorAccount.ID,
+	// 		Receiver: paypalAccountID,
+	// 	},
 
-		// Vendor gets transaction costs back from orga
-		{
-			Item:     items[2].ID, // Transaction cost
-			Quantity: 27,          // 27 cents transaction cost
-			Sender:   orgaAccountID,
-			Receiver: vendorAccount.ID,
-		},
-	})
-	if err != nil {
-		return
-	}
+	// 	// Vendor gets transaction costs back from orga
+	// 	{
+	// 		Item:     items[2].ID, // Transaction cost
+	// 		Quantity: 27,          // 27 cents transaction cost
+	// 		Sender:   orgaAccountID,
+	// 		Receiver: vendorAccount.ID,
+	// 	},
+	// })
+	// if err != nil {
+	// 	return
+	// }
 
 	return
 }

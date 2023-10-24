@@ -49,13 +49,14 @@ type Account struct {
 
 // Item is a struct that is used for the item table
 type Item struct {
-	ID          int
-	Name        string
-	Description string
-	Price       int // Price in cents
-	Image       string
-	LicenseItem null.Int // License has to be bought before item
-	Archived    bool
+	ID            int
+	Name          string
+	Description   string
+	Price         int // Price in cents
+	Image         string
+	LicenseItem   null.Int // License has to be bought before item
+	Archived      bool
+	IsLicenseItem bool
 }
 
 // Order is a struct that is used for the order table

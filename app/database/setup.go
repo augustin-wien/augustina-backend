@@ -32,8 +32,12 @@ func (db *Database) InitiateItems() (err error) {
 		Archived:    false,
 	}
 
+	if config.Config.DonationName == "" {
+		log.Error("DonationName is not set")
+		return
+	}
 	donation := Item{
-		Name:        "Spende",
+		Name:        config.Config.DonationName,
 		Description: "Spende pro Einkauf",
 		Price:       1,
 		Archived:    false,

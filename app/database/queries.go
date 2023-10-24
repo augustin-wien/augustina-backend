@@ -1,6 +1,7 @@
 package database
 
 import (
+	"augustin/config"
 	"context"
 	"errors"
 	"strconv"
@@ -159,7 +160,7 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 // Items ----------------------------------------------------------------------
 
 // ListItems returns all items from the database
-func (db *Database) ListItems() ([]Item, error) {
+func (db *Database) ListItems(skipLicenses bool) ([]Item, error) {
 	var items []Item
 	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item")
 	if err != nil {
@@ -168,19 +169,31 @@ func (db *Database) ListItems() ([]Item, error) {
 	}
 	for rows.Next() {
 		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
+		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem)
 		if err != nil {
 			log.Error(err)
 			return items, err
 		}
+		log.Info("Item: ", item.Name)
+
+		// Hardcode check: Do not add items with the name of "Transaktionskosten" and "Spende"
+		if item.Name == config.Config.TransactionCostsName || item.Name == config.Config.DonationName {
+			continue
+		}
+
+		if skipLicenses && item.IsLicenseItem {
+			continue
+		}
+
 		items = append(items, item)
+
 	}
 	return items, nil
 }
 
 // GetItemByName returns the item with the given name
 func (db *Database) GetItemByName(name string) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem)
 	if err != nil {
 		log.Error(err)
 	}
@@ -189,7 +202,7 @@ func (db *Database) GetItemByName(name string) (item Item, err error) {
 
 // GetItem returns the item with the given ID
 func (db *Database) GetItem(id int) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem)
 	if err != nil {
 		log.Error(err)
 	}
@@ -210,7 +223,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 	}
 
 	// Insert the new item
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, LicenseItem, Archived) values ($1, $2, $3, $4, $5) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived).Scan(&id)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, LicenseItem, Archived, IsLicenseItem) values ($1, $2, $3, $4, $5, $6) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived, item.IsLicenseItem).Scan(&id)
 	if err != nil {
 		log.Error(err)
 	}
@@ -221,9 +234,9 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 func (db *Database) UpdateItem(id int, item Item) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Item
-	SET Name = $2, Description = $3, Price = $4, Image = $5, LicenseItem = $6, Archived = $7
+	SET Name = $2, Description = $3, Price = $4, Image = $5, LicenseItem = $6, Archived = $7, IsLicenseItem = $8
 	WHERE ID = $1
-	`, id, item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived)
+	`, id, item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived, item.IsLicenseItem)
 	if err != nil {
 		log.Error(err)
 	}
