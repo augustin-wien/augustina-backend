@@ -172,6 +172,18 @@ The default openid configuration is available at http://localhost:8080/auth/real
 
 The default openid client is `wordpress` and the client secret is `84uZmW6FlEPgvUd201QUsWRmHzUIamZB`
 
+Keycloak Groups, ech group has a corresponding role:
+
+| Group | Description |
+| -------- | -------- |
+| admin     | Admins can access the admin portal     |
+| vendor     | Vendors can access the vendor portal     |
+| customer     | Customers can access the newspaper portal     |
+| all_newspapers     | Customers can access all newspapers     |
+| magazin-1     | Customers can access magazin-1     |
+| magazin-2     | Customers can access magazin-2     |
+| magazin-3     | Customers can access magazin-3     |
+
 ### Keycloak Wordpress Setup
 
 Install the [`OpenID Connect Generic`](https://wordpress.org/plugins/daggerhart-openid-connect-generic/) plugin and configure it as follows:
