@@ -11,7 +11,7 @@
     "credentials" : [ ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "default-roles-augustin" ],
+    "realmRoles" : [ "default-roles-augustin", "openid" ],
     "clientRoles" : {
       "realm-management" : [ "realm-admin", "manage-realm", "manage-users", "query-users", "query-groups", "view-realm", "view-users" ],
       "GoClient" : [ "uma_protection", "go-admin", "go-vendor", "go-customer" ],

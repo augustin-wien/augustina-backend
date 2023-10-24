@@ -1378,7 +1378,7 @@ const docTemplate = `{
             "type": "basic"
         },
         "KeycloakAuth": {
-            "description": "\u003cb\u003ehow to generate an api key\u003c/b\u003e \u003cbr/\u003e\u003cbr/\u003e\u003ccode\u003ecurl -d 'client_id=frontend' -d 'username=test_superuser' -d 'password=Test123!' -d 'grant_type=password'     'http://localhost:8080/realms/augustin/protocol/openid-connect/token' |     python -m json.tool | grep access_token\u003c/code\u003e\u003cbr/\u003e\u003cbr/\u003e\u003cbr/\u003eInsert the output into the field below the value of the access_token field.",
+            "description": "\u003cb\u003ehow to generate an api key\u003c/b\u003e \u003cbr/\u003e\u003cbr/\u003e\u003ccode\u003ecurl -d 'client_id=frontend' -d 'scope=openid' -d 'username=test_superuser' -d 'password=Test123!' -d 'grant_type=password' 'http://keycloak:8080/realms/augustin/protocol/openid-connect/token' |     python -m json.tool | grep access_token\u003c/code\u003e\u003cbr/\u003e\u003cbr/\u003e\u003cbr/\u003eInsert the output into the field below the value of the access_token field.",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

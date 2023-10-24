@@ -99,6 +99,14 @@
       "containerId" : "6d5efd3c-14aa-417a-b387-0a3d34e7c658",
       "attributes" : { }
     }, {
+      "id" : "bf89235b-3359-4d1a-85ce-e760c046cc9e",
+      "name" : "openid",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "6d5efd3c-14aa-417a-b387-0a3d34e7c658",
+      "attributes" : { }
+    }, {
       "id" : "d3876c03-74e2-47ce-bcae-7b77fd2379fc",
       "name" : "vendor",
       "description" : "",
