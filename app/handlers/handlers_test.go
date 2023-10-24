@@ -63,7 +63,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Errorf("Login failed: %v \n", err)
 	}
-	fmt.Println("Admin user token: ", adminUserToken.AccessToken)
+	fmt.Println("Created admin keycloak token")
 
 	returnCode := m.Run()
 	err = keycloak.KeycloakClient.DeleteUser(adminUser)
