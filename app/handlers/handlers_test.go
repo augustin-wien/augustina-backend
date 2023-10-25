@@ -497,6 +497,16 @@ func TestPaymentPayout(t *testing.T) {
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
 	utils.CheckError(t, err)
 
+	// Create random payment that should not be under payments for payout
+	// because it is not a sale payment
+	database.Db.CreatePayment(
+	database.Payment{
+		Sender:       anonUserAccount.ID,
+		Receiver:     vendorAccount.ID,
+		Amount:       1,
+		IsSale:       false,
+	})
+
 	// Try to check first
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/", f, 200, adminUserToken)
 	var payments []database.Payment
@@ -532,7 +542,7 @@ func TestPaymentPayout(t *testing.T) {
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)
 
-	require.Equal(t, vendor.Balance, 0)
+	require.Equal(t, vendor.Balance, 1)  // 1 from that other payment
 	require.Equal(t, cashAccount.Balance, 314)
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
@@ -561,7 +571,14 @@ func TestPaymentPayout(t *testing.T) {
 	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 	err = json.Unmarshal(response3.Body.Bytes(), &payouts)
 	utils.CheckError(t, err)
-	require.Equal(t, 3, len(payouts))
+	require.Equal(t, 4, len(payouts))
+
+	// Check that there are no more payments for payout
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/", f, 200, adminUserToken)
+	var paymentsAfter []database.Payment
+	err = json.Unmarshal(res.Body.Bytes(), &paymentsAfter)
+	utils.CheckError(t, err)
+	require.Equal(t, 0, len(paymentsAfter))
 
 }
 
