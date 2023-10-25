@@ -494,7 +494,13 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		filters = append(filters, "Receiver = $"+strconv.Itoa(len(filterValues)))
 	}
 	if filterNoPayout {
-		filters = append(filters, "Payout IS NULL")
+		// Does not have a payout and is not a payout (i.e. payment to cash)
+		cashAccountID, err = db.GetAccountTypeID("Cash")
+		if err != nil {
+			return
+		}
+		filterValues = append(filterValues, cashAccountID)
+		filters = append(filters, "Payout IS NULL AND Receiver != $"+strconv.Itoa(len(filterValues)))
 	}
 	if filterSales {
 		filterValues = append(filterValues, true)

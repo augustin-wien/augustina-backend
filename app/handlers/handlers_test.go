@@ -470,6 +470,7 @@ func TestPaymentPayout(t *testing.T) {
 	vendorAccount, err := database.Db.GetAccountByVendorID(vendorIDInt)
 	anonUserAccount, err := database.Db.GetAccountByType("UserAnon")
 
+	// Create a payment to the vendor
 	_, err = database.Db.CreatePayment(
 	database.Payment{
 		Sender:       anonUserAccount.ID,
@@ -478,7 +479,16 @@ func TestPaymentPayout(t *testing.T) {
 		IsSale:       true,
 	})
 
-	// Create invalid payments via API
+	// Create a payment from the vendor (should be substracted in payout)
+	_, err = database.Db.CreatePayment(
+		database.Payment{
+			Sender:       vendorAccount.ID,
+			Receiver:     anonUserAccount.ID,
+			Amount:       1,
+			IsSale:       true,
+		})
+
+	// Create invalid payout
 	f := createPaymentPayoutRequest{
 		VendorLicenseID: "testLicenseID",
 		From: time.Now().Add(time.Duration(-200)*time.Hour),
@@ -497,22 +507,12 @@ func TestPaymentPayout(t *testing.T) {
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
 	utils.CheckError(t, err)
 
-	// Create random payment that should not be under payments for payout
-	// because it is not a sale payment
-	database.Db.CreatePayment(
-	database.Payment{
-		Sender:       anonUserAccount.ID,
-		Receiver:     vendorAccount.ID,
-		Amount:       1,
-		IsSale:       false,
-	})
-
 	// Try to check first
-	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/", f, 200, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor=testLicenseID", f, 200, adminUserToken)
 	var payments []database.Payment
 	err = json.Unmarshal(res.Body.Bytes(), &payments)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(payments))
+	require.Equal(t, 2, len(payments))
 
 	res = utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 200, adminUserToken)
 
@@ -532,7 +532,7 @@ func TestPaymentPayout(t *testing.T) {
 		t.Error(err)
 	}
 
-	require.Equal(t, payoutPayment.Amount, 314)
+	require.Equal(t, payoutPayment.Amount, 314-1)
 	require.Equal(t, payoutPayment.Sender, account.ID)
 	require.Equal(t, payoutPayment.SenderName, account.Name)
 	require.Equal(t, payoutPayment.Receiver, cashAccount.ID)
@@ -542,8 +542,8 @@ func TestPaymentPayout(t *testing.T) {
 	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
 	utils.CheckError(t, err)
 
-	require.Equal(t, vendor.Balance, 1)  // 1 from that other payment
-	require.Equal(t, cashAccount.Balance, 314)
+	require.Equal(t, vendor.Balance, 0)
+	require.Equal(t, cashAccount.Balance, 314-1)
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
 
@@ -556,7 +556,7 @@ func TestPaymentPayout(t *testing.T) {
 	err = json.Unmarshal(response.Body.Bytes(), &payouts)
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(payouts))
-	require.Equal(t, payouts[0].Amount, 314)
+	require.Equal(t, payouts[0].Amount, 314-1)
 
 	response1 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true", nil, 200, adminUserToken)
 	err = json.Unmarshal(response1.Body.Bytes(), &payouts)
@@ -574,10 +574,11 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, 4, len(payouts))
 
 	// Check that there are no more payments for payout
-	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/", f, 200, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor=testLicenseID", f, 200, adminUserToken)
 	var paymentsAfter []database.Payment
 	err = json.Unmarshal(res.Body.Bytes(), &paymentsAfter)
 	utils.CheckError(t, err)
+	log.Info(paymentsAfter)
 	require.Equal(t, 0, len(paymentsAfter))
 
 }

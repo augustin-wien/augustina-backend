@@ -758,7 +758,7 @@ func parseBool(value string) (bool, error) {
 // ListPaymentsForPayout godoc
 //
 //		 	@Summary 		Get list of all payments for payout
-//			@Description 	Payments that the vendor has received through sales
+//			@Description 	Payments that do not have an associated payout
 //			@Tags			Payments
 //			@Accept			json
 //			@Produce		json
@@ -787,7 +787,7 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 		}
 	}
-	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, false,true,true)
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, false,false,true)
 	respond(w, err, payments)
 }
 
@@ -950,7 +950,12 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	}
 	var amount int
 	for _, payment := range paymentsToBePaidOut {
-		amount += payment.Amount
+		if payment.Receiver == vendorAccount.ID {
+			amount += payment.Amount
+		}
+		if payment.Sender == vendorAccount.ID {
+			amount -= payment.Amount
+		}
 	}
 
 	// Check that amount is bigger than 0
