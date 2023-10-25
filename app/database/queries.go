@@ -526,6 +526,23 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 			log.Error(err)
 			return payments, err
 		}
+
+		// Add payout payments to main payment
+		subrows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Timestamp, Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout FROM Payment WHERE Payout = $1", payment.ID)
+		if err != nil {
+			log.Error(err)
+			return payments, err
+		}
+		for subrows.Next() {
+			var subpayment Payment
+			err = subrows.Scan(&subpayment.ID, &subpayment.Timestamp, &subpayment.Sender, &subpayment.Receiver, &subpayment.Amount, &subpayment.AuthorizedBy, &subpayment.Order, &subpayment.OrderEntry, &subpayment.IsSale, &subpayment.Payout)
+			if err != nil {
+				log.Error(err)
+				return payments, err
+			}
+			payment.IsPayoutFor = append(payment.IsPayoutFor, subpayment)
+		}
+
 		payments = append(payments, payment)
 	}
 

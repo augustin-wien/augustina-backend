@@ -562,6 +562,7 @@ func TestPaymentPayout(t *testing.T) {
 	err = json.Unmarshal(response1.Body.Bytes(), &payouts)
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(payouts))
+	require.Equal(t, 2, len(payouts[0].IsPayoutFor))
 
 	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true&vendor=testOTHERLicenseID", nil, 200, adminUserToken)
 	err = json.Unmarshal(response2.Body.Bytes(), &payouts)
@@ -575,11 +576,11 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Check that there are no more payments for payout
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor=testLicenseID", f, 200, adminUserToken)
-	var paymentsAfter []database.Payment
-	err = json.Unmarshal(res.Body.Bytes(), &paymentsAfter)
+	var payoutPaymentsAfter []database.Payment
+	err = json.Unmarshal(res.Body.Bytes(), &payoutPaymentsAfter)
 	utils.CheckError(t, err)
-	log.Info(paymentsAfter)
-	require.Equal(t, 0, len(paymentsAfter))
+	log.Info(payoutPaymentsAfter)
+	require.Equal(t, 0, len(payoutPaymentsAfter))
 
 }
 

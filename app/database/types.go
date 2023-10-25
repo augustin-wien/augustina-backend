@@ -98,6 +98,7 @@ type Payment struct {
 	OrderEntry   null.Int `swaggertype:"integer"`
 	IsSale       bool
 	Payout 	     null.Int `swaggertype:"integer"` // Connected payout payment
+	IsPayoutFor  []Payment
 }
 
 // Settings is a struct that is used for the settings table
