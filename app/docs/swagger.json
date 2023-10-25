@@ -347,7 +347,7 @@
                         "KeycloakAuth": []
                     }
                 ],
-                "description": "Payments that the vendor has received through sales",
+                "description": "Payments that do not have an associated payout",
                 "consumes": [
                     "application/json"
                 ],
@@ -902,8 +902,17 @@
                 "id": {
                     "type": "integer"
                 },
+                "isPayoutFor": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Payment"
+                    }
+                },
                 "isSale": {
                     "type": "boolean"
+                },
+                "item": {
+                    "type": "integer"
                 },
                 "order": {
                     "type": "integer"
@@ -913,6 +922,13 @@
                 },
                 "payout": {
                     "description": "Connected payout payment",
+                    "type": "integer"
+                },
+                "price": {
+                    "description": "Price at time of purchase in cents",
+                    "type": "integer"
+                },
+                "quantity": {
                     "type": "integer"
                 },
                 "receiver": {

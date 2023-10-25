@@ -386,9 +386,9 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 			Order:      null.NewInt(int64(orderID), true),
 			OrderEntry: null.NewInt(int64(entry.ID), true),
 			IsSale:     entry.IsSale,
-			Item:		null.NewInt(int64(entry.Item), true),
-			Quantity:	entry.Quantity,
-			Price:		entry.Price,
+			Item:       null.NewInt(int64(entry.Item), true),
+			Quantity:   entry.Quantity,
+			Price:      entry.Price,
 		}
 		paymentID, err = createPaymentTx(tx, payment)
 	}
@@ -486,7 +486,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 			return
 		}
 		filterValues = append(filterValues, vendorAccount.ID)
-		filters = append(filters, "(Sender = $"+strconv.Itoa(len(filterValues))+" OR Receiver = $"+strconv.Itoa(len(filterValues))+")" )
+		filters = append(filters, "(Sender = $"+strconv.Itoa(len(filterValues))+" OR Receiver = $"+strconv.Itoa(len(filterValues))+")")
 	}
 	if filterPayouts {
 		cashAccountID, err = db.GetAccountTypeID("Cash")
@@ -554,7 +554,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 
 // ListPaymentsForPayout returns sales payments that have not been paid out yet
 func (db *Database) ListPaymentsForPayout(minDate time.Time, maxDate time.Time, vendorLicenseID string) (payments []Payment, err error) {
-	return db.ListPayments(minDate, maxDate, vendorLicenseID, false, true, true)
+	return db.ListPayments(minDate, maxDate, vendorLicenseID, false, false, true)
 }
 
 // GetPayment returns the payment with the given ID

@@ -757,18 +757,18 @@ func parseBool(value string) (bool, error) {
 
 // ListPaymentsForPayout godoc
 //
-//		 	@Summary 		Get list of all payments for payout
-//			@Description 	Payments that do not have an associated payout
-//			@Tags			Payments
-//			@Accept			json
-//			@Produce		json
-//			@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
-//			@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
-//			@Param			vendor query string false "Vendor LicenseID"
-//			@Success		200	{array}	database.Payment
-//			@Security		KeycloakAuth
-//			@Security		KeycloakAuth
-//			@Router			/payments/forpayout/ [get]
+//	 	@Summary 		Get list of all payments for payout
+//		@Description 	Payments that do not have an associated payout
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			vendor query string false "Vendor LicenseID"
+//		@Success		200	{array}	database.Payment
+//		@Security		KeycloakAuth
+//		@Security		KeycloakAuth
+//		@Router			/payments/forpayout/ [get]
 func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 	var err error
 	minDateRaw := r.URL.Query().Get("from")
@@ -787,7 +787,7 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 		}
 	}
-	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, false,false,true)
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, false, false, true)
 	respond(w, err, payments)
 }
 
@@ -904,8 +904,8 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 
 type createPaymentPayoutRequest struct {
 	VendorLicenseID string
-	From 		    time.Time
-	To				time.Time
+	From            time.Time
+	To              time.Time
 }
 
 // CreatePaymentPayout godoc
