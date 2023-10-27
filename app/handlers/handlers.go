@@ -260,7 +260,7 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 //		@Success		200	{array}	database.Item
 //		@Router			/items/ [get]
 func ListItems(w http.ResponseWriter, r *http.Request) {
-	items, err := database.Db.ListItems(true)
+	items, err := database.Db.ListItems(true, true)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

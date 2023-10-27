@@ -160,7 +160,7 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 // Items ----------------------------------------------------------------------
 
 // ListItems returns all items from the database
-func (db *Database) ListItems(skipLicenses bool) ([]Item, error) {
+func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, error) {
 	var items []Item
 	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item")
 	if err != nil {
@@ -176,8 +176,8 @@ func (db *Database) ListItems(skipLicenses bool) ([]Item, error) {
 		}
 		log.Info("Item: ", item.Name)
 
-		// Hardcode check: Do not add items with the name of "Transaktionskosten" and "Spende"
-		if item.Name == config.Config.TransactionCostsName || item.Name == config.Config.DonationName {
+		// Hardcode check: Do not add default items with their config names TransactionCostsName and DonationName
+		if skipHiddenItems && (item.Name == config.Config.TransactionCostsName || item.Name == config.Config.DonationName) {
 			continue
 		}
 
