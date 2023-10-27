@@ -30,11 +30,25 @@ definitions:
         type: string
       id:
         type: integer
+      isPayoutFor:
+        items:
+          $ref: '#/definitions/database.Payment'
+        type: array
       isSale:
         type: boolean
+      item:
+        type: integer
       order:
         type: integer
       orderEntry:
+        type: integer
+      payout:
+        description: Connected payout payment
+        type: integer
+      price:
+        description: Price at time of purchase in cents
+        type: integer
+      quantity:
         type: integer
       receiver:
         type: integer
@@ -160,8 +174,10 @@ definitions:
     type: object
   handlers.createPaymentPayoutRequest:
     properties:
-      amount:
-        type: integer
+      from:
+        type: string
+      to:
+        type: string
       vendorLicenseID:
         type: string
     type: object
@@ -604,12 +620,47 @@ paths:
       summary: Get list of all payments
       tags:
       - Payments
+  /payments/forpayout/:
+    get:
+      consumes:
+      - application/json
+      description: Payments that do not have an associated payout
+      parameters:
+      - description: Minimum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: from
+        type: string
+      - description: Maximum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: to
+        type: string
+      - description: Vendor LicenseID
+        in: query
+        name: vendor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Payment'
+            type: array
+      security:
+      - KeycloakAuth: []
+      - KeycloakAuth: []
+      summary: Get list of all payments for payout
+      tags:
+      - Payments
   /payments/payout/:
     post:
       consumes:
       - application/json
       parameters:
-      - description: ' Create Payment'
+      - description: Create Payment
         in: body
         name: amount
         required: true

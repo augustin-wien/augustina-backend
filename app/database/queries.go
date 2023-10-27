@@ -399,6 +399,9 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 			Order:      null.NewInt(int64(orderID), true),
 			OrderEntry: null.NewInt(int64(entry.ID), true),
 			IsSale:     entry.IsSale,
+			Item:       null.NewInt(int64(entry.Item), true),
+			Quantity:   entry.Quantity,
+			Price:      entry.Price,
 		}
 		paymentID, err = createPaymentTx(tx, payment)
 	}
@@ -468,7 +471,7 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 // Payments -------------------------------------------------------------------
 
 // ListPayments returns the payments from the database
-func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool, filterSales bool) (payments []Payment, err error) {
+func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool, filterSales bool, filterNoPayout bool) (payments []Payment, err error) {
 	var rows pgx.Rows
 
 	// Create filters
@@ -496,8 +499,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 			return
 		}
 		filterValues = append(filterValues, vendorAccount.ID)
-		filters = append(filters, "Sender = $"+strconv.Itoa(len(filterValues)))
-
+		filters = append(filters, "(Sender = $"+strconv.Itoa(len(filterValues))+" OR Receiver = $"+strconv.Itoa(len(filterValues))+")")
 	}
 	if filterPayouts {
 		cashAccountID, err = db.GetAccountTypeID("Cash")
@@ -507,13 +509,22 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		filterValues = append(filterValues, cashAccountID)
 		filters = append(filters, "Receiver = $"+strconv.Itoa(len(filterValues)))
 	}
+	if filterNoPayout {
+		// Does not have a payout and is not a payout (i.e. payment to cash)
+		cashAccountID, err = db.GetAccountTypeID("Cash")
+		if err != nil {
+			return
+		}
+		filterValues = append(filterValues, cashAccountID)
+		filters = append(filters, "Payout IS NULL AND Receiver != $"+strconv.Itoa(len(filterValues)))
+	}
 	if filterSales {
 		filterValues = append(filterValues, true)
 		filters = append(filters, "IsSale = $"+strconv.Itoa(len(filterValues)))
 	}
 
 	// Query based on parameters
-	query := "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver"
+	query := "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver"
 	if len(filters) > 0 {
 		query += " WHERE " + strings.Join(filters, " AND ")
 	}
@@ -526,20 +537,42 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	// Scan rows
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale, &payment.Payout, &payment.Item, &payment.Quantity, &payment.Price)
 		if err != nil {
 			log.Error(err)
 			return payments, err
 		}
+
+		// Add payout payments to main payment
+		subrows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Timestamp, Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment WHERE Payout = $1", payment.ID)
+		if err != nil {
+			log.Error(err)
+			return payments, err
+		}
+		for subrows.Next() {
+			var subpayment Payment
+			err = subrows.Scan(&subpayment.ID, &subpayment.Timestamp, &subpayment.Sender, &subpayment.Receiver, &subpayment.Amount, &subpayment.AuthorizedBy, &subpayment.Order, &subpayment.OrderEntry, &subpayment.IsSale, &subpayment.Payout, &subpayment.Item, &subpayment.Quantity, &subpayment.Price)
+			if err != nil {
+				log.Error(err)
+				return payments, err
+			}
+			payment.IsPayoutFor = append(payment.IsPayoutFor, subpayment)
+		}
+
 		payments = append(payments, payment)
 	}
 
 	return payments, nil
 }
 
+// ListPaymentsForPayout returns sales payments that have not been paid out yet
+func (db *Database) ListPaymentsForPayout(minDate time.Time, maxDate time.Time, vendorLicenseID string) (payments []Payment, err error) {
+	return db.ListPayments(minDate, maxDate, vendorLicenseID, false, false, true)
+}
+
 // GetPayment returns the payment with the given ID
 func (db *Database) GetPayment(id int) (payment Payment, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale, &payment.Payout, &payment.Item, &payment.Quantity, &payment.Price)
 	if err != nil {
 		log.Error(err)
 	}
@@ -556,7 +589,7 @@ func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 	}
 
 	// Create payment
-	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry, payment.IsSale).Scan(&paymentID)
+	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry, payment.IsSale, payment.Payout, payment.Item, payment.Quantity, payment.Price).Scan(&paymentID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -609,6 +642,61 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 		}
 	}
 	return nil
+}
+
+// CreatePaymentPayout creates a payout for a range of payments
+func (db *Database) CreatePaymentPayout(vendor Vendor, vendorAccountID int, authorizedBy string, amount int, payments []Payment) (paymentID int, err error) {
+
+	// Create a transaction to insert all payments at once
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	defer func() { err = deferTx(tx, err) }()
+
+	// Get cash account
+	cashAccount, err := db.GetAccountByType("Cash")
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	payment := Payment{
+		Sender:       vendorAccountID,
+		Receiver:     cashAccount.ID,
+		Amount:       amount,
+		AuthorizedBy: authorizedBy,
+	}
+
+	// Insert payments within the transaction
+	paymentID, err = createPaymentTx(tx, payment)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Document that these payments have a payout
+	for _, payment := range payments {
+		_, err = tx.Exec(context.Background(), `
+		UPDATE Payment
+		SET Payout = $1
+		WHERE ID = $2
+		`, paymentID, payment.ID)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+	// Update last payout date
+	vendor.LastPayout = null.NewTime(time.Now(), true)
+	err = db.UpdateVendor(vendor.ID, vendor)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	return
 }
 
 // Accounts -------------------------------------------------------------------

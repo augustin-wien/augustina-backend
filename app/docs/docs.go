@@ -343,6 +343,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/payments/forpayout/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    },
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Payments that do not have an associated payout",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Get list of all payments for payout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Minimum date (RFC3339, UTC)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Maximum date (RFC3339, UTC)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Vendor LicenseID",
+                        "name": "vendor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Payment"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/payments/payout/": {
             "post": {
                 "security": [
@@ -362,7 +418,7 @@ const docTemplate = `{
                 "summary": "Create a payment from a vendor account to cash",
                 "parameters": [
                     {
-                        "description": " Create Payment",
+                        "description": "Create Payment",
                         "name": "amount",
                         "in": "body",
                         "required": true,
@@ -852,13 +908,33 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "isPayoutFor": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Payment"
+                    }
+                },
                 "isSale": {
                     "type": "boolean"
+                },
+                "item": {
+                    "type": "integer"
                 },
                 "order": {
                     "type": "integer"
                 },
                 "orderEntry": {
+                    "type": "integer"
+                },
+                "payout": {
+                    "description": "Connected payout payment",
+                    "type": "integer"
+                },
+                "price": {
+                    "description": "Price at time of purchase in cents",
+                    "type": "integer"
+                },
+                "quantity": {
                     "type": "integer"
                 },
                 "receiver": {
@@ -1048,8 +1124,11 @@ const docTemplate = `{
         "handlers.createPaymentPayoutRequest": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "integer"
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
                 },
                 "vendorLicenseID": {
                     "type": "string"
