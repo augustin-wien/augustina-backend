@@ -675,8 +675,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 // VerifyPaymentOrderResponse is the response to VerifyPaymentOrder
 type VerifyPaymentOrderResponse struct {
-	TimeStamp time.Time
-	FirstName string
+	TimeStamp      time.Time
+	FirstName      string
+	PurchasedItems []database.OrderEntry
+	TotalSum       int
 }
 
 // VerifyPaymentOrder godoc
@@ -719,6 +721,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
 	if time.Since(order.Timestamp) > 900*time.Second {
 		utils.ErrorJSON(w, errors.New("Transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
@@ -729,6 +732,13 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Declare timestamp from order
 	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
+
+	for _, entry := range order.Entries {
+		verifyPaymentOrderResponse.PurchasedItems = append(verifyPaymentOrderResponse.PurchasedItems, entry)
+	}
+
+	// Declare total sum from order
+	verifyPaymentOrderResponse.TotalSum = order.GetTotal()
 
 	// Get first name of vendor from vendor id in order
 	vendor, err := database.Db.GetVendor(order.Vendor)
