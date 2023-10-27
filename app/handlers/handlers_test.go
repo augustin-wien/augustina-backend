@@ -468,31 +468,43 @@ func TestPaymentPayout(t *testing.T) {
 	vendorID := createTestVendor(t, "testLicenseID")
 	vendorIDInt, _ := strconv.Atoi(vendorID)
 	vendorAccount, err := database.Db.GetAccountByVendorID(vendorIDInt)
+	if err != nil {
+		t.Error(err)
+	}
 	anonUserAccount, err := database.Db.GetAccountByType("UserAnon")
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Create a payment to the vendor
 	_, err = database.Db.CreatePayment(
-	database.Payment{
-		Sender:       anonUserAccount.ID,
-		Receiver:     vendorAccount.ID,
-		Amount:       314,
-		IsSale:       true,
-	})
+		database.Payment{
+			Sender:   anonUserAccount.ID,
+			Receiver: vendorAccount.ID,
+			Amount:   314,
+			IsSale:   true,
+		})
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Create a payment from the vendor (should be substracted in payout)
 	_, err = database.Db.CreatePayment(
 		database.Payment{
-			Sender:       vendorAccount.ID,
-			Receiver:     anonUserAccount.ID,
-			Amount:       1,
-			IsSale:       true,
+			Sender:   vendorAccount.ID,
+			Receiver: anonUserAccount.ID,
+			Amount:   1,
+			IsSale:   true,
 		})
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Create invalid payout
 	f := createPaymentPayoutRequest{
 		VendorLicenseID: "testLicenseID",
-		From: time.Now().Add(time.Duration(-200)*time.Hour),
-		To: time.Now().Add(time.Duration(-100)*time.Hour),
+		From:            time.Now().Add(time.Duration(-200) * time.Hour),
+		To:              time.Now().Add(time.Duration(-100) * time.Hour),
 	}
 	res := utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
@@ -500,8 +512,8 @@ func TestPaymentPayout(t *testing.T) {
 	// Create payments via API
 	f = createPaymentPayoutRequest{
 		VendorLicenseID: "testLicenseID",
-		From: time.Now().Add(time.Duration(-100)*time.Hour),
-		To: time.Now().Add(time.Duration(+100)*time.Hour),
+		From:            time.Now().Add(time.Duration(-100) * time.Hour),
+		To:              time.Now().Add(time.Duration(+100) * time.Hour),
 	}
 
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
