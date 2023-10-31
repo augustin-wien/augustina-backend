@@ -271,6 +271,26 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListItemsBackoffice godoc
+//
+//	 	@Summary 		List Items
+//		@Tags			Items
+//		@Accept			json
+//		@Produce		json
+//		@Success		200	{array}	database.Item
+//		@Router			/items/ [get]
+func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
+	items, err := database.Db.ListItems(false, false)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, items)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
 // CreateItem godoc
 //
 //	 	@Summary 		Create Item
@@ -487,29 +507,22 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Security checks for entries
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
-	for idx, entry := range requestData.Entries {
+	for _, entry := range requestData.Entries {
 
-		// 1. Check: First item (idx == 0) has to be MainItem (id == 1)
-		// TODO: This needs to be adjusted once a webshop is implemented and you can purchase something without a main item
-		if idx == 0 && entry.Item != 1 {
-			utils.ErrorJSON(w, errors.New("MainItem has to be in entries and be the first item"), http.StatusBadRequest)
-			return
-		}
-
-		// 2. Check: Quantity has to be > 0
+		// 1. Check: Quantity has to be > 0
 		if entry.Quantity <= 0 {
 			utils.ErrorJSON(w, errors.New("Nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
 			return
 		}
 
-		// 3. Check: All items have to exist
+		// 2. Check: All items have to exist
 		_, err := database.Db.GetItem(entry.Item)
 		if err != nil {
 			utils.ErrorJSON(w, errors.New("Nice try! Item does not exist"), http.StatusBadRequest)
 			return
 		}
 
-		// 4. Check: Transaction costs (id == 3) are not allowed to be in entries
+		// 3. Check: Transaction costs (id == 3) are not allowed to be in entries
 		if entry.Item == 3 {
 			utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
 			return
@@ -600,7 +613,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	// ignore MaxOrdnerAmount if its 0
+	// ignore MaxOrderAmount if its 0
 	if settings.MaxOrderAmount != 0 && order.GetTotal() >= settings.MaxOrderAmount {
 		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
 		return
@@ -713,14 +726,14 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if database.Db.IsProduction {
-		// Verify transaction
-		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
-	}
+	// if database.Db.IsProduction {
+	// 	// Verify transaction
+	// 	_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
+	// 	if err != nil {
+	// 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+	// 		return
+	// 	}
+	// }
 
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
 	if time.Since(order.Timestamp) > 900*time.Second {
@@ -734,7 +747,11 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
 
 	for _, entry := range order.Entries {
-		verifyPaymentOrderResponse.PurchasedItems = append(verifyPaymentOrderResponse.PurchasedItems, entry)
+		if entry.IsSale {
+			verifyPaymentOrderResponse.PurchasedItems = append(verifyPaymentOrderResponse.PurchasedItems, entry)
+		} else {
+			continue
+		}
 	}
 
 	// Declare total sum from order
