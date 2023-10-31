@@ -554,6 +554,24 @@ paths:
       summary: Update Item
       tags:
       - Items
+  /items/backoffice:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Item'
+            type: array
+      security:
+      - KeycloakAuth: []
+      summary: List Items for backoffice overview
+      tags:
+      - Items
   /orders/:
     post:
       consumes:

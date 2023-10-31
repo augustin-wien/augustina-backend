@@ -126,6 +126,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/items/backoffice": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "List Items for backoffice overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Item"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/items/{id}/": {
             "put": {
                 "security": [
