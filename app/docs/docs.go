@@ -879,6 +879,9 @@ const docTemplate = `{
                 "image": {
                     "type": "string"
                 },
+                "isLicenseItem": {
+                    "type": "boolean"
+                },
                 "licenseItem": {
                     "description": "License has to be bought before item",
                     "allOf": [
@@ -893,6 +896,40 @@ const docTemplate = `{
                 "price": {
                     "description": "Price in cents",
                     "type": "integer"
+                }
+            }
+        },
+        "database.OrderEntry": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "isSale": {
+                    "description": "Whether to include this item in sales payment",
+                    "type": "boolean"
+                },
+                "item": {
+                    "type": "integer"
+                },
+                "price": {
+                    "description": "Price at time of purchase in cents",
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "receiver": {
+                    "type": "integer"
+                },
+                "receiverName": {
+                    "type": "string"
+                },
+                "sender": {
+                    "type": "integer"
+                },
+                "senderName": {
+                    "type": "string"
                 }
             }
         },
@@ -1080,8 +1117,17 @@ const docTemplate = `{
                 "firstName": {
                     "type": "string"
                 },
+                "purchasedItems": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.OrderEntry"
+                    }
+                },
                 "timeStamp": {
                     "type": "string"
+                },
+                "totalSum": {
+                    "type": "integer"
                 }
             }
         },
