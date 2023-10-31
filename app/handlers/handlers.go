@@ -273,12 +273,13 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 
 // ListItemsBackoffice godoc
 //
-//	 	@Summary 		List Items
+//	 	@Summary 		List Items for backoffice overview
 //		@Tags			Items
 //		@Accept			json
 //		@Produce		json
 //		@Success		200	{array}	database.Item
-//		@Router			/items/ [get]
+//		@Security		KeycloakAuth
+//		@Router			/items/backoffice [get]
 func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 	items, err := database.Db.ListItems(false, false)
 	if err != nil {
@@ -577,8 +578,15 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Amount of added license items
+	// Since for each license item an additional entry is added,
+	// Therefore, the index of the for loop has to be increased by 1
+	licenseItemAdded := 0
+
 	// Extend order entries
 	for idx, entry := range order.Entries {
+		// Increase index depending on how many license items were added
+		idx = idx + licenseItemAdded
 		// Get item from database
 		item, err := database.Db.GetItem(entry.Item)
 		if err != nil {
@@ -594,6 +602,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
+			// Get license item from database
 			licenseItem, err := database.Db.GetItem(int(item.LicenseItem.Int64))
 			if err != nil {
 				utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -609,7 +618,12 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				SenderName:   vendorAccount.Name,
 				ReceiverName: orgaAccount.Name,
 			}
+			// Prepend license item without overwriting next entries
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
+
+			// Increase licenseItemAdded by one
+			licenseItemAdded++
+
 		}
 
 	}

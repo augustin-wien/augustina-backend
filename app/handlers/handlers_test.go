@@ -289,7 +289,7 @@ func TestOrders(t *testing.T) {
 		  "vendorLicenseID": "testLicenseID2"
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
-	// The commented error quote should actually be triggered
+
 	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
 	setMaxOrderAmount(t, 5000)
