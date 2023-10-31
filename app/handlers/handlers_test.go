@@ -290,15 +290,13 @@ func TestOrders(t *testing.T) {
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
 	// The commented error quote should actually be triggered
-	// require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"MainItem has to be in entries and be the first item"}}`)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
 	setMaxOrderAmount(t, 5000)
 
-	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"MainItem has to be in entries and be the first item"}}`)
+	res2 := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 
-	//require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
+	require.Equal(t, res2.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
 	// TODO order cannot pass security checks due to each new InitEmptyTestDb call which creates a new MainItem with ID != 1
 
