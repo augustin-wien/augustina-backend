@@ -726,14 +726,14 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if database.Db.IsProduction {
-	// 	// Verify transaction
-	// 	_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
-	// 	if err != nil {
-	// 		utils.ErrorJSON(w, err, http.StatusBadRequest)
-	// 		return
-	// 	}
-	// }
+	if database.Db.IsProduction {
+		// Verify transaction
+		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
 
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
 	if time.Since(order.Timestamp) > 900*time.Second {
