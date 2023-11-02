@@ -143,6 +143,20 @@ const docTemplate = `{
                     "Items"
                 ],
                 "summary": "List Items for backoffice overview",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "No donation and transaction cost items",
+                        "name": "skipHiddenItems",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "No license items",
+                        "name": "skipLicenses",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

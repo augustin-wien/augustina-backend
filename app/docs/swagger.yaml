@@ -558,6 +558,15 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: No donation and transaction cost items
+        in: query
+        name: skipHiddenItems
+        type: boolean
+      - description: No license items
+        in: query
+        name: skipLicenses
+        type: boolean
       produces:
       - application/json
       responses:

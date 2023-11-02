@@ -277,11 +277,30 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Items
 //		@Accept			json
 //		@Produce		json
+//	    @Param			skipHiddenItems query bool false "No donation and transaction cost items"
+//		@Param 			skipLicenses query bool false "No license items"
 //		@Success		200	{array}	database.Item
 //		@Security		KeycloakAuth
 //		@Router			/items/backoffice [get]
 func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
-	items, err := database.Db.ListItems(false, false)
+
+	// Get filter parameters
+	skipHiddenItemsRaw := r.URL.Query().Get("skipHiddenItems")
+	skipLicensesRaw := r.URL.Query().Get("skipLicenses")
+
+	// Parse filter parameters
+	skipHiddenItems, err := parseBool(skipHiddenItemsRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	skipLicenses, err := parseBool(skipLicensesRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	items, err := database.Db.ListItems(skipHiddenItems, skipLicenses)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
