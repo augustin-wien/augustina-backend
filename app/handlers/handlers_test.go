@@ -263,6 +263,16 @@ func TestItems(t *testing.T) {
 	require.Equal(t, "Updated item name 2", resItems[3].Name)
 	require.Equal(t, resItems[3].Image, "Test")
 
+	// Update item with certain ID (which should fail)
+	body = new(bytes.Buffer)
+	writer = multipart.NewWriter(body)
+	writer.WriteField("ID", "2")
+	writer.WriteField("Image", "Test")
+	writer.Close()
+	res = utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/items/2/", body, writer.FormDataContentType(), 400, adminUserToken)
+
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Nice try! You are not allowed to update this item"}}`)
+
 }
 
 // Set MaxOrderAmount to avoid errors
