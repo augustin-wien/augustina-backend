@@ -52,7 +52,7 @@ func (db *Database) GetHelloWorld() (string, error) {
 
 // ListVendors returns all users from the database but not all fields for better overview
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id ORDER BY LicenseID ASC")
 	if err != nil {
 		log.Error(err)
 		return vendors, err
