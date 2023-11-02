@@ -231,6 +231,16 @@ func TestItems(t *testing.T) {
 	require.Equal(t, "Updated item name 2", resItems[3].Name)
 	require.Equal(t, resItems[3].Image, "Test")
 
+	// Update item with certain ID (which should fail)
+	body = new(bytes.Buffer)
+	writer = multipart.NewWriter(body)
+	writer.WriteField("ID", "2")
+	writer.WriteField("Image", "Test")
+	writer.Close()
+	res = utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/items/2/", body, writer.FormDataContentType(), 400, adminUserToken)
+
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Nice try! You are not allowed to update this item"}}`)
+
 }
 
 // Set MaxOrderAmount to avoid errors
@@ -472,27 +482,27 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create a payment to the vendor
 	_, err = database.Db.CreatePayment(
-	database.Payment{
-		Sender:       anonUserAccount.ID,
-		Receiver:     vendorAccount.ID,
-		Amount:       314,
-		IsSale:       true,
-	})
+		database.Payment{
+			Sender:   anonUserAccount.ID,
+			Receiver: vendorAccount.ID,
+			Amount:   314,
+			IsSale:   true,
+		})
 
 	// Create a payment from the vendor (should be substracted in payout)
 	_, err = database.Db.CreatePayment(
 		database.Payment{
-			Sender:       vendorAccount.ID,
-			Receiver:     anonUserAccount.ID,
-			Amount:       1,
-			IsSale:       true,
+			Sender:   vendorAccount.ID,
+			Receiver: anonUserAccount.ID,
+			Amount:   1,
+			IsSale:   true,
 		})
 
 	// Create invalid payout
 	f := createPaymentPayoutRequest{
 		VendorLicenseID: "testLicenseID",
-		From: time.Now().Add(time.Duration(-200)*time.Hour),
-		To: time.Now().Add(time.Duration(-100)*time.Hour),
+		From:            time.Now().Add(time.Duration(-200) * time.Hour),
+		To:              time.Now().Add(time.Duration(-100) * time.Hour),
 	}
 	res := utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
@@ -500,8 +510,8 @@ func TestPaymentPayout(t *testing.T) {
 	// Create payments via API
 	f = createPaymentPayoutRequest{
 		VendorLicenseID: "testLicenseID",
-		From: time.Now().Add(time.Duration(-100)*time.Hour),
-		To: time.Now().Add(time.Duration(+100)*time.Hour),
+		From:            time.Now().Add(time.Duration(-100) * time.Hour),
+		To:              time.Now().Add(time.Duration(+100) * time.Hour),
 	}
 
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)

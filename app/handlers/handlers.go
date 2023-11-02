@@ -371,6 +371,12 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Security check to disable updating Item of ID 2 and 3, which are essential for donations and transaction costs
+	if ItemID == 2 || ItemID == 3 {
+		utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to update this item"), http.StatusBadRequest)
+		return
+	}
+
 	// Read multipart form
 	err = r.ParseMultipartForm(32 << 20)
 	if err != nil {
