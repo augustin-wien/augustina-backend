@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"augustin/config"
+	"augustin/keycloak"
 	"augustin/utils"
 	"bytes"
 	"errors"
@@ -160,13 +161,17 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Create user in keycloak
-	// randomPassword := utils.RandomString(10)
-	// user, err := keycloak.KeycloakClient.CreateUser(vendor.Email, vendor.Email, vendor.Email, randomPassword)
-	// if err != nil {
-	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
-	// 	return
-	// }
-	// keycloak.KeycloakClient.AssignRole(user, "vendor")
+	randomPassword := utils.RandomString(10)
+	user, err := keycloak.KeycloakClient.CreateUser(vendor.Email, vendor.Email, vendor.Email, randomPassword)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = keycloak.KeycloakClient.AssignRole(user, "vendor")
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	respond(w, err, id)
 }
 
@@ -219,12 +224,12 @@ type VendorOverview struct {
 //		@Security		KeycloakAuth
 //		@Router			/me/{id}/ [get]
 func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
-	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
+	vendorEmail := r.Header.Get("X-Auth-User-Email")
+	if vendorEmail == "" {
+		utils.ErrorJSON(w, fmt.Errorf("user has no email defined"), http.StatusBadRequest)
 		return
 	}
-	vendor, err := database.Db.GetVendor(vendorID)
+	vendor, err := database.Db.GetVendorByEmail(vendorEmail)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -271,8 +276,37 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	oldVendor, err := database.Db.GetVendor(vendorID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
 	err = database.Db.UpdateVendor(vendorID, vendor)
-	// todo update keycloak user
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Update user in keycloak
+	user, err := keycloak.KeycloakClient.GetUser(oldVendor.Email)
+	if err != nil {
+		// create user if it does not exist
+		randomPassword := utils.RandomString(10)
+		keycloakUser, err := keycloak.KeycloakClient.CreateUser(vendor.Email, vendor.Email, vendor.Email, randomPassword)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		keycloak.KeycloakClient.AssignRole(keycloakUser, "vendor")
+	} else {
+		err = keycloak.KeycloakClient.UpdateUser(*user.Username, vendor.FirstName, vendor.LastName, vendor.Email)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+
 	respond(w, err, vendor)
 }
 
@@ -291,6 +325,19 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
+	}
+	log.Info(r.Header.Get("X-Auth-User-Name")+" is deleting vendor with id: ", vendorID)
+	vendor, err := database.Db.GetVendor(vendorID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Delete user in keycloak
+	err = keycloak.KeycloakClient.DeleteUser(vendor.Email)
+	if err != nil {
+		log.Error("Deleting user "+vendor.Email+" failed in keycloak failed: ", err)
+		// ignore because not each legacy vendor is in keycloak
 	}
 
 	err = database.Db.DeleteVendor(vendorID)

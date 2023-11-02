@@ -198,7 +198,38 @@ func (k *Keycloak) CreateUser(firstName string, lastName string, email string, p
 }
 
 // DeleteUser function deletes a user given by userID
-func (k *Keycloak) DeleteUser(userID string) error {
+func (k *Keycloak) DeleteUser(username string) error {
 	k.checkAdminToken()
-	return k.Client.DeleteUser(k.Context, k.clientToken.AccessToken, k.Realm, userID)
+	// get user for username
+	user, err := k.GetUser(username)
+	if err != nil {
+		return err
+	}
+	return k.Client.DeleteUser(k.Context, k.clientToken.AccessToken, k.Realm, *user.ID)
+}
+
+// UpdateUserPassword function updates a user password given by userID
+func (k *Keycloak) UpdateUserPassword(username string, password string) error {
+	k.checkAdminToken()
+	user, err := k.GetUser(username)
+	if err != nil {
+		return err
+	}
+	return k.Client.SetPassword(k.Context, k.clientToken.AccessToken, *user.ID, k.Realm, password, false)
+}
+
+// UpdateUser function updates a user given by userID
+func (k *Keycloak) UpdateUser(username string, firstName string, lastName string, email string) error {
+	k.checkAdminToken()
+	user, err := k.GetUser(username)
+	if err != nil {
+		return err
+	}
+	user.FirstName = &firstName
+	user.LastName = &lastName
+	user.Email = &email
+	user.EmailVerified = gocloak.BoolP(true)
+	user.Enabled = gocloak.BoolP(true)
+	user.Username = &email
+	return k.Client.UpdateUser(k.Context, k.clientToken.AccessToken, k.Realm, *user)
 }
