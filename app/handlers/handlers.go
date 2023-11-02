@@ -194,6 +194,59 @@ func GetVendor(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, vendor)
 }
 
+type VendorOverview struct {
+	ID         int
+	FirstName  string
+	LastName   string
+	Email      string
+	LicenseID  string
+	URLID      string
+	LastPayout null.Time `swaggertype:"string" format:"date-time"`
+	Balance    int
+	Address    string
+	PLZ        string
+	Location   string
+	Telephone  string
+}
+
+// GetVendorOverview godoc
+//
+//	 	@Summary 		Get Vendor overview
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200 {object} VendorOverview
+//		@Security		KeycloakAuth
+//		@Router			/me/{id}/ [get]
+func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	vendor, err := database.Db.GetVendor(vendorID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	response := VendorOverview{
+		ID:         vendor.ID,
+		FirstName:  vendor.FirstName,
+		LastName:   vendor.LastName,
+		Email:      vendor.Email,
+		LicenseID:  vendor.LicenseID.String,
+		URLID:      vendor.URLID,
+		LastPayout: vendor.LastPayout,
+		Balance:    vendor.Balance,
+		Address:    vendor.Address,
+		PLZ:        vendor.PLZ,
+		Location:   vendor.Location,
+		Telephone:  vendor.Telephone,
+	}
+
+	respond(w, err, response)
+}
+
 // UpdateVendor godoc
 //
 //	 	@Summary 		Update Vendor
