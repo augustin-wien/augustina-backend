@@ -231,7 +231,7 @@ func TestItems(t *testing.T) {
 	require.Equal(t, "Updated item name 2", resItems[3].Name)
 	require.Equal(t, resItems[3].Image, "Test")
 
-	// Update with image as field (not as a file)
+	// Update item with certain ID (which should fail)
 	body = new(bytes.Buffer)
 	writer = multipart.NewWriter(body)
 	writer.WriteField("ID", "2")
