@@ -233,6 +233,7 @@ func TestOrders(t *testing.T) {
 
 	// Verify order and create payments
 	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 5)
+	utils.CheckError(t, err)
 
 	// Check payments
 	payments, err := database.Db.ListPayments(time.Time{}, time.Time{})
@@ -274,6 +275,7 @@ func TestPayments(t *testing.T) {
 	senderAccountID, err := database.Db.CreateAccount(
 		database.Account{Name: "Test account"},
 	)
+	utils.CheckError(t, err)
 	receiverAccountID, err := database.Db.CreateAccount(
 		database.Account{Name: "Test account"},
 	)
@@ -390,9 +392,12 @@ func TestPaymentPayout(t *testing.T) {
 
 	paymentID := res.Body.String()
 	paymentIDInt, err := strconv.Atoi(paymentID)
+	utils.CheckError(t, err)
 
 	payment, err := database.Db.GetPayment(paymentIDInt)
+	utils.CheckError(t, err)
 	cashAccount, err := database.Db.GetAccountByType("Cash")
+	utils.CheckError(t, err)
 
 	require.Equal(t, payment.Amount, 314)
 	require.Equal(t, payment.Sender, account.ID)
@@ -427,7 +432,7 @@ func TestSettings(t *testing.T) {
 	require.Equal(t, "/img/logo.png", settings.Logo)
 
 	// Check file
-	file, err := os.ReadFile(".." + settings.Logo)
+	file, err := os.ReadFile("../" + settings.Logo)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 }

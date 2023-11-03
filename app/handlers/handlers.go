@@ -295,7 +295,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var item database.Item
-	fields := mForm.Value // Values are stored in []string
+	fields := mForm.Value               // Values are stored in []string
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
 		if key == "Price" {
@@ -359,9 +359,9 @@ type createOrderRequestEntry struct {
 }
 
 type createOrderRequest struct {
-	Entries          []createOrderRequestEntry
-	User             string
-	VendorLicenseID  string
+	Entries         []createOrderRequestEntry
+	User            string
+	VendorLicenseID string
 }
 
 type createOrderResponse struct {
@@ -398,6 +398,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	order.User.String = requestData.User
 	vendor, err := database.Db.GetVendorByLicenseID(requestData.VendorLicenseID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	order.Vendor = vendor.ID
 
 	var settings database.Settings
@@ -446,7 +450,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		order.Entries[idx].Sender = buyerAccountID
 		order.Entries[idx].Receiver = vendorAccount.ID
 		order.Entries[idx].Price = item.Price // Take current item price
-		order.Entries[idx].IsSale = true  // Will be used for sales payment
+		order.Entries[idx].IsSale = true      // Will be used for sales payment
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
@@ -480,13 +484,13 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("Authentication failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+			return
 		}
 		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order)
 		if err != nil {
 			log.Error("Creating payment order failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+			return
 		}
 	}
 
@@ -938,7 +942,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	// Handle normal fields
 	var settings database.Settings
-	fields := mForm.Value                  // Values are stored in []string
+	fields := mForm.Value               // Values are stored in []string
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
 		if key == "MaxOrderAmount" {
@@ -959,7 +963,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	path, _ := updateSettingsLogo(w, r)
 	if path != "" {
-		settings.Logo = path
+		settings.Logo = "img/logo.png"
 	}
 
 	// Save settings to database
