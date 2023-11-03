@@ -1,0 +1,78 @@
+:root {
+    --pf-global--primary-color--100: #000;
+    --pf-global--primary-color--200: #24968b;
+    --default-background-color: #97A1CDFF;
+    --link-hover-color: #02679a;
+}
+
+.login-pf body {
+    background-image: none;
+    background-color: #FFF;
+}
+.login-pf body .checkbox label{
+    color: #FFF;
+    font-size: 0.9em;
+}
+.login-pf body a {
+    color: #FFF;
+}
+
+.login-pf .card-pf {
+    border-radius: 40px;
+    background-color: #65a30d;
+    border-top: none;
+    max-width: 90vw;
+    margin: auto;
+    box-shadow: 0 0 0.5em #000;
+}
+
+.login-pf .card-pf .login-pf-header {
+    color: #FFF
+}
+
+.login-pf .card-pf,
+kc-form-wrapper {
+    color: #FFF;
+    font-size: 1.5em;
+}
+
+.login-pf .pf-c-button.pf-m-primary {
+    border-radius: 8px;
+    font-size: 1.2em;
+    background-color: #2e4a06;
+
+}
+
+.login-pf a:hover {
+    color: var(--link-hover-color);
+    text-decoration: none;
+}
+
+.pf-c-form-control {
+    --pf-global--primary-color--100: unset;
+}
+
+div.kc-logo-text {
+    background-image: none;
+    background-size: contain;
+    padding: 20px;
+    background-position: center;
+}
+
+#kc-header-wrapper {
+    font-size: 0px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    line-height: 1.2em;
+    padding: 62px 10px 20px;
+    white-space: normal;
+    background-image: url(../img/logo.png);
+    background-size: contain;
+    padding: 20px;
+    /* background-color: #FFF; */
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 80px;
+    margin-top: 20px;
+    margin-bottom: 50px;
+}
