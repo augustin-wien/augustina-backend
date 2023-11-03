@@ -174,7 +174,6 @@ func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, 
 			log.Error(err)
 			return items, err
 		}
-		log.Info("Item: ", item.Name)
 
 		// Hardcode check: Do not add default items with their config names TransactionCostsName and DonationName
 		if skipHiddenItems && (item.Name == config.Config.TransactionCostsName || item.Name == config.Config.DonationName) {
