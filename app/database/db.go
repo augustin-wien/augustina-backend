@@ -27,55 +27,7 @@ func (db *Database) InitDb() (err error) {
 		return err
 	}
 
-	// Initializes DBSettings if not already initialized
-	err = db.InitiateDBSettings()
-	if err != nil {
-		log.Error("Settings creation failed ", zap.Error(err))
-	}
-
-	// Get DBSettings
-	var dbSettings DBSettings
-	dbSettings, err = db.GetDBSettings()
-	if err != nil {
-		log.Error("Settings retrieval failed ", zap.Error(err))
-	}
-
-	if !dbSettings.IsInitialized {
-
-		// Create default settings
-		err = db.InitiateSettings()
-		if err != nil {
-			log.Error("Settings creation failed ", zap.Error(err))
-		}
-
-		// Create default accounts
-		err = db.InitiateAccounts()
-		if err != nil {
-			log.Error("Default accounts creation failed ", zap.Error(err))
-		}
-
-		// Create default items
-		err = db.InitiateItems()
-		if err != nil {
-			log.Error("Default items creation failed ", zap.Error(err))
-		}
-
-		if config.Config.CreateDemoData {
-			err = db.CreateDevData()
-			if err != nil {
-				log.Error("Dev data creation failed ", zap.Error(err))
-			}
-		}
-
-		// Update DBSettings to initialized
-		err = db.UpdateDBSettings(DBSettings{IsInitialized: true})
-		if err != nil {
-			log.Error("Updating DBSettings failed ", zap.Error(err))
-		}
-		log.Info("Database successfully initialized")
-	} else {
-		log.Info("Database already initialized")
-	}
+	err = initData(db)
 
 	return err
 }
@@ -91,6 +43,13 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		return err
 	}
 
+	err = initData(db)
+
+	return
+}
+
+// initData initializes the database with default data
+func initData(db *Database) (err error) {
 	// Initializes DBSettings if not already initialized
 	err = db.InitiateDBSettings()
 	if err != nil {
@@ -111,7 +70,6 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		if err != nil {
 			log.Error("Settings creation failed ", zap.Error(err))
 		}
-
 		// Create default accounts
 		err = db.InitiateAccounts()
 		if err != nil {
@@ -124,6 +82,20 @@ func (db *Database) InitEmptyTestDb() (err error) {
 			log.Error("Default items creation failed ", zap.Error(err))
 		}
 
+		if db.IsProduction {
+			err = db.UpdateInitialSettings()
+			if err != nil {
+				log.Error("Updating initial Settings failed ", zap.Error(err))
+			}
+
+			if config.Config.CreateDemoData {
+				err = db.CreateDevData()
+				if err != nil {
+					log.Error("Dev data creation failed ", zap.Error(err))
+				}
+			}
+		}
+
 		// Update DBSettings to initialized
 		err = db.UpdateDBSettings(DBSettings{IsInitialized: true})
 		if err != nil {
@@ -134,7 +106,7 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		log.Info("Database already initialized")
 	}
 
-	return err
+	return
 }
 
 // initDb initializes the database connection pool and stores it in the global Db variable

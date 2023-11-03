@@ -2,18 +2,19 @@
 package keycloak_test
 
 import (
+	"augustin/config"
 	"augustin/database"
 	"augustin/handlers"
 	"augustin/keycloak"
 	"augustin/utils"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/Nerzal/gocloak/v13"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
-
 
 func lookupRole(roleName string, roles []*gocloak.Role) *gocloak.Role {
 	for _, role := range roles {
@@ -26,8 +27,17 @@ func lookupRole(roleName string, roles []*gocloak.Role) *gocloak.Role {
 
 func TestKeycloak(t *testing.T) {
 	// Test the keycloak functions
-	keycloak.InitializeOauthServer()
 	var err error
+	// run tests in mainfolder
+	err = os.Chdir("..")
+	if err != nil {
+		panic(err)
+	}
+	config.InitConfig()
+	err = keycloak.InitializeOauthServer()
+	if err != nil {
+		log.Fatal(err)
+	}
 	role_name := "testrole"
 	err = keycloak.KeycloakClient.CreateRole(role_name)
 	if err != nil {
@@ -40,7 +50,7 @@ func TestKeycloak(t *testing.T) {
 
 	require.Equal(t, role_name, *role.Name)
 
-	_, err = keycloak.KeycloakClient.CreateUser("testuser", "testuser", "testuser@example.com")
+	_, err = keycloak.KeycloakClient.CreateUser("testuser", "testuser", "testuser@example.com", "password")
 	if err != nil {
 		log.Errorf("Create user failed: %v \n", err)
 	}
@@ -100,5 +110,5 @@ func TestHelloWorldAuth(t *testing.T) {
 	utils.CheckResponse(t, 401, response.Code)
 
 	// We can use testify/require to assert values, as it is more convenient
-	require.Equal(t, "Unauthorized\n", response.Body.String())
+	require.Equal(t, "{\"error\":{\"message\":\"Unauthorized\"}}", response.Body.String())
 }

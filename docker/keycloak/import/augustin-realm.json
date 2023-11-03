@@ -30,7 +30,7 @@
   "registrationAllowed" : false,
   "registrationEmailAsUsername" : false,
   "rememberMe" : false,
-  "verifyEmail" : false,
+  "verifyEmail" : true,
   "loginWithEmailAllowed" : true,
   "duplicateEmailsAllowed" : false,
   "resetPasswordAllowed" : false,
@@ -75,6 +75,14 @@
       "containerId" : "6d5efd3c-14aa-417a-b387-0a3d34e7c658",
       "attributes" : { }
     }, {
+      "id" : "62c81da6-27fa-4a72-83db-b4b6d279840d",
+      "name" : "all_newspapers",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "6d5efd3c-14aa-417a-b387-0a3d34e7c658",
+      "attributes" : { }
+    }, {
       "id" : "91fff497-c668-49b4-80f7-8ab8691639ef",
       "name" : "admin",
       "description" : "",
@@ -91,8 +99,32 @@
       "containerId" : "6d5efd3c-14aa-417a-b387-0a3d34e7c658",
       "attributes" : { }
     }, {
+      "id" : "bf89235b-3359-4d1a-85ce-e760c046cc9e",
+      "name" : "openid",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "6d5efd3c-14aa-417a-b387-0a3d34e7c658",
+      "attributes" : { }
+    }, {
+      "id" : "d3876c03-74e2-47ce-bcae-7b77fd2379fc",
+      "name" : "vendor",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "6d5efd3c-14aa-417a-b387-0a3d34e7c658",
+      "attributes" : { }
+    }, {
       "id" : "360ebaa9-5b91-451d-b82a-c8cb611d9563",
       "name" : "magazin-2",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "6d5efd3c-14aa-417a-b387-0a3d34e7c658",
+      "attributes" : { }
+    }, {
+      "id" : "1cb5f92f-a687-40e8-b945-35744ab39fc8",
+      "name" : "backoffice",
       "description" : "",
       "composite" : false,
       "clientRole" : false,
@@ -405,27 +437,67 @@
     }
   },
   "groups" : [ {
-    "id" : "7437a8fd-7951-4108-8ba8-c2b7fc6df4dd",
-    "name" : "magazin-1",
-    "path" : "/magazin-1",
+    "id" : "65d4354b-eec9-4d23-95b0-511e3f4a6834",
+    "name" : "backoffice",
+    "path" : "/backoffice",
     "attributes" : { },
-    "realmRoles" : [ "magazin-1" ],
+    "realmRoles" : [ "all_newspapers", "backoffice" ],
     "clientRoles" : { },
     "subGroups" : [ ]
   }, {
-    "id" : "4c121c27-9401-4024-b736-91ef9144bf24",
-    "name" : "magazin-2",
-    "path" : "/magazin-2",
+    "id" : "ba490336-6d0a-4517-b51d-18cb8b47578b",
+    "name" : "customer",
+    "path" : "/customer",
     "attributes" : { },
-    "realmRoles" : [ "magazin-2" ],
+    "realmRoles" : [ "all_newspapers" ],
     "clientRoles" : { },
-    "subGroups" : [ ]
+    "subGroups" : [ {
+      "id" : "f262ea55-a34a-4410-8a03-ad3fbe7968d2",
+      "name" : "newspapers",
+      "path" : "/customer/newspapers",
+      "attributes" : { },
+      "realmRoles" : [ ],
+      "clientRoles" : { },
+      "subGroups" : [ {
+        "id" : "8e080688-19df-4afe-90e1-a5005c98be2e",
+        "name" : "magazin-3",
+        "path" : "/customer/newspapers/magazin-3",
+        "attributes" : { },
+        "realmRoles" : [ "magazin-3" ],
+        "clientRoles" : { },
+        "subGroups" : [ ]
+      }, {
+        "id" : "4c121c27-9401-4024-b736-91ef9144bf24",
+        "name" : "magazin-2",
+        "path" : "/customer/newspapers/magazin-2",
+        "attributes" : { },
+        "realmRoles" : [ "magazin-2" ],
+        "clientRoles" : { },
+        "subGroups" : [ ]
+      }, {
+        "id" : "7437a8fd-7951-4108-8ba8-c2b7fc6df4dd",
+        "name" : "magazin-1",
+        "path" : "/customer/newspapers/magazin-1",
+        "attributes" : { },
+        "realmRoles" : [ "magazin-1" ],
+        "clientRoles" : { },
+        "subGroups" : [ ]
+      } ]
+    }, {
+      "id" : "f7066d3d-207d-4336-9fc4-3aabfebe3392",
+      "name" : "all_newspapers",
+      "path" : "/customer/all_newspapers",
+      "attributes" : { },
+      "realmRoles" : [ ],
+      "clientRoles" : { },
+      "subGroups" : [ ]
+    } ]
   }, {
-    "id" : "8e080688-19df-4afe-90e1-a5005c98be2e",
-    "name" : "magazin-3",
-    "path" : "/magazin-3",
+    "id" : "ad3035a7-0bd5-430e-bb7e-c37cba266461",
+    "name" : "vendors",
+    "path" : "/vendors",
     "attributes" : { },
-    "realmRoles" : [ "magazin-3" ],
+    "realmRoles" : [ "vendor" ],
     "clientRoles" : { },
     "subGroups" : [ ]
   } ],
@@ -445,7 +517,7 @@
   "otpPolicyLookAheadWindow" : 1,
   "otpPolicyPeriod" : 30,
   "otpPolicyCodeReusable" : false,
-  "otpSupportedApplications" : [ "totpAppGoogleName", "totpAppFreeOTPName", "totpAppMicrosoftAuthenticatorName" ],
+  "otpSupportedApplications" : [ "totpAppMicrosoftAuthenticatorName", "totpAppGoogleName", "totpAppFreeOTPName" ],
   "webAuthnPolicyRpEntityName" : "keycloak",
   "webAuthnPolicySignatureAlgorithms" : [ "ES256" ],
   "webAuthnPolicyRpId" : "",
@@ -717,9 +789,10 @@
     "protocol" : "openid-connect",
     "attributes" : {
       "oidc.ciba.grant.enabled" : "false",
+      "backchannel.logout.session.required" : "true",
+      "post.logout.redirect.uris" : "+",
       "oauth2.device.authorization.grant.enabled" : "true",
       "display.on.consent.screen" : "false",
-      "backchannel.logout.session.required" : "true",
       "backchannel.logout.revoke.offline.tokens" : "false"
     },
     "authenticationFlowBindingOverrides" : { },
@@ -1649,25 +1722,6 @@
   "identityProviderMappers" : [ ],
   "components" : {
     "org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy" : [ {
-      "id" : "5197222e-fa36-40a1-8b6a-c5812a3dda73",
-      "name" : "Max Clients Limit",
-      "providerId" : "max-clients",
-      "subType" : "anonymous",
-      "subComponents" : { },
-      "config" : {
-        "max-clients" : [ "200" ]
-      }
-    }, {
-      "id" : "7bc99367-4c6d-447f-80e5-2a174d81a280",
-      "name" : "Trusted Hosts",
-      "providerId" : "trusted-hosts",
-      "subType" : "anonymous",
-      "subComponents" : { },
-      "config" : {
-        "host-sending-registration-request-must-match" : [ "true" ],
-        "client-uris-must-match" : [ "true" ]
-      }
-    }, {
       "id" : "a3074d90-a9ed-4a60-bb25-068c1a08922b",
       "name" : "Full Scope Disabled",
       "providerId" : "scope",
@@ -1681,7 +1735,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "saml-role-list-mapper", "saml-user-property-mapper", "saml-user-attribute-mapper", "oidc-usermodel-attribute-mapper", "oidc-address-mapper", "oidc-sha256-pairwise-sub-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-attribute-mapper", "oidc-full-name-mapper", "saml-user-property-mapper", "saml-role-list-mapper" ]
       }
     }, {
       "id" : "2517e148-afd8-4507-a4c3-e29beb916712",
@@ -1715,22 +1769,35 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "saml-user-property-mapper", "saml-role-list-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-address-mapper" ]
-      }
-    } ],
-    "org.keycloak.keys.KeyProvider" : [ {
-      "id" : "ec63b259-9945-4a2d-a210-759e631f5a2b",
-      "name" : "rsa-enc-generated",
-      "providerId" : "rsa-enc-generated",
-      "subComponents" : { },
-      "config" : {
-        "privateKey" : [ "MIIEogIBAAKCAQEAnHMk5xCElQId3MW0x4oEfddytTq8iRG0HwhwWqQne2kQtv0pTbRvQ1L/4QFNRAO1WPpcJAsNTFfuYbzJhz+JSN89RhbxI1n0cMR+JoXUVebrbq0+YRXJxpBP63vyG7xvduAXn4egAeFCZxAHSu71vO2XbM7Fb9qCviX64O65Ebx4ix8pJ9Csr8sDGhgzg4FhGkAXmSk9Gt+mWx+wLLe+Or5fwR3kA5i9rY3UV1ehRuUoqov8zeqyPnFOAqxj3iivljZETGo0lToR4hTBC35Kb6Qf/THsa+Qu1os8duextJDSbfx/ek875wwOmI2Z+31LtJBDnvXakoL0IsydT3QgawIDAQABAoIBAE4WvPMmT/7uLQiemCLG1YIYcTVbKXLDJuQcerQLXnefVAv6Jc0WxDhW68gbtby+mxxb7nTBHXSfKSmYqQB8aqI4ZyWeWuMZycQll4/T2c28soOuLkYYMXwOWQ3BcnF8pygvJytl7ywxCstVeUZiKr8P2jahqHOxnfOaEnSGQ1LBt1/5RnIWV2xDiQSSNE6VBp5imUjTd8YVce6AnPPivErCbLy86w7gjW5i7AG7vNyetIEXaWkveyf5Ki2kJ87i2Eu+4PR28e+7D7Cb4ZxPwpErvWphC9qMGhrYWK3+YhHuUVNR5BVaY4P/hkRhRZnk+9YMTjkLcbnFYL448432rBUCgYEA0qCvTidSTsL9sT1SQ4DI58zQwFIVMrVybPqiLFmzIVnGrpGKyTttfcovPwVmz+TRAoubOjti1+OKAor1jCvNc2WcLY9sMNcSBKjVwi6hM278oc1YhoZZgNandDBeTzOjGTQR/WVJTnJFncQNkrCkyTpr184NNCJ11uTJlwfblz8CgYEAvibBLg9uYtnEAC+CA0WmWebAlMxiYMZznSqkqDESwMPRZElOJsDczaUQYAMZhymaFf46fRytDBbyqC4GpgZZANc5SZvCi7DQKpbeLbAlnEGcjS87M5onfenFHbCPDuFjhrZX/5rxGIYC+ARdE+cUTWinaxjkFuJBUUHFS3pPd9UCgYB01/boICAk2T7rB92O3O6WyKQ1TFO+IbIsio1UlR4uLiNtzAd1wqXm1jaHe3OheIoKI3AlSbR3lx6Ecpns/I+oqIGPNLUMEwNH2nFam4uJgNRc3hFx7y3Pr0SNzBdFUJv161DfhUS5Y+MCtjPhYGTJzMLuoLvqZAODBsBeLFnA+QKBgFA/dsODi6h4ErmpUwsid8P1GE0zvEjvN5eaiYbZvvpPKa1TKoI8XnMDOFfstvdN3VNuySxHz9gMTzgexHuIrkMmkWy5KW9enVt79CP/9L9vCSykRC3Q3t3KrH+NJbK3+BLAHX8n2pvo4pPc85MUsILCqfUOuiPWNI6gXS0vXx5JAoGAJf3MgCJmPPZJWkAfVU2qKKx4gt7Q6+duhj1cxFhQgGtsBJXld08wFhVfsTIIL2/vxbvs6rfyeOcfyHKP3iVU3YB16dNGUbAZvQQVzLFTivVG79BsHNLhHx76jUgurkCWnGJSY/aM44713TT3d5z0rCtkNuvXyGe/uyr/psjIbnw=" ],
-        "keyUse" : [ "ENC" ],
-        "certificate" : [ "MIICnzCCAYcCBgGIRzsyvDANBgkqhkiG9w0BAQsFADATMREwDwYDVQQDDAhhdWd1c3RpbjAeFw0yMzA1MjMwNjA5MDFaFw0zMzA1MjMwNjEwNDFaMBMxETAPBgNVBAMMCGF1Z3VzdGluMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnHMk5xCElQId3MW0x4oEfddytTq8iRG0HwhwWqQne2kQtv0pTbRvQ1L/4QFNRAO1WPpcJAsNTFfuYbzJhz+JSN89RhbxI1n0cMR+JoXUVebrbq0+YRXJxpBP63vyG7xvduAXn4egAeFCZxAHSu71vO2XbM7Fb9qCviX64O65Ebx4ix8pJ9Csr8sDGhgzg4FhGkAXmSk9Gt+mWx+wLLe+Or5fwR3kA5i9rY3UV1ehRuUoqov8zeqyPnFOAqxj3iivljZETGo0lToR4hTBC35Kb6Qf/THsa+Qu1os8duextJDSbfx/ek875wwOmI2Z+31LtJBDnvXakoL0IsydT3QgawIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBCnqHSPX6EmAHQqx1Mf6KZPbcrheWfk8toLV6jDkGWOgRGCutselJ15Tc9xYKfwuRMeNtHXrQA+mFVVDlYVB42xjY9K7eDulQOMv5GpKg1X01B8d1o/xxfYdVEGbU5qe5Uc7wOrZPGY8VfSX7WF+PQmxzmhmpcImBSS93o0eA/UkagUZCqcGxYyRfkQTdmH5eng5jLebkIntgX+CZ6ZQ2awJ3FkhjkWqrivHe5S47Li989rIrKImtoMwaH4DcumrhUJi7TObr1EfhbCLzteAhvKMGV8AJEQZ7G8eSVzGTkVetD3VTrIrtoKFBskFbQeGTPII/AmyzYQDf5A0TJgFrn" ],
-        "priority" : [ "100" ],
-        "algorithm" : [ "RSA-OAEP" ]
+        "allowed-protocol-mapper-types" : [ "saml-user-attribute-mapper", "oidc-usermodel-attribute-mapper", "oidc-full-name-mapper", "oidc-usermodel-property-mapper", "saml-role-list-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-address-mapper" ]
       }
     }, {
+      "id" : "5197222e-fa36-40a1-8b6a-c5812a3dda73",
+      "name" : "Max Clients Limit",
+      "providerId" : "max-clients",
+      "subType" : "anonymous",
+      "subComponents" : { },
+      "config" : {
+        "max-clients" : [ "200" ]
+      }
+    }, {
+      "id" : "7bc99367-4c6d-447f-80e5-2a174d81a280",
+      "name" : "Trusted Hosts",
+      "providerId" : "trusted-hosts",
+      "subType" : "anonymous",
+      "subComponents" : { },
+      "config" : {
+        "host-sending-registration-request-must-match" : [ "true" ],
+        "client-uris-must-match" : [ "true" ]
+      }
+    } ],
+    "org.keycloak.userprofile.UserProfileProvider" : [ {
+      "id" : "abfb4b10-ba7a-4e1b-8f04-834162535e6e",
+      "providerId" : "declarative-user-profile",
+      "subComponents" : { },
+      "config" : { }
+    } ],
+    "org.keycloak.keys.KeyProvider" : [ {
       "id" : "f73027f5-e253-4c24-bf3f-0b471978d676",
       "name" : "hmac-generated",
       "providerId" : "hmac-generated",
@@ -1761,6 +1828,18 @@
         "keyUse" : [ "SIG" ],
         "certificate" : [ "MIICnzCCAYcCBgGIRzsxlDANBgkqhkiG9w0BAQsFADATMREwDwYDVQQDDAhhdWd1c3RpbjAeFw0yMzA1MjMwNjA5MDFaFw0zMzA1MjMwNjEwNDFaMBMxETAPBgNVBAMMCGF1Z3VzdGluMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3WQGXcZPvuFNoPSEUzlM52YgtpPSp4MpiuKa77sJiLWHONnj/+L02pvlDfuqgJdJP3fmQGcCqcN5s2/DArnPPGf/ztfDINiSXbVAzvveRp+/jqqN67hVnD1U1iBUMqy4mpzL2ET2yCGoBTCMii62pUD5R7Vev1dy2T8d7KVEa+8wTHyOPI/LqRq+z/nuZ0nfwXvNpER0Si+cNNEhxeZx0fFbKcc8QMXx+gZPFvxrnntXPoKFnBZbeYdvkmjCBMSkYuiHO9eUSFs7pu9jelFIEiZ80S4JyVdVPYv4ZcDuNZajdX76ma+qTC5D0zPulVChefVlVQkJZmj/NADCdJZzgQIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBCtpZVi2EH57oQ9wUUx2g1LH/u4sd7tJxuyCYwugELeVro1bW628f2vbIFq0tbxSBJEBHTBcVxZEDncoW3h5n7fp57ruJUeenjIO95Fblsnle6zB+AbZkgVJHvcBK0aThviOr9wHaC4o8nG72A5AaITSRjXqJI0aHIYBFiT4ec5PVPDKsyaacOQWUBxYqLoF0xoe/JbE6HKBpAButrbJNOLDW3lGQx63+U9zuerZXHmKueW+0Kpg63XyNyG1ISZgVfTzWrdOgpMEMOPpL48+ZZC7GutyNy/p1k7DvNnxE5twSc9jG7QyVClC9K0WfWXvrhEMFCTNMuGhyC5OS7Fzxr" ],
         "priority" : [ "100" ]
+      }
+    }, {
+      "id" : "ec63b259-9945-4a2d-a210-759e631f5a2b",
+      "name" : "rsa-enc-generated",
+      "providerId" : "rsa-enc-generated",
+      "subComponents" : { },
+      "config" : {
+        "privateKey" : [ "MIIEogIBAAKCAQEAnHMk5xCElQId3MW0x4oEfddytTq8iRG0HwhwWqQne2kQtv0pTbRvQ1L/4QFNRAO1WPpcJAsNTFfuYbzJhz+JSN89RhbxI1n0cMR+JoXUVebrbq0+YRXJxpBP63vyG7xvduAXn4egAeFCZxAHSu71vO2XbM7Fb9qCviX64O65Ebx4ix8pJ9Csr8sDGhgzg4FhGkAXmSk9Gt+mWx+wLLe+Or5fwR3kA5i9rY3UV1ehRuUoqov8zeqyPnFOAqxj3iivljZETGo0lToR4hTBC35Kb6Qf/THsa+Qu1os8duextJDSbfx/ek875wwOmI2Z+31LtJBDnvXakoL0IsydT3QgawIDAQABAoIBAE4WvPMmT/7uLQiemCLG1YIYcTVbKXLDJuQcerQLXnefVAv6Jc0WxDhW68gbtby+mxxb7nTBHXSfKSmYqQB8aqI4ZyWeWuMZycQll4/T2c28soOuLkYYMXwOWQ3BcnF8pygvJytl7ywxCstVeUZiKr8P2jahqHOxnfOaEnSGQ1LBt1/5RnIWV2xDiQSSNE6VBp5imUjTd8YVce6AnPPivErCbLy86w7gjW5i7AG7vNyetIEXaWkveyf5Ki2kJ87i2Eu+4PR28e+7D7Cb4ZxPwpErvWphC9qMGhrYWK3+YhHuUVNR5BVaY4P/hkRhRZnk+9YMTjkLcbnFYL448432rBUCgYEA0qCvTidSTsL9sT1SQ4DI58zQwFIVMrVybPqiLFmzIVnGrpGKyTttfcovPwVmz+TRAoubOjti1+OKAor1jCvNc2WcLY9sMNcSBKjVwi6hM278oc1YhoZZgNandDBeTzOjGTQR/WVJTnJFncQNkrCkyTpr184NNCJ11uTJlwfblz8CgYEAvibBLg9uYtnEAC+CA0WmWebAlMxiYMZznSqkqDESwMPRZElOJsDczaUQYAMZhymaFf46fRytDBbyqC4GpgZZANc5SZvCi7DQKpbeLbAlnEGcjS87M5onfenFHbCPDuFjhrZX/5rxGIYC+ARdE+cUTWinaxjkFuJBUUHFS3pPd9UCgYB01/boICAk2T7rB92O3O6WyKQ1TFO+IbIsio1UlR4uLiNtzAd1wqXm1jaHe3OheIoKI3AlSbR3lx6Ecpns/I+oqIGPNLUMEwNH2nFam4uJgNRc3hFx7y3Pr0SNzBdFUJv161DfhUS5Y+MCtjPhYGTJzMLuoLvqZAODBsBeLFnA+QKBgFA/dsODi6h4ErmpUwsid8P1GE0zvEjvN5eaiYbZvvpPKa1TKoI8XnMDOFfstvdN3VNuySxHz9gMTzgexHuIrkMmkWy5KW9enVt79CP/9L9vCSykRC3Q3t3KrH+NJbK3+BLAHX8n2pvo4pPc85MUsILCqfUOuiPWNI6gXS0vXx5JAoGAJf3MgCJmPPZJWkAfVU2qKKx4gt7Q6+duhj1cxFhQgGtsBJXld08wFhVfsTIIL2/vxbvs6rfyeOcfyHKP3iVU3YB16dNGUbAZvQQVzLFTivVG79BsHNLhHx76jUgurkCWnGJSY/aM44713TT3d5z0rCtkNuvXyGe/uyr/psjIbnw=" ],
+        "keyUse" : [ "ENC" ],
+        "certificate" : [ "MIICnzCCAYcCBgGIRzsyvDANBgkqhkiG9w0BAQsFADATMREwDwYDVQQDDAhhdWd1c3RpbjAeFw0yMzA1MjMwNjA5MDFaFw0zMzA1MjMwNjEwNDFaMBMxETAPBgNVBAMMCGF1Z3VzdGluMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnHMk5xCElQId3MW0x4oEfddytTq8iRG0HwhwWqQne2kQtv0pTbRvQ1L/4QFNRAO1WPpcJAsNTFfuYbzJhz+JSN89RhbxI1n0cMR+JoXUVebrbq0+YRXJxpBP63vyG7xvduAXn4egAeFCZxAHSu71vO2XbM7Fb9qCviX64O65Ebx4ix8pJ9Csr8sDGhgzg4FhGkAXmSk9Gt+mWx+wLLe+Or5fwR3kA5i9rY3UV1ehRuUoqov8zeqyPnFOAqxj3iivljZETGo0lToR4hTBC35Kb6Qf/THsa+Qu1os8duextJDSbfx/ek875wwOmI2Z+31LtJBDnvXakoL0IsydT3QgawIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBCnqHSPX6EmAHQqx1Mf6KZPbcrheWfk8toLV6jDkGWOgRGCutselJ15Tc9xYKfwuRMeNtHXrQA+mFVVDlYVB42xjY9K7eDulQOMv5GpKg1X01B8d1o/xxfYdVEGbU5qe5Uc7wOrZPGY8VfSX7WF+PQmxzmhmpcImBSS93o0eA/UkagUZCqcGxYyRfkQTdmH5eng5jLebkIntgX+CZ6ZQ2awJ3FkhjkWqrivHe5S47Li989rIrKImtoMwaH4DcumrhUJi7TObr1EfhbCLzteAhvKMGV8AJEQZ7G8eSVzGTkVetD3VTrIrtoKFBskFbQeGTPII/AmyzYQDf5A0TJgFrn" ],
+        "priority" : [ "100" ],
+        "algorithm" : [ "RSA-OAEP" ]
       }
     } ]
   },
@@ -2365,7 +2444,7 @@
     "cibaInterval" : "5",
     "realmReusableOtpCode" : "false"
   },
-  "keycloakVersion" : "21.1.1",
+  "keycloakVersion" : "21.1.2",
   "userManagedAccessAllowed" : false,
   "clientProfiles" : {
     "profiles" : [ ]

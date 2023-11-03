@@ -16,7 +16,14 @@ CREATE TABLE Vendor (
     PLZ varchar(255) NOT NULL DEFAULT '',
     Location varchar(255) NOT NULL DEFAULT '',
     WorkingTime varchar(1) NOT NULL DEFAULT '',
-    Lang varchar(255) NOT NULL DEFAULT ''
+    Language varchar(255) NOT NULL DEFAULT '',
+    Comment text NOT NULL DEFAULT '',
+    Telephone varchar(255) NOT NULL DEFAULT '',
+    RegistrationDate varchar(255) NOT NULL DEFAULT '',
+    VendorSince varchar(255) NOT NULL DEFAULT '',
+    OnlineMap bool NOT NULL DEFAULT FALSE,
+    HasSmartphone bool NOT NULL DEFAULT FALSE,
+    HasBankAccount bool NOT NULL DEFAULT FALSE
 );
 
 CREATE TYPE AccountType AS ENUM ('', 'UserAuth', 'UserAnon', 'Vendor', 'Orga', 'Cash', 'Paypal', 'VivaWallet');  -- UserAnon, Orga, and Cash, VivaWallet, Paypal should only exist once
@@ -76,10 +83,17 @@ CREATE TABLE Payment (
 
 CREATE TABLE Settings (
     ID integer UNIQUE PRIMARY KEY CHECK (ID = 1) DEFAULT 1,
-    Color varchar(255) NOT NULL DEFAULT '',
-    Logo varchar(255) NOT NULL DEFAULT '',
+    Color varchar(255) NOT NULL DEFAULT '#008000',
+    FontColor varchar(255) NOT NULL DEFAULT '#FFFFFF',
+    Logo varchar(255) NOT NULL DEFAULT 'img/logo.png',
     MainItem integer REFERENCES Item,
-    RefundFees bool NOT NULL DEFAULT FALSE
+    MaxOrderAmount integer NOT NULL DEFAULT 10000,  -- Default value is 10000, which equals 100€
+    OrgaCoversTransactionCosts bool NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE DBsettings (
+    id integer PRIMARY KEY CHECK (ID = 1) DEFAULT 1,
+    isInitialized bool NOT NULL DEFAULT FALSE
 );
 
 
@@ -98,5 +112,5 @@ $$ LANGUAGE plpgsql;
 ---- create above / drop below ----
 
 
-DROP TABLE Vendor, Account, Item, PaymentOrder, OrderItem, Payment, Settings;
+DROP TABLE Vendor, Account, Item, PaymentOrder, OrderItem, Payment, Settings, DBsettings;
 DROP TYPE AccountType;

@@ -3,6 +3,8 @@ package database
 import (
 	"context"
 	"errors"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -48,16 +50,16 @@ func (db *Database) GetHelloWorld() (string, error) {
 
 // Users ----------------------------------------------------------------------
 
-// ListVendors returns all users from the database
+// ListVendors returns all users from the database but not all fields for better overview
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id")
 	if err != nil {
 		log.Error(err)
 		return vendors, err
 	}
 	for rows.Next() {
 		var vendor Vendor
-		err = rows.Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.Balance)
+		err = rows.Scan(&vendor.ID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.LastPayout, &vendor.Balance)
 		if err != nil {
 			log.Error(err)
 			return vendors, err
@@ -70,9 +72,10 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
 	// Get vendor data
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Lang)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount)
 	if err != nil {
-		log.Error(err)
+		log.Error("Couldn't get vendor", licenseID, err)
+		return vendor, err
 	}
 
 	// Get vendor balance
@@ -80,20 +83,37 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 	if err != nil {
 		log.Error(err)
 	}
-	return
+	return vendor, err
 }
 
-// CreateVendor creates a vendor and an associated account in the database
-func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
-
-	// Create vendor
-	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Lang) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING ID", vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Lang).Scan(&vendorID)
+// GetVendor returns the vendor with the given id
+func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
+	// Get vendor data
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount)
+	if err != nil {
+		log.Error("Couldn't get vendor", vendorID, err)
+		return vendor, err
+	}
+	// Get vendor balance
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
 	if err != nil {
 		log.Error(err)
 	}
+	return vendor, err
+}
+
+// CreateVendor creates a vendor and an associated account in the database
+func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
+
+	// Create vendor
+	err = db.Dbpool.QueryRow(context.Background(), "insert into Vendor (keycloakid, urlid, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Language, Comment, Telephone, RegistrationDate, VendorSince, OnlineMap, HasSmartphone, HasBankAccount) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING ID", vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Language, vendor.Comment, vendor.Telephone, vendor.RegistrationDate, vendor.VendorSince, vendor.OnlineMap, vendor.HasSmartphone, vendor.HasBankAccount).Scan(&vendorID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
 	// Create vendor account
-	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Balance, Type, Vendor) values (0, $2, $1) RETURNING ID", vendorID, "Vendor")
+	_, err = db.Dbpool.Exec(context.Background(), "insert into Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, "Vendor", vendorID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -106,9 +126,9 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int32, err error) {
 func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Vendor
-	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7, IsDisabled = $8, Longitude = $9, Latitude = $10, Address = $11, PLZ = $12, Location = $13, WorkingTime = $14, Lang = $15
-	WHERE ID = $16
-	`, vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Lang, id)
+	SET keycloakid = $1, urlid = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7, IsDisabled = $8, Longitude = $9, Latitude = $10, Address = $11, PLZ = $12, Location = $13, WorkingTime = $14, Language = $15, Comment = $16, Telephone = $17, RegistrationDate = $18, VendorSince = $19, OnlineMap = $20, HasSmartphone = $21, HasBankAccount = $22
+	WHERE ID = $23
+	`, vendor.KeycloakID, vendor.URLID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Language, vendor.Comment, vendor.Telephone, vendor.RegistrationDate, vendor.VendorSince, vendor.OnlineMap, vendor.HasSmartphone, vendor.HasBankAccount, id)
 	if err != nil {
 		log.Error(err)
 	}
@@ -177,7 +197,7 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 }
 
 // CreateItem creates an item in the database
-func (db *Database) CreateItem(item Item) (id int32, err error) {
+func (db *Database) CreateItem(item Item) (id int, err error) {
 	// Check if the item name already exists
 	var count int
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Item WHERE Name = $1", item.Name).Scan(&count)
@@ -226,14 +246,14 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // GetOrderEntries returns all entries of an order
 func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Item, Quantity, Price, Sender, Receiver, IsSale FROM OrderEntry WHERE paymentorder = $1", orderID)
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT OrderEntry.ID, Item, Quantity, Price, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, IsSale FROM OrderEntry JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE paymentorder = $1 ", orderID)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	for rows.Next() {
 		var entry OrderEntry
-		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver, &entry.IsSale)
+		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver, &entry.SenderName, &entry.ReceiverName, &entry.IsSale)
 		if err != nil {
 			log.Error(err)
 			return
@@ -320,7 +340,11 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 
 	// Create order items
 	for _, entry := range order.Entries {
-		createOrderEntryTx(tx, orderID, entry)
+		_, err = createOrderEntryTx(tx, orderID, entry)
+		if err != nil {
+			log.Error(err)
+			return
+		}
 	}
 
 	return
@@ -355,21 +379,22 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	// If no payment exists for this entry, create one
 	var payment Payment
 	if count == 0 && !errorIfExists {
-		err = nil
 		payment = Payment{
 			Sender:     entry.Sender,
 			Receiver:   entry.Receiver,
 			Amount:     entry.Price * entry.Quantity,
 			Order:      null.NewInt(int64(orderID), true),
 			OrderEntry: null.NewInt(int64(entry.ID), true),
-			IsSale:   entry.IsSale,
+			IsSale:     entry.IsSale,
+			Item:       null.NewInt(int64(entry.Item), true),
+			Quantity:   entry.Quantity,
+			Price:      entry.Price,
 		}
 		paymentID, err = createPaymentTx(tx, payment)
 	}
 
 	return
 }
-
 
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
@@ -433,19 +458,64 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 // Payments -------------------------------------------------------------------
 
 // ListPayments returns the payments from the database
-func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments []Payment, err error) {
+func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool, filterSales bool, filterNoPayout bool) (payments []Payment, err error) {
 	var rows pgx.Rows
 
-	// Query based on parameters
-	if !minDate.IsZero() && !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1 AND Timestamp <= $2", minDate, maxDate)
-	} else if !minDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp >= $1", minDate)
-	} else if !maxDate.IsZero() {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment WHERE Timestamp <= $1", maxDate)
-	} else {
-		rows, err = db.Dbpool.Query(context.Background(), "SELECT * FROM Payment")
+	// Create filters
+	var filters []string
+	var filterValues []any
+	var vendor Vendor
+	var vendorAccount Account
+	var cashAccountID int
+	if !minDate.IsZero() {
+		filterValues = append(filterValues, minDate)
+		filters = append(filters, "Timestamp >= $"+strconv.Itoa(len(filterValues)))
 	}
+	if !maxDate.IsZero() {
+		filterValues = append(filterValues, maxDate)
+		filters = append(filters, "Timestamp <= $"+strconv.Itoa(len(filterValues)))
+
+	}
+	if vendorLicenseID != "" {
+		vendor, err = db.GetVendorByLicenseID(vendorLicenseID)
+		if err != nil {
+			return
+		}
+		vendorAccount, err = db.GetAccountByVendorID(vendor.ID)
+		if err != nil {
+			return
+		}
+		filterValues = append(filterValues, vendorAccount.ID)
+		filters = append(filters, "(Sender = $"+strconv.Itoa(len(filterValues))+" OR Receiver = $"+strconv.Itoa(len(filterValues))+")")
+	}
+	if filterPayouts {
+		cashAccountID, err = db.GetAccountTypeID("Cash")
+		if err != nil {
+			return
+		}
+		filterValues = append(filterValues, cashAccountID)
+		filters = append(filters, "Receiver = $"+strconv.Itoa(len(filterValues)))
+	}
+	if filterNoPayout {
+		// Does not have a payout and is not a payout (i.e. payment to cash)
+		cashAccountID, err = db.GetAccountTypeID("Cash")
+		if err != nil {
+			return
+		}
+		filterValues = append(filterValues, cashAccountID)
+		filters = append(filters, "Payout IS NULL AND Receiver != $"+strconv.Itoa(len(filterValues)))
+	}
+	if filterSales {
+		filterValues = append(filterValues, true)
+		filters = append(filters, "IsSale = $"+strconv.Itoa(len(filterValues)))
+	}
+
+	// Query based on parameters
+	query := "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver"
+	if len(filters) > 0 {
+		query += " WHERE " + strings.Join(filters, " AND ")
+	}
+	rows, err = db.Dbpool.Query(context.Background(), query, filterValues...)
 	if err != nil {
 		log.Error(err)
 		return payments, err
@@ -454,18 +524,42 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time) (payments
 	// Scan rows
 	for rows.Next() {
 		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale, &payment.Payout, &payment.Item, &payment.Quantity, &payment.Price)
 		if err != nil {
+			log.Error(err)
 			return payments, err
 		}
+
+		// Add payout payments to main payment
+		subrows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Timestamp, Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment WHERE Payout = $1", payment.ID)
+		if err != nil {
+			log.Error(err)
+			return payments, err
+		}
+		for subrows.Next() {
+			var subpayment Payment
+			err = subrows.Scan(&subpayment.ID, &subpayment.Timestamp, &subpayment.Sender, &subpayment.Receiver, &subpayment.Amount, &subpayment.AuthorizedBy, &subpayment.Order, &subpayment.OrderEntry, &subpayment.IsSale, &subpayment.Payout, &subpayment.Item, &subpayment.Quantity, &subpayment.Price)
+			if err != nil {
+				log.Error(err)
+				return payments, err
+			}
+			payment.IsPayoutFor = append(payment.IsPayoutFor, subpayment)
+		}
+
 		payments = append(payments, payment)
 	}
+
 	return payments, nil
 }
 
-// GetPayment
+// ListPaymentsForPayout returns sales payments that have not been paid out yet
+func (db *Database) ListPaymentsForPayout(minDate time.Time, maxDate time.Time, vendorLicenseID string) (payments []Payment, err error) {
+	return db.ListPayments(minDate, maxDate, vendorLicenseID, false, false, true)
+}
+
+// GetPayment returns the payment with the given ID
 func (db *Database) GetPayment(id int) (payment Payment, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Payment WHERE ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE Payment.ID = $1", id).Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale, &payment.Payout, &payment.Item, &payment.Quantity, &payment.Price)
 	if err != nil {
 		log.Error(err)
 	}
@@ -482,7 +576,7 @@ func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 	}
 
 	// Create payment
-	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry, payment.IsSale).Scan(&paymentID)
+	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry, payment.IsSale, payment.Payout, payment.Item, payment.Quantity, payment.Price).Scan(&paymentID)
 	if err != nil {
 		log.Error(err)
 		return
@@ -535,6 +629,61 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 		}
 	}
 	return nil
+}
+
+// CreatePaymentPayout creates a payout for a range of payments
+func (db *Database) CreatePaymentPayout(vendor Vendor, vendorAccountID int, authorizedBy string, amount int, payments []Payment) (paymentID int, err error) {
+
+	// Create a transaction to insert all payments at once
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	defer func() { err = deferTx(tx, err) }()
+
+	// Get cash account
+	cashAccount, err := db.GetAccountByType("Cash")
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	payment := Payment{
+		Sender:       vendorAccountID,
+		Receiver:     cashAccount.ID,
+		Amount:       amount,
+		AuthorizedBy: authorizedBy,
+	}
+
+	// Insert payments within the transaction
+	paymentID, err = createPaymentTx(tx, payment)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Document that these payments have a payout
+	for _, payment := range payments {
+		_, err = tx.Exec(context.Background(), `
+		UPDATE Payment
+		SET Payout = $1
+		WHERE ID = $2
+		`, paymentID, payment.ID)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+	// Update last payout date
+	vendor.LastPayout = null.NewTime(time.Now(), true)
+	err = db.UpdateVendor(vendor.ID, vendor)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	return
 }
 
 // Accounts -------------------------------------------------------------------
@@ -598,14 +747,16 @@ func (db *Database) GetAccountByID(id int) (account Account, err error) {
 	return
 }
 
-// GetAccountByUser returns the account with the given user
-func (db *Database) GetAccountByUser(user string) (account Account, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE User = $1", user).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+// GetOrCreateAccountByUserID returns the account with the given user
+func (db *Database) GetOrCreateAccountByUserID(userID string) (account Account, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE UserID = $1", userID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
 		if err.Error() == "no rows in result set" {
-			err = errors.New("user does not exist or has no account")
+			err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Type, UserID) values ($1, $2) RETURNING *", "UserAuth", userID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
+			log.Info("Created new account for user " + userID)
+		} else {
+			log.Error(err)
 		}
-		log.Error(err)
 	}
 	return
 }
@@ -617,7 +768,7 @@ func (db *Database) GetAccountByVendorID(vendorID int) (account Account, err err
 		if err.Error() == "no rows in result set" {
 			err = errors.New("vendor does not exist or has no account")
 		}
-		log.Error(err)
+		log.Error(err, vendorID)
 	}
 	return
 }
@@ -709,8 +860,8 @@ func (db *Database) InitiateSettings() (err error) {
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
-	SELECT * from Settings LIMIT 1
-	`).Scan(&settings.ID, &settings.Color, &settings.Logo, &settings.MainItem, &settings.RefundFees, &settings.MaxOrderAmount)
+	SELECT Settings.ID, Color, FontColor, Logo, MainItem, MaxOrderAmount, OrgaCoversTransactionCosts, Name, Price, Description, Image from Settings LEFT JOIN Item ON Item.ID = MainItem LIMIT 1
+	`).Scan(&settings.ID, &settings.Color, &settings.FontColor, &settings.Logo, &settings.MainItem, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts, &settings.MainItemName, &settings.MainItemPrice, &settings.MainItemDescription, &settings.MainItemImage)
 	if err != nil {
 		log.Error(err)
 	}
@@ -722,9 +873,9 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = db.Dbpool.Query(context.Background(), `
 	UPDATE Settings
-	SET Color = $1, Logo = $2, MainItem = $3, RefundFees = $4, MaxOrderAmount = $5
+	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6
 	WHERE ID = 1
-	`, settings.Color, settings.Logo, settings.MainItem, settings.RefundFees, settings.MaxOrderAmount)
+	`, settings.Color, settings.FontColor, settings.Logo, settings.MainItem, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts)
 
 	if err != nil {
 		log.Error(err)

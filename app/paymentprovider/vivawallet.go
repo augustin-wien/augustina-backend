@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 	"strings"
 
@@ -22,6 +23,7 @@ import (
 
 var log = utils.GetLogger()
 
+// AuthenticateToVivaWallet authenticates to VivaWallet and returns an access token
 func AuthenticateToVivaWallet() (string, error) {
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletAccountsURL
@@ -30,7 +32,11 @@ func AuthenticateToVivaWallet() (string, error) {
 	}
 	resource := "/connect/token"
 	jsonPost := []byte(`grant_type=client_credentials`)
-	u, _ := url.ParseRequestURI(apiURL)
+	u, err := url.ParseRequestURI(apiURL)
+	if err != nil {
+		log.Error("Parsing URL failed: ", err)
+		return "", err
+	}
 	u.Path = resource
 	urlStr := u.String()
 
@@ -89,9 +95,10 @@ func AuthenticateToVivaWallet() (string, error) {
 	return authResponse.AccessToken, nil
 }
 
+// CreatePaymentOrder creates a payment order and returns the order code
 func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 	// Create a new request URL using http
-	apiURL := config.Config.VivaWalletApiURL
+	apiURL := config.Config.VivaWalletAPIURL
 	if apiURL == "" {
 		return 0, errors.New("VivaWalletApiURL is not set")
 	}
@@ -103,8 +110,8 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 	// Create a new sample customer
 	// TODO once registration is possible: Check if user is "UserAnon" and if not change this to customer fields
 	customer := Customer{
-		Email:       "verein@augustin.or.at",
-		Fullname:    "Augustin Straßenzeitung",
+		Email:       "",
+		Fullname:    "",
 		CountryCode: "AT",
 		RequestLang: "de-AT",
 	}
@@ -114,11 +121,15 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 
 	// Iterate through the order entries and retrieve item names
 	for _, entry := range order.Entries {
-		item, err := database.Db.GetItem(entry.Item) // Replace this with your logic
+		item, err := database.Db.GetItem(entry.Item) // Get item by ID
 		if err != nil {
 			log.Error("Item could not be found", zap.Error(err))
 		}
 		items = append(items, item.Name)
+	}
+
+	if config.Config.VivaWalletSourceCode == "" {
+		return 0, errors.New("VIVA_WALLET_SOURCE_CODE is not set")
 	}
 
 	// Create a new sample payment order
@@ -133,10 +144,10 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 		PaymentNotification: true,
 		TipAmount:           0,
 		DisableExactAmount:  false,
-		DisableCash:         true,
-		DisableWallet:       true,
-		SourceCode:          utils.GetEnv("VIVA_WALLET_SOURCE_CODE", ""),
-		MerchantTrns:        "Die Augustin Familie bedankt sich für Ihre Überweisung!",
+		DisableCash:         false,
+		DisableWallet:       false,
+		SourceCode:          config.Config.VivaWalletSourceCode,
+		MerchantTrns:        "Ein gutes Leben für alle!",
 		Tags:                items,
 	}
 
@@ -187,13 +198,16 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 
 }
 
-func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest) (err error) {
-	// Log the request body
-	log.Info("Whole request body of transaction success webhook", paymentSuccessful)
+// HandlePaymentSuccessfulResponse handles the webhook response for a successful payment
+func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest) (err error) {
 
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
-	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionId)
+	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionID, false)
+	if err != nil {
+		log.Error("TransactionID could not be verified: ", err)
+		return err
+	}
 
 	// 1. Check: Verify that webhook request and API response match all three fields
 
@@ -202,13 +216,12 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	if transactionVerificationResponse.Amount != paymentSuccessful.EventData.Amount {
-		log.Info("Amount mismatch", zap.Float64(" transactionVerificationResponse.Amount ", transactionVerificationResponse.Amount), zap.Float64(" paymentSuccessful.EventData.Amount ", paymentSuccessful.EventData.Amount))
 		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
 		webhookToFloat64 := fmt.Sprintf("%f", paymentSuccessful.EventData.Amount)
 		return errors.New("Amount mismatch:" + transactionToFloat64 + "  vs. " + webhookToFloat64)
 	}
 
-	if transactionVerificationResponse.StatusId != paymentSuccessful.EventData.StatusId {
+	if transactionVerificationResponse.StatusID != paymentSuccessful.EventData.StatusID {
 		return errors.New("StatusId mismatch")
 	}
 
@@ -227,7 +240,23 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	// Sum up all prices of orderentries and compare with amount
 	var sum float64
 	for _, entry := range order.Entries {
-		sum += float64(entry.Price)
+
+		// Check for TransactionCostsName
+		if config.Config.TransactionCostsName == "" {
+			return errors.New("TransactionCostsName is not set")
+		}
+
+		// Check if entry is transaction costs, which are not included in the sum
+		var item database.Item
+		item, err = database.Db.GetItemByName(config.Config.TransactionCostsName)
+		if err != nil {
+			return err
+		}
+		if entry.Item == item.ID {
+			continue // Skip transaction costs
+		}
+
+		sum += float64(entry.Price * entry.Quantity)
 	}
 	// Amount would mismatch without converting to float64
 	// Note: Bad consistency by VivaWallet representing amount in cents and int vs euro and float
@@ -238,18 +267,54 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionDetailRequest)
 	}
 
 	// Since every check passed, now set verification status of order and create payments
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeId)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeID)
 	if err != nil {
 		return err
+	}
+
+	// Check if VivaWalletTransactionTypeIDPaypal is set
+	if config.Config.VivaWalletTransactionTypeIDPaypal == 0 {
+		return errors.New("Env variable VivaWalletTransactionTypeIDPaypal is not set")
+	}
+
+	// Check if order has been payed via Paypal i.e. TransactionTypeId == 48
+	// Check TransactionTypeId here: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
+	if paymentSuccessful.EventData.TransactionTypeID == config.Config.VivaWalletTransactionTypeIDPaypal {
+
+		// Check if PaypalPercentageCosts and PaypalFixCosts are set
+		if config.Config.PaypalPercentageCosts == 0 {
+			return errors.New("Env variable PaypalPercentageCosts is not set")
+		}
+
+		if config.Config.PaypalFixCosts == 0 {
+			return errors.New("Env variable PaypalFixCosts is not set")
+		}
+
+		// Convert percentage to multiply it with total sum i.e. 0.05 for 5% transaction costs
+		convertedPercentageCosts := (config.Config.PaypalPercentageCosts) / 100
+
+		// Calculate transaction costs i.e. 0.034 * 100ct + 35 = 38.4ct
+		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
+
+		// Given after research that aypal rounds down on 3.4 ct to 3 ct we use math.Round
+		paypalAmount = math.Round(paypalAmount)
+
+		// Create order entries for transaction costs
+		// WARNING: int() always rounds down in case you stop using math.Round
+		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
+		if err != nil {
+			return err
+		}
 	}
 
 	return
 }
 
-func VerifyTransactionID(transactionID string) (transactionVerificationResponse TransactionVerificationResponse, err error) {
+// VerifyTransactionID verifies that the transactionID belongs to VivaWallet and returns the transaction details
+func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionVerificationResponse TransactionVerificationResponse, err error) {
 
 	// Create a new request URL using http
-	apiURL := config.Config.VivaWalletApiURL
+	apiURL := config.Config.VivaWalletAPIURL
 	if apiURL == "" {
 		return transactionVerificationResponse, errors.New("VivaWalletApiURL is not set")
 	}
@@ -304,24 +369,39 @@ func VerifyTransactionID(transactionID string) (transactionVerificationResponse 
 	}
 
 	// 1. Check: Verify that transaction has correct status, only status "F" and "MW" is allowed according to VivaWallet
-	if transactionVerificationResponse.StatusId != "F" && transactionVerificationResponse.StatusId != "MW" {
-		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction.")
+	if transactionVerificationResponse.StatusID != "F" && transactionVerificationResponse.StatusID != "MW" {
+		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction")
+	}
+
+	// Only check isOrderVerified status if checkDBStatus is true
+	if checkDBStatus {
+		// 2. Check: Verify that transaction has been verified in database
+		order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(transactionVerificationResponse.OrderCode))
+		if err != nil {
+			log.Error("Getting order from database failed: ", err)
+			return transactionVerificationResponse, err
+		}
+		if !order.Verified {
+			log.Info("Order has not been verified in database but needs to be for frontend call")
+			return transactionVerificationResponse, errors.New("Order has not been verified in database but needs to be for frontend call")
+		}
 	}
 
 	return transactionVerificationResponse, err
 }
 
-func HandlePaymentFailureResponse(paymentFailure TransactionDetailRequest) (err error) {
-	log.Info("paymentFailure", paymentFailure)
+// HandlePaymentFailureResponse handles the webhook response for a failed payment
+func HandlePaymentFailureResponse(paymentFailure TransactionSuccessRequest) (err error) {
+	// This webhook has no purpose yet, but could be used to handle failed payments
 	return
 }
 
+// HandlePaymentPriceResponse handles the webhook response for a price change for now only for Card transactions
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
 	//Log the request body
-	log.Info("Whole request body of transaction price webhook", paymentPrice)
 
 	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
-	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionId)
+	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionID, false)
 	if err != nil {
 		return err
 	}
@@ -332,48 +412,53 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 		return err
 	}
 
-	// TODO: Add Paypal API call to get transaction costs
-	// TODO: Test if VivaWallet still sends a 0.0 TotalCommission by an amount of 10€
-	// TOTHINKABOUT: Should we save which payment provider has been used for our transaction in the database i.e. Paypal or VivaWallet?
-	// Easy to do in success webhook with this param: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
-
-	// 3. Check: Check if TotalCommission is 0.0, which means that transaction costs are on Paypals side
-	// WARNING: This logic builds upon the assumption that there is only Paypal as a payment provider, which leads to a 0.0 TotalCommission
+	// 3. Check: If TotalCommission is 0.0, return without creating transaction costs
 	if paymentPrice.EventData.TotalCommission == 0.0 {
+		return
+	}
 
-		// Convert percentage to multiply it with total sum i.e. 1.05 for 5% transaction costs
-		convertedPercentageCosts := (config.Config.PaypalPercentageCosts + 100) / 100
-		// Calculate transaction costs
-		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
-		// Create order entries for transaction costs
-		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
-
-	} else {
-
-		transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
-		// Create order entries for transaction costs
-		err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
-
+	transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
+	// Create order entries for transaction costs
+	err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
+	if err != nil {
+		return err
 	}
 
 	return
 }
 
-// Create payments and order entries to list transaction costs
+// CreateTransactionCostEntries creates payments and order entries to list transaction costs
 func CreateTransactionCostEntries(order database.Order, transactionCosts int, paymentProvider string) (err error) {
+
+	if config.Config.TransactionCostsName == "" {
+		return errors.New("TransactionCostsName is not set")
+	}
 
 	// Get ID of transaction costs item
 	transactionCostsItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
+	if err != nil {
+		return err
+	}
+
 	// Get ID of VivaWallet account
-	VivaWalletID, err := database.Db.GetAccountTypeID(paymentProvider)
+	paymentProviderAccountID, err := database.Db.GetAccountTypeID(paymentProvider)
+	if err != nil {
+		return err
+	}
+
+	// Get ID of vendor account
+	vendorAccount, err := database.Db.GetAccountByVendorID(order.Vendor)
+	if err != nil {
+		return err
+	}
 
 	// Create order entries for transaction costs
 	var entries = []database.OrderEntry{
 		{
-			Item:     transactionCostsItem.ID, // ID of transaction costs item
-			Quantity: transactionCosts,        // Amount of transaction costs
-			Sender:   order.Vendor,            // ID of vendor
-			Receiver: VivaWalletID,            // ID of VivaWallet
+			Item:     transactionCostsItem.ID,  // ID of transaction costs item
+			Quantity: transactionCosts,         // Amount of transaction costs
+			Sender:   vendorAccount.ID,         // ID of vendor
+			Receiver: paymentProviderAccountID, // ID of Payment Provider
 		},
 	}
 
@@ -383,17 +468,26 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		return err
 	}
 
-	if config.Config.OrgaCoversTransactionCosts {
+	var settings database.Settings
+	settings, err = database.Db.GetSettings()
+	if err != nil {
+		return err
+	}
+
+	if settings.OrgaCoversTransactionCosts {
 
 		// Get ID of Orga account
 		orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
+		if err != nil {
+			return err
+		}
 		// Create payment for covering transaction costs by Organization
 		var entries = []database.OrderEntry{
 			{
 				Item:     transactionCostsItem.ID, // ID of transaction costs item
 				Quantity: transactionCosts,        // Amount of transaction costs
 				Sender:   orgaAccountID,           // ID of Orga
-				Receiver: order.Vendor,            // ID of vendor
+				Receiver: vendorAccount.ID,        // ID of vendor
 			},
 		}
 		// append transaction cost entries here

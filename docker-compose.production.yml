@@ -11,6 +11,7 @@ services:
       VITE_API_URL: ${BACKEND_HOST}
       VITE_KEYCLOAK_URL: ${KEYCLOAK_HOST}
       VITE_AUGUSTIN_COVER: ${AUGUSTIN_COVER}
+      VITE_AGB_URL: ${AGB_URL}
     depends_on:
       - augustin-backend
   augustin-backend:
@@ -20,6 +21,9 @@ services:
       context: .
       dockerfile: ./Dockerfile.production
     image: dkia/augustin-backend
+    volumes:
+      - /dockerstorage/convive/augustin/data/backend/img:/app/img
+
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
@@ -38,7 +42,7 @@ services:
     ports:
       - "7001:3000"
   augustin-db:
-    image: postgres:16.0
+    image: postgres:15.0
     env_file:
       - .env
     environment:
@@ -55,6 +59,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    ports:
+      - "7005:5432"
   keycloak:
     build:
       context: ./docker/keycloak

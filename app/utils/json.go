@@ -1,11 +1,25 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
+
+	"go.uber.org/zap"
 )
+
+// JSONMarshal marshals the data into json without escaping html
+// https://stackoverflow.com/a/28596225/19932351
+func JSONMarshal(t interface{}) ([]byte, error) {
+	buffer := &bytes.Buffer{}
+	encoder := json.NewEncoder(buffer)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(t)
+	b := bytes.TrimRight(buffer.Bytes(), "\n")
+	return b, err
+}
 
 // WriteJSON writes the data to the response writer as json
 func WriteJSON(w http.ResponseWriter, status int, data interface{}, wrap ...string) error {
@@ -17,14 +31,14 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}, wrap ...stri
 		// wrapper
 		wrapper := make(map[string]interface{})
 		wrapper[wrap[0]] = data
-		jsonBytes, err := json.Marshal(wrapper)
+		jsonBytes, err := JSONMarshal(wrapper)
 		if err != nil {
 			return err
 		}
 		out = jsonBytes
 	} else {
 		// wrapper
-		jsonBytes, err := json.Marshal(data)
+		jsonBytes, err := JSONMarshal(data)
 		if err != nil {
 			return err
 		}
@@ -71,6 +85,7 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	// attempt to decode the data
 	err := dec.Decode(data)
 	if err != nil {
+		log.Info(zap.Any("Body of data at ReadJSON", data))
 		log.Error(err)
 		return err
 	}

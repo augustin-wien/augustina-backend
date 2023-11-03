@@ -5,6 +5,7 @@ import (
 	"augustin/utils"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -33,7 +34,10 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, payload)
+	err = utils.WriteJSON(w, http.StatusOK, payload)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // HelloWorld godoc
@@ -52,7 +56,33 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, greeting)
+	err = utils.WriteJSON(w, http.StatusOK, greeting)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
+// HelloWorldAuth godoc
+//
+//	@Summary		Return HelloWorld
+//	@Description	Return HelloWorld as sample API call
+//	@Tags			Core, Auth
+//	@Accept			json
+//	@Produce		json
+//	@Security		KeycloakAuth
+//	@Router			/auth/hello/ [get]
+//
+// HelloWorld API Handler fetching data from database
+func HelloWorldAuth(w http.ResponseWriter, r *http.Request) {
+	greeting, err := database.Db.GetHelloWorld()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, greeting)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // Users ----------------------------------------------------------------------
@@ -81,12 +111,15 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 
 	users, err := database.Db.GetVendorByLicenseID(licenseID)
 	if err != nil {
-		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id."), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id"), http.StatusBadRequest)
 		return
 	}
 
 	response := checkLicenseIDResponse{FirstName: users.FirstName}
-	utils.WriteJSON(w, http.StatusOK, response)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // ListVendors godoc
@@ -95,11 +128,12 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 //		@Tags			Vendors
 //		@Accept			json
 //		@Produce		json
+//		@Security		KeycloakAuth
 //		@Success		200	{array}	database.Vendor
 //		@Router			/vendors/ [get]
 func ListVendors(w http.ResponseWriter, r *http.Request) {
-	users, err := database.Db.ListVendors()
-	respond(w, err, users)
+	vendors, err := database.Db.ListVendors()
+	respond(w, err, vendors)
 }
 
 // CreateVendor godoc
@@ -109,6 +143,7 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 //		@Accept			json
 //		@Produce		json
 //		@Success		200
+//		@Security		KeycloakAuth
 //	    @Param		    data body database.Vendor true "Vendor Representation"
 //		@Router			/vendors/ [post]
 func CreateVendor(w http.ResponseWriter, r *http.Request) {
@@ -120,20 +155,57 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := database.Db.CreateVendor(vendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	// Create user in keycloak
+	// randomPassword := utils.RandomString(10)
+	// user, err := keycloak.KeycloakClient.CreateUser(vendor.Email, vendor.Email, vendor.Email, randomPassword)
+	// if err != nil {
+	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
+	// 	return
+	// }
+	// keycloak.KeycloakClient.AssignRole(user, "vendor")
 	respond(w, err, id)
+}
+
+// GetVendor godoc
+//
+//	 	@Summary 		Get Vendor
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//		@Security		KeycloakAuth
+//		@Param          id   path int  true  "Vendor ID"
+//		@Router			/vendors/{id}/ [get]
+func GetVendor(w http.ResponseWriter, r *http.Request) {
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	vendor, err := database.Db.GetVendor(vendorID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	respond(w, err, vendor)
 }
 
 // UpdateVendor godoc
 //
-//		 	@Summary 		Update Vendor
-//			@Description	Warning: Unfilled fields will be set to default values
-//			@Tags			Vendors
-//			@Accept			json
-//			@Produce		json
-//			@Success		200
-//	        @Param          id   path int  true  "Vendor ID"
-//		    @Param		    data body database.Vendor true "Vendor Representation"
-//			@Router			/vendors/{id}/ [put]
+//	 	@Summary 		Update Vendor
+//		@Description	Warning: Unfilled fields will be set to default values
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//		@Security		KeycloakAuth
+//	    @Param          id   path int  true  "Vendor ID"
+//		@Param		    data body database.Vendor true "Vendor Representation"
+//		@Router			/vendors/{id}/ [put]
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -147,18 +219,20 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = database.Db.UpdateVendor(vendorID, vendor)
+	// todo update keycloak user
 	respond(w, err, vendor)
 }
 
 // DeleteVendor godoc
 //
-//		 	@Summary 		Delete Vendor
-//			@Tags			Vendors
-//			@Accept			json
-//			@Produce		json
-//			@Success		200
-//	        @Param          id   path int  true  "Vendor ID"
-//			@Router			/vendors/{id}/ [delete]
+//		@Summary 		Delete Vendor
+//		@Tags			Vendors
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//		@Security		KeycloakAuth
+//	    @Param          id   path int  true  "Vendor ID"
+//		@Router			/vendors/{id}/ [delete]
 func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -191,7 +265,10 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, items)
+	err = utils.WriteJSON(w, http.StatusOK, items)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // CreateItem godoc
@@ -202,6 +279,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //	    @Param		    data body database.Item true "Item Representation"
 //		@Success		200	 {integer}	id
+//		@Security		KeycloakAuth
 //		@Router			/items/ [post]
 func CreateItem(w http.ResponseWriter, r *http.Request) {
 	var item database.Item
@@ -215,7 +293,10 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, id)
+	err = utils.WriteJSON(w, http.StatusOK, id)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
@@ -239,12 +320,15 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error(err)
+	}
 	// Generate unique filename
 	i := 0
 	for {
-		path = "/img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
-		_, err = os.Stat(".." + path)
+		path = "img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
+		_, err = os.Stat(dir + "/" + path)
 		if errors.Is(err, os.ErrNotExist) {
 			break
 		}
@@ -255,9 +339,10 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 			return
 		}
 	}
+	// current file path from os
 
 	// Save file with unique name
-	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
 		log.Error(err)
 	}
@@ -274,6 +359,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 //		@Param			id path int true "Item ID"
 //	    @Param		    data body database.Item true "Item Representation"
 //		@Success		200
+//		@Security		KeycloakAuth
 //		@Router			/items/{id}/ [put]
 //
 // UpdateItem requires a multipart form
@@ -285,8 +371,18 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Security check to disable updating Item of ID 2 and 3, which are essential for donations and transaction costs
+	if ItemID == 2 || ItemID == 3 {
+		utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to update this item"), http.StatusBadRequest)
+		return
+	}
+
 	// Read multipart form
-	r.ParseMultipartForm(32 << 20)
+	err = r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	mForm := r.MultipartForm
 	if mForm == nil {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
@@ -323,7 +419,10 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
-	utils.WriteJSON(w, http.StatusOK, nil)
+	err = utils.WriteJSON(w, http.StatusOK, err)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // DeleteItem godoc
@@ -333,8 +432,9 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 //			@Accept			json
 //			@Produce		json
 //			@Success		200
-//	        @Param          id   path int  true  "Item ID"
-//			@Router			/items/{id} [delete]
+//			@Security		KeycloakAuth
+//	     	@Param          id   path int  true  "Item ID"
+//			@Router			/items/{id}/ [delete]
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -390,6 +490,38 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+
+	// Security checks for entries
+	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
+	for idx, entry := range requestData.Entries {
+
+		// 1. Check: First item (idx == 0) has to be MainItem (id == 1)
+		// TODO: This needs to be adjusted once a webshop is implemented and you can purchase something without a main item
+		if idx == 0 && entry.Item != 1 {
+			utils.ErrorJSON(w, errors.New("MainItem has to be in entries and be the first item"), http.StatusBadRequest)
+			return
+		}
+
+		// 2. Check: Quantity has to be > 0
+		if entry.Quantity <= 0 {
+			utils.ErrorJSON(w, errors.New("Nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
+			return
+		}
+
+		// 3. Check: All items have to exist
+		_, err := database.Db.GetItem(entry.Item)
+		if err != nil {
+			utils.ErrorJSON(w, errors.New("Nice try! Item does not exist"), http.StatusBadRequest)
+			return
+		}
+
+		// 4. Check: Transaction costs (id == 3) are not allowed to be in entries
+		if entry.Item == 3 {
+			utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
+			return
+		}
+	}
+
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
 	for idx, entry := range requestData.Entries {
 		order.Entries[idx].Item = entry.Item
@@ -412,8 +544,9 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Get accounts
 	var buyerAccountID int
-	if order.User.Valid {
-		buyerAccount, err := database.Db.GetAccountByUser(order.User.String)
+	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
+	if authenticatedUserID != "" {
+		buyerAccount, err := database.Db.GetOrCreateAccountByUserID(authenticatedUserID)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
@@ -431,7 +564,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
+	orgaAccount, err := database.Db.GetAccountByType("Orga")
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -461,18 +594,20 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			}
 			// Define flow of money from vendor to orga
 			licenseItemEntry := database.OrderEntry{
-				Item:     int(item.LicenseItem.Int64),
-				Quantity: entry.Quantity,
-				Price:    licenseItem.Price,
-				Sender:   vendorAccount.ID,
-				Receiver: orgaAccountID,
+				Item:         int(item.LicenseItem.Int64),
+				Quantity:     entry.Quantity,
+				Price:        licenseItem.Price,
+				Sender:       vendorAccount.ID,
+				Receiver:     orgaAccount.ID,
+				SenderName:   vendorAccount.Name,
+				ReceiverName: orgaAccount.Name,
 			}
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
 		}
 
 	}
-
-	if order.GetTotal() >= settings.MaxOrderAmount {
+	// ignore MaxOrdnerAmount if its 0
+	if settings.MaxOrderAmount != 0 && order.GetTotal() >= settings.MaxOrderAmount {
 		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
 		return
 	}
@@ -503,16 +638,51 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create response
-	url := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
-	response := createOrderResponse{
-		SmartCheckoutURL: url,
+	// Check if VivaWalletSmartCheckoutURL is set
+	if config.Config.VivaWalletSmartCheckoutURL == "" {
+		utils.ErrorJSON(w, errors.New("VivaWalletSmartCheckoutURL is not set"), http.StatusBadRequest)
+		return
 	}
-	utils.WriteJSON(w, http.StatusOK, response)
+
+	// Create response
+	checkoutURL := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
+
+	// Add color code to URL
+	if settings.Color == "" {
+		log.Info("Color code is not set")
+	} else {
+
+		var colorCode string
+		// Check if color code is valid with # at the beginning
+		if settings.Color[0] == '#' {
+			// Remove # from color code due to VivaWallet's policy
+			colorCode = settings.Color[1:]
+		} else {
+			log.Info("Color code is not valid: ", settings.Color)
+		}
+		// Make color code lowercase
+		colorCode = strings.ToLower(colorCode)
+
+		// Add color code and necessary attachment to URL
+		colorCodeAttachment := fmt.Sprintf("%s%s", "&color=", colorCode)
+
+		// Add color code to URL
+		checkoutURL = fmt.Sprintf("%s%s", checkoutURL, colorCodeAttachment)
+	}
+
+	response := createOrderResponse{
+		SmartCheckoutURL: checkoutURL,
+	}
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
+// VerifyPaymentOrderResponse is the response to VerifyPaymentOrder
 type VerifyPaymentOrderResponse struct {
 	TimeStamp time.Time
+	FirstName string
 }
 
 // VerifyPaymentOrder godoc
@@ -546,48 +716,124 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	log.Info("Order: ", order)
-	log.Info("Order timestamp: ", order.Timestamp)
 
 	if database.Db.IsProduction {
 		// Verify transaction
-		_, err := paymentprovider.VerifyTransactionID(TransactionID)
+		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
 	}
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
-	if time.Now().Sub(order.Timestamp) > 900*time.Second {
+	if time.Since(order.Timestamp) > 900*time.Second {
 		utils.ErrorJSON(w, errors.New("Transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
 		return
 	}
 
 	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
+
+	// Declare timestamp from order
 	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
 
+	// Get first name of vendor from vendor id in order
+	vendor, err := database.Db.GetVendor(order.Vendor)
+	if err != nil {
+		log.Error("Getting vendor's first name failed: ", err)
+		return
+	}
+	// Declare first name from vendor
+	verifyPaymentOrderResponse.FirstName = vendor.FirstName
+
 	// Create response
-	utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
+	err = utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // Payments (from one account to another account) -----------------------------
 
-// ListPayments godoc
+func parseBool(value string) (bool, error) {
+	if value == "" {
+		return false, nil
+	}
+	return strconv.ParseBool(value)
+}
+
+// ListPaymentsForPayout godoc
 //
-//	 	@Summary 		Get list of all payments
+//	 	@Summary 		Get list of all payments for payout
+//		@Description 	Payments that do not have an associated payout
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
 //		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			vendor query string false "Vendor LicenseID"
 //		@Success		200	{array}	database.Payment
-//		@Router			/payments/ [get]
-func ListPayments(w http.ResponseWriter, r *http.Request) {
-
-	// Get minDate and maxDate parameters
+//		@Security		KeycloakAuth
+//		@Security		KeycloakAuth
+//		@Router			/payments/forpayout/ [get]
+func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
+	var err error
 	minDateRaw := r.URL.Query().Get("from")
 	maxDateRaw := r.URL.Query().Get("to")
+	vendor := r.URL.Query().Get("vendor")
+	var minDate, maxDate time.Time
+	if minDateRaw != "" {
+		minDate, err = time.Parse(time.RFC3339, minDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+	if maxDateRaw != "" {
+		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, false, false, true)
+	respond(w, err, payments)
+}
+
+// ListPayments godoc
+//
+//		 	@Summary 		Get list of all payments
+//			@Description 	Filter by date, vendor, payouts, sales. If payouts set true, all payments are removed that are not payouts. Same for sales. So sales and payouts can't be true at the same time.
+//			@Tags			Payments
+//			@Accept			json
+//			@Produce		json
+//			@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//			@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//			@Param			vendor query string false "Vendor LicenseID"
+//	     @Param			payouts query bool false "Payouts only"
+//	     @Param          sales query bool false "Sales only"
+//			@Success		200	{array}	database.Payment
+//			@Security		KeycloakAuth
+//			@Security		KeycloakAuth
+//			@Router			/payments/ [get]
+func ListPayments(w http.ResponseWriter, r *http.Request) {
 	var err error
+
+	// Get filter parameters
+	minDateRaw := r.URL.Query().Get("from")
+	maxDateRaw := r.URL.Query().Get("to")
+	payoutRaw := r.URL.Query().Get("payouts")
+	salesRaw := r.URL.Query().Get("sales")
+	vendor := r.URL.Query().Get("vendor")
+
+	// Parse filter parameters
+	payout, err := parseBool(payoutRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	sales, err := parseBool(salesRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	var minDate, maxDate time.Time
 	if minDateRaw != "" {
 		minDate, err = time.Parse(time.RFC3339, minDateRaw)
@@ -602,8 +848,8 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Get payments with optional parameters
-	payments, err := database.Db.ListPayments(minDate, maxDate)
+	// Get payments with filter parameters
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, payout, sales, false)
 	respond(w, err, payments)
 }
 
@@ -629,7 +875,10 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, paymentID)
+	err = utils.WriteJSON(w, http.StatusOK, paymentID)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 type createPaymentsRequest struct {
@@ -661,7 +910,8 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 
 type createPaymentPayoutRequest struct {
 	VendorLicenseID string
-	Amount          int
+	From            time.Time
+	To              time.Time
 }
 
 // CreatePaymentPayout godoc
@@ -670,8 +920,9 @@ type createPaymentPayoutRequest struct {
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
-//		@Param			amount body createPaymentPayoutRequest true " Create Payment"
+//		@Param			amount body createPaymentPayoutRequest true "Create Payment"
 //		@Success		200 {integer} id
+//		@Security		KeycloakAuth
 //		@Router			/payments/payout/ [post]
 func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 
@@ -697,51 +948,57 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get cash account
-	cashAccount, err := database.Db.GetAccountByType("Cash")
+	// Get amount of money for payout
+	paymentsToBePaidOut, err := database.Db.ListPaymentsForPayout(payoutData.From, payoutData.To, payoutData.VendorLicenseID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	var amount int
+	for _, payment := range paymentsToBePaidOut {
+		if payment.Receiver == vendorAccount.ID {
+			amount += payment.Amount
+		}
+		if payment.Sender == vendorAccount.ID {
+			amount -= payment.Amount
+		}
+	}
 
 	// Check that amount is bigger than 0
-	if payoutData.Amount <= 0 {
+	if amount <= 0 {
 		utils.ErrorJSON(w, errors.New("payout amount must be bigger than 0"), http.StatusBadRequest)
 		return
 	}
 
 	// Check if vendor has enough money
-	if vendorAccount.Balance < payoutData.Amount {
+	if vendorAccount.Balance < amount {
 		utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
 		return
 	}
 
-	// Create payment
-	payment := database.Payment{
-		Sender:   vendorAccount.ID,
-		Receiver: cashAccount.ID,
-		Amount:   payoutData.Amount,
-	}
-	paymentID, err := database.Db.CreatePayment(payment)
+	// Get authenticated user
+	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
+
+	// Execute payout
+	paymentID, err := database.Db.CreatePaymentPayout(vendor, vendorAccount.ID, authenticatedUserID, amount, paymentsToBePaidOut)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Update last payout date
-	// TODO: Should be transaction together with above DB request
-	vendor.LastPayout = null.NewTime(time.Now(), true)
-	err = database.Db.UpdateVendor(vendor.ID, vendor)
+	// Return success with paymentID
+	err = utils.WriteJSON(w, http.StatusOK, paymentID)
 	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+		log.Error(err)
 	}
-
-	utils.WriteJSON(w, http.StatusOK, paymentID)
 
 }
 
-// VivaWalletCreateTransactionOrder godoc
+type webhookResponse struct {
+	Status string
+}
+
+// VivaWalletWebhookSuccess godoc
 //
 //	@Summary		Webhook for VivaWallet successful transaction
 //	@Description	Webhook for VivaWallet successful transaction
@@ -749,10 +1006,11 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
-//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Successful Response"
+//	@Param			data body paymentprovider.TransactionSuccessRequest true "Payment Successful Response"
 //	@Router			/webhooks/vivawallet/success [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
-	var paymentSuccessful paymentprovider.TransactionDetailRequest
+
+	var paymentSuccessful paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
 		log.Info("Reading JSON failed for webhook: ", err)
@@ -766,7 +1024,13 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, nil)
+	var response webhookResponse
+	response.Status = "OK"
+
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VivaWalletWebhookFailure godoc
@@ -777,10 +1041,10 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 //	@accept			json
 //	@Produce		json
 //	@Success		200
-//	@Param			data body paymentprovider.TransactionDetailRequest true "Payment Failure Response"
+//	@Param			data body paymentprovider.TransactionSuccessRequest true "Payment Failure Response"
 //	@Router			/webhooks/vivawallet/failure [post]
 func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
-	var paymentFailure paymentprovider.TransactionDetailRequest
+	var paymentFailure paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentFailure)
 	if err != nil {
 		log.Info("Reading JSON failed for webhook: ", err)
@@ -794,7 +1058,13 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, nil)
+	var response webhookResponse
+	response.Status = "OK"
+
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VivaWalletWebhookPrice godoc
@@ -809,34 +1079,27 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 //	@Router			/webhooks/vivawallet/price [post]
 func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 
-	log.Info("VivaWalletWebhookPrice entered")
-
-	data, err := io.ReadAll(r.Body)
-
+	var paymentPrice paymentprovider.TransactionPriceRequest
+	err := utils.ReadJSON(w, r, &paymentPrice)
 	if err != nil {
-
-		log.Error("Reading body failed for VivaWalletWebhookPrice: ", err)
-
+		log.Info("Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
-
+		return
 	}
 
-	log.Info("VivaWalletWebhookPrice full request: ", string(data))
-	// var paymentPrice paymentprovider.TransactionPriceRequest
-	// err := utils.ReadJSON(w, r, &paymentPrice)
-	// if err != nil {
-	// 	log.Info("Reading JSON failed for webhook: ", err)
-	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
-	// 	return
-	// }
+	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
-	// err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
-	// if err != nil {
-	// 	log.Error(err)
-	// 	return
-	// }
+	var response webhookResponse
+	response.Status = "OK"
 
-	// utils.WriteJSON(w, http.StatusOK, nil)
+	err = utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // VivaWalletVerificationKey godoc
@@ -858,7 +1121,10 @@ func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := paymentprovider.VivaWalletVerificationKeyResponse{Key: key}
-	utils.WriteJSON(w, http.StatusOK, response)
+	err := utils.WriteJSON(w, http.StatusOK, response)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // Settings -------------------------------------------------------------------
@@ -878,10 +1144,14 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, settings)
+	err = utils.WriteJSON(w, http.StatusOK, settings)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
+	path = ""
 
 	// Get file from image field
 	file, header, err := r.FormFile("Logo")
@@ -898,7 +1168,7 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 		return
 	}
 	if name[1] != "png" {
-		log.Error(err)
+		log.Error("wrong file ending:", name[1])
 		utils.ErrorJSON(w, errors.New("file type must be png"), http.StatusBadRequest)
 		return
 	}
@@ -911,7 +1181,11 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 
 	// Save file with name "logo"
 	path = "/img/logo.png"
-	err = os.WriteFile(".."+path, buf.Bytes(), 0666)
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error(err)
+	}
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
 		log.Error(err)
 	}
@@ -927,15 +1201,22 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 //		@Produce		json
 //	    @Param		    data body database.Settings true "Settings Representation"
 //		@Success		200
+//		@Security		KeycloakAuth
 //		@Router			/settings/ [put]
 func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
 	// Read multipart form
-	r.ParseMultipartForm(32 << 20)
+	err = r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		log.Error(err)
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+		return
+	}
 	mForm := r.MultipartForm
 	if mForm == nil {
+		log.Error(errors.New("form is nil"))
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
@@ -948,20 +1229,42 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		if key == "MaxOrderAmount" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
-				utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+				log.Error("MaxOrderAmount is not an integer")
+				utils.ErrorJSON(w, errors.New("MaxOrderAmount is not an integer"), http.StatusBadRequest)
 				return
 			}
+		} else if key == "OrgaCoversTransactionCosts" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("OrgaCoversTransactionCosts is not a boolean")
+				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
+
+				return
+			}
+		} else if key == "MainItem" {
+			value, err := strconv.Atoi(value[0])
+			if err != nil {
+				log.Error("MainItem is not an integer")
+				utils.ErrorJSON(w, errors.New("MainItem is not an integer"), http.StatusBadRequest)
+				return
+			}
+			fieldsClean[key] = null.NewInt(int64(value), true)
 		} else {
 			fieldsClean[key] = value[0]
 		}
 	}
 	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
+		log.Error(err)
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
 
-	path, _ := updateSettingsLogo(w, r)
+	path, err := updateSettingsLogo(w, r)
+	if err != nil {
+		log.Info("No new image provided")
+	}
+
 	if path != "" {
 		settings.Logo = "img/logo.png"
 	}
@@ -972,5 +1275,8 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, nil)
+	err = utils.WriteJSON(w, http.StatusOK, err)
+	if err != nil {
+		log.Error(err)
+	}
 }

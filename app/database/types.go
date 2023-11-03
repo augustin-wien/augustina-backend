@@ -11,23 +11,30 @@ import (
 
 // Vendor is a struct that is used for the vendor table
 type Vendor struct {
-	ID         int
-	KeycloakID string
-	URLID      string // This is used for the QR code
-	LicenseID  null.String
-	FirstName  string
-	LastName   string
-	Email      string
-	LastPayout null.Time `swaggertype:"string" format:"date-time"`
-	Balance    int       // This is joined in from the account
-	IsDisabled bool
-	Longitude  float64
-	Latitude   float64
-	Address	   string
-	PLZ		   string
-	Location   string
-	WorkingTime string
-	Lang        string
+	ID               int
+	KeycloakID       string
+	URLID            string // This is used for the QR code
+	LicenseID        null.String
+	FirstName        string
+	LastName         string
+	Email            string
+	LastPayout       null.Time `swaggertype:"string" format:"date-time"`
+	Balance          int       // This is joined in from the account
+	IsDisabled       bool
+	Longitude        float64
+	Latitude         float64
+	Address          string
+	PLZ              string
+	Location         string
+	WorkingTime      string
+	Language         string
+	Comment          string
+	Telephone        string
+	RegistrationDate string
+	VendorSince      string
+	OnlineMap        bool
+	HasSmartphone    bool
+	HasBankAccount   bool
 }
 
 // Account is a struct that is used for the account table
@@ -66,13 +73,15 @@ type Order struct {
 
 // OrderEntry is a struct that is used for the order_entry table
 type OrderEntry struct {
-	ID       int
-	Item     int
-	Quantity int
-	Price    int // Price at time of purchase in cents
-	Sender   int
-	Receiver int
-	IsSale   bool // Whether to include this item in sales payment
+	ID           int
+	Item         int
+	Quantity     int
+	Price        int // Price at time of purchase in cents
+	Sender       int
+	Receiver     int
+	SenderName   string
+	ReceiverName string
+	IsSale       bool // Whether to include this item in sales payment
 }
 
 // Payment is a struct that is used for the payment table
@@ -81,21 +90,33 @@ type Payment struct {
 	Timestamp    time.Time
 	Sender       int
 	Receiver     int
+	SenderName   string // JOIN from Sender Account
+	ReceiverName string // JOIN from Receiver Account
 	Amount       int
 	AuthorizedBy string
 	Order        null.Int `swaggertype:"integer"`
 	OrderEntry   null.Int `swaggertype:"integer"`
 	IsSale       bool
+	Payout 	     null.Int `swaggertype:"integer"` // Connected payout payment
+	IsPayoutFor  []Payment
+	Item         null.Int `swaggertype:"integer"`
+	Quantity     int
+	Price        int // Price at time of purchase in cents
 }
 
 // Settings is a struct that is used for the settings table
 type Settings struct {
-	ID             int
-	Color          string
-	Logo           string
-	MainItem       null.Int `swaggertype:"integer"`
-	RefundFees     bool
-	MaxOrderAmount int
+	ID                         int
+	Color                      string
+	FontColor                  string
+	Logo                       string
+	MainItem                   null.Int `swaggertype:"integer"`
+	MaxOrderAmount             int
+	OrgaCoversTransactionCosts bool
+	MainItemName               null.String
+	MainItemPrice              null.Int
+	MainItemDescription        null.String
+	MainItemImage              null.String
 }
 
 // DBSettings is a struct that is used for the dbsettings table

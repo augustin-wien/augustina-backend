@@ -36,34 +36,48 @@ func GetRouter() (r *chi.Mux) {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Timeout(60 * 1000000000)) // 60 seconds
 		r.Use(middlewares.AuthMiddleware)
-		r.Get("/api/auth/hello/", HelloWorld)
+		r.Get("/api/auth/hello/", HelloWorldAuth)
 	})
 
 	// Public routes
 	r.Get("/api/hello/", HelloWorld)
 	r.Route("/api/settings", func(r chi.Router) {
 		r.Get("/", getSettings)
-		r.Put("/", updateSettings)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Put("/", updateSettings)
+		})
 	})
 
 	// Vendors
 	r.Route("/api/vendors", func(r chi.Router) {
-		r.Get("/", ListVendors)
-		r.Post("/", CreateVendor)
 		r.Get("/check/{licenseID}/", CheckVendorsLicenseID)
-		r.Route("/{id}", func(r chi.Router) {
-			r.Put("/", UpdateVendor)
-			r.Delete("/", DeleteVendor)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/", ListVendors)
+			r.Post("/", CreateVendor)
+
+			r.Route("/{id}", func(r chi.Router) {
+				r.Put("/", UpdateVendor)
+				r.Delete("/", DeleteVendor)
+				r.Get("/", GetVendor)
+			})
 		})
 	})
 
 	// Items
 	r.Route("/api/items", func(r chi.Router) {
 		r.Get("/", ListItems)
-		r.Post("/", CreateItem)
-		r.Route("/{id}", func(r chi.Router) {
-			r.Put("/", UpdateItem)
-			r.Delete("/", DeleteItem)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Post("/", CreateItem)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Put("/", UpdateItem)
+				r.Delete("/", DeleteItem)
+			})
 		})
 	})
 
@@ -75,12 +89,20 @@ func GetRouter() (r *chi.Mux) {
 
 	// Payments
 	r.Route("/api/payments", func(r chi.Router) {
-		r.Get("/", ListPayments)
-		r.Post("/payout/", CreatePaymentPayout)
+		r.Post("/", CreatePayment)
+		r.Post("/batch/", CreatePayments)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/", ListPayments)
+			r.Get("/forpayout/", ListPaymentsForPayout)
+			r.Post("/payout/", CreatePaymentPayout)
+		})
 	})
 
 	// Payment service providers
 	r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
+		// todo: add auth middleware for viva wallet ip addresses
 		r.Post("/success/", VivaWalletWebhookSuccess)
 		r.Get("/success/", VivaWalletVerificationKey)
 		r.Post("/failure/", VivaWalletWebhookFailure)
@@ -88,9 +110,6 @@ func GetRouter() (r *chi.Mux) {
 		r.Post("/price/", VivaWalletWebhookPrice)
 		r.Get("/price/", VivaWalletVerificationKey)
 	})
-
-	// Settings
-	r.Get("/api/settings/", getSettings)
 
 	// Swagger documentation
 	r.Get("/swagger/*", httpSwagger.Handler(

@@ -135,6 +135,11 @@ If you keep using our demo account and stick with our code basis this command sh
 ngrok http --domain=workable-credible-mole.ngrok-free.app 3000
 ```
 
+### Setup for production
+When initializing the whole system, the database is being setup with three items (Newspapers, Donation and transaction cost) and default settings, which can be changed afterwards from the offices portal.
+The only thing, which has to be done manually in production is to add at least one vendor to be able to pay online on this webshop with her license id.
+The URL then looks like this: `https:sample.domain/v/license-id`
+
 ### VS Code Settings
 VS Code is our code editor of choice.
 Therefore, to develop in Go, we use the main [VS Code Go extension](https://marketplace.visualstudio.com/items?itemName=golang.go). This enables a lot of features like formatting on save.
@@ -161,10 +166,23 @@ Additionaly there are the following users for the `augustin` realm:
 | test_user     | Test123!     | magazin-1 |
 | test_user_all     | Test123!     | magazin-1, magazin-2, magazin-3 |
 | test_superuser     | Test123!     | admin |
+| test_vendor     | Test123!     | vendor |
 
 The default openid configuration is available at http://localhost:8080/auth/realms/augustin/.well-known/openid-configuration
 
 The default openid client is `wordpress` and the client secret is `84uZmW6FlEPgvUd201QUsWRmHzUIamZB`
+
+Keycloak Groups, ech group has a corresponding role:
+
+| Group | Description |
+| -------- | -------- |
+| admin     | Admins can access the admin portal     |
+| vendor     | Vendors can access the vendor portal     |
+| customer     | Customers can access the newspaper portal     |
+| all_newspapers     | Customers can access all newspapers     |
+| magazin-1     | Customers can access magazin-1     |
+| magazin-2     | Customers can access magazin-2     |
+| magazin-3     | Customers can access magazin-3     |
 
 ### Keycloak Wordpress Setup
 
