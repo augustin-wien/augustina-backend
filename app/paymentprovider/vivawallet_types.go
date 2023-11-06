@@ -132,6 +132,7 @@ type EventData struct {
 	DualMessage                 bool
 	ElectronicCommerceIndicator string
 	Email                       string
+	ExternalTransactionID       *interface{}
 	FullName                    string
 	InsDate                     string
 	IsManualRefund              bool
