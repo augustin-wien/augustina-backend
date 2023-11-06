@@ -298,7 +298,11 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
-		keycloak.KeycloakClient.AssignRole(keycloakUser, "vendor")
+		err = keycloak.KeycloakClient.AssignRole(keycloakUser, "vendor")
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
 	} else {
 		err = keycloak.KeycloakClient.UpdateUser(*user.Username, vendor.FirstName, vendor.LastName, vendor.Email)
 		if err != nil {
