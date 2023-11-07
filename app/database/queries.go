@@ -515,6 +515,8 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	if len(filters) > 0 {
 		query += " WHERE " + strings.Join(filters, " AND ")
 	}
+	// Order by timestamp
+	query += " ORDER BY Payment.Timestamp"
 	rows, err = db.Dbpool.Query(context.Background(), query, filterValues...)
 	if err != nil {
 		log.Error(err)
@@ -531,7 +533,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		}
 
 		// Add payout payments to main payment
-		subrows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Timestamp, Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment WHERE Payout = $1", payment.ID)
+		subrows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Timestamp, Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment WHERE Payout = $1 ORDER BY Timestamp", payment.ID)
 		if err != nil {
 			log.Error(err)
 			return payments, err
