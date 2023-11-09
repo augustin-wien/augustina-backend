@@ -19,12 +19,6 @@ type PaymentOrderRequest struct {
 	SourceCode          string   `json:"sourceCode"`
 	MerchantTrns        string   `json:"merchantTrns"`
 	Tags                []string `json:"tags"`
-	// TODO: Additional fields that Aaron found in the API docs
-	// PaymentMethodFees   []struct {
-	// 	PaymentMethodId int `json:"paymentMethodId"`
-	// 	Fee             int `json:"fee"`
-	// } `json:"paymentMethodFees"`
-	// CardTokens []string `json:"cardTokens"`
 }
 
 // Customer is the customer object for the payment order
@@ -138,6 +132,7 @@ type EventData struct {
 	DualMessage                 bool
 	ElectronicCommerceIndicator string
 	Email                       string
+	ExternalTransactionID       *interface{}
 	FullName                    string
 	InsDate                     string
 	IsManualRefund              bool
