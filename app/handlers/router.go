@@ -65,6 +65,11 @@ func GetRouter() (r *chi.Mux) {
 				r.Get("/", GetVendor)
 			})
 		})
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.VendorAuthMiddleware)
+			r.Get("/me/", GetVendorOverview)
+		})
 	})
 
 	// Items

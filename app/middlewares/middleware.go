@@ -33,6 +33,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// unset all possible user headers for security reasons
 		r.Header.Set("X-Auth-User-Validated", "false")
 		r.Header.Del("X-Auth-User")
+		r.Header.Del("X-Auth-User-Email")
 		r.Header.Del("X-Auth-Roles-vendor")
 		r.Header.Del("X-Auth-Roles-admin")
 
@@ -46,6 +47,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// set user headers
 		r.Header.Set("X-Auth-User", *userinfo.Sub)
 		r.Header.Set("X-Auth-User-Name", *userinfo.PreferredUsername)
+		r.Header.Set("X-Auth-User-Email", *userinfo.Email)
 		r.Header.Set("X-Auth-User-Validated", "true")
 
 		// set user roles headers
@@ -79,13 +81,13 @@ func VendorAuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		if r.Header.Get("X-Auth-Roles-vendor") == "" || r.Header.Get("X-Auth-Roles-admin") == "" {
-			log.Info("VendorAuthMiddleware: user is missing vendor role", r.Header.Get("X-Auth-User"))
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
 
-		next.ServeHTTP(w, r)
+		if r.Header.Get("X-Auth-Roles-Vendor") != "" || r.Header.Get("X-Auth-Roles-admin") != "" {
+			next.ServeHTTP(w, r)
+		} else {
+			log.Info("VendorAuthMiddleware: user is missing vendor role ", r.Header.Get("X-Auth-User"))
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		}
 	})
 }
 
