@@ -478,7 +478,9 @@ func TestPaymentPayout(t *testing.T) {
 	vendorID := createTestVendor(t, "testLicenseID")
 	vendorIDInt, _ := strconv.Atoi(vendorID)
 	vendorAccount, err := database.Db.GetAccountByVendorID(vendorIDInt)
+	utils.CheckError(t, err)
 	anonUserAccount, err := database.Db.GetAccountByType("UserAnon")
+	utils.CheckError(t, err)
 
 	// Create a payment to the vendor
 	_, err = database.Db.CreatePayment(
@@ -488,7 +490,7 @@ func TestPaymentPayout(t *testing.T) {
 			Amount:   314,
 			IsSale:   true,
 		})
-
+	utils.CheckError(t, err)
 	// Create a payment from the vendor (should be substracted in payout)
 	_, err = database.Db.CreatePayment(
 		database.Payment{
@@ -497,7 +499,7 @@ func TestPaymentPayout(t *testing.T) {
 			Amount:   1,
 			IsSale:   true,
 		})
-
+	utils.CheckError(t, err)
 	// Create invalid payout
 	f := createPaymentPayoutRequest{
 		VendorLicenseID: "testLicenseID",
