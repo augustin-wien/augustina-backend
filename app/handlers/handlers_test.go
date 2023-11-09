@@ -215,8 +215,8 @@ func TestItems(t *testing.T) {
 	var resItems []database.Item
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 4, len(resItems))
-	require.Equal(t, "Test item", resItems[3].Name)
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Test item", resItems[1].Name)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
@@ -233,17 +233,17 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 4, len(resItems))
-	require.Equal(t, "Updated item name", resItems[3].Name)
-	require.Contains(t, resItems[3].Image, "test")
-	require.Contains(t, resItems[3].Image, ".jpg")
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Updated item name", resItems[1].Name)
+	require.Contains(t, resItems[1].Image, "test")
+	require.Contains(t, resItems[1].Image, ".jpg")
 
 	// Check file
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	file, err := os.ReadFile(dir + "/" + resItems[3].Image)
+	file, err := os.ReadFile(dir + "/" + resItems[1].Image)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 
@@ -259,9 +259,9 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 4, len(resItems))
-	require.Equal(t, "Updated item name 2", resItems[3].Name)
-	require.Equal(t, resItems[3].Image, "Test")
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Updated item name 2", resItems[1].Name)
+	require.Equal(t, resItems[1].Image, "Test")
 
 	// Update item with certain ID (which should fail)
 	body = new(bytes.Buffer)
@@ -331,16 +331,14 @@ func TestOrders(t *testing.T) {
 		  "vendorLicenseID": "testLicenseID2"
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
-	// The commented error quote should actually be triggered
-	// require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"MainItem has to be in entries and be the first item"}}`)
+
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
 	setMaxOrderAmount(t, 5000)
 
-	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"MainItem has to be in entries and be the first item"}}`)
+	res2 := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 
-	//require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
+	require.Equal(t, res2.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
 	// TODO order cannot pass security checks due to each new InitEmptyTestDb call which creates a new MainItem with ID != 1
 
@@ -534,6 +532,7 @@ func TestPaymentPayout(t *testing.T) {
 			Amount:   1,
 			IsSale:   true,
 		})
+
 	utils.CheckError(t, err)
 	// Create invalid payout
 	f := createPaymentPayoutRequest{

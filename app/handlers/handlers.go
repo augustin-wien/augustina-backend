@@ -364,7 +364,47 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 //		@Success		200	{array}	database.Item
 //		@Router			/items/ [get]
 func ListItems(w http.ResponseWriter, r *http.Request) {
-	items, err := database.Db.ListItems()
+	items, err := database.Db.ListItems(true, true)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, items)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
+// ListItemsBackoffice godoc
+//
+//	 	@Summary 		List Items for backoffice overview
+//		@Tags			Items
+//		@Accept			json
+//		@Produce		json
+//	    @Param			skipHiddenItems query bool false "No donation and transaction cost items"
+//		@Param 			skipLicenses query bool false "No license items"
+//		@Success		200	{array}	database.Item
+//		@Security		KeycloakAuth
+//		@Router			/items/backoffice [get]
+func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
+
+	// Get filter parameters
+	skipHiddenItemsRaw := r.URL.Query().Get("skipHiddenItems")
+	skipLicensesRaw := r.URL.Query().Get("skipLicenses")
+
+	// Parse filter parameters
+	skipHiddenItems, err := parseBool(skipHiddenItemsRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	skipLicenses, err := parseBool(skipLicensesRaw)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	items, err := database.Db.ListItems(skipHiddenItems, skipLicenses)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -597,29 +637,22 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Security checks for entries
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
-	for idx, entry := range requestData.Entries {
+	for _, entry := range requestData.Entries {
 
-		// 1. Check: First item (idx == 0) has to be MainItem (id == 1)
-		// TODO: This needs to be adjusted once a webshop is implemented and you can purchase something without a main item
-		if idx == 0 && entry.Item != 1 {
-			utils.ErrorJSON(w, errors.New("MainItem has to be in entries and be the first item"), http.StatusBadRequest)
-			return
-		}
-
-		// 2. Check: Quantity has to be > 0
+		// 1. Check: Quantity has to be > 0
 		if entry.Quantity <= 0 {
 			utils.ErrorJSON(w, errors.New("Nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
 			return
 		}
 
-		// 3. Check: All items have to exist
+		// 2. Check: All items have to exist
 		_, err := database.Db.GetItem(entry.Item)
 		if err != nil {
 			utils.ErrorJSON(w, errors.New("Nice try! Item does not exist"), http.StatusBadRequest)
 			return
 		}
 
-		// 4. Check: Transaction costs (id == 3) are not allowed to be in entries
+		// 3. Check: Transaction costs (id == 3) are not allowed to be in entries
 		if entry.Item == 3 {
 			utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
 			return
@@ -674,8 +707,15 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Amount of added license items
+	// Since for each license item an additional entry is added,
+	// Therefore, the index of the for loop has to be increased by 1
+	licenseItemAdded := 0
+
 	// Extend order entries
 	for idx, entry := range order.Entries {
+		// Increase index depending on how many license items were added
+		idx = idx + licenseItemAdded
 		// Get item from database
 		item, err := database.Db.GetItem(entry.Item)
 		if err != nil {
@@ -691,6 +731,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		// If there is a license item, prepend it before the actual item
 		if item.LicenseItem.Valid {
+			// Get license item from database
 			licenseItem, err := database.Db.GetItem(int(item.LicenseItem.Int64))
 			if err != nil {
 				utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -706,11 +747,16 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				SenderName:   vendorAccount.Name,
 				ReceiverName: orgaAccount.Name,
 			}
+			// Prepend license item without overwriting next entries
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
+
+			// Increase licenseItemAdded by one
+			licenseItemAdded++
+
 		}
 
 	}
-	// ignore MaxOrdnerAmount if its 0
+	// ignore MaxOrderAmount if its 0
 	if settings.MaxOrderAmount != 0 && order.GetTotal() >= settings.MaxOrderAmount {
 		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
 		return
@@ -785,8 +831,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 // VerifyPaymentOrderResponse is the response to VerifyPaymentOrder
 type VerifyPaymentOrderResponse struct {
-	TimeStamp time.Time
-	FirstName string
+	TimeStamp      time.Time
+	FirstName      string
+	PurchasedItems []database.OrderEntry
+	TotalSum       int
 }
 
 // VerifyPaymentOrder godoc
@@ -829,6 +877,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
 	if time.Since(order.Timestamp) > 900*time.Second {
 		utils.ErrorJSON(w, errors.New("Transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
@@ -839,6 +888,17 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Declare timestamp from order
 	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
+
+	for _, entry := range order.Entries {
+		if entry.IsSale {
+			verifyPaymentOrderResponse.PurchasedItems = append(verifyPaymentOrderResponse.PurchasedItems, entry)
+		} else {
+			continue
+		}
+	}
+
+	// Declare total sum from order
+	verifyPaymentOrderResponse.TotalSum = order.GetTotal()
 
 	// Get first name of vendor from vendor id in order
 	vendor, err := database.Db.GetVendor(order.Vendor)
