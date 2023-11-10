@@ -33,7 +33,7 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 		LicenseID:  null.NewString("fl-123", true),
 		FirstName:  "firstname1",
 		LastName:   "lastname1",
-		Email:      "email1",
+		Email:      "test_vendor@example.com",
 	}
 	vendorID, err := db.CreateVendor(vendor)
 	if err != nil {
