@@ -167,7 +167,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = keycloak.KeycloakClient.AssignRole(user, "vendor")
+	err = keycloak.KeycloakClient.AssignGroup(user, config.Config.KeycloakVendorGroup)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -298,7 +298,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
-		err = keycloak.KeycloakClient.AssignRole(keycloakUser, "vendor")
+		err = keycloak.KeycloakClient.AssignGroup(keycloakUser, config.Config.KeycloakVendorGroup)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return

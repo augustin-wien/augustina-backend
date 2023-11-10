@@ -153,6 +153,17 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 	return k.Client.AddRealmRoleToUser(k.Context, k.clientToken.AccessToken, k.Realm, userID, []gocloak.Role{*role})
 }
 
+// Assign group to user
+func (k *Keycloak) AssignGroup(userID string, groupName string) error {
+	k.checkAdminToken()
+	group, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, groupName)
+	if err != nil {
+		log.Errorf("Error getting group by path %s", groupName)
+		return err
+	}
+	return k.Client.AddUserToGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID)
+}
+
 // UnassignRole function unassigns a role from a user by userID
 func (k *Keycloak) UnassignRole(userID string, roleName string) error {
 	k.checkAdminToken()

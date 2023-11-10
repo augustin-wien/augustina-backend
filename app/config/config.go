@@ -24,6 +24,9 @@ type config struct {
 	VivaWalletSmartCheckoutClientKey  string
 	VivaWalletSourceCode              string
 	VivaWalletTransactionTypeIDPaypal int
+	KeycloakVendorGroup               string
+	KeycloakCustomerGroup             string
+	KeycloakBackofficeGroup           string
 }
 
 // Config is the global configuration variable
@@ -56,6 +59,9 @@ func InitConfig() {
 		VivaWalletSmartCheckoutClientKey:  getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY", ""),
 		VivaWalletSourceCode:              getEnv("VIVA_WALLET_SOURCE_CODE", ""),
 		VivaWalletTransactionTypeIDPaypal: getEnvInt("VIVA_WALLET_TRANSACTION_TYPE_ID_PAYPAL", 0),
+		KeycloakVendorGroup:               getEnv("KEYCLOAK_VENDOR_GROUP", "/vendors"),
+		KeycloakCustomerGroup:             getEnv("KEYCLOAK_CUSTOMER_GROUP", "/customers"),
+		KeycloakBackofficeGroup:           getEnv("KEYCLOAK_BACKOFFICE_GROUP", "/backoffice"),
 	}
 }
 
