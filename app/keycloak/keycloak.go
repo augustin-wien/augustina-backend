@@ -97,6 +97,13 @@ func (k *Keycloak) GetUserRoles(userID string) ([]*gocloak.Role, error) {
 	k.checkAdminToken()
 	return k.Client.GetRealmRolesByUserID(k.Context, k.clientToken.AccessToken, k.Realm, userID)
 }
+
+// GetUserGroups function returns the user groups
+func (k *Keycloak) GetUserGroups(userID string) ([]*gocloak.Group, error) {
+	k.checkAdminToken()
+	return k.Client.GetUserGroups(k.Context, k.clientToken.AccessToken, k.Realm, userID, gocloak.GetGroupsParams{})
+}
+
 func (k *Keycloak) checkAdminToken() {
 	var err error
 	if k.clientToken == nil {
