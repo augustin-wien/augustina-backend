@@ -89,7 +89,6 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 
 // GetVendorByEmail returns the vendor with the given licenseID
 func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
-	log.Info("GetVendorByEmail", mail)
 	// Get vendor data
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE Email = $1", mail).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount)
 	if err != nil {
