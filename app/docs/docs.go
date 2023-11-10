@@ -42,8 +42,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Core",
-                    "Auth"
+                    "Core"
                 ],
                 "summary": "Return HelloWorld",
                 "responses": {}
@@ -636,6 +635,33 @@ const docTemplate = `{
                 }
             }
         },
+        "/vendors/me/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Get Vendor overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VendorOverview"
+                        }
+                    }
+                }
+            }
+        },
         "/vendors/{id}/": {
             "get": {
                 "security": [
@@ -1155,6 +1181,48 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.VendorOverview": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "balance": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "lastPayout": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "licenseID": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "plz": {
+                    "type": "string"
+                },
+                "telephone": {
+                    "type": "string"
+                },
+                "urlid": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.VerifyPaymentOrderResponse": {
             "type": "object",
             "properties": {
@@ -1338,6 +1406,7 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "externalTransactionID": {},
                 "fullName": {
                     "type": "string"
                 },

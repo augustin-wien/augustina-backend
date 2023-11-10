@@ -167,6 +167,34 @@ definitions:
       workingTime:
         type: string
     type: object
+  handlers.VendorOverview:
+    properties:
+      address:
+        type: string
+      balance:
+        type: integer
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: integer
+      lastName:
+        type: string
+      lastPayout:
+        format: date-time
+        type: string
+      licenseID:
+        type: string
+      location:
+        type: string
+      plz:
+        type: string
+      telephone:
+        type: string
+      urlid:
+        type: string
+    type: object
   handlers.VerifyPaymentOrderResponse:
     properties:
       firstName:
@@ -289,6 +317,7 @@ definitions:
         type: string
       email:
         type: string
+      externalTransactionID: {}
       fullName:
         type: string
       insDate:
@@ -458,7 +487,6 @@ paths:
       summary: Return HelloWorld
       tags:
       - Core
-      - Auth
   /hello/:
     get:
       consumes:
@@ -897,6 +925,22 @@ paths:
           schema:
             type: string
       summary: Check for license id
+      tags:
+      - Vendors
+  /vendors/me/:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VendorOverview'
+      security:
+      - KeycloakAuth: []
+      summary: Get Vendor overview
       tags:
       - Vendors
   /webhooks/vivawallet/failure:

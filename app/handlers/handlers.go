@@ -67,7 +67,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Return HelloWorld
 //	@Description	Return HelloWorld as sample API call
-//	@Tags			Core, Auth
+//	@Tags			Core
 //	@Accept			json
 //	@Produce		json
 //	@Security		KeycloakAuth
@@ -222,7 +222,7 @@ type VendorOverview struct {
 //		@Produce		json
 //		@Success		200 {object} VendorOverview
 //		@Security		KeycloakAuth
-//		@Router			/me/{id}/ [get]
+//		@Router			/vendors/me/ [get]
 func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 	vendorEmail := r.Header.Get("X-Auth-User-Email")
 	if vendorEmail == "" {
