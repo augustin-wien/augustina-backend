@@ -143,8 +143,10 @@ services:
     expose:
       - 3306
       - 33060
+    ports:
+      - 8091:3306
   wordpress:
-    image: wordpress:latest
+    image: wordpress:6.4.0
     volumes:
       - wp_data:/var/www/html
       - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
@@ -171,7 +173,7 @@ services:
         condition: service_healthy
   wpcli:
     container_name: wp-cli
-    image: wordpress:cli
+    image: wordpress:cli-php8.2
     user: 0:0
     command: >
       sh -c " chmod +x /wpcli/entrypoint.sh && /wpcli/entrypoint.sh && tail -f
@@ -181,12 +183,12 @@ services:
       - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
       - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
       - ./docker/wpcli/:/wpcli/
-      - ./docker/.env.parser:/wpcli/.env.parser
+      - ./docker/parser/:/wpcli/parser/
 
     environment:
       - WORDPRESS_DB_HOST=wordpress-db
-      - WORDPRESS_DB_USER=wordpress
-      - WORDPRESS_DB_PASSWORD=wordpress
+      - WORDPRESS_DB_USER=root
+      - WORDPRESS_DB_PASSWORD=somewordpress
       - WORDPRESS_DB_NAME=wordpress
     depends_on:
       wordpress-db:
@@ -203,7 +205,8 @@ services:
     volumes:
       - ./docker/augustin-plugin-data/sample_data:/sample_data
       - ./docker/augustin-plugin-data/pdf-files:/pdf-files
-      - ./docker/augustin-plugin/:/app
+      - ../augustin-plugin/:/app
+      - ./docker/parser/.env:/app/.env
     environment:
       - AUGUSTIN_PLUGIN_URL=http://wordpress/wp-json/wp/v2/
       - AUGUSTIN_PLUGIN_PATH=/sample_data/
