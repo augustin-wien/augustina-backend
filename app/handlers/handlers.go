@@ -67,7 +67,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Return HelloWorld
 //	@Description	Return HelloWorld as sample API call
-//	@Tags			Core, Auth
+//	@Tags			Core
 //	@Accept			json
 //	@Produce		json
 //	@Security		KeycloakAuth

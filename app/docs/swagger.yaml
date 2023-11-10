@@ -487,7 +487,6 @@ paths:
       summary: Return HelloWorld
       tags:
       - Core
-      - Auth
   /hello/:
     get:
       consumes:

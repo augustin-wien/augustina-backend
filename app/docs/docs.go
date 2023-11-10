@@ -42,8 +42,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Core",
-                    "Auth"
+                    "Core"
                 ],
                 "summary": "Return HelloWorld",
                 "responses": {}
