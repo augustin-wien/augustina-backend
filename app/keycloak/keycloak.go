@@ -46,9 +46,6 @@ func InitializeOauthServer() (err error) {
 	client := gocloak.NewClient(KeycloakClient.hostname)
 	KeycloakClient.Client = client
 	KeycloakClient.clientTokenCreationTime = utils.GetUnixTime()
-	if err != nil {
-		log.Error("Error logging in Keycloak admin ", err)
-	}
 	KeycloakClient.clientToken, err = KeycloakClient.LoginClient()
 	if err != nil {
 		log.Error("Error logging in Keycloak client ", err)
