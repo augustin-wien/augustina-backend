@@ -165,7 +165,7 @@ func TestVendors(t *testing.T) {
 
 	// Me
 	// Create
-	vendorID = createTestVendor(t, vendorLicenseId)
+	createTestVendor(t, vendorLicenseId)
 	keycloak.KeycloakClient.UpdateUserPassword(vendorEmail, vendorPassword)
 
 	vendorToken, err := keycloak.KeycloakClient.GetUserToken(vendorEmail, vendorPassword)

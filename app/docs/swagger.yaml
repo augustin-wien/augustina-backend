@@ -487,7 +487,6 @@ paths:
       summary: Return HelloWorld
       tags:
       - Core
-      - Auth
   /hello/:
     get:
       consumes:
@@ -944,7 +943,24 @@ paths:
       summary: Check for license id
       tags:
       - Vendors
-  /webhooks/vivawallet/failure/:
+
+  /vendors/me/:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VendorOverview'
+      security:
+      - KeycloakAuth: []
+      summary: Get Vendor overview
+      tags:
+      - Vendors
+  /webhooks/vivawallet/failure:
     get:
       consumes:
       - application/json

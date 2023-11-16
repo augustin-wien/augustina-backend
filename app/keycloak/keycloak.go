@@ -95,8 +95,15 @@ func (k *Keycloak) GetRoles() ([]*gocloak.Role, error) {
 // GetUserRoles function returns the user roles
 func (k *Keycloak) GetUserRoles(userID string) ([]*gocloak.Role, error) {
 	k.checkAdminToken()
-	return k.Client.GetRealmRolesByUserID(k.Context, k.clientToken.AccessToken, k.Realm, userID)
+	return k.Client.GetCompositeRealmRolesByUserID(k.Context, k.clientToken.AccessToken, k.Realm, userID)
 }
+
+// GetUserGroups function returns the user groups
+func (k *Keycloak) GetUserGroups(userID string) ([]*gocloak.Group, error) {
+	k.checkAdminToken()
+	return k.Client.GetUserGroups(k.Context, k.clientToken.AccessToken, k.Realm, userID, gocloak.GetGroupsParams{})
+}
+
 func (k *Keycloak) checkAdminToken() {
 	var err error
 	if k.clientToken == nil {
@@ -144,6 +151,17 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 		return err
 	}
 	return k.Client.AddRealmRoleToUser(k.Context, k.clientToken.AccessToken, k.Realm, userID, []gocloak.Role{*role})
+}
+
+// Assign group to user
+func (k *Keycloak) AssignGroup(userID string, groupName string) error {
+	k.checkAdminToken()
+	group, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, groupName)
+	if err != nil {
+		log.Errorf("Error getting group by path %s", groupName)
+		return err
+	}
+	return k.Client.AddUserToGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID)
 }
 
 // UnassignRole function unassigns a role from a user by userID
