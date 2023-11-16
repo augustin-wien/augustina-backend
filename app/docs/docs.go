@@ -244,6 +244,33 @@ const docTemplate = `{
                 }
             }
         },
+        "/me/{id}/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Get Vendor overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VendorOverview"
+                        }
+                    }
+                }
+            }
+        },
         "/orders/": {
             "post": {
                 "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
@@ -741,7 +768,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/webhooks/vivawallet/failure": {
+        "/webhooks/vivawallet/failure/": {
             "get": {
                 "description": "Return VivaWallet verification key",
                 "consumes": [
@@ -796,7 +823,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/webhooks/vivawallet/price": {
+        "/webhooks/vivawallet/price/": {
             "get": {
                 "description": "Return VivaWallet verification key",
                 "consumes": [
@@ -851,7 +878,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/webhooks/vivawallet/success": {
+        "/webhooks/vivawallet/success/": {
             "get": {
                 "description": "Return VivaWallet verification key",
                 "consumes": [
@@ -1155,6 +1182,48 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.VendorOverview": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "balance": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "lastPayout": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "licenseID": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "plz": {
+                    "type": "string"
+                },
+                "telephone": {
+                    "type": "string"
+                },
+                "urlid": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.VerifyPaymentOrderResponse": {
             "type": "object",
             "properties": {
@@ -1338,6 +1407,7 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "externalTransactionID": {},
                 "fullName": {
                     "type": "string"
                 },
