@@ -273,6 +273,13 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		return err
 	}
 
+	// Create transaction costs for Paypal
+	//err = CreatePaypalTransactionCosts(paymentSuccessful, order)
+
+	return
+}
+
+func CreatePaypalTransactionCosts(paymentSuccessful TransactionSuccessRequest, order database.Order) (err error) {
 	// Check if VivaWalletTransactionTypeIDPaypal is set
 	if config.Config.VivaWalletTransactionTypeIDPaypal == 0 {
 		return errors.New("Env variable VivaWalletTransactionTypeIDPaypal is not set")
@@ -309,6 +316,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	}
 
 	return
+
 }
 
 // VerifyTransactionID verifies that the transactionID belongs to VivaWallet and returns the transaction details
