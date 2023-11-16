@@ -18,6 +18,8 @@ require (
 	gopkg.in/guregu/null.v4 v4.0.0
 )
 
+require github.com/perimeterx/marshmallow v1.1.5 // indirect
+
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/perimeterx/marshmallow"
 	"go.uber.org/zap"
 )
 
@@ -86,7 +87,7 @@ func AuthenticateToVivaWallet() (string, error) {
 
 	// Unmarshal response body to struct
 	var authResponse AuthenticationResponse
-	err = json.Unmarshal(body, &authResponse)
+	_, err = marshmallow.Unmarshal(body, &authResponse)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
 		return "", err
@@ -188,7 +189,7 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 
 	// Unmarshal response body to struct
 	var orderCode PaymentOrderResponse
-	err = json.Unmarshal(body, &orderCode)
+	_, err = marshmallow.Unmarshal(body, &orderCode)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
 		return 0, err
@@ -362,7 +363,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	}
 
 	// Unmarshal response body to struct
-	err = json.Unmarshal(body, &transactionVerificationResponse)
+	_, err = marshmallow.Unmarshal(body, &transactionVerificationResponse)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
 		return transactionVerificationResponse, err
