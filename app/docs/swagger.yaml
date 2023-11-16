@@ -609,6 +609,22 @@ paths:
       summary: List Items for backoffice overview
       tags:
       - Items
+  /me/{id}/:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VendorOverview'
+      security:
+      - KeycloakAuth: []
+      summary: Get Vendor overview
+      tags:
+      - Vendors
   /orders/:
     post:
       consumes:
@@ -927,6 +943,7 @@ paths:
       summary: Check for license id
       tags:
       - Vendors
+
   /vendors/me/:
     get:
       consumes:
@@ -979,7 +996,7 @@ paths:
       summary: Webhook for VivaWallet failed transaction
       tags:
       - VivaWallet Webhooks
-  /webhooks/vivawallet/price:
+  /webhooks/vivawallet/price/:
     get:
       consumes:
       - application/json
@@ -1015,7 +1032,7 @@ paths:
       summary: Webhook for VivaWallet transaction prices
       tags:
       - VivaWallet Webhooks
-  /webhooks/vivawallet/success:
+  /webhooks/vivawallet/success/:
     get:
       consumes:
       - application/json
