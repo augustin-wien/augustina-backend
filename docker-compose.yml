@@ -207,7 +207,7 @@ services:
     volumes:
       - ./docker/augustin-plugin-data/sample_data:/sample_data
       - ./docker/augustin-plugin-data/pdf-files:/pdf-files
-      - ../augustin-plugin/:/app
+      - ./docker/augustin-plugin/:/app
       - ./docker/parser/.env:/app/.env
     environment:
       - AUGUSTIN_PLUGIN_URL=http://wordpress/wp-json/wp/v2/
