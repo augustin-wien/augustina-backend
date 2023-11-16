@@ -61,6 +61,15 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		for _, role := range userRoles {
 			r.Header.Add("X-Auth-Roles-"+*role.Name, *role.Name)
 		}
+		userGroups, err := keycloak.KeycloakClient.GetUserGroups(*userinfo.Sub)
+		if err != nil {
+			log.Info("Error getting userGroups ", err)
+			utils.ErrorJSON(w, errors.New("internal Server Error"), http.StatusInternalServerError)
+			return
+		}
+		for _, group := range userGroups {
+			r.Header.Add("X-Auth-Groups-"+*group.Name, *group.Name)
+		}
 		next.ServeHTTP(w, r)
 	})
 }
@@ -76,16 +85,15 @@ func VendorAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if r.Header.Get("X-Auth-User-Validated") == "false" {
-
 			log.Info("VendorAuthMiddleware: No validated user", r.Header.Get("X-Auth-User"))
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		if r.Header.Get("X-Auth-Roles-Vendor") != "" || r.Header.Get("X-Auth-Roles-admin") != "" {
+		if r.Header.Get("X-Auth-Groups-Vendors") != "" || r.Header.Get("X-Auth-Roles-admin") != "" {
 			next.ServeHTTP(w, r)
 		} else {
-			log.Info("VendorAuthMiddleware: user is missing vendor role ", r.Header.Get("X-Auth-User"))
+			log.Info("VendorAuthMiddleware: user is missing vendor role with user id ", r.Header.Get("X-Auth-User"))
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		}
 	})

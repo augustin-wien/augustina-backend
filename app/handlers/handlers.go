@@ -67,7 +67,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Return HelloWorld
 //	@Description	Return HelloWorld as sample API call
-//	@Tags			Core, Auth
+//	@Tags			Core
 //	@Accept			json
 //	@Produce		json
 //	@Security		KeycloakAuth
@@ -167,7 +167,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = keycloak.KeycloakClient.AssignRole(user, "vendor")
+	err = keycloak.KeycloakClient.AssignGroup(user, config.Config.KeycloakVendorGroup)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -222,7 +222,7 @@ type VendorOverview struct {
 //		@Produce		json
 //		@Success		200 {object} VendorOverview
 //		@Security		KeycloakAuth
-//		@Router			/me/{id}/ [get]
+//		@Router			/vendors/me/ [get]
 func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 	vendorEmail := r.Header.Get("X-Auth-User-Email")
 	if vendorEmail == "" {
@@ -298,7 +298,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
-		err = keycloak.KeycloakClient.AssignRole(keycloakUser, "vendor")
+		err = keycloak.KeycloakClient.AssignGroup(keycloakUser, config.Config.KeycloakVendorGroup)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
