@@ -2,20 +2,42 @@ package utils
 
 import (
 	"augustin/config"
+	"augustin/notifications"
 	"math/rand"
 	"net/http"
 	"os"
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // GetLogger initializes a logger
 func GetLogger() *zap.SugaredLogger {
+	var consoleEncoder zapcore.Encoder
+	stdout := zapcore.AddSync(os.Stdout)
+
 	if config.Config.CreateDemoData {
-		return zap.Must(zap.NewDevelopment()).Sugar()
+		developmentCfg := zap.NewDevelopmentEncoderConfig()
+		developmentCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		consoleEncoder = zapcore.NewConsoleEncoder(developmentCfg)
+	} else {
+		productionCfg := zap.NewProductionEncoderConfig()
+		productionCfg.TimeKey = "timestamp"
+		productionCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+		consoleEncoder = zapcore.NewConsoleEncoder(productionCfg)
 	}
-	return zap.Must(zap.NewProduction()).Sugar()
+
+	notificationCfg := zap.NewDevelopmentEncoderConfig()
+	notificationEncoder := zapcore.NewConsoleEncoder(notificationCfg)
+
+	level := zap.NewAtomicLevelAt(zap.DebugLevel)
+	core := zapcore.NewTee(
+		zapcore.NewCore(consoleEncoder, stdout, level),
+		zapcore.NewCore(notificationEncoder, notifications.NotificationsClient, level),
+	)
+
+	return zap.New(core).Sugar()
 }
 
 // GetEnv returns the value of an env var, null value if var is not set yet or a default value if the environment variable is not set

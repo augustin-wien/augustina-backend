@@ -299,3 +299,27 @@ http://localhost:3000/api/transaction/
   ```
 - If successful, response is: `{"Verification":true}` -> checkout process is successfully finished
 - If unsuccessfil, response is: `{"Verification":false}` -> this step is still unclear, in which circumstances a user can be redirected to the success page but her transaction cannot be verified
+
+
+## Optional: Error Notifications
+The software has a matrix and email error notification system. To use it, you need to set the following environment variables:
+
+For email:
+```bash
+NOTIFICATIONS_EMAIL_ENABLED=true
+NOTIFICATIONS_EMAIL_SERVER=
+NOTIFICATIONS_EMAIL_PORT=587 #ssl aka 465 not supported
+NOTIFICATIONS_EMAIL_SENDER=user@example.com
+NOTIFICATIONS_EMAIL_USER=user
+NOTIFICATIONS_EMAIL_PASSWORD=password
+NOTIFICATIONS_EMAIL_RECEIVER=user@example.com #multiple receivers are possible, separated by comma
+NOTIFICATIONS_PREFIX=augustin
+```
+For Matrix:
+```bash
+NOTIFICATIONS_MATRIX_ENABLED=true
+NOTIFICATIONS_MATRIX_HOME_SERVER=matrix.org
+NOTIFICATIONS_MATRIX_ACCESS_TOKEN=
+NOTIFICATIONS_MATRIX_ROOM_ID=
+NOTIFICATIONS_MATRIX_USER_ID=
+```

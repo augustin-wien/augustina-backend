@@ -5,6 +5,7 @@ import (
 	"augustin/database"
 	"augustin/handlers"
 	"augustin/keycloak"
+	"augustin/notifications"
 	"augustin/utils"
 	"net/http"
 )
@@ -15,6 +16,7 @@ func main() {
 	// Initialize config
 	config.InitConfig()
 	conf := config.Config
+	notifications.InitNotifications()
 
 	log.Info("Starting Augustin Server v", conf.Version)
 
