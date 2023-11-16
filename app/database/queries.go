@@ -854,7 +854,10 @@ func (db *Database) UpdateAccountBalance(id int, balanceDiff int) (err error) {
 func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
 
 	var account Account
-	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1", id).Scan(&account.Balance)
+
+	// Lock account balance via "for update"
+	// https://stackoverflow.com/a/45871295/19932351
+	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1 for update", id).Scan(&account.Balance)
 	if err != nil {
 		log.Error(err)
 	}
@@ -868,6 +871,20 @@ func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
 	if err != nil {
 		log.Error(err)
 	}
+
+	// Diffferent approach via pg_advisory_lock, which lead to an error
+	// https://stackoverflow.com/a/55267440/19932351
+	// err = tx.QueryRow(context.Background(), "SELECT pg_advisory_lock(Balance) FROM Account WHERE ID = $1", id).Scan(&account.Balance)
+	// if err != nil {
+	// 	log.Error(err)
+	// }
+
+	//Update balance
+
+	// err = tx.QueryRow(context.Background(), "SELECT pg_advisory_unlock(Balance) FROM Account WHERE ID = $1", id).Scan(&account.Balance)
+	// if err != nil {
+	// 	log.Error(err)
+	// }
 
 	return
 }
