@@ -1,6 +1,7 @@
 package database
 
 import (
+	"augustin/config"
 	"context"
 	"errors"
 	"strconv"
@@ -52,7 +53,7 @@ func (db *Database) GetHelloWorld() (string, error) {
 
 // ListVendors returns all users from the database but not all fields for better overview
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id ORDER BY LicenseID ASC")
 	if err != nil {
 		log.Error(err)
 		return vendors, err
@@ -75,6 +76,24 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount)
 	if err != nil {
 		log.Error("Couldn't get vendor ", licenseID, err)
+		return vendor, err
+	}
+
+	// Get vendor balance
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
+	if err != nil {
+		log.Error(err)
+	}
+	return vendor, err
+}
+
+// GetVendorByEmail returns the vendor with the given licenseID
+func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
+	log.Info("GetVendorByEmail", mail)
+	// Get vendor data
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE Email = $1", mail).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount)
+	if err != nil {
+		log.Error("Couldn't get vendor", mail, err)
 		return vendor, err
 	}
 
@@ -159,7 +178,7 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 // Items ----------------------------------------------------------------------
 
 // ListItems returns all items from the database
-func (db *Database) ListItems() ([]Item, error) {
+func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, error) {
 	var items []Item
 	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item")
 	if err != nil {
@@ -168,19 +187,30 @@ func (db *Database) ListItems() ([]Item, error) {
 	}
 	for rows.Next() {
 		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
+		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem)
 		if err != nil {
 			log.Error(err)
 			return items, err
 		}
+
+		// Hardcode check: Do not add default items with their config names TransactionCostsName and DonationName
+		if skipHiddenItems && (item.Name == config.Config.TransactionCostsName || item.Name == config.Config.DonationName) {
+			continue
+		}
+
+		if skipLicenses && item.IsLicenseItem {
+			continue
+		}
+
 		items = append(items, item)
+
 	}
 	return items, nil
 }
 
 // GetItemByName returns the item with the given name
 func (db *Database) GetItemByName(name string) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem)
 	if err != nil {
 		log.Error(err)
 	}
@@ -189,7 +219,7 @@ func (db *Database) GetItemByName(name string) (item Item, err error) {
 
 // GetItem returns the item with the given ID
 func (db *Database) GetItem(id int) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem)
 	if err != nil {
 		log.Error(err)
 	}
@@ -210,7 +240,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 	}
 
 	// Insert the new item
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, LicenseItem, Archived) values ($1, $2, $3, $4, $5) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived).Scan(&id)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, LicenseItem, Archived, IsLicenseItem) values ($1, $2, $3, $4, $5, $6) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived, item.IsLicenseItem).Scan(&id)
 	if err != nil {
 		log.Error(err)
 	}
@@ -221,9 +251,9 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 func (db *Database) UpdateItem(id int, item Item) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Item
-	SET Name = $2, Description = $3, Price = $4, Image = $5, LicenseItem = $6, Archived = $7
+	SET Name = $2, Description = $3, Price = $4, Image = $5, LicenseItem = $6, Archived = $7, IsLicenseItem = $8
 	WHERE ID = $1
-	`, id, item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived)
+	`, id, item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived, item.IsLicenseItem)
 	if err != nil {
 		log.Error(err)
 	}
@@ -515,6 +545,8 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	if len(filters) > 0 {
 		query += " WHERE " + strings.Join(filters, " AND ")
 	}
+	// Order by timestamp
+	query += " ORDER BY Payment.Timestamp"
 	rows, err = db.Dbpool.Query(context.Background(), query, filterValues...)
 	if err != nil {
 		log.Error(err)
@@ -531,7 +563,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		}
 
 		// Add payout payments to main payment
-		subrows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Timestamp, Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment WHERE Payout = $1", payment.ID)
+		subrows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Timestamp, Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment WHERE Payout = $1 ORDER BY Timestamp", payment.ID)
 		if err != nil {
 			log.Error(err)
 			return payments, err

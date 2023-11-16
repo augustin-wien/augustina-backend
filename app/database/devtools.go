@@ -48,10 +48,11 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 func (db *Database) createDevItems() (ids []int, err error) {
 
 	digitalNewspaperLicense := Item{
-		Name:        "Digitale Zeitung (Lizenz)",
-		Description: "Lizenz für digitale Zeitungsausgabe",
-		Price:       50,
-		Archived:    false,
+		Name:          "Digitale Zeitung (Lizenz)",
+		Description:   "Lizenz für digitale Zeitungsausgabe",
+		Price:         50,
+		Archived:      false,
+		IsLicenseItem: true,
 	}
 
 	digitalNewspaperLicenseID, err := db.CreateItem(digitalNewspaperLicense)
@@ -96,14 +97,13 @@ func (db *Database) createDevItems() (ids []int, err error) {
 	return ids, err
 }
 
-//After initializing items and calling the function above, the database should look like this:
+// After initializing items and calling the function above, the database should look like this:
 // item[0] = Newspaper
 // item[1] = Donation
-// item[2] = Transaction cost
-// item[3] = Digital newspaper
-// item[4] = Digital newspaper license
+// item[2] = Transaction costs
+// item[3] = Digital newspaper license
+// item[4] = Digital newspaper
 // item[5] = Calendar
-//
 
 // CreateDevOrdersAndPayments creates test orders and payments
 // This function replicates what happens in CreateOrder handler
@@ -132,7 +132,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 		return
 	}
 
-	items, err := db.ListItems()
+	items, err := db.ListItems(false, false)
 	if err != nil {
 		return
 	}
@@ -163,6 +163,12 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
 				IsSale:   true,
+			},
+			{
+				Item:     items[1].ID, // Donation
+				Quantity: 100,
+				Sender:   buyerAccountID,
+				Receiver: vendorAccount.ID,
 			},
 		},
 	}

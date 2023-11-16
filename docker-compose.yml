@@ -113,6 +113,8 @@ services:
     volumes:
       - ./docker/keycloak/import:/opt/keycloak/data/import:ro
       - ./docker/keycloak/export:/tmp/export
+      - ./docker/keycloak/themes/augustin:/opt/keycloak/themes/augustin:ro
+    
     command: start-dev --import-realm
     ports:
       - "8080:8080"

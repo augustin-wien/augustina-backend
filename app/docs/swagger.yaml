@@ -12,6 +12,8 @@ definitions:
         type: integer
       image:
         type: string
+      isLicenseItem:
+        type: boolean
       licenseItem:
         allOf:
         - $ref: '#/definitions/null.Int'
@@ -21,6 +23,29 @@ definitions:
       price:
         description: Price in cents
         type: integer
+    type: object
+  database.OrderEntry:
+    properties:
+      id:
+        type: integer
+      isSale:
+        description: Whether to include this item in sales payment
+        type: boolean
+      item:
+        type: integer
+      price:
+        description: Price at time of purchase in cents
+        type: integer
+      quantity:
+        type: integer
+      receiver:
+        type: integer
+      receiverName:
+        type: string
+      sender:
+        type: integer
+      senderName:
+        type: string
     type: object
   database.Payment:
     properties:
@@ -146,8 +171,14 @@ definitions:
     properties:
       firstName:
         type: string
+      purchasedItems:
+        items:
+          $ref: '#/definitions/database.OrderEntry'
+        type: array
       timeStamp:
         type: string
+      totalSum:
+        type: integer
     type: object
   handlers.createOrderRequest:
     properties:
@@ -521,6 +552,33 @@ paths:
       security:
       - KeycloakAuth: []
       summary: Update Item
+      tags:
+      - Items
+  /items/backoffice:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: No donation and transaction cost items
+        in: query
+        name: skipHiddenItems
+        type: boolean
+      - description: No license items
+        in: query
+        name: skipLicenses
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Item'
+            type: array
+      security:
+      - KeycloakAuth: []
+      summary: List Items for backoffice overview
       tags:
       - Items
   /orders/:

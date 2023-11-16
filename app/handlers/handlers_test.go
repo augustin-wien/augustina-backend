@@ -51,6 +51,7 @@ func TestMain(m *testing.M) {
 		keycloak.KeycloakClient.DeleteUser(adminUser)
 		keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	}()
+	keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", adminUserEmail, "password")
 	if err != nil {
 		log.Errorf("Create user failed: %v \n", err)
@@ -66,7 +67,7 @@ func TestMain(m *testing.M) {
 	fmt.Println("Created admin keycloak token")
 
 	returnCode := m.Run()
-	err = keycloak.KeycloakClient.DeleteUser(adminUser)
+	err = keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	if err != nil {
 		log.Errorf("Delete user failed: %v \n", err)
 	}
@@ -89,7 +90,7 @@ func createTestVendor(t *testing.T, licenseID string) string {
 		"licenseID": "` + licenseID + `",
 		"firstName": "test1234",
 		"lastName": "test",
-		"email": "test123@example.com",
+		"email": "` + licenseID + `@example.com",
 		"telephone": "+43123456789",
 		"VendorSince": "1/22",
 		"PLZ": "1234"
@@ -101,16 +102,23 @@ func createTestVendor(t *testing.T, licenseID string) string {
 
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
-	keycloak.KeycloakClient.DeleteUser("test123@example.com")
+	vendorLicenseId := "testlicenseid1"
+	vendorEmail := vendorLicenseId + "@example.com"
+	vendorPassword := "password"
+	err := keycloak.KeycloakClient.DeleteUser(vendorEmail)
+	if err != nil {
+		log.Infof("Delete user %v failed, which is okey: %v \n", vendorLicenseId, err)
+	}
 
 	// Initialize database and empty it
-	err := database.Db.InitEmptyTestDb()
+	err = database.Db.InitEmptyTestDb()
 	if err != nil {
 		panic(err)
 	}
 
 	// Create
-	vendorID := createTestVendor(t, "testLicenseID1")
+	vendorID := createTestVendor(t, vendorLicenseId)
+	keycloak.KeycloakClient.UpdateUserPassword(vendorEmail, vendorPassword)
 
 	// Query ListVendors only returns few fields (not all) under /api/vendors/
 	res := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
@@ -119,11 +127,11 @@ func TestVendors(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(vendors))
 	require.Equal(t, "test1234", vendors[0].FirstName)
-	require.Equal(t, "testLicenseID1", vendors[0].LicenseID.String)
+	require.Equal(t, vendorLicenseId, vendors[0].LicenseID.String)
 	require.Equal(t, "test", vendors[0].LastName)
 
 	// Check if licenseID exists and returns first name of vendor
-	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/testLicenseID1/", nil, 200)
+	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/"+vendorLicenseId+"/", nil, 200)
 	require.Equal(t, res.Body.String(), `{"FirstName":"test1234"}`)
 
 	// GetVendorByID returns all fields under /api/vendors/{id}/
@@ -136,10 +144,11 @@ func TestVendors(t *testing.T) {
 	require.Equal(t, "+43123456789", vendor.Telephone)
 	require.Equal(t, "1/22", vendor.VendorSince)
 	require.Equal(t, "1234", vendor.PLZ)
+	require.Equal(t, vendorEmail, vendor.Email)
 
 	// Update
 	var vendors2 []database.Vendor
-	jsonVendor := `{"firstName": "nameAfterUpdate"}`
+	jsonVendor := `{"firstName": "nameAfterUpdate", "email": "` + vendorEmail + `"}`
 	utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200, adminUserToken)
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
@@ -153,6 +162,29 @@ func TestVendors(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
 	require.Equal(t, 0, len(vendors))
+
+	// Me
+	// Create
+	vendorID = createTestVendor(t, vendorLicenseId)
+	keycloak.KeycloakClient.UpdateUserPassword(vendorEmail, vendorPassword)
+
+	vendorToken, err := keycloak.KeycloakClient.GetUserToken(vendorEmail, vendorPassword)
+	if err != nil {
+		panic(err)
+	}
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
+	err = json.Unmarshal(res.Body.Bytes(), &vendors)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(vendors))
+
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/me/", nil, 200, vendorToken)
+	var meVendor database.Vendor
+	err = json.Unmarshal(res.Body.Bytes(), &meVendor)
+	utils.CheckError(t, err)
+	require.Equal(t, "test1234", meVendor.FirstName)
+
+	// Clean up after test
+	keycloak.KeycloakClient.DeleteUser(vendorEmail)
 
 }
 
@@ -183,8 +215,8 @@ func TestItems(t *testing.T) {
 	var resItems []database.Item
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 4, len(resItems))
-	require.Equal(t, "Test item", resItems[3].Name)
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Test item", resItems[1].Name)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
@@ -201,17 +233,17 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 4, len(resItems))
-	require.Equal(t, "Updated item name", resItems[3].Name)
-	require.Contains(t, resItems[3].Image, "test")
-	require.Contains(t, resItems[3].Image, ".jpg")
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Updated item name", resItems[1].Name)
+	require.Contains(t, resItems[1].Image, "test")
+	require.Contains(t, resItems[1].Image, ".jpg")
 
 	// Check file
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
-	file, err := os.ReadFile(dir + "/" + resItems[3].Image)
+	file, err := os.ReadFile(dir + "/" + resItems[1].Image)
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 
@@ -227,9 +259,9 @@ func TestItems(t *testing.T) {
 	res = utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	require.Equal(t, 4, len(resItems))
-	require.Equal(t, "Updated item name 2", resItems[3].Name)
-	require.Equal(t, resItems[3].Image, "Test")
+	require.Equal(t, 2, len(resItems))
+	require.Equal(t, "Updated item name 2", resItems[1].Name)
+	require.Equal(t, resItems[1].Image, "Test")
 
 	// Update item with certain ID (which should fail)
 	body = new(bytes.Buffer)
@@ -280,7 +312,7 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
-
+	keycloak.KeycloakClient.DeleteUser("testlicenseid2@example.com")
 	setMaxOrderAmount(t, 10)
 
 	itemID, _ := CreateTestItemWithLicense(t)
@@ -299,16 +331,14 @@ func TestOrders(t *testing.T) {
 		  "vendorLicenseID": "testLicenseID2"
 	}`
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
-	// The commented error quote should actually be triggered
-	// require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"MainItem has to be in entries and be the first item"}}`)
+
+	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
 	setMaxOrderAmount(t, 5000)
 
-	utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
-	require.Equal(t, res.Body.String(), `{"error":{"message":"MainItem has to be in entries and be the first item"}}`)
+	res2 := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 
-	//require.Equal(t, res.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
+	require.Equal(t, res2.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
 	// TODO order cannot pass security checks due to each new InitEmptyTestDb call which creates a new MainItem with ID != 1
 
@@ -474,11 +504,16 @@ func timeRequest(t *testing.T, from int, to int, expectedLength int) {
 
 // TestPaymentPayout tests CRUD operations on payment payouts
 func TestPaymentPayout(t *testing.T) {
+	keycloak.KeycloakClient.DeleteUser("testpaymentpayout@example.com")
+	keycloak.KeycloakClient.DeleteUser("testotherlicenseid@example.com")
 
-	vendorID := createTestVendor(t, "testLicenseID")
+	vendorLicenseId := "testpaymentpayout"
+	vendorID := createTestVendor(t, vendorLicenseId)
 	vendorIDInt, _ := strconv.Atoi(vendorID)
 	vendorAccount, err := database.Db.GetAccountByVendorID(vendorIDInt)
+	utils.CheckError(t, err)
 	anonUserAccount, err := database.Db.GetAccountByType("UserAnon")
+	utils.CheckError(t, err)
 
 	// Create a payment to the vendor
 	_, err = database.Db.CreatePayment(
@@ -488,7 +523,7 @@ func TestPaymentPayout(t *testing.T) {
 			Amount:   314,
 			IsSale:   true,
 		})
-
+	utils.CheckError(t, err)
 	// Create a payment from the vendor (should be substracted in payout)
 	_, err = database.Db.CreatePayment(
 		database.Payment{
@@ -498,9 +533,10 @@ func TestPaymentPayout(t *testing.T) {
 			IsSale:   true,
 		})
 
+	utils.CheckError(t, err)
 	// Create invalid payout
 	f := createPaymentPayoutRequest{
-		VendorLicenseID: "testLicenseID",
+		VendorLicenseID: vendorLicenseId,
 		From:            time.Now().Add(time.Duration(-200) * time.Hour),
 		To:              time.Now().Add(time.Duration(-100) * time.Hour),
 	}
@@ -509,7 +545,7 @@ func TestPaymentPayout(t *testing.T) {
 
 	// Create payments via API
 	f = createPaymentPayoutRequest{
-		VendorLicenseID: "testLicenseID",
+		VendorLicenseID: vendorLicenseId,
 		From:            time.Now().Add(time.Duration(-100) * time.Hour),
 		To:              time.Now().Add(time.Duration(+100) * time.Hour),
 	}
@@ -518,7 +554,7 @@ func TestPaymentPayout(t *testing.T) {
 	utils.CheckError(t, err)
 
 	// Try to check first
-	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor=testLicenseID", f, 200, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor="+vendorLicenseId, f, 200, adminUserToken)
 	var payments []database.Payment
 	err = json.Unmarshal(res.Body.Bytes(), &payments)
 	utils.CheckError(t, err)
@@ -549,7 +585,7 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, payoutPayment.ReceiverName, cashAccount.Name)
 	require.Equal(t, payoutPayment.AuthorizedBy, adminUserEmail)
 
-	vendor, err := database.Db.GetVendorByLicenseID("testLicenseID")
+	vendor, err := database.Db.GetVendorByLicenseID(vendorLicenseId)
 	utils.CheckError(t, err)
 
 	require.Equal(t, vendor.Balance, 0)
@@ -562,7 +598,7 @@ func TestPaymentPayout(t *testing.T) {
 	database.Db.CreatePayment(database.Payment{})
 
 	var payouts []database.Payment
-	response := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true&vendor=testLicenseID", nil, 200, adminUserToken)
+	response := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true&vendor="+vendorLicenseId, nil, 200, adminUserToken)
 	err = json.Unmarshal(response.Body.Bytes(), &payouts)
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(payouts))
@@ -585,12 +621,15 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, 4, len(payouts))
 
 	// Check that there are no more payments for payout
-	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor=testLicenseID", f, 200, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor="+vendorLicenseId, f, 200, adminUserToken)
 	var payoutPaymentsAfter []database.Payment
 	err = json.Unmarshal(res.Body.Bytes(), &payoutPaymentsAfter)
 	utils.CheckError(t, err)
-	log.Info(payoutPaymentsAfter)
 	require.Equal(t, 0, len(payoutPaymentsAfter))
+
+	// Clean up after test
+	keycloak.KeycloakClient.DeleteUser(vendorLicenseId)
+	keycloak.KeycloakClient.DeleteUser("testotherlicenseid@example.com")
 
 }
 
