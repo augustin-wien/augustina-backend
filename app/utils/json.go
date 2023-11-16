@@ -80,17 +80,29 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	maxBytes := 1024 * 1024 // one megabyte
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields()
 
-	// attempt to decode the data
-	err := dec.Decode(data)
-	if err != nil {
-		log.Info(zap.Any("Body of data at ReadJSON", data))
+	// Use a map to decode into, allowing unknown fields
+	var m map[string]interface{}
+
+	if err := dec.Decode(&m); err != nil {
+		log.Info(zap.Any("Body of data at ReadJSON", m))
 		log.Error(err)
 		return err
 	}
 
-	// make sure only one JSON value in payload
+	// Convert the map to JSON to ignore unknown fields
+	jsonData, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshal the JSON back into the provided data structure
+	if err := json.Unmarshal(jsonData, data); err != nil {
+		log.Error(err)
+		return err
+	}
+
+	// Make sure only one JSON value in payload
 	err = dec.Decode(&struct{}{})
 	if err != io.EOF {
 		log.Error(err)
