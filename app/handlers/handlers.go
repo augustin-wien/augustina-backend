@@ -692,13 +692,16 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Create slice of order entries depending on size of requestData.Entries
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
+
+	// Add entries to each ordered item
 	for idx, entry := range requestData.Entries {
 		order.Entries[idx].Item = entry.Item
 		order.Entries[idx].Quantity = entry.Quantity
 	}
 
-	order.User.String = requestData.User
+	// Get vendor id from license id
 	vendor, err := database.Db.GetVendorByLicenseID(requestData.VendorLicenseID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -711,6 +714,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+
+	// Add user to order
+	// TODO-Question: This line is not necessary anymore, since the user is already in the request?
+	order.User.String = requestData.User
 
 	// Get accounts
 	var buyerAccountID int
