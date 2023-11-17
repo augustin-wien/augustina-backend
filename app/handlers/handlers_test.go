@@ -313,6 +313,8 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
 	keycloak.KeycloakClient.DeleteUser("testlicenseid2@example.com")
+
+	// Test that maxOrderAmount is set and cannot be exceeded
 	setMaxOrderAmount(t, 10)
 
 	itemID, _ := CreateTestItemWithLicense(t)
@@ -334,11 +336,30 @@ func TestOrders(t *testing.T) {
 
 	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
+	// Set max order amount to 5000 so that order can be created
 	setMaxOrderAmount(t, 5000)
 
 	res2 := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
 
 	require.Equal(t, res2.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
+
+	// Check that order cannot contain duplicate items
+	jsonPost := `{
+		"entries": [
+			{
+			  "item": ` + itemID + `,
+			  "quantity": 2
+			},
+			{
+				"item": ` + itemID + `,
+				"quantity": 2
+			}
+		  ],
+		  "vendorLicenseID": "testLicenseID2"
+	}`
+	res3 := utils.TestRequestStr(t, r, "POST", "/api/orders/", jsonPost, 400)
+
+	require.Equal(t, res3.Body.String(), `{"error":{"message":"Nice try! You are not supposed to have duplicate item ids in your order request"}}`)
 
 	// TODO order cannot pass security checks due to each new InitEmptyTestDb call which creates a new MainItem with ID != 1
 
