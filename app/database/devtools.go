@@ -166,7 +166,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 			},
 			{
 				Item:     items[1].ID, // Donation
-				Quantity: 100,
+				Quantity: 50,
 				Sender:   buyerAccountID,
 				Receiver: vendorAccount.ID,
 			},

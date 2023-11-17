@@ -106,6 +106,13 @@ func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
 
 // GetVendor returns the vendor with the given id
 func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
+
+	// Update Account balance by open payments
+	_, err = db.UpdateAccountBalanceByOpenPayments(vendorID)
+	if err != nil {
+		log.Error(err)
+	}
+
 	// Get vendor data
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.URLID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount)
 	if err != nil {
@@ -586,18 +593,6 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 // ListPaymentsForPayout returns sales payments that have not been paid out yet
 func (db *Database) ListPaymentsForPayout(minDate time.Time, maxDate time.Time, vendorLicenseID string) (payments []Payment, err error) {
 
-	// Get vendor
-	vendor, err := db.GetVendorByLicenseID(vendorLicenseID)
-	if err != nil {
-		return
-	}
-
-	// Update Account balance by open payments
-	err = db.UpdateAccountBalanceByOpenPayments(vendor.ID)
-	if err != nil {
-		log.Error(err)
-	}
-
 	return db.ListPayments(minDate, maxDate, vendorLicenseID, false, false, true)
 }
 
@@ -886,7 +881,7 @@ func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
 }
 
 // UpdateAccountBalanceByOpenPayments updates the balance of an account by summing up all open payments (i.e. payments without a payout)
-func (db *Database) UpdateAccountBalanceByOpenPayments(id int) (err error) {
+func (db *Database) UpdateAccountBalanceByOpenPayments(vendorID int) (payoutAmount int, err error) {
 
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())
@@ -898,26 +893,41 @@ func (db *Database) UpdateAccountBalanceByOpenPayments(id int) (err error) {
 	defer func() { err = deferTx(tx, err) }()
 
 	// Get account
-	var account Account
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1", id).Scan(&account.Balance)
+	vendorAccount, err := db.GetAccountByVendorID(vendorID)
+	if err != nil {
+		return
+	}
+
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1", vendorAccount.ID).Scan(&vendorAccount.Balance)
+	if err != nil {
+		log.Error(err)
+	}
+	log.Info("UpdateAccountBalanceByOpenPayments: Balance of account where Vendor = " + strconv.Itoa(vendorID) + " is " + strconv.Itoa(vendorAccount.Balance))
+
+	var openPaymentsReceiverSum int
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Paymentorder IS NOT NULL AND Receiver = $1", vendorAccount.ID).Scan(&openPaymentsReceiverSum)
 	if err != nil {
 		log.Error(err)
 	}
 
-	var openPaymentsSum int
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Receiver = $1", id).Scan(&openPaymentsSum)
+	// Get open payments where vendor is sender
+	var openPaymentsSenderSum int
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Paymentorder IS NOT NULL AND Sender = $1", vendorAccount.ID).Scan(&openPaymentsSenderSum)
 	if err != nil {
 		log.Error(err)
 	}
 
-	_, err = tx.Exec(context.Background(), "UPDATE Account SET Balance = $1 WHERE ID = $2", openPaymentsSum, id)
+	// Calculate new balance
+	openPaymentsSum := openPaymentsReceiverSum - openPaymentsSenderSum
+
+	_, err = tx.Exec(context.Background(), "UPDATE Account SET Balance = $1 WHERE ID = $2", openPaymentsSum, vendorAccount.ID)
 	if err != nil {
 		log.Error(err)
 	}
 
-	log.Info("UpdateAccountBalanceByOpenPayments: Updated balance of account " + strconv.Itoa(id) + " from " + strconv.Itoa(account.Balance) + " to " + strconv.Itoa(openPaymentsSum))
+	log.Info("UpdateAccountBalanceByOpenPayments: Updated balance of account " + strconv.Itoa(vendorID) + " from " + strconv.Itoa(vendorAccount.Balance) + " to " + strconv.Itoa(openPaymentsSum) + ", openPaymentsReceiverSum = " + strconv.Itoa(openPaymentsReceiverSum) + ", openPaymentsSenderSum = " + strconv.Itoa(openPaymentsSenderSum) + ")")
 
-	return
+	return openPaymentsSum, err
 }
 
 // Settings (singleton) -------------------------------------------------------
