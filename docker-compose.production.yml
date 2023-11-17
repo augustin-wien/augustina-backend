@@ -85,6 +85,8 @@ services:
     volumes:
       - /dockerstorage/convive/augustin-backend/docker/keycloak/import:/opt/keycloak/data/import
       - /dockerstorage/convive/augustin-backend/docker/keycloak/export:/tmp/export
+      - /dockerstorage/convive/augustin-backend/docker/keycloak/themes/augustin:/opt/keycloak/themes/augustin:ro
+
     ports:
       - "7000:8080"
   keycloak-db:

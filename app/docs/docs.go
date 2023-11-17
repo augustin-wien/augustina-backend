@@ -42,8 +42,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Core",
-                    "Auth"
+                    "Core"
                 ],
                 "summary": "Return HelloWorld",
                 "responses": {}
@@ -126,6 +125,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/items/backoffice": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Items"
+                ],
+                "summary": "List Items for backoffice overview",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "No donation and transaction cost items",
+                        "name": "skipHiddenItems",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "No license items",
+                        "name": "skipLicenses",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.Item"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/items/{id}/": {
             "put": {
                 "security": [
@@ -196,6 +239,33 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/me/{id}/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Get Vendor overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VendorOverview"
+                        }
                     }
                 }
             }
@@ -592,6 +662,33 @@ const docTemplate = `{
                 }
             }
         },
+        "/vendors/me/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vendors"
+                ],
+                "summary": "Get Vendor overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VendorOverview"
+                        }
+                    }
+                }
+            }
+        },
         "/vendors/{id}/": {
             "get": {
                 "security": [
@@ -697,7 +794,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/webhooks/vivawallet/failure": {
+        "/webhooks/vivawallet/failure/": {
             "get": {
                 "description": "Return VivaWallet verification key",
                 "consumes": [
@@ -752,7 +849,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/webhooks/vivawallet/price": {
+        "/webhooks/vivawallet/price/": {
             "get": {
                 "description": "Return VivaWallet verification key",
                 "consumes": [
@@ -807,7 +904,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/webhooks/vivawallet/success": {
+        "/webhooks/vivawallet/success/": {
             "get": {
                 "description": "Return VivaWallet verification key",
                 "consumes": [
@@ -879,6 +976,9 @@ const docTemplate = `{
                 "image": {
                     "type": "string"
                 },
+                "isLicenseItem": {
+                    "type": "boolean"
+                },
                 "licenseItem": {
                     "description": "License has to be bought before item",
                     "allOf": [
@@ -893,6 +993,40 @@ const docTemplate = `{
                 "price": {
                     "description": "Price in cents",
                     "type": "integer"
+                }
+            }
+        },
+        "database.OrderEntry": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "isSale": {
+                    "description": "Whether to include this item in sales payment",
+                    "type": "boolean"
+                },
+                "item": {
+                    "type": "integer"
+                },
+                "price": {
+                    "description": "Price at time of purchase in cents",
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "receiver": {
+                    "type": "integer"
+                },
+                "receiverName": {
+                    "type": "string"
+                },
+                "sender": {
+                    "type": "integer"
+                },
+                "senderName": {
+                    "type": "string"
                 }
             }
         },
@@ -1074,14 +1208,65 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.VendorOverview": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "balance": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "lastPayout": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "licenseID": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "plz": {
+                    "type": "string"
+                },
+                "telephone": {
+                    "type": "string"
+                },
+                "urlid": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.VerifyPaymentOrderResponse": {
             "type": "object",
             "properties": {
                 "firstName": {
                     "type": "string"
                 },
+                "purchasedItems": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.OrderEntry"
+                    }
+                },
                 "timeStamp": {
                     "type": "string"
+                },
+                "totalSum": {
+                    "type": "integer"
                 }
             }
         },
@@ -1248,6 +1433,7 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "externalTransactionID": {},
                 "fullName": {
                     "type": "string"
                 },

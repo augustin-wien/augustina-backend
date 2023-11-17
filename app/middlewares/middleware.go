@@ -33,8 +33,11 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// unset all possible user headers for security reasons
 		r.Header.Set("X-Auth-User-Validated", "false")
 		r.Header.Del("X-Auth-User")
+		r.Header.Del("X-Auth-User-Email")
 		r.Header.Del("X-Auth-Roles-vendor")
 		r.Header.Del("X-Auth-Roles-admin")
+		r.Header.Del("X-Auth-Groups-Vendors")
+		r.Header.Del("X-Auth-Groups-Admins")
 
 		userinfo, err := keycloak.KeycloakClient.GetUserInfo(userToken)
 		if err != nil {
@@ -46,6 +49,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		// set user headers
 		r.Header.Set("X-Auth-User", *userinfo.Sub)
 		r.Header.Set("X-Auth-User-Name", *userinfo.PreferredUsername)
+		r.Header.Set("X-Auth-User-Email", *userinfo.Email)
 		r.Header.Set("X-Auth-User-Validated", "true")
 
 		// set user roles headers
@@ -58,6 +62,15 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		for _, role := range userRoles {
 			r.Header.Add("X-Auth-Roles-"+*role.Name, *role.Name)
+		}
+		userGroups, err := keycloak.KeycloakClient.GetUserGroups(*userinfo.Sub)
+		if err != nil {
+			log.Info("Error getting userGroups ", err)
+			utils.ErrorJSON(w, errors.New("internal Server Error"), http.StatusInternalServerError)
+			return
+		}
+		for _, group := range userGroups {
+			r.Header.Add("X-Auth-Groups-"+*group.Name, *group.Name)
 		}
 		next.ServeHTTP(w, r)
 	})
@@ -74,18 +87,17 @@ func VendorAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if r.Header.Get("X-Auth-User-Validated") == "false" {
-
 			log.Info("VendorAuthMiddleware: No validated user", r.Header.Get("X-Auth-User"))
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		if r.Header.Get("X-Auth-Roles-vendor") == "" || r.Header.Get("X-Auth-Roles-admin") == "" {
-			log.Info("VendorAuthMiddleware: user is missing vendor role", r.Header.Get("X-Auth-User"))
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
 
-		next.ServeHTTP(w, r)
+		if r.Header.Get("X-Auth-Groups-Vendors") != "" || r.Header.Get("X-Auth-Roles-admin") != "" {
+			next.ServeHTTP(w, r)
+		} else {
+			log.Info("VendorAuthMiddleware: user is missing vendor role with user id ", r.Header.Get("X-Auth-User"))
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		}
 	})
 }
 

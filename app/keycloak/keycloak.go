@@ -46,9 +46,6 @@ func InitializeOauthServer() (err error) {
 	client := gocloak.NewClient(KeycloakClient.hostname)
 	KeycloakClient.Client = client
 	KeycloakClient.clientTokenCreationTime = utils.GetUnixTime()
-	if err != nil {
-		log.Error("Error logging in Keycloak admin ", err)
-	}
 	KeycloakClient.clientToken, err = KeycloakClient.LoginClient()
 	if err != nil {
 		log.Error("Error logging in Keycloak client ", err)
@@ -95,8 +92,15 @@ func (k *Keycloak) GetRoles() ([]*gocloak.Role, error) {
 // GetUserRoles function returns the user roles
 func (k *Keycloak) GetUserRoles(userID string) ([]*gocloak.Role, error) {
 	k.checkAdminToken()
-	return k.Client.GetRealmRolesByUserID(k.Context, k.clientToken.AccessToken, k.Realm, userID)
+	return k.Client.GetCompositeRealmRolesByUserID(k.Context, k.clientToken.AccessToken, k.Realm, userID)
 }
+
+// GetUserGroups function returns the user groups
+func (k *Keycloak) GetUserGroups(userID string) ([]*gocloak.Group, error) {
+	k.checkAdminToken()
+	return k.Client.GetUserGroups(k.Context, k.clientToken.AccessToken, k.Realm, userID, gocloak.GetGroupsParams{})
+}
+
 func (k *Keycloak) checkAdminToken() {
 	var err error
 	if k.clientToken == nil {
@@ -144,6 +148,17 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 		return err
 	}
 	return k.Client.AddRealmRoleToUser(k.Context, k.clientToken.AccessToken, k.Realm, userID, []gocloak.Role{*role})
+}
+
+// Assign group to user
+func (k *Keycloak) AssignGroup(userID string, groupName string) error {
+	k.checkAdminToken()
+	group, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, groupName)
+	if err != nil {
+		log.Errorf("Error getting group by path %s", groupName)
+		return err
+	}
+	return k.Client.AddUserToGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID)
 }
 
 // UnassignRole function unassigns a role from a user by userID
@@ -198,7 +213,38 @@ func (k *Keycloak) CreateUser(firstName string, lastName string, email string, p
 }
 
 // DeleteUser function deletes a user given by userID
-func (k *Keycloak) DeleteUser(userID string) error {
+func (k *Keycloak) DeleteUser(username string) error {
 	k.checkAdminToken()
-	return k.Client.DeleteUser(k.Context, k.clientToken.AccessToken, k.Realm, userID)
+	// get user for username
+	user, err := k.GetUser(username)
+	if err != nil {
+		return err
+	}
+	return k.Client.DeleteUser(k.Context, k.clientToken.AccessToken, k.Realm, *user.ID)
+}
+
+// UpdateUserPassword function updates a user password given by userID
+func (k *Keycloak) UpdateUserPassword(username string, password string) error {
+	k.checkAdminToken()
+	user, err := k.GetUser(username)
+	if err != nil {
+		return err
+	}
+	return k.Client.SetPassword(k.Context, k.clientToken.AccessToken, *user.ID, k.Realm, password, false)
+}
+
+// UpdateUser function updates a user given by userID
+func (k *Keycloak) UpdateUser(username string, firstName string, lastName string, email string) error {
+	k.checkAdminToken()
+	user, err := k.GetUser(username)
+	if err != nil {
+		return err
+	}
+	user.FirstName = &firstName
+	user.LastName = &lastName
+	user.Email = &email
+	user.EmailVerified = gocloak.BoolP(true)
+	user.Enabled = gocloak.BoolP(true)
+	user.Username = &email
+	return k.Client.UpdateUser(k.Context, k.clientToken.AccessToken, k.Realm, *user)
 }

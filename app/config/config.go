@@ -15,6 +15,7 @@ type config struct {
 	PaypalFixCosts                    float64
 	PaypalPercentageCosts             float64
 	TransactionCostsName              string
+	DonationName                      string
 	VivaWalletVerificationKey         string
 	VivaWalletAPIURL                  string
 	VivaWalletAccountsURL             string
@@ -23,6 +24,9 @@ type config struct {
 	VivaWalletSmartCheckoutClientKey  string
 	VivaWalletSourceCode              string
 	VivaWalletTransactionTypeIDPaypal int
+	KeycloakVendorGroup               string
+	KeycloakCustomerGroup             string
+	KeycloakBackofficeGroup           string
 }
 
 // Config is the global configuration variable
@@ -45,6 +49,7 @@ func InitConfig() {
 		CreateDemoData:                    (getEnv("CREATE_DEMO_DATA", "false") == "true"),
 		PaypalFixCosts:                    getEnvFloat("PAYPAL_FIX_COSTS", 0.00),
 		PaypalPercentageCosts:             getEnvFloat("PAYPAL_PERCENTAGE_COSTS", 0.00),
+		DonationName:                      getEnv("DONATION_NAME", "donation"),
 		TransactionCostsName:              getEnv("TRANSACTION_COSTS_NAME", "transactionCosts"),
 		VivaWalletVerificationKey:         getEnv("VIVA_WALLET_VERIFICATION_KEY", ""),
 		VivaWalletAPIURL:                  getEnv("VIVA_WALLET_API_URL", ""),
@@ -54,6 +59,9 @@ func InitConfig() {
 		VivaWalletSmartCheckoutClientKey:  getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY", ""),
 		VivaWalletSourceCode:              getEnv("VIVA_WALLET_SOURCE_CODE", ""),
 		VivaWalletTransactionTypeIDPaypal: getEnvInt("VIVA_WALLET_TRANSACTION_TYPE_ID_PAYPAL", 0),
+		KeycloakVendorGroup:               getEnv("KEYCLOAK_VENDOR_GROUP", "/vendors"),
+		KeycloakCustomerGroup:             getEnv("KEYCLOAK_CUSTOMER_GROUP", "/customers"),
+		KeycloakBackofficeGroup:           getEnv("KEYCLOAK_BACKOFFICE_GROUP", "/backoffice"),
 	}
 }
 

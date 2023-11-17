@@ -12,6 +12,8 @@ definitions:
         type: integer
       image:
         type: string
+      isLicenseItem:
+        type: boolean
       licenseItem:
         allOf:
         - $ref: '#/definitions/null.Int'
@@ -21,6 +23,29 @@ definitions:
       price:
         description: Price in cents
         type: integer
+    type: object
+  database.OrderEntry:
+    properties:
+      id:
+        type: integer
+      isSale:
+        description: Whether to include this item in sales payment
+        type: boolean
+      item:
+        type: integer
+      price:
+        description: Price at time of purchase in cents
+        type: integer
+      quantity:
+        type: integer
+      receiver:
+        type: integer
+      receiverName:
+        type: string
+      sender:
+        type: integer
+      senderName:
+        type: string
     type: object
   database.Payment:
     properties:
@@ -142,12 +167,46 @@ definitions:
       workingTime:
         type: string
     type: object
+  handlers.VendorOverview:
+    properties:
+      address:
+        type: string
+      balance:
+        type: integer
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: integer
+      lastName:
+        type: string
+      lastPayout:
+        format: date-time
+        type: string
+      licenseID:
+        type: string
+      location:
+        type: string
+      plz:
+        type: string
+      telephone:
+        type: string
+      urlid:
+        type: string
+    type: object
   handlers.VerifyPaymentOrderResponse:
     properties:
       firstName:
         type: string
+      purchasedItems:
+        items:
+          $ref: '#/definitions/database.OrderEntry'
+        type: array
       timeStamp:
         type: string
+      totalSum:
+        type: integer
     type: object
   handlers.createOrderRequest:
     properties:
@@ -258,6 +317,7 @@ definitions:
         type: string
       email:
         type: string
+      externalTransactionID: {}
       fullName:
         type: string
       insDate:
@@ -427,7 +487,6 @@ paths:
       summary: Return HelloWorld
       tags:
       - Core
-      - Auth
   /hello/:
     get:
       consumes:
@@ -523,6 +582,49 @@ paths:
       summary: Update Item
       tags:
       - Items
+  /items/backoffice:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: No donation and transaction cost items
+        in: query
+        name: skipHiddenItems
+        type: boolean
+      - description: No license items
+        in: query
+        name: skipLicenses
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.Item'
+            type: array
+      security:
+      - KeycloakAuth: []
+      summary: List Items for backoffice overview
+      tags:
+      - Items
+  /me/{id}/:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VendorOverview'
+      security:
+      - KeycloakAuth: []
+      summary: Get Vendor overview
+      tags:
+      - Vendors
   /orders/:
     post:
       consumes:
@@ -841,6 +943,23 @@ paths:
       summary: Check for license id
       tags:
       - Vendors
+
+  /vendors/me/:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VendorOverview'
+      security:
+      - KeycloakAuth: []
+      summary: Get Vendor overview
+      tags:
+      - Vendors
   /webhooks/vivawallet/failure:
     get:
       consumes:
@@ -877,7 +996,7 @@ paths:
       summary: Webhook for VivaWallet failed transaction
       tags:
       - VivaWallet Webhooks
-  /webhooks/vivawallet/price:
+  /webhooks/vivawallet/price/:
     get:
       consumes:
       - application/json
@@ -913,7 +1032,7 @@ paths:
       summary: Webhook for VivaWallet transaction prices
       tags:
       - VivaWallet Webhooks
-  /webhooks/vivawallet/success:
+  /webhooks/vivawallet/success/:
     get:
       consumes:
       - application/json

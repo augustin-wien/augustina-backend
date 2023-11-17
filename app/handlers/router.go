@@ -65,6 +65,11 @@ func GetRouter() (r *chi.Mux) {
 				r.Get("/", GetVendor)
 			})
 		})
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.VendorAuthMiddleware)
+			r.Get("/me/", GetVendorOverview)
+		})
 	})
 
 	// Items
@@ -73,6 +78,7 @@ func GetRouter() (r *chi.Mux) {
 		r.Group(func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/backoffice/", ListItemsBackoffice)
 			r.Post("/", CreateItem)
 			r.Route("/{id}", func(r chi.Router) {
 				r.Put("/", UpdateItem)
