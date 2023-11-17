@@ -997,7 +997,7 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 		}
 	}
-	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, false, false, true)
+	payments, err := database.Db.ListPaymentsForPayout(minDate, maxDate, vendor)
 	respond(w, err, payments)
 }
 

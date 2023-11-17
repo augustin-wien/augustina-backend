@@ -273,6 +273,12 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		return err
 	}
 
+	// Update vendors account balance
+	err = database.Db.UpdateAccountBalanceByOpenPayments(order.Vendor)
+	if err != nil {
+		return err
+	}
+
 	// Create transaction costs for Paypal
 	//err = CreatePaypalTransactionCosts(paymentSuccessful, order)
 
