@@ -614,6 +614,26 @@ type createOrderResponse struct {
 
 // PaymentOrders ---------------------------------------------------------------------
 
+// hasDuplicitValues checks if a map has duplicate values
+// Credit to: https://stackoverflow.com/a/57237165/19932351
+func hasDuplicitValues(m map[int]int) bool {
+	// Create empty map
+	x := make(map[int]struct{})
+
+	// Iterate over map
+	for _, v := range m {
+		// Add value to map by using it as key
+		if _, has := x[v]; has {
+			// Return true if value is already in map
+			return true
+		}
+		// Add empty struct to map
+		x[v] = struct{}{}
+	}
+
+	return false
+}
+
 // CreatePaymentOrder godoc
 //
 //	 	@Summary 		Create Payment Order
@@ -636,7 +656,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Security checks for entries
-	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
 	for _, entry := range requestData.Entries {
 
 		// 1. Check: Quantity has to be > 0
@@ -659,13 +678,30 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// 5. Check: If there is more than one entry, each item id has to be unique
+	if len(requestData.Entries) > 1 {
+		// Create map with item ids as keys
+		uniqueItemIDs := make(map[int]int)
+		for idx, entry := range requestData.Entries {
+			uniqueItemIDs[idx] = entry.Item
+		}
+		// Check if there are duplicate item ids
+		if hasDuplicitValues(uniqueItemIDs) {
+			utils.ErrorJSON(w, errors.New("Nice try! You are not supposed to have duplicate item ids in your order request"), http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Create slice of order entries depending on size of requestData.Entries
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
+
+	// Add entries to each ordered item
 	for idx, entry := range requestData.Entries {
 		order.Entries[idx].Item = entry.Item
 		order.Entries[idx].Quantity = entry.Quantity
 	}
 
-	order.User.String = requestData.User
+	// Get vendor id from license id
 	vendor, err := database.Db.GetVendorByLicenseID(requestData.VendorLicenseID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -678,6 +714,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+
+	// Add user to order
+	// TODO-Question: This line is not necessary anymore, since the user is already in the request?
+	order.User.String = requestData.User
 
 	// Get accounts
 	var buyerAccountID int
