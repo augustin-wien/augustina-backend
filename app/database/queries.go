@@ -835,21 +835,6 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 	return
 }
 
-// UpdateAccountBalance updates the balance of an account
-func (db *Database) UpdateAccountBalance(id int, balanceDiff int) (err error) {
-
-	// Start a transaction
-	tx, err := db.Dbpool.Begin(context.Background())
-	if err != nil {
-		return err
-	}
-	defer func() { err = deferTx(tx, err) }()
-
-	err = updateAccountBalanceTx(tx, id, balanceDiff)
-
-	return
-}
-
 // updateAccountBalanceTx updates the balance of an account in an transaction
 func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
 
@@ -871,20 +856,6 @@ func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
 	if err != nil {
 		log.Error(err)
 	}
-
-	// Diffferent approach via pg_advisory_lock, which lead to an error
-	// https://stackoverflow.com/a/55267440/19932351
-	// err = tx.QueryRow(context.Background(), "SELECT pg_advisory_lock(Balance) FROM Account WHERE ID = $1", id).Scan(&account.Balance)
-	// if err != nil {
-	// 	log.Error(err)
-	// }
-
-	//Update balance
-
-	// err = tx.QueryRow(context.Background(), "SELECT pg_advisory_unlock(Balance) FROM Account WHERE ID = $1", id).Scan(&account.Balance)
-	// if err != nil {
-	// 	log.Error(err)
-	// }
 
 	return
 }
