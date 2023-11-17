@@ -835,26 +835,14 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 	return
 }
 
-// UpdateAccountBalance updates the balance of an account
-func (db *Database) UpdateAccountBalance(id int, balanceDiff int) (err error) {
-
-	// Start a transaction
-	tx, err := db.Dbpool.Begin(context.Background())
-	if err != nil {
-		return err
-	}
-	defer func() { err = deferTx(tx, err) }()
-
-	err = updateAccountBalanceTx(tx, id, balanceDiff)
-
-	return
-}
-
 // updateAccountBalanceTx updates the balance of an account in an transaction
 func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
 
 	var account Account
-	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1", id).Scan(&account.Balance)
+
+	// Lock account balance via "for update"
+	// https://stackoverflow.com/a/45871295/19932351
+	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1 for update", id).Scan(&account.Balance)
 	if err != nil {
 		log.Error(err)
 	}
