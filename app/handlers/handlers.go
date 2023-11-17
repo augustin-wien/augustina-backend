@@ -1159,11 +1159,14 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get amount of money for payout
-	amount, err := database.Db.UpdateAccountBalanceByOpenPayments(vendor.ID)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+	var amount int
+	for _, payment := range paymentsToBePaidOut {
+		if payment.Receiver == vendorAccount.ID {
+			amount += payment.Amount
+		}
+		if payment.Sender == vendorAccount.ID {
+			amount -= payment.Amount
+		}
 	}
 
 	// Check that amount is bigger than 0
