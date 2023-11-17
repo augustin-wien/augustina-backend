@@ -97,7 +97,7 @@ func AuthenticateToVivaWallet() (string, error) {
 }
 
 // CreatePaymentOrder creates a payment order and returns the order code
-func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
+func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseID string) (int, error) {
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletAPIURL
 	if apiURL == "" {
@@ -136,7 +136,7 @@ func CreatePaymentOrder(accessToken string, order database.Order) (int, error) {
 	// Create a new sample payment order
 	paymentOrderRequest := PaymentOrderRequest{
 		Amount:              order.GetTotal(),
-		CustomerTrns:        strings.Join(items, ", "),
+		CustomerTrns:        strings.Join(items, ", ") + ", " + vendorLicenseID,
 		Customer:            customer,
 		PaymentTimeout:      300,
 		Preauth:             false,
