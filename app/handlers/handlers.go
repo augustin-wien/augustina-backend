@@ -771,7 +771,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
-		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order)
+		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order, requestData.VendorLicenseID)
 		if err != nil {
 			log.Error("Creating payment order failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
