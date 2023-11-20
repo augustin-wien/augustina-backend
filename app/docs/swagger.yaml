@@ -159,7 +159,7 @@ definitions:
         type: string
       telephone:
         type: string
-      urlid:
+      urlID:
         description: This is used for the QR code
         type: string
       vendorSince:
@@ -188,11 +188,15 @@ definitions:
         type: string
       location:
         type: string
+      openPayments:
+        items:
+          $ref: '#/definitions/database.Payment'
+        type: array
       plz:
         type: string
       telephone:
         type: string
-      urlid:
+      urlID:
         type: string
     type: object
   handlers.VerifyPaymentOrderResponse:
@@ -609,22 +613,6 @@ paths:
       summary: List Items for backoffice overview
       tags:
       - Items
-  /me/{id}/:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.VendorOverview'
-      security:
-      - KeycloakAuth: []
-      summary: Get Vendor overview
-      tags:
-      - Vendors
   /orders/:
     post:
       consumes:
@@ -943,7 +931,6 @@ paths:
       summary: Check for license id
       tags:
       - Vendors
-
   /vendors/me/:
     get:
       consumes:
@@ -960,7 +947,7 @@ paths:
       summary: Get Vendor overview
       tags:
       - Vendors
-  /webhooks/vivawallet/failure:
+  /webhooks/vivawallet/failure/:
     get:
       consumes:
       - application/json

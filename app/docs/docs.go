@@ -243,33 +243,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/me/{id}/": {
-            "get": {
-                "security": [
-                    {
-                        "KeycloakAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Vendors"
-                ],
-                "summary": "Get Vendor overview",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.VendorOverview"
-                        }
-                    }
-                }
-            }
-        },
         "/orders/": {
             "post": {
                 "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
@@ -1196,7 +1169,7 @@ const docTemplate = `{
                 "telephone": {
                     "type": "string"
                 },
-                "urlid": {
+                "urlID": {
                     "description": "This is used for the QR code",
                     "type": "string"
                 },
@@ -1239,13 +1212,19 @@ const docTemplate = `{
                 "location": {
                     "type": "string"
                 },
+                "openPayments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Payment"
+                    }
+                },
                 "plz": {
                     "type": "string"
                 },
                 "telephone": {
                     "type": "string"
                 },
-                "urlid": {
+                "urlID": {
                     "type": "string"
                 }
             }
