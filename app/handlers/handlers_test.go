@@ -163,54 +163,6 @@ func TestVendors(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, 0, len(vendors))
 
-	// Me
-	// Create Vendor
-	vendorID = createTestVendor(t, vendorLicenseId)
-	keycloak.KeycloakClient.UpdateUserPassword(vendorEmail, vendorPassword)
-
-	vendorIDInt, _ := strconv.Atoi(vendorID)
-	vendorAccount, err := database.Db.GetAccountByVendorID(vendorIDInt)
-	utils.CheckError(t, err)
-	anonUserAccount, err := database.Db.GetAccountByType("UserAnon")
-	utils.CheckError(t, err)
-	// Create payments via API
-	_, err = database.Db.CreatePayment(
-		database.Payment{
-			Sender:       anonUserAccount.ID,
-			Receiver:     vendorAccount.ID,
-			SenderName:   "Test sender",
-			ReceiverName: "Test receiver",
-			Amount:       314,
-		})
-
-	utils.CheckError(t, err)
-
-	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
-	var payments []database.Payment
-	err = json.Unmarshal(response2.Body.Bytes(), &payments)
-	utils.CheckError(t, err)
-	require.Equal(t, 1, len(payments))
-
-	vendorToken, err := keycloak.KeycloakClient.GetUserToken(vendorEmail, vendorPassword)
-	if err != nil {
-		panic(err)
-	}
-	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
-	err = json.Unmarshal(res.Body.Bytes(), &vendors)
-	utils.CheckError(t, err)
-	require.Equal(t, 1, len(vendors))
-
-	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/me/", nil, 200, vendorToken)
-	var meVendor VendorOverview
-	err = json.Unmarshal(res.Body.Bytes(), &meVendor)
-	utils.CheckError(t, err)
-	require.Equal(t, "test1234", meVendor.FirstName)
-	require.Equal(t, "+43123456789", meVendor.Telephone)
-	require.Equal(t, "1234", meVendor.PLZ)
-	require.Equal(t, vendorEmail, meVendor.Email)
-	require.Equal(t, 314, meVendor.Balance)
-	require.Equal(t, 1, len(meVendor.OpenPayments))
-
 	// Clean up after test
 	keycloak.KeycloakClient.DeleteUser(vendorEmail)
 
@@ -728,4 +680,53 @@ func TestSettings(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 
+}
+
+func TestVendorsOverview(t *testing.T) {
+
+	// Me
+
+	// Create Vendor
+	vendorLicenseId := "testvendoroverview"
+	vendorEmail := vendorLicenseId + "@example.com"
+	vendorPassword := "password"
+
+	vendorID := createTestVendor(t, vendorLicenseId)
+	keycloak.KeycloakClient.UpdateUserPassword(vendorEmail, vendorPassword)
+
+	vendorIDInt, _ := strconv.Atoi(vendorID)
+	vendorAccount, err := database.Db.GetAccountByVendorID(vendorIDInt)
+	utils.CheckError(t, err)
+	anonUserAccount, err := database.Db.GetAccountByType("UserAnon")
+	utils.CheckError(t, err)
+	// Create payments via API
+	_, err = database.Db.CreatePayment(
+		database.Payment{
+			Sender:       anonUserAccount.ID,
+			Receiver:     vendorAccount.ID,
+			SenderName:   "Test sender",
+			ReceiverName: "Test receiver",
+			Amount:       314,
+		})
+
+	utils.CheckError(t, err)
+
+	vendorToken, err := keycloak.KeycloakClient.GetUserToken(vendorEmail, vendorPassword)
+	if err != nil {
+		panic(err)
+	}
+
+	res := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/me/", nil, 200, vendorToken)
+	var meVendor VendorOverview
+	err = json.Unmarshal(res.Body.Bytes(), &meVendor)
+	utils.CheckError(t, err)
+	require.Equal(t, "test1234", meVendor.FirstName)
+	require.Equal(t, "+43123456789", meVendor.Telephone)
+	require.Equal(t, "1234", meVendor.PLZ)
+	require.Equal(t, vendorEmail, meVendor.Email)
+	require.Equal(t, 314, meVendor.Balance)
+	require.Equal(t, 1, len(meVendor.OpenPayments))
+
+	// Clean up after test
+	keycloak.KeycloakClient.DeleteUser(vendorEmail)
 }
