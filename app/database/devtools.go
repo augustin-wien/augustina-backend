@@ -29,7 +29,7 @@ func (db *Database) CreateDevData() (err error) {
 func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 	vendor := Vendor{
 		KeycloakID: "keycloakid1",
-		URLID:      "www.augustin.or.at/fl-123",
+		UrlID:      "www.augustin.or.at/fl-123",
 		LicenseID:  null.NewString("fl-123", true),
 		FirstName:  "firstname1",
 		LastName:   "lastname1",

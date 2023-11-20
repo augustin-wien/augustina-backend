@@ -205,7 +205,7 @@ type VendorOverview struct {
 	LastName   string
 	Email      string
 	LicenseID  string
-	URLID      string
+	UrlID      string
 	LastPayout null.Time `swaggertype:"string" format:"date-time"`
 	Balance    int
 	Address    string
@@ -240,7 +240,7 @@ func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 		LastName:   vendor.LastName,
 		Email:      vendor.Email,
 		LicenseID:  vendor.LicenseID.String,
-		URLID:      vendor.URLID,
+		UrlID:      vendor.UrlID,
 		LastPayout: vendor.LastPayout,
 		Balance:    vendor.Balance,
 		Address:    vendor.Address,
