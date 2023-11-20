@@ -200,18 +200,19 @@ func GetVendor(w http.ResponseWriter, r *http.Request) {
 }
 
 type VendorOverview struct {
-	ID         int
-	FirstName  string
-	LastName   string
-	Email      string
-	LicenseID  string
-	UrlID      string
-	LastPayout null.Time `swaggertype:"string" format:"date-time"`
-	Balance    int
-	Address    string
-	PLZ        string
-	Location   string
-	Telephone  string
+	ID           int
+	FirstName    string
+	LastName     string
+	Email        string
+	LicenseID    string
+	UrlID        string
+	LastPayout   null.Time `swaggertype:"string" format:"date-time"`
+	Balance      int
+	Address      string
+	PLZ          string
+	Location     string
+	Telephone    string
+	OpenPayments []database.Payment
 }
 
 // GetVendorOverview godoc
@@ -224,31 +225,48 @@ type VendorOverview struct {
 //		@Security		KeycloakAuth
 //		@Router			/vendors/me/ [get]
 func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
+
+	// Get vendors email from keycloak header
 	vendorEmail := r.Header.Get("X-Auth-User-Email")
 	if vendorEmail == "" {
 		utils.ErrorJSON(w, fmt.Errorf("user has no email defined"), http.StatusBadRequest)
 		return
 	}
+
+	// Get vendor information from database
 	vendor, err := database.Db.GetVendorByEmail(vendorEmail)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	response := VendorOverview{
-		ID:         vendor.ID,
-		FirstName:  vendor.FirstName,
-		LastName:   vendor.LastName,
-		Email:      vendor.Email,
-		LicenseID:  vendor.LicenseID.String,
-		UrlID:      vendor.UrlID,
-		LastPayout: vendor.LastPayout,
-		Balance:    vendor.Balance,
-		Address:    vendor.Address,
-		PLZ:        vendor.PLZ,
-		Location:   vendor.Location,
-		Telephone:  vendor.Telephone,
+
+	// Get open payments of vendor from database
+	minDate := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
+	maxDate := time.Now()
+	payments, err := database.Db.ListPaymentsForPayout(minDate, maxDate, vendor.LicenseID.String)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
+	// Create response
+	response := VendorOverview{
+		ID:           vendor.ID,
+		FirstName:    vendor.FirstName,
+		LastName:     vendor.LastName,
+		Email:        vendor.Email,
+		LicenseID:    vendor.LicenseID.String,
+		UrlID:        vendor.UrlID,
+		LastPayout:   vendor.LastPayout,
+		Balance:      vendor.Balance,
+		Address:      vendor.Address,
+		PLZ:          vendor.PLZ,
+		Location:     vendor.Location,
+		Telephone:    vendor.Telephone,
+		OpenPayments: payments,
+	}
+
+	// Return response
 	respond(w, err, response)
 }
 
