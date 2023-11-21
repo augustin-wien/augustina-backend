@@ -81,7 +81,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	// Log the request body
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Error("Reading body failed: ", err)
+		log.Error("AuthenticateToVivaWallet: Reading body failed: ", err)
 		return "", err
 	}
 
@@ -89,7 +89,8 @@ func AuthenticateToVivaWallet() (string, error) {
 	var authResponse AuthenticationResponse
 	_, err = marshmallow.Unmarshal(body, &authResponse)
 	if err != nil {
-		log.Error("Unmarshalling body failed: ", err)
+		bodyString, _ := fmt.Printf("%+v\n", body)
+		log.Error("AuthenticateToVivaWallet: Unmarshalling body failed:", err, "Body:", bodyString)
 		return "", err
 	}
 
