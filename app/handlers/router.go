@@ -119,8 +119,8 @@ func GetRouter() (r *chi.Mux) {
 
 	// Online Map
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.Timeout(60 * 1000000000)) // 60 seconds
 		r.Use(middlewares.AuthMiddleware)
+		r.Use(middlewares.AdminAuthMiddleware)
 		r.Get("/api/map/", GetLocationData)
 	})
 

@@ -93,7 +93,9 @@ func createTestVendor(t *testing.T, licenseID string) string {
 		"email": "` + licenseID + `@example.com",
 		"telephone": "+43123456789",
 		"VendorSince": "1/22",
-		"PLZ": "1234"
+		"PLZ": "1234",
+		"Longitude": 16.363449,
+		"Latitude": 48.210033
 	}`
 	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/vendors/", jsonVendor, 200, adminUserToken)
 	vendorID := res.Body.String()
@@ -155,6 +157,15 @@ func TestVendors(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(vendors2))
 	require.Equal(t, "nameAfterUpdate", vendors2[0].FirstName)
+
+	// Test location data
+	// var mapData []database.LocationData
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/map/", nil, 200, adminUserToken)
+	// err = json.Unmarshal(res.Body.Bytes(), &mapData)
+	// utils.CheckError(t, err)
+	// require.Equal(t, 1, len(mapData))
+	// require.Equal(t, 16.363449, mapData[0].Longitude)
+	// require.Equal(t, 48.210033, mapData[0].Latitude)
 
 	// Delete
 	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
