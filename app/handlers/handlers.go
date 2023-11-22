@@ -1503,3 +1503,27 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 	}
 }
+
+// Online Map -----------------------------------------------------------------
+
+// GetLocationData godoc
+//
+//	 	@Summary 		Get longitudes and latitudes of all vendors for online map
+//		@Description	Get longitudes and latitudes of all vendors for online map
+//		@Tags			Map
+//		@Accept			json
+//		@Produce		json
+//		@Security		KeycloakAuth
+//		@Success		200	{array}	database.LocationData
+//		@Router			/map/ [get]
+func GetLocationData(w http.ResponseWriter, r *http.Request) {
+	locationData, err := database.Db.GetLocationData()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, locationData)
+	if err != nil {
+		log.Error(err)
+	}
+}
