@@ -13,7 +13,7 @@ import (
 type Vendor struct {
 	ID               int
 	KeycloakID       string
-	URLID            string // This is used for the QR code
+	UrlID            string // This is used for the QR code
 	LicenseID        null.String
 	FirstName        string
 	LastName         string
@@ -98,7 +98,7 @@ type Payment struct {
 	Order        null.Int `swaggertype:"integer"`
 	OrderEntry   null.Int `swaggertype:"integer"`
 	IsSale       bool
-	Payout 	     null.Int `swaggertype:"integer"` // Connected payout payment
+	Payout       null.Int `swaggertype:"integer"` // Connected payout payment
 	IsPayoutFor  []Payment
 	Item         null.Int `swaggertype:"integer"`
 	Quantity     int
