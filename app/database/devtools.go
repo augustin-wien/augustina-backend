@@ -34,12 +34,29 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 		FirstName:  "firstname1",
 		LastName:   "lastname1",
 		Email:      "test_vendor@example.com",
+		Longitude:  16.363449,
+		Latitude:   48.210033,
 	}
 	vendorID, err := db.CreateVendor(vendor)
 	if err != nil {
 		log.Error("Dev data vendor creation failed ", zap.Error(err))
 	}
 	vendorIDs = append(vendorIDs, vendorID)
+
+	vendor2 := Vendor{
+		KeycloakID: "keycloakid2",
+		UrlID:      "www.augustin.or.at/fl-234",
+		LicenseID:  null.NewString("fl-234", true),
+		FirstName:  "firstname2",
+		LastName:   "lastname2",
+		Email:      "test_vendor2@example.com",
+		Longitude:  16.561279,
+		Latitude:   49.801224,
+	}
+	_, err = db.CreateVendor(vendor2)
+	if err != nil {
+		log.Error("Dev data vendor creation failed ", zap.Error(err))
+	}
 
 	return
 }
