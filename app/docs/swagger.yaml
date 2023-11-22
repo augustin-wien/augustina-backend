@@ -24,6 +24,15 @@ definitions:
         description: Price in cents
         type: integer
     type: object
+  database.LocationData:
+    properties:
+      latitude:
+        type: number
+      licenseID:
+        type: string
+      longitude:
+        type: number
+    type: object
   database.OrderEntry:
     properties:
       id:
@@ -613,6 +622,25 @@ paths:
       summary: List Items for backoffice overview
       tags:
       - Items
+  /map/:
+    get:
+      consumes:
+      - application/json
+      description: Get longitudes and latitudes of all vendors for online map
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.LocationData'
+            type: array
+      security:
+      - KeycloakAuth: []
+      summary: Get longitudes and latitudes of all vendors for online map
+      tags:
+      - Map
   /orders/:
     post:
       consumes:
