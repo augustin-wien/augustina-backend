@@ -1006,6 +1006,7 @@ func (db *Database) GetDBSettings() (DBSettings, error) {
 // Online Map -----------------------------------------------------------------
 
 type LocationData struct {
+	FirstName string  `json:"firstName"`
 	LicenseID string  `json:"licenseID"`
 	Longitude float64 `json:"longitude"`
 	Latitude  float64 `json:"latitude"`
@@ -1013,19 +1014,19 @@ type LocationData struct {
 
 // GetLocationData returns a list of all longitudes and latitudes given by the vendors table
 func (db *Database) GetLocationData() (locationData []LocationData, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT LicenseID, Longitude, Latitude from Vendor")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT FirstName, LicenseID, Longitude, Latitude from Vendor")
 	if err != nil {
 		log.Error(err)
 		return locationData, err
 	}
 	for rows.Next() {
-		var ll LocationData
-		err = rows.Scan(&ll.LicenseID, &ll.Longitude, &ll.Latitude)
+		var nextLocationData LocationData
+		err = rows.Scan(&nextLocationData.FirstName, &nextLocationData.LicenseID, &nextLocationData.Longitude, &nextLocationData.Latitude)
 		if err != nil {
 			log.Error(err)
 			return locationData, err
 		}
-		locationData = append(locationData, ll)
+		locationData = append(locationData, nextLocationData)
 	}
 	return locationData, nil
 }
