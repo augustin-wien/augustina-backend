@@ -444,12 +444,45 @@ func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 //		@Security		KeycloakAuth
 //		@Router			/items/ [post]
 func CreateItem(w http.ResponseWriter, r *http.Request) {
-	var item database.Item
-	err := utils.ReadJSON(w, r, &item)
+
+	// Read multipart form
+	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	mForm := r.MultipartForm
+	if mForm == nil {
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+		return
+	}
+
+	// Handle normal fields
+	var item database.Item
+	fields := mForm.Value               // Values are stored in []string
+	fieldsClean := make(map[string]any) // Values are stored in string
+	for key, value := range fields {
+		if key == "Price" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				log.Error(err)
+			}
+		} else {
+			fieldsClean[key] = value[0]
+		}
+	}
+	err = mapstructure.Decode(fieldsClean, &item)
+	if err != nil {
+		log.Error(err)
+	}
+
+	// Handle image field
+	path, _ := updateItemImage(w, r)
+	if path != "" {
+		item.Image = path
+	}
+
+	// Save item to database
 	id, err := database.Db.CreateItem(item)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
