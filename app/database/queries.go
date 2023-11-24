@@ -1014,14 +1014,14 @@ type LocationData struct {
 
 // GetLocationData returns a list of all longitudes and latitudes given by the vendors table
 func (db *Database) GetLocationData() (locationData []LocationData, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT FirstName, LicenseID, Longitude, Latitude from Vendor")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT LicenseID, FirstName, Longitude, Latitude from Vendor")
 	if err != nil {
 		log.Error(err)
 		return locationData, err
 	}
 	for rows.Next() {
 		var nextLocationData LocationData
-		err = rows.Scan(&nextLocationData.FirstName, &nextLocationData.LicenseID, &nextLocationData.Longitude, &nextLocationData.Latitude)
+		err = rows.Scan(&nextLocationData.LicenseID, &nextLocationData.FirstName, &nextLocationData.Longitude, &nextLocationData.Latitude)
 		if err != nil {
 			log.Error(err)
 			return locationData, err

@@ -83,6 +83,12 @@ func TestHelloWorld(t *testing.T) {
 	require.Equal(t, "\"Hello, world!\"", res.Body.String())
 }
 
+func TestHelloWorldAuth(t *testing.T) {
+	res := utils.TestRequestWithAuth(t, r, "GET", "/api/auth/hello/", nil, 200, adminUserToken)
+	require.Equal(t, "\"Hello, world!\"", res.Body.String())
+
+}
+
 func createTestVendor(t *testing.T, licenseID string) string {
 	jsonVendor := `{
 		"keycloakID": "test",
@@ -148,24 +154,24 @@ func TestVendors(t *testing.T) {
 	require.Equal(t, "1234", vendor.PLZ)
 	require.Equal(t, vendorEmail, vendor.Email)
 
+	// Test location data
+	var mapData []database.LocationData
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/map/", nil, 200, adminUserToken)
+	err = json.Unmarshal(res.Body.Bytes(), &mapData)
+	utils.CheckError(t, err)
+	require.Equal(t, 1, len(mapData))
+	require.Equal(t, 16.363449, mapData[0].Longitude)
+	require.Equal(t, 48.210033, mapData[0].Latitude)
+
 	// Update
 	var vendors2 []database.Vendor
-	jsonVendor := `{"firstName": "nameAfterUpdate", "email": "` + vendorEmail + `"}`
+	jsonVendor := `{"firstName": "nameAfterUpdate", "email": "` + vendorEmail + `", "Longitude": 16.363449, "Latitude": 48.210033}`
 	utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200, adminUserToken)
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
 	utils.CheckError(t, err)
 	require.Equal(t, 1, len(vendors2))
 	require.Equal(t, "nameAfterUpdate", vendors2[0].FirstName)
-
-	// Test location data
-	// var mapData []database.LocationData
-	res = utils.TestRequestWithAuth(t, r, "GET", "/api/map/", nil, 200, adminUserToken)
-	// err = json.Unmarshal(res.Body.Bytes(), &mapData)
-	// utils.CheckError(t, err)
-	// require.Equal(t, 1, len(mapData))
-	// require.Equal(t, 16.363449, mapData[0].Longitude)
-	// require.Equal(t, 48.210033, mapData[0].Latitude)
 
 	// Delete
 	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
