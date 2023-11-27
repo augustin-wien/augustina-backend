@@ -427,7 +427,7 @@ func TestPayments(t *testing.T) {
 		t.Error(err)
 	}
 
-	itemID, err := database.Db.CreateItem(database.Item{Name: "Test item", Price: 314})
+	itemID, err := database.Db.CreateItem(database.Item{Name: "Test item for payments", Price: 314})
 	if err != nil {
 		t.Error(err)
 	}
@@ -518,7 +518,7 @@ func TestPayments(t *testing.T) {
 	// Clean up
 	database.Db.DeletePayment(p1)
 	database.Db.DeletePayment(p2)
-
+	database.Db.DeleteItem(itemID)
 }
 
 func timeRequest(t *testing.T, from int, to int, expectedLength int) {
