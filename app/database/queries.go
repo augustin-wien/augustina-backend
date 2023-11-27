@@ -1006,10 +1006,10 @@ func (db *Database) GetDBSettings() (DBSettings, error) {
 // Online Map -----------------------------------------------------------------
 
 type LocationData struct {
-	FirstName string  `json:"firstName"`
-	LicenseID string  `json:"licenseID"`
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latitude"`
+	FirstName string      `json:"firstName"`
+	LicenseID null.String `json:"licenseID"`
+	Longitude float64     `json:"longitude"`
+	Latitude  float64     `json:"latitude"`
 }
 
 // GetLocationData returns a list of all longitudes and latitudes given by the vendors table
