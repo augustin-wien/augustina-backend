@@ -1075,6 +1075,99 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, payments)
 }
 
+type ItemStatistics struct {
+	ID          int
+	Name        string
+	SumAmount   int
+	SumQuantity int
+}
+
+// PaymentsStatistics is the response to ListPaymentsStatistics
+type PaymentsStatistics struct {
+	Items []ItemStatistics
+}
+
+// ListPaymentsStatistics godoc
+//
+//	 	@Summary 		Calculate statistics of items & payments
+//		@Description 	Filter by date, get statistical information, sorted by item.
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Success		200	{array}	PaymentsStatistics
+//		@Security		KeycloakAuth
+//		@Security		KeycloakAuth
+//		@Router			/payments/statistics/ [get]
+func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	// Get filter parameters
+	minDateRaw := r.URL.Query().Get("from")
+	maxDateRaw := r.URL.Query().Get("to")
+
+	// Parse filter parameters
+	var minDate, maxDate time.Time
+	if minDateRaw != "" {
+		minDate, err = time.Parse(time.RFC3339, minDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+	if maxDateRaw != "" {
+		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+
+	// Get items
+	items, err := database.Db.ListItems(false, false)
+
+	// Get payments with filter parameters
+	payments, err := database.Db.ListPayments(minDate, maxDate, "", false, false, false)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Create map of items
+	itemsMap := make(map[int]ItemStatistics)
+	for _, item := range items {
+		itemsMap[item.ID] = ItemStatistics{
+			ID:          item.ID,
+			Name:        item.Name,
+			SumAmount:   0,
+			SumQuantity: 0,
+		}
+	}
+
+	// Create sums per item
+	for _, payment := range payments {
+		if !payment.Item.Valid {
+			continue
+		}
+		itemID := int(payment.Item.Int64)
+		if entry, ok := itemsMap[itemID]; ok {
+			entry.SumAmount += payment.Amount
+			entry.SumQuantity += payment.Quantity
+			itemsMap[itemID] = entry
+		} else {
+			utils.ErrorJSON(w, errors.New("item not found"), http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Create payment statistics
+	var paymentsStatistics PaymentsStatistics
+	for _, item := range itemsMap {
+		paymentsStatistics.Items = append(paymentsStatistics.Items, item)
+	}
+
+	respond(w, err, paymentsStatistics)
+}
+
 // CreatePayment godoc
 //
 //	 	@Summary 		Create a payment

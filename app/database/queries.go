@@ -725,6 +725,18 @@ func (db *Database) CreatePaymentPayout(vendor Vendor, vendorAccountID int, auth
 	return
 }
 
+// DeletePayment deletes a payment (should not be used in production)
+func (db *Database) DeletePayment(paymentID int) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	DELETE FROM Payment
+	WHERE ID = $1
+	`, paymentID)
+	if err != nil {
+		log.Error(err)
+	}
+	return
+}
+
 // Accounts -------------------------------------------------------------------
 
 // CreateAccount creates an account in the database

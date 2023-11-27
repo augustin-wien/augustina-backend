@@ -17,6 +17,7 @@ import (
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/guregu/null.v4"
 )
 
 var r *chi.Mux
@@ -426,6 +427,11 @@ func TestPayments(t *testing.T) {
 		t.Error(err)
 	}
 
+	itemID, err := database.Db.CreateItem(database.Item{Name: "Test item", Price: 314})
+	if err != nil {
+		t.Error(err)
+	}
+
 	utils.CheckError(t, err)
 
 	// Create payments via API
@@ -436,7 +442,10 @@ func TestPayments(t *testing.T) {
 			SenderName:   "Test sender",
 			ReceiverName: "Test receiver",
 			Amount:       314,
-		})
+			Quantity:     1,
+			Item:         null.IntFrom(int64(itemID)),
+		},
+	)
 	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 
 	// Unmarshal response
@@ -478,6 +487,33 @@ func TestPayments(t *testing.T) {
 	timeRequest(t, 0, 1, 1)
 	timeRequest(t, -1, 0, 1)
 	timeRequest(t, 0, -1, 0)
+
+	// Test statistics
+	p2, err := database.Db.CreatePayment(
+		database.Payment{
+			Sender:       senderAccountID,
+			Receiver:     receiverAccountID,
+			SenderName:   "Test sender",
+			ReceiverName: "Test receiver",
+			Amount:       314,
+			Quantity:     1,
+			Item:         null.IntFrom(int64(itemID)),
+		},
+	)
+	utils.CheckError(t, err)
+	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/statistics/", nil, 200, adminUserToken)
+	var statistics PaymentsStatistics
+	err = json.Unmarshal(response3.Body.Bytes(), &statistics)
+	utils.CheckError(t, err)
+	for _, item := range statistics.Items {
+		if item.ID == itemID {
+			require.Equal(t, item.SumAmount, 628)
+			require.Equal(t, item.SumQuantity, 2)
+		}
+	}
+
+	// Clean up
+	database.Db.DeletePayment(p2)
 
 }
 
