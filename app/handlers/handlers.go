@@ -433,6 +433,24 @@ func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func CreateItemSimple(w http.ResponseWriter, r *http.Request) {
+	var item database.Item
+	err := utils.ReadJSON(w, r, &item)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	id, err := database.Db.CreateItem(item)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, id)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
 // CreateItem godoc
 //
 //	 	@Summary 		Create Item
@@ -448,7 +466,8 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Read multipart form
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		// Try without multipart form
+		CreateItemSimple(w, r)
 		return
 	}
 	mForm := r.MultipartForm
