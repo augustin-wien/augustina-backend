@@ -435,7 +435,7 @@ func TestPayments(t *testing.T) {
 	utils.CheckError(t, err)
 
 	// Create payments via API
-	database.Db.CreatePayment(
+	p1, err := database.Db.CreatePayment(
 		database.Payment{
 			Sender:       senderAccountID,
 			Receiver:     receiverAccountID,
@@ -446,6 +446,9 @@ func TestPayments(t *testing.T) {
 			Item:         null.IntFrom(int64(itemID)),
 		},
 	)
+	if err != nil {
+		t.Error(err)
+	}
 	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 
 	// Unmarshal response
@@ -513,6 +516,7 @@ func TestPayments(t *testing.T) {
 	}
 
 	// Clean up
+	database.Db.DeletePayment(p1)
 	database.Db.DeletePayment(p2)
 
 }
@@ -655,7 +659,7 @@ func TestPaymentPayout(t *testing.T) {
 	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 	err = json.Unmarshal(response3.Body.Bytes(), &payouts)
 	utils.CheckError(t, err)
-	require.Equal(t, 4, len(payouts))
+	require.Equal(t, 3, len(payouts))
 
 	// Check that there are no more payments for payout
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor="+vendorLicenseId, f, 200, adminUserToken)
