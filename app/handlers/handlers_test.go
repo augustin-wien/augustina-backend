@@ -35,6 +35,7 @@ func TestMain(m *testing.M) {
 	config.InitConfig()
 
 	// Initialize database and empty it
+	// Note: Emptying does not work in Github Actions
 	err = database.Db.InitEmptyTestDb()
 	if err != nil {
 		panic(err)
