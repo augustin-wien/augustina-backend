@@ -26,10 +26,12 @@ definitions:
     type: object
   database.LocationData:
     properties:
+      firstName:
+        type: string
       latitude:
         type: number
       licenseID:
-        type: string
+        $ref: '#/definitions/null.String'
       longitude:
         type: number
     type: object

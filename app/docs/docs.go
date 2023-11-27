@@ -1003,11 +1003,14 @@ const docTemplate = `{
         "database.LocationData": {
             "type": "object",
             "properties": {
+                "firstName": {
+                    "type": "string"
+                },
                 "latitude": {
                     "type": "number"
                 },
                 "licenseID": {
-                    "type": "string"
+                    "$ref": "#/definitions/null.String"
                 },
                 "longitude": {
                     "type": "number"

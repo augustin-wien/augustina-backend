@@ -47,7 +47,7 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 		KeycloakID: "keycloakid2",
 		UrlID:      "www.augustin.or.at/fl-234",
 		LicenseID:  null.NewString("fl-234", true),
-		FirstName:  "firstname2",
+		FirstName:  "Recep",
 		LastName:   "lastname2",
 		Email:      "test_vendor2@example.com",
 		Longitude:  16.561279,
