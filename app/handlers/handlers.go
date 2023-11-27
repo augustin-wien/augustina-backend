@@ -1124,6 +1124,10 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 
 	// Get items
 	items, err := database.Db.ListItems(false, false)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
 	// Get payments with filter parameters
 	payments, err := database.Db.ListPayments(minDate, maxDate, "", false, false, false)
