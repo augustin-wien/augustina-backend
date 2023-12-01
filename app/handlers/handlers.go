@@ -1114,11 +1114,14 @@ type createPaymentsRequest struct {
 // CreatePayments godoc
 //
 //	 	@Summary 		Create a set of payments
+//		@Description 	TODO: This handler is not working right now and to be done for manually setting payments
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
-//		@Param			amount body createPaymentsRequest true " Create Payment"
+//		@Param			amount body createPaymentsRequest true "Create Payment"
 //		@Success		200 {integer} id
+//		@Security		KeycloakAuth
+//		@Router			/payments/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)

@@ -95,11 +95,11 @@ func GetRouter() (r *chi.Mux) {
 
 	// Payments
 	r.Route("/api/payments", func(r chi.Router) {
-		r.Post("/", CreatePayment)
-		r.Post("/batch/", CreatePayments)
 		r.Group(func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.AdminAuthMiddleware)
+			r.Post("/", CreatePayment)
+			r.Post("/batch/", CreatePayments)
 			r.Get("/", ListPayments)
 			r.Get("/forpayout/", ListPaymentsForPayout)
 			r.Post("/payout/", CreatePaymentPayout)
