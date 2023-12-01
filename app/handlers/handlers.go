@@ -236,7 +236,7 @@ func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 	// Get vendor information from database
 	vendor, err := database.Db.GetVendorByEmail(vendorEmail)
 	if err != nil {
-		if err.Error() == "No rows in result set" {
+		if err.Error() == "no rows in result set" {
 			utils.ErrorJSON(w, fmt.Errorf("User is not a vendor"), http.StatusBadRequest)
 			return
 		}
@@ -1503,6 +1503,30 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = utils.WriteJSON(w, http.StatusOK, err)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
+// Online Map -----------------------------------------------------------------
+
+// GetVendorLocations godoc
+//
+//	 	@Summary 		Get longitudes and latitudes of all vendors for online map
+//		@Description	Get longitudes and latitudes of all vendors for online map
+//		@Tags			Map
+//		@Accept			json
+//		@Produce		json
+//		@Security		KeycloakAuth
+//		@Success		200	{array}	database.LocationData
+//		@Router			/map/ [get]
+func GetVendorLocations(w http.ResponseWriter, r *http.Request) {
+	locationData, err := database.Db.GetVendorLocations()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, locationData)
 	if err != nil {
 		log.Error(err)
 	}
