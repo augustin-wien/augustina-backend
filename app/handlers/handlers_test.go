@@ -707,7 +707,16 @@ func TestVendorsOverview(t *testing.T) {
 	vendorLicenseId := "testvendoroverview"
 	vendorEmail := vendorLicenseId + "@example.com"
 	vendorPassword := "password"
+	randomUserEmail := "randomuser@example.com"
 
+	err := keycloak.KeycloakClient.DeleteUser(vendorEmail)
+	if err != nil {
+		log.Infof("Delete user failed which is okey because it's for cleanup: %v \n", err)
+	}
+	defer func() {
+		keycloak.KeycloakClient.DeleteUser(vendorEmail)
+		keycloak.KeycloakClient.DeleteUser(randomUserEmail)
+	}()
 	vendorID := createTestVendor(t, vendorLicenseId)
 	keycloak.KeycloakClient.UpdateUserPassword(vendorEmail, vendorPassword)
 
@@ -732,7 +741,7 @@ func TestVendorsOverview(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-
+	// test me endpoint
 	res := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/me/", nil, 200, vendorToken)
 	var meVendor VendorOverview
 	err = json.Unmarshal(res.Body.Bytes(), &meVendor)
@@ -744,6 +753,24 @@ func TestVendorsOverview(t *testing.T) {
 	require.Equal(t, 314, meVendor.Balance)
 	require.Equal(t, 1, len(meVendor.OpenPayments))
 
+	// Test if vendor can't see other vendors
+	utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 403, vendorToken)
+
+	// Test if admin who is no vendor can't see vendor overview
+	utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/me/", nil, 400, adminUserToken)
+
+	// test if random user can see vendor overview
+	_, err = keycloak.KeycloakClient.CreateUser(randomUserEmail, randomUserEmail, randomUserEmail, "password")
+	if err != nil {
+		log.Errorf("Create user failed: %v \n", err)
+	}
+	randomUserToken, err := keycloak.KeycloakClient.GetUserToken(randomUserEmail, "password")
+	if err != nil {
+		panic(err)
+	}
+	utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/me/", nil, 403, randomUserToken)
+
 	// Clean up after test
 	keycloak.KeycloakClient.DeleteUser(vendorEmail)
+	keycloak.KeycloakClient.DeleteUser(randomUserEmail)
 }
