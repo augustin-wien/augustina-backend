@@ -192,7 +192,8 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	var orderCode PaymentOrderResponse
 	_, err = marshmallow.Unmarshal(body, &orderCode)
 	if err != nil {
-		log.Error("Unmarshalling body failed: ", err)
+		bodyString, _ := fmt.Printf("%+v\n", body)
+		log.Error("AuthenticateToVivaWallet: Unmarshalling body failed:", err, "Body:", bodyString)
 		return 0, err
 	}
 
@@ -374,7 +375,8 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	// Unmarshal response body to struct
 	_, err = marshmallow.Unmarshal(body, &transactionVerificationResponse)
 	if err != nil {
-		log.Error("Unmarshalling body failed: ", err)
+		bodyString, _ := fmt.Printf("%+v\n", body)
+		log.Error("AuthenticateToVivaWallet: Unmarshalling body failed:", err, "Body:", bodyString)
 		return transactionVerificationResponse, err
 	}
 
