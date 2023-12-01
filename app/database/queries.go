@@ -778,7 +778,7 @@ func (db *Database) ListAccounts() (accounts []Account, err error) {
 func (db *Database) GetAccountByID(id int) (account Account, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE ID = $1", id).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
-		if err.Error() == "No rows in result set" {
+		if err.Error() == "no rows in result set" {
 			err = errors.New("account does not exist")
 		}
 		log.Error(err)
@@ -790,7 +790,7 @@ func (db *Database) GetAccountByID(id int) (account Account, err error) {
 func (db *Database) GetOrCreateAccountByUserID(userID string) (account Account, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE UserID = $1", userID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
-		if err.Error() == "No rows in result set" {
+		if err.Error() == "no rows in result set" {
 			err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Type, UserID) values ($1, $2) RETURNING *", "UserAuth", userID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 			log.Info("Created new account for user " + userID)
 		} else {
@@ -804,7 +804,7 @@ func (db *Database) GetOrCreateAccountByUserID(userID string) (account Account, 
 func (db *Database) GetAccountByVendorID(vendorID int) (account Account, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Account WHERE Vendor = $1", vendorID).Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
 	if err != nil {
-		if err.Error() == "No rows in result set" {
+		if err.Error() == "no rows in result set" {
 			err = errors.New("vendor does not exist or has no account")
 		}
 		log.Error(err, vendorID)
@@ -1012,8 +1012,8 @@ type LocationData struct {
 	Latitude  float64     `json:"latitude"`
 }
 
-// GetLocationData returns a list of all longitudes and latitudes given by the vendors table
-func (db *Database) GetLocationData() (locationData []LocationData, err error) {
+// GetVendorLocations returns a list of all longitudes and latitudes given by the vendors table
+func (db *Database) GetVendorLocations() (locationData []LocationData, err error) {
 	rows, err := db.Dbpool.Query(context.Background(), "SELECT LicenseID, FirstName, Longitude, Latitude from Vendor")
 	if err != nil {
 		log.Error(err)

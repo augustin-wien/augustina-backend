@@ -121,7 +121,7 @@ func GetRouter() (r *chi.Mux) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares.AuthMiddleware)
 		r.Use(middlewares.AdminAuthMiddleware)
-		r.Get("/api/map/", GetLocationData)
+		r.Get("/api/map/", GetVendorLocations)
 	})
 
 	// Swagger documentation
