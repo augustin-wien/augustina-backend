@@ -236,8 +236,8 @@ func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 	// Get vendor information from database
 	vendor, err := database.Db.GetVendorByEmail(vendorEmail)
 	if err != nil {
-		if err.Error() == "no rows in result set" {
-			utils.ErrorJSON(w, fmt.Errorf("user is not a vendor"), http.StatusBadRequest)
+		if err.Error() == "No rows in result set" {
+			utils.ErrorJSON(w, fmt.Errorf("User is not a vendor"), http.StatusBadRequest)
 			return
 		}
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
