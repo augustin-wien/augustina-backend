@@ -108,7 +108,6 @@ func GetRouter() (r *chi.Mux) {
 
 	// Payment service providers
 	r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
-		// todo: add auth middleware for viva wallet ip addresses
 		r.Post("/success/", VivaWalletWebhookSuccess)
 		r.Get("/success/", VivaWalletVerificationKey)
 		r.Post("/failure/", VivaWalletWebhookFailure)
