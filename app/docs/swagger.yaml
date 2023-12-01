@@ -740,6 +740,30 @@ paths:
       summary: Get list of all payments
       tags:
       - Payments
+    post:
+      consumes:
+      - application/json
+      description: 'TODO: This handler is not working right now and to be done for
+        manually setting payments'
+      parameters:
+      - description: Create Payment
+        in: body
+        name: amount
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createPaymentsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+      security:
+      - KeycloakAuth: []
+      summary: Create a set of payments
+      tags:
+      - Payments
   /payments/forpayout/:
     get:
       consumes:
