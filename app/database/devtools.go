@@ -50,8 +50,8 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 		FirstName:  "Recep",
 		LastName:   "lastname2",
 		Email:      "test_vendor2@example.com",
-		Longitude:  16.561279,
-		Latitude:   49.801224,
+		Longitude:  16.291279,
+		Latitude:   48.250033,
 	}
 	_, err = db.CreateVendor(vendor2)
 	if err != nil {
