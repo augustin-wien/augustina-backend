@@ -1084,6 +1084,8 @@ type ItemStatistics struct {
 
 // PaymentsStatistics is the response to ListPaymentsStatistics
 type PaymentsStatistics struct {
+	From  time.Time
+	To    time.Time
 	Items []ItemStatistics
 }
 
@@ -1165,6 +1167,8 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 
 	// Create payment statistics
 	var paymentsStatistics PaymentsStatistics
+	paymentsStatistics.From = minDate
+	paymentsStatistics.To = maxDate
 	for _, item := range itemsMap {
 		paymentsStatistics.Items = append(paymentsStatistics.Items, item)
 	}

@@ -504,10 +504,12 @@ func TestPayments(t *testing.T) {
 		},
 	)
 	utils.CheckError(t, err)
-	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/statistics/", nil, 200, adminUserToken)
+	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/statistics/?from=2020-01-01T00:00:00Z&to=2999-01-01T00:00:00Z", nil, 200, adminUserToken)
 	var statistics PaymentsStatistics
 	err = json.Unmarshal(response3.Body.Bytes(), &statistics)
 	utils.CheckError(t, err)
+	require.Equal(t, statistics.From.String(), "2020-01-01 00:00:00 +0000 UTC")
+	require.Equal(t, statistics.To.String(), "2999-01-01 00:00:00 +0000 UTC")
 	for _, item := range statistics.Items {
 		if item.ID == itemID {
 			require.Equal(t, item.SumAmount, 628)
