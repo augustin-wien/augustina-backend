@@ -21,7 +21,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if r.Header.Get("Authorization") == "" {
-			log.Info("Unauthorization: No Authorization header on auth from incoming request ", utils.ReadUserIP(r))
+			log.Info("AuthMiddleware: No Authorization header on auth from incoming request ", utils.ReadUserIP(r))
 			utils.ErrorJSON(w, errors.New("Unauthorized"), http.StatusUnauthorized)
 			return
 		}
@@ -41,7 +41,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		userinfo, err := keycloak.KeycloakClient.GetUserInfo(userToken)
 		if err != nil {
-			log.Info("Error getting userinfo ", err)
+			log.Info("AuthMiddleware: Error getting userinfo ", err)
 			utils.ErrorJSON(w, errors.New("Unauthorized"), http.StatusUnauthorized)
 			return
 		}
@@ -65,7 +65,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 		userGroups, err := keycloak.KeycloakClient.GetUserGroups(*userinfo.Sub)
 		if err != nil {
-			log.Info("Error getting userGroups ", err)
+			log.Info("AuthMiddleware: Error getting userGroups ", err)
 			utils.ErrorJSON(w, errors.New("internal Server Error"), http.StatusInternalServerError)
 			return
 		}
@@ -96,7 +96,7 @@ func VendorAuthMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		} else {
 			log.Info("VendorAuthMiddleware: user is missing vendor role with user id ", r.Header.Get("X-Auth-User"))
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, "Forbidden", http.StatusForbidden)
 		}
 	})
 }
@@ -118,7 +118,7 @@ func AdminAuthMiddleware(next http.Handler) http.Handler {
 		}
 		if r.Header.Get("X-Auth-Roles-admin") == "" {
 			log.Infof("AdminAuthMiddleware: User %v has no admin role", r.Header.Get("X-Auth-User"))
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
 
