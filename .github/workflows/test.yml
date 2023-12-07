@@ -44,8 +44,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: set env
-        run: cp .env.example .env && touch
-          /home/runner/work/augustin-backend/augustin-backend/docker/.env.parser
+        run: cp .env.example .env # && touch
+        #  /home/runner/work/augustin-backend/augustin-backend/docker/.env.parser
 
       - name: Build keycloak image
         run: docker compose up -d keycloak
