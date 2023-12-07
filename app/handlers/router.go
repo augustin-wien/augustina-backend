@@ -117,6 +117,13 @@ func GetRouter() (r *chi.Mux) {
 		r.Get("/price/", VivaWalletVerificationKey)
 	})
 
+	// Online Map
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares.AuthMiddleware)
+		r.Use(middlewares.AdminAuthMiddleware)
+		r.Get("/api/map/", GetVendorLocations)
+	})
+
 	// Swagger documentation
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),

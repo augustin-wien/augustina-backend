@@ -243,6 +243,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/map/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Get longitudes and latitudes of all vendors for online map",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Map"
+                ],
+                "summary": "Get longitudes and latitudes of all vendors for online map",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.LocationData"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/orders/": {
             "post": {
                 "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
@@ -966,6 +997,23 @@ const docTemplate = `{
                 "price": {
                     "description": "Price in cents",
                     "type": "integer"
+                }
+            }
+        },
+        "database.LocationData": {
+            "type": "object",
+            "properties": {
+                "firstName": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "licenseID": {
+                    "$ref": "#/definitions/null.String"
+                },
+                "longitude": {
+                    "type": "number"
                 }
             }
         },
