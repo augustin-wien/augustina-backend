@@ -17,6 +17,7 @@ import (
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/guregu/null.v4"
 )
 
 var r *chi.Mux
@@ -443,17 +444,28 @@ func TestPayments(t *testing.T) {
 		t.Error(err)
 	}
 
+	itemID, err := database.Db.CreateItem(database.Item{Name: "Test item for payments", Price: 314})
+	if err != nil {
+		t.Error(err)
+	}
+
 	utils.CheckError(t, err)
 
 	// Create payments via API
-	database.Db.CreatePayment(
+	p1, err := database.Db.CreatePayment(
 		database.Payment{
 			Sender:       senderAccountID,
 			Receiver:     receiverAccountID,
 			SenderName:   "Test sender",
 			ReceiverName: "Test receiver",
 			Amount:       314,
-		})
+			Quantity:     1,
+			Item:         null.IntFrom(int64(itemID)),
+		},
+	)
+	if err != nil {
+		t.Error(err)
+	}
 	response2 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 
 	// Unmarshal response
@@ -496,6 +508,36 @@ func TestPayments(t *testing.T) {
 	timeRequest(t, -1, 0, 1)
 	timeRequest(t, 0, -1, 0)
 
+	// Test statistics
+	p2, err := database.Db.CreatePayment(
+		database.Payment{
+			Sender:       senderAccountID,
+			Receiver:     receiverAccountID,
+			SenderName:   "Test sender",
+			ReceiverName: "Test receiver",
+			Amount:       314,
+			Quantity:     1,
+			Item:         null.IntFrom(int64(itemID)),
+		},
+	)
+	utils.CheckError(t, err)
+	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/statistics/?from=2020-01-01T00:00:00Z&to=2999-01-01T00:00:00Z", nil, 200, adminUserToken)
+	var statistics PaymentsStatistics
+	err = json.Unmarshal(response3.Body.Bytes(), &statistics)
+	utils.CheckError(t, err)
+	require.Equal(t, statistics.From.String(), "2020-01-01 00:00:00 +0000 UTC")
+	require.Equal(t, statistics.To.String(), "2999-01-01 00:00:00 +0000 UTC")
+	for _, item := range statistics.Items {
+		if item.ID == itemID {
+			require.Equal(t, item.SumAmount, 628)
+			require.Equal(t, item.SumQuantity, 2)
+		}
+	}
+
+	// Clean up
+	database.Db.DeletePayment(p1)
+	database.Db.DeletePayment(p2)
+	database.Db.DeleteItem(itemID)
 }
 
 func timeRequest(t *testing.T, from int, to int, expectedLength int) {
@@ -636,7 +678,7 @@ func TestPaymentPayout(t *testing.T) {
 	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 	err = json.Unmarshal(response3.Body.Bytes(), &payouts)
 	utils.CheckError(t, err)
-	require.Equal(t, 4, len(payouts))
+	require.Equal(t, 3, len(payouts))
 
 	// Check that there are no more payments for payout
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor="+vendorLicenseId, f, 200, adminUserToken)

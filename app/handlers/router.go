@@ -102,6 +102,7 @@ func GetRouter() (r *chi.Mux) {
 			r.Use(middlewares.AdminAuthMiddleware)
 			r.Get("/", ListPayments)
 			r.Get("/forpayout/", ListPaymentsForPayout)
+			r.Get("/statistics/", ListPaymentsStatistics)
 			r.Post("/payout/", CreatePaymentPayout)
 		})
 	})
