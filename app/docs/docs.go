@@ -548,6 +548,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/payments/statistics/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    },
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Filter by date, get statistical information, sorted by item.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Calculate statistics of items \u0026 payments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Minimum date (RFC3339, UTC)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Maximum date (RFC3339, UTC)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.PaymentsStatistics"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/settings/": {
             "get": {
                 "description": "Return configuration data of the system",
@@ -1263,6 +1313,34 @@ const docTemplate = `{
                 },
                 "workingTime": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.ItemStatistics": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sumAmount": {
+                    "type": "integer"
+                },
+                "sumQuantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.PaymentsStatistics": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ItemStatistics"
+                    }
                 }
             }
         },

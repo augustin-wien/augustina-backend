@@ -178,6 +178,24 @@ definitions:
       workingTime:
         type: string
     type: object
+  handlers.ItemStatistics:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      sumAmount:
+        type: integer
+      sumQuantity:
+        type: integer
+    type: object
+  handlers.PaymentsStatistics:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/handlers.ItemStatistics'
+        type: array
+    type: object
   handlers.VendorOverview:
     properties:
       address:
@@ -820,6 +838,37 @@ paths:
       security:
       - KeycloakAuth: []
       summary: Create a payment from a vendor account to cash
+      tags:
+      - Payments
+  /payments/statistics/:
+    get:
+      consumes:
+      - application/json
+      description: Filter by date, get statistical information, sorted by item.
+      parameters:
+      - description: Minimum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: from
+        type: string
+      - description: Maximum date (RFC3339, UTC)
+        example: "2006-01-02T15:04:05Z"
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.PaymentsStatistics'
+            type: array
+      security:
+      - KeycloakAuth: []
+      - KeycloakAuth: []
+      summary: Calculate statistics of items & payments
       tags:
       - Payments
   /settings/:
