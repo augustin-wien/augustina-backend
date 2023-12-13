@@ -298,6 +298,23 @@ func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err erro
 	}
 	return
 }
+func (db *Database) GetOrderEntriesTx(tx pgx.Tx, orderID int) (entries []OrderEntry, err error) {
+	rows, err := tx.Query(context.Background(), "SELECT OrderEntry.ID, Item, Quantity, Price, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, IsSale FROM OrderEntry JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE paymentorder = $1 ", orderID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	for rows.Next() {
+		var entry OrderEntry
+		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver, &entry.SenderName, &entry.ReceiverName, &entry.IsSale)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		entries = append(entries, entry)
+	}
+	return
+}
 
 // GetOrders returns all orders from the database
 func (db *Database) GetOrders() (orders []Order, err error) {
@@ -333,6 +350,23 @@ func (db *Database) GetOrderByID(id int) (order Order, err error) {
 
 	// Add entries to order
 	order.Entries, err = db.GetOrderEntries(order.ID)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return
+}
+
+// GetOrderByIDTx returns Order by OrderID
+func (db *Database) GetOrderByIDTx(tx pgx.Tx, id int) (order Order, err error) {
+	err = tx.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	// Add entries to order
+	order.Entries, err = db.GetOrderEntriesTx(tx, order.ID)
 	if err != nil {
 		log.Error(err)
 	}
@@ -409,8 +443,13 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, e
 // createPaymentForOrderEntryTx creates a payment for an order entry
 func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, errorIfExists bool) (paymentID int, err error) {
 
+	// Check if payment already exists for this entry
 	var count int
 	err = tx.QueryRow(context.Background(), "SELECT COUNT(*) FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&count)
+	if err != nil {
+		log.Error(err)
+		return
+	}
 
 	// If no payment exists for this entry, create one
 	var payment Payment
@@ -441,8 +480,8 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 	if err != nil {
 		return err
 	}
-	defer func() { err = deferTx(tx, err) }()
 
+	defer func() { err = deferTx(tx, err) }()
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
 	UPDATE PaymentOrder
@@ -454,11 +493,19 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 	}
 
 	// Get Paymentorder (including payments)
-	order, err := db.GetOrderByID(orderID)
+	order, err := db.GetOrderByIDTx(tx, orderID)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
 
 	// Create payments
 	for _, entry := range order.Entries {
 		_, err = createPaymentForOrderEntryTx(tx, orderID, entry, false)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
 	}
 
 	return
@@ -496,7 +543,13 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 // ListPayments returns the payments from the database
 func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool, filterSales bool, filterNoPayout bool) (payments []Payment, err error) {
 	var rows pgx.Rows
+	// Start a transaction
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		return nil, err
+	}
 
+	defer func() { err = deferTx(tx, err) }()
 	// Create filters
 	var filters []string
 	var filterValues []any
@@ -547,43 +600,37 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	}
 
 	// Query based on parameters
-	query := "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver"
+	query := "SELECT Payment.ID, Payment.Timestamp, Sender, Receiver, SenderAccount.Name SenderName, ReceiverAccount.Name ReceiverName, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, null as IsPayoutFor, Item, Quantity, Price FROM Payment JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver"
 	if len(filters) > 0 {
 		query += " WHERE " + strings.Join(filters, " AND ")
 	}
 	// Order by timestamp
 	query += " ORDER BY Payment.Timestamp"
-	rows, err = db.Dbpool.Query(context.Background(), query, filterValues...)
+	rows, err = tx.Query(context.Background(), query, filterValues...)
 	if err != nil {
 		log.Error(err)
 		return payments, err
 	}
+	tmpPayments, err := pgx.CollectRows(rows, pgx.RowToStructByName[Payment])
+	if err != nil {
+		log.Error(err)
+		return payments, err
+	}
+	for _, payment := range tmpPayments {
 
-	// Scan rows
-	for rows.Next() {
-		var payment Payment
-		err = rows.Scan(&payment.ID, &payment.Timestamp, &payment.Sender, &payment.Receiver, &payment.SenderName, &payment.ReceiverName, &payment.Amount, &payment.AuthorizedBy, &payment.Order, &payment.OrderEntry, &payment.IsSale, &payment.Payout, &payment.Item, &payment.Quantity, &payment.Price)
+		subrows, err := tx.Query(context.Background(), "SELECT ID, Timestamp, Sender, null as SenderName, Receiver, null as ReceiverName, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, null as IsPayoutFor, Item, Quantity, Price FROM Payment WHERE Payout = $1 ORDER BY Timestamp", payment.ID)
+		if err != nil {
+			return payments, err
+		}
+		tmpSubPayments, err := pgx.CollectRows(subrows, pgx.RowToStructByName[Payment])
+		log.Error(err)
 		if err != nil {
 			log.Error(err)
 			return payments, err
 		}
-
-		// Add payout payments to main payment
-		subrows, err := db.Dbpool.Query(context.Background(), "SELECT ID, Timestamp, Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price FROM Payment WHERE Payout = $1 ORDER BY Timestamp", payment.ID)
-		if err != nil {
-			log.Error(err)
-			return payments, err
-		}
-		for subrows.Next() {
-			var subpayment Payment
-			err = subrows.Scan(&subpayment.ID, &subpayment.Timestamp, &subpayment.Sender, &subpayment.Receiver, &subpayment.Amount, &subpayment.AuthorizedBy, &subpayment.Order, &subpayment.OrderEntry, &subpayment.IsSale, &subpayment.Payout, &subpayment.Item, &subpayment.Quantity, &subpayment.Price)
-			if err != nil {
-				log.Error(err)
-				return payments, err
-			}
+		for _, subpayment := range tmpSubPayments {
 			payment.IsPayoutFor = append(payment.IsPayoutFor, subpayment)
 		}
-
 		payments = append(payments, payment)
 	}
 

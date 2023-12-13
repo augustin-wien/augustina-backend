@@ -56,22 +56,22 @@ func TestMain(m *testing.M) {
 	keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", adminUserEmail, "password")
 	if err != nil {
-		log.Errorf("Create user failed: %v \n", err)
+		log.Errorf("TestMain: Create user failed testadmin: %v \n", err)
 	}
 	err = keycloak.KeycloakClient.AssignRole(adminUser, "admin")
 	if err != nil {
-		log.Errorf("Assign role failed: %v \n", err)
+		log.Errorf("TestMain: Assign role failed: %v \n", err)
 	}
 	adminUserToken, err = keycloak.KeycloakClient.GetUserToken(adminUserEmail, "password")
 	if err != nil {
-		log.Errorf("Login failed: %v \n", err)
+		log.Errorf("TestMain: Login failed: %v \n", err)
 	}
 	fmt.Println("Created admin keycloak token")
 
 	returnCode := m.Run()
 	err = keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	if err != nil {
-		log.Errorf("Delete user failed: %v \n", err)
+		log.Errorf("TestMain: Delete user failed: %v \n", err)
 	}
 
 	os.Exit(returnCode)
@@ -187,9 +187,9 @@ func TestVendors(t *testing.T) {
 
 }
 
-func CreateTestItem(t *testing.T) string {
+func CreateTestItem(t *testing.T, name string) string {
 	f := `{
-		"Name": "Test item",
+		"Name": "` + name + `Test item",
 		"Price": 314
 	}`
 	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
@@ -207,7 +207,7 @@ func TestItems(t *testing.T) {
 	}
 
 	// Create
-	itemID := CreateTestItem(t)
+	itemID := CreateTestItem(t, "testitems")
 
 	// Read
 	res := utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
@@ -215,7 +215,7 @@ func TestItems(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
 	require.Equal(t, 2, len(resItems))
-	require.Equal(t, "Test item", resItems[1].Name)
+	require.Equal(t, "testitemsTest item", resItems[1].Name)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
@@ -290,16 +290,16 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 	require.Equal(t, amount, settings.MaxOrderAmount)
 }
 
-func CreateTestItemWithLicense(t *testing.T) (string, string) {
+func CreateTestItemWithLicense(t *testing.T, name string) (string, string) {
 	f := `{
-		"Name": "License item",
+		"Name": "` + name + `License item",
 		"Price": 3
 	}`
 	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
 	licenseItemID := res.Body.String()
 
 	f2 := `{
-		"Name": "Test item",
+		"Name": "` + name + `Test item",
 		"Price": 20,
 		"LicenseItem": ` + licenseItemID + `
 	}`
@@ -311,115 +311,141 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
-	keycloak.KeycloakClient.DeleteUser("testlicenseid2@example.com")
+	keycloak.KeycloakClient.DeleteUser("testorders123@example.com")
+	// Set up a payment account
+	vendorLicenseId := "testorders123"
+	vendorID := createTestVendor(t, vendorLicenseId)
+	vendorIDInt, _ := strconv.Atoi(vendorID)
+	_, err := database.Db.GetAccountByVendorID(vendorIDInt)
 
 	// Test that maxOrderAmount is set and cannot be exceeded
 	setMaxOrderAmount(t, 10)
-
-	itemID, _ := CreateTestItemWithLicense(t)
-	// itemIDInt, _ := strconv.Atoi(itemID)
-	// licenseItemIDInt, _ := strconv.Atoi(licenseItemID)
-	createTestVendor(t, "testLicenseID2")
-	// vendorIDInt, _ := strconv.Atoi(vendorID)
-
-	f := `{
+	itemID := CreateTestItem(t, "testordersItemWithoutLicense")
+	request := `{
 		"entries": [
 			{
 			  "item": ` + itemID + `,
+			  "quantity": 1
+			}
+		  ],
+		  "vendorLicenseID": "` + vendorLicenseId + `"
+	}`
+	resWithoutLicense := utils.TestRequestStr(t, r, "POST", "/api/orders/", request, 400)
+	require.Equal(t, resWithoutLicense.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
+
+	itemIDWithLicense, licenseItemID := CreateTestItemWithLicense(t, "testorders")
+	itemIDWithLicenseInt, _ := strconv.Atoi(itemIDWithLicense)
+	licenseItemIDInt, _ := strconv.Atoi(licenseItemID)
+
+	requestWithoutEmail := `{
+		"entries": [
+			{
+			  "item": ` + itemIDWithLicense + `,
 			  "quantity": 2
 			}
 		  ],
-		  "vendorLicenseID": "testLicenseID2"
+		  "vendorLicenseID": "` + vendorLicenseId + `"
 	}`
-	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithoutEmail, 400)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"you are not allowed to purchase this item without a customer email"}}`)
 
-	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
+	requestWithEmail := `{
+		"entries": [
+			{
+			  "item": ` + itemIDWithLicense + `,
+			  "quantity": 2
+			}
+		  ],
+		  "vendorLicenseID": "` + vendorLicenseId + `",
+		  "customerEmail": "test_customer@example.com"
+	}`
+	res2 := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithEmail, 400)
+	require.Equal(t, res2.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
 	// Set max order amount to 5000 so that order can be created
 	setMaxOrderAmount(t, 5000)
 
-	res2 := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 200)
+	res3 := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithEmail, 200)
 
-	require.Equal(t, res2.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
+	require.Equal(t, res3.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
 	// Check that order cannot contain duplicate items
 	jsonPost := `{
 		"entries": [
 			{
-			  "item": ` + itemID + `,
+			  "item": ` + itemIDWithLicense + `,
 			  "quantity": 2
 			},
 			{
-				"item": ` + itemID + `,
+				"item": ` + itemIDWithLicense + `,
 				"quantity": 2
 			}
 		  ],
-		  "vendorLicenseID": "testLicenseID2"
+		  "vendorLicenseID": "` + vendorLicenseId + `",
+		  "customerEmail": "test_customer@example.com"
 	}`
-	res3 := utils.TestRequestStr(t, r, "POST", "/api/orders/", jsonPost, 400)
+	res4 := utils.TestRequestStr(t, r, "POST", "/api/orders/", jsonPost, 400)
 
-	require.Equal(t, res3.Body.String(), `{"error":{"message":"Nice try! You are not supposed to have duplicate item ids in your order request"}}`)
+	require.Equal(t, res4.Body.String(), `{"error":{"message":"Nice try! You are not supposed to have duplicate item ids in your order request"}}`)
 
-	// TODO order cannot pass security checks due to each new InitEmptyTestDb call which creates a new MainItem with ID != 1
+	order, err := database.Db.GetOrderByOrderCode("0")
+	if err != nil {
+		t.Error(err)
+	}
 
-	// order, err := database.Db.GetOrderByOrderCode("0")
-	// if err != nil {
-	// 	t.Error(err)
-	// }
+	// Test order amount
+	orderTotal := order.GetTotal()
+	require.Equal(t, orderTotal, 20*2)
 
-	// // Test order amount
-	// orderTotal := order.GetTotal()
-	// require.Equal(t, orderTotal, 20*2)
+	senderAccount, err := database.Db.GetAccountByType("UserAnon")
+	if err != nil {
+		t.Error(err)
+	}
+	receiverAccount, err := database.Db.GetAccountByVendorID(vendorIDInt)
+	if err != nil {
+		t.Error(err)
+	}
 
-	// senderAccount, err := database.Db.GetAccountByType("UserAnon")
-	// if err != nil {
-	// 	t.Error(err)
-	// }
-	// receiverAccount, err := database.Db.GetAccountByVendorID(vendorIDInt)
-	// if err != nil {
-	// 	t.Error(err)
-	// }
+	require.Equal(t, order.Vendor, vendorIDInt)
+	require.Equal(t, order.Verified, false)
+	require.Equal(t, order.Entries[0].Item, licenseItemIDInt)
+	require.Equal(t, order.Entries[1].Item, itemIDWithLicenseInt)
+	require.Equal(t, order.Entries[1].Quantity, 2)
+	require.Equal(t, order.Entries[1].Price, 20)
+	require.Equal(t, order.Entries[1].Sender, senderAccount.ID)
+	require.Equal(t, order.Entries[1].Receiver, receiverAccount.ID)
 
-	// require.Equal(t, order.Vendor, vendorIDInt)
-	// require.Equal(t, order.Verified, false)
-	// require.Equal(t, order.Entries[0].Item, licenseItemIDInt)
-	// require.Equal(t, order.Entries[1].Item, itemIDInt)
-	// require.Equal(t, order.Entries[1].Quantity, 2)
-	// require.Equal(t, order.Entries[1].Price, 20)
-	// require.Equal(t, order.Entries[1].Sender, senderAccount.ID)
-	// require.Equal(t, order.Entries[1].Receiver, receiverAccount.ID)
+	// Verify order and create payments
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 48)
+	if err != nil {
+		t.Error(err)
+	}
+	// Check payments
+	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	if err != nil {
+		t.Error(err)
+	}
 
-	// // Verify order and create payments
-	// err = database.Db.VerifyOrderAndCreatePayments(order.ID, 48)
+	require.Equal(t, 2, len(payments))
+	require.Equal(t, payments[1].Amount, 20*2)
 
-	// // Check payments
-	// payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false)
-	// if err != nil {
-	// 	t.Error(err)
-	// }
-	// require.Equal(t, 2, len(payments))
-	// require.Equal(t, payments[1].Amount, 20*2)
+	// Check balances
+	senderAccount, err = database.Db.GetAccountByType("UserAnon")
+	if err != nil {
+		t.Error(err)
+	}
+	receiverAccount, err = database.Db.GetAccountByVendorID(vendorIDInt)
+	if err != nil {
+		t.Error(err)
+	}
+	require.Equal(t, senderAccount.Balance, -40)
+	require.Equal(t, receiverAccount.Balance, 34)
+	// 2*3 has been payed for license item
 
-	// // Check balances
-	// senderAccount, err = database.Db.GetAccountByType("UserAnon")
-	// if err != nil {
-	// 	t.Error(err)
-	// }
-	// receiverAccount, err = database.Db.GetAccountByVendorID(vendorIDInt)
-	// if err != nil {
-	// 	t.Error(err)
-	// }
-	// require.Equal(t, senderAccount.Balance, -40)
-	// require.Equal(t, receiverAccount.Balance, 34)
-	// // 2*3 has been payed for license item
-
-	// // Clean up after test
-	// _, err = database.Db.Dbpool.Exec(context.Background(), `
-	// DELETE FROM Payment
-	// `)
-	// if err != nil {
-	// 	t.Error(err)
-	// }
+	// Cleanup
+	for _, payment := range payments {
+		database.Db.DeletePayment(payment.ID)
+	}
 }
 
 // TestPayments tests CRUD operations on payments
@@ -457,8 +483,8 @@ func TestPayments(t *testing.T) {
 		database.Payment{
 			Sender:       senderAccountID,
 			Receiver:     receiverAccountID,
-			SenderName:   "Test sender",
-			ReceiverName: "Test receiver",
+			SenderName:   null.StringFrom("Test sender"),
+			ReceiverName: null.StringFrom("Test receiver"),
 			Amount:       314,
 			Quantity:     1,
 			Item:         null.IntFrom(int64(itemID)),
@@ -486,8 +512,8 @@ func TestPayments(t *testing.T) {
 	require.Equal(t, payments[0].Amount, 314)
 	require.Equal(t, payments[0].Sender, senderAccountID)
 	require.Equal(t, payments[0].Receiver, receiverAccountID)
-	require.Equal(t, payments[0].SenderName, "Test sender")
-	require.Equal(t, payments[0].ReceiverName, "Test receiver")
+	require.Equal(t, payments[0].SenderName, null.StringFrom("Test sender"))
+	require.Equal(t, payments[0].ReceiverName, null.StringFrom("Test receiver"))
 	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
 	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
 
@@ -514,8 +540,8 @@ func TestPayments(t *testing.T) {
 		database.Payment{
 			Sender:       senderAccountID,
 			Receiver:     receiverAccountID,
-			SenderName:   "Test sender",
-			ReceiverName: "Test receiver",
+			SenderName:   null.StringFrom("Test sender"),
+			ReceiverName: null.StringFrom("Test receiver"),
 			Amount:       314,
 			Quantity:     1,
 			Item:         null.IntFrom(int64(itemID)),
@@ -641,9 +667,9 @@ func TestPaymentPayout(t *testing.T) {
 
 	require.Equal(t, payoutPayment.Amount, 314-1)
 	require.Equal(t, payoutPayment.Sender, account.ID)
-	require.Equal(t, payoutPayment.SenderName, account.Name)
+	require.Equal(t, payoutPayment.SenderName, null.StringFrom(account.Name))
 	require.Equal(t, payoutPayment.Receiver, cashAccount.ID)
-	require.Equal(t, payoutPayment.ReceiverName, cashAccount.Name)
+	require.Equal(t, payoutPayment.ReceiverName, null.StringFrom(cashAccount.Name))
 	require.Equal(t, payoutPayment.AuthorizedBy, adminUserEmail)
 
 	vendor, err := database.Db.GetVendorByLicenseID(vendorLicenseId)
@@ -773,8 +799,8 @@ func TestVendorsOverview(t *testing.T) {
 		database.Payment{
 			Sender:       anonUserAccount.ID,
 			Receiver:     vendorAccount.ID,
-			SenderName:   "Test sender",
-			ReceiverName: "Test receiver",
+			SenderName:   null.StringFrom("Test sender"),
+			ReceiverName: null.StringFrom("Test receiver"),
 			Amount:       314,
 		})
 
@@ -805,7 +831,7 @@ func TestVendorsOverview(t *testing.T) {
 	// test if random user can see vendor overview
 	_, err = keycloak.KeycloakClient.CreateUser(randomUserEmail, randomUserEmail, randomUserEmail, "password")
 	if err != nil {
-		log.Errorf("Create user failed: %v \n", err)
+		log.Errorf("TestVendorsOverview: Create user failed: %v \n", err)
 	}
 	randomUserToken, err := keycloak.KeycloakClient.GetUserToken(randomUserEmail, "password")
 	if err != nil {
