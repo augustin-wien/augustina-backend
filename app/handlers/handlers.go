@@ -434,7 +434,6 @@ func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateItemSimple(w http.ResponseWriter, r *http.Request) {
-	log.Info("CreateItemSimple called")
 	var item database.Item
 	err := utils.ReadJSON(w, r, &item)
 	if err != nil {
@@ -463,8 +462,6 @@ func CreateItemSimple(w http.ResponseWriter, r *http.Request) {
 //		@Security		KeycloakAuth
 //		@Router			/items/ [post]
 func CreateItem(w http.ResponseWriter, r *http.Request) {
-
-	log.Info("CreateItem called")
 	// Read multipart form
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
@@ -494,7 +491,6 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 			fieldsClean[key] = value[0]
 		}
 	}
-	log.Info("FieldsClean: ", fieldsClean)
 
 	err = mapstructure.Decode(fieldsClean, &item)
 	if err != nil {
@@ -503,7 +499,6 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Handle image field
 	path, _ := updateItemImage(w, r)
-	log.Info("Path: ", path)
 	if path != "" {
 		item.Image = path
 	}
