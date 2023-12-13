@@ -468,6 +468,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Read multipart form
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
+		log.Error(err)
 		// Try without multipart form
 		CreateItemSimple(w, r)
 		return
