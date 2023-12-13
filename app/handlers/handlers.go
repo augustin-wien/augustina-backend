@@ -1464,7 +1464,6 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Error("OrgaCoversTransactionCosts is not a boolean")
 				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
-
 				return
 			}
 		} else if key == "MainItem" {
@@ -1479,6 +1478,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			fieldsClean[key] = value[0]
 		}
 	}
+	
 	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
 		log.Error(err)
