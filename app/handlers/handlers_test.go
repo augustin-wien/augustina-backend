@@ -168,12 +168,16 @@ func TestVendors(t *testing.T) {
 
 }
 
-func CreateTestItem(t *testing.T) string {
-	f := `{
-		"Name": "Test item",
-		"Price": 314
-	}`
-	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
+func CreateTestItem(t *testing.T, name string, price int, licenseItemID string) string {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("Name", name)
+	writer.WriteField("Price", strconv.Itoa(price))
+	if licenseItemID != "" {
+		writer.WriteField("LicenseItem", licenseItemID)
+	}
+	writer.Close()
+	res := utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 200, adminUserToken)
 	itemID := res.Body.String()
 	return itemID
 }
@@ -188,7 +192,7 @@ func TestItems(t *testing.T) {
 	}
 
 	// Create
-	itemID := CreateTestItem(t)
+	itemID := CreateTestItem(t, "Test item", 314, "")
 
 	// Read
 	res := utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
@@ -272,20 +276,8 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 }
 
 func CreateTestItemWithLicense(t *testing.T) (string, string) {
-	f := `{
-		"Name": "License item",
-		"Price": 3
-	}`
-	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
-	licenseItemID := res.Body.String()
-
-	f2 := `{
-		"Name": "Test item",
-		"Price": 20,
-		"LicenseItem": ` + licenseItemID + `
-	}`
-	res2 := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f2, 200, adminUserToken)
-	itemID := res2.Body.String()
+	licenseItemID := CreateTestItem(t, "License item", 3, "")
+	itemID := CreateTestItem(t, "Test item", 20, licenseItemID)
 	return itemID, licenseItemID
 }
 
@@ -312,6 +304,7 @@ func TestOrders(t *testing.T) {
 		  ],
 		  "vendorLicenseID": "testLicenseID2"
 	}`
+	log.Info("Test order with maxOrderAmount", f)
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", f, 400)
 
 	require.Equal(t, res.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
@@ -634,20 +627,10 @@ func TestPaymentPayout(t *testing.T) {
 
 }
 
-func CreateTestMainItem(t *testing.T) string {
-	f := `{
-		"Name": "Test main item",
-		"Price": 314
-	}`
-	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
-	itemID := res.Body.String()
-	return itemID
-}
-
 // TestSettings tests GET and PUT operations on settings
 func TestSettings(t *testing.T) {
 
-	itemID := CreateTestMainItem(t)
+	itemID := CreateTestItem(t, "Test main item", 314, "")
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)

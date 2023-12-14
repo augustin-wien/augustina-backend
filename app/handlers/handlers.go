@@ -433,24 +433,6 @@ func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateItemSimple(w http.ResponseWriter, r *http.Request) {
-	var item database.Item
-	err := utils.ReadJSON(w, r, &item)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-	id, err := database.Db.CreateItem(item)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-	err = utils.WriteJSON(w, http.StatusOK, id)
-	if err != nil {
-		log.Error(err)
-	}
-}
-
 // CreateItem godoc
 //
 //	 	@Summary 		Create Item
@@ -466,8 +448,6 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		log.Error(err)
-		// Try without multipart form
-		CreateItemSimple(w, r)
 		return
 	}
 
@@ -478,23 +458,10 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Handle normal fields
-	var item database.Item
-	fields := mForm.Value               // Values are stored in []string
-	fieldsClean := make(map[string]any) // Values are stored in string
-	for key, value := range fields {
-		if key == "Price" {
-			fieldsClean[key], err = strconv.Atoi(value[0])
-			if err != nil {
-				log.Error(err)
-			}
-		} else {
-			fieldsClean[key] = value[0]
-		}
-	}
-
-	err = mapstructure.Decode(fieldsClean, &item)
+	item, err := updateItemNormal(mForm.Value)
 	if err != nil {
-		log.Error(err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	// Handle image field
@@ -565,6 +532,54 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	return
 }
 
+// 	fields := mForm.Value               // Values are stored in []string
+func updateItemNormal(fields map[string][]string) (item database.Item, err error) {
+	fieldsClean := make(map[string]any) // Values are stored in string
+	for key, value := range fields {
+		if key == "Price" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		} else if key == "IsLicenseItem" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		} else if key == "Archived" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		} else if key == "LicenseItem" {
+			licensitem, err := strconv.Atoi(value[0])
+			if err != nil {
+				log.Error(err)
+				return item, err
+			}
+			fieldsClean[key] = null.IntFrom(int64(licensitem))
+
+		} else if key == "ID" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		} else {
+			fieldsClean[key] = value[0]
+		}
+	}
+	err = mapstructure.Decode(fieldsClean, &item)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	return
+}
+
 // UpdateItem godoc
 //
 //	 	@Summary 		Update Item
@@ -606,22 +621,10 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Handle normal fields
-	var item database.Item
-	fields := mForm.Value               // Values are stored in []string
-	fieldsClean := make(map[string]any) // Values are stored in string
-	for key, value := range fields {
-		if key == "Price" {
-			fieldsClean[key], err = strconv.Atoi(value[0])
-			if err != nil {
-				log.Error(err)
-			}
-		} else {
-			fieldsClean[key] = value[0]
-		}
-	}
-	err = mapstructure.Decode(fieldsClean, &item)
+	item, err := updateItemNormal(mForm.Value)
 	if err != nil {
-		log.Error(err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	path, _ := updateItemImage(w, r)
