@@ -1,11 +1,11 @@
 -- Write your migrate up statements here
 
-ALTER TABLE OrderEntry ADD COLUMN CustomerEmail varchar(255);
+ALTER TABLE PaymentOrder ADD COLUMN CustomerEmail varchar(255);
 
 
 ---- create above / drop below ----
 
-ALTER TABLE OrderEntry DROP COLUMN CustomerEmail;
+ALTER TABLE PaymentOrder DROP COLUMN CustomerEmail;
 
 
 -- Write your migrate down statements here. If this migration is irreversible

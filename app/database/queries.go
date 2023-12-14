@@ -304,6 +304,8 @@ func (db *Database) GetOrderEntriesTx(tx pgx.Tx, orderID int) (entries []OrderEn
 		log.Error(err)
 		return
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		var entry OrderEntry
 		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver, &entry.SenderName, &entry.ReceiverName, &entry.IsSale)
@@ -359,7 +361,7 @@ func (db *Database) GetOrderByID(id int) (order Order, err error) {
 
 // GetOrderByIDTx returns Order by OrderID
 func (db *Database) GetOrderByIDTx(tx pgx.Tx, id int) (order Order, err error) {
-	err = tx.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
+	err = tx.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
 	if err != nil {
 		log.Error(err)
 		return
@@ -377,7 +379,7 @@ func (db *Database) GetOrderByIDTx(tx pgx.Tx, id int) (order Order, err error) {
 // GetOrderByOrderCode returns Order by OrderCode
 func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err error) {
 
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
 	if err != nil {
 		log.Error(err)
 		return
@@ -611,6 +613,8 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		log.Error(err)
 		return payments, err
 	}
+	defer rows.Close()
+
 	tmpPayments, err := pgx.CollectRows(rows, pgx.RowToStructByName[Payment])
 	if err != nil {
 		log.Error(err)
@@ -622,8 +626,8 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		if err != nil {
 			return payments, err
 		}
+		defer subrows.Close()
 		tmpSubPayments, err := pgx.CollectRows(subrows, pgx.RowToStructByName[Payment])
-		log.Error(err)
 		if err != nil {
 			log.Error(err)
 			return payments, err

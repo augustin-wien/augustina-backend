@@ -392,7 +392,6 @@ func TestOrders(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
 	// Test order amount
 	orderTotal := order.GetTotal()
 	require.Equal(t, orderTotal, 20*2)
