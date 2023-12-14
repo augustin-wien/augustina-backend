@@ -628,9 +628,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 			log.Error(err)
 			return payments, err
 		}
-		for _, subpayment := range tmpSubPayments {
-			payment.IsPayoutFor = append(payment.IsPayoutFor, subpayment)
-		}
+		payment.IsPayoutFor = append(payment.IsPayoutFor, tmpSubPayments...)
 		payments = append(payments, payment)
 	}
 
