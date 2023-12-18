@@ -628,6 +628,7 @@ type createOrderRequest struct {
 	Entries         []createOrderRequestEntry
 	User            string
 	VendorLicenseID string
+	CustomerEmail   null.String
 }
 
 type createOrderResponse struct {
@@ -687,7 +688,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// 2. Check: All items have to exist
-		_, err := database.Db.GetItem(entry.Item)
+		item, err := database.Db.GetItem(entry.Item)
 		if err != nil {
 			utils.ErrorJSON(w, errors.New("Nice try! Item does not exist"), http.StatusBadRequest)
 			return
@@ -697,6 +698,15 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		if entry.Item == 3 {
 			utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
 			return
+		}
+
+		// 4. Check: If there is a item that needs a customerEmail, the user has to be given
+
+		if item.LicenseItem.Valid {
+			if !requestData.CustomerEmail.Valid || requestData.CustomerEmail.String == "" {
+				utils.ErrorJSON(w, errors.New("you are not allowed to purchase this item without a customer email"), http.StatusBadRequest)
+				return
+			}
 		}
 	}
 
@@ -811,7 +821,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			}
 			// Prepend license item without overwriting next entries
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
-
+			// Add customer email to order
+			order.CustomerEmail = requestData.CustomerEmail
 			// Increase licenseItemAdded by one
 			licenseItemAdded++
 

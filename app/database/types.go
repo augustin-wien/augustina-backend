@@ -70,6 +70,7 @@ type Order struct {
 	User              null.String // Keycloak UUID if user is authenticated
 	Vendor            int
 	Entries           []OrderEntry
+	CustomerEmail     null.String
 }
 
 // OrderEntry is a struct that is used for the order_entry table
@@ -91,16 +92,16 @@ type Payment struct {
 	Timestamp    time.Time
 	Sender       int
 	Receiver     int
-	SenderName   string // JOIN from Sender Account
-	ReceiverName string // JOIN from Receiver Account
+	SenderName   null.String // JOIN from Sender Account
+	ReceiverName null.String // JOIN from Receiver Account
 	Amount       int
 	AuthorizedBy string
-	Order        null.Int `swaggertype:"integer"`
+	Order        null.Int `swaggertype:"integer" db:"paymentorder"`
 	OrderEntry   null.Int `swaggertype:"integer"`
 	IsSale       bool
-	Payout       null.Int `swaggertype:"integer"` // Connected payout payment
-	IsPayoutFor  []Payment
-	Item         null.Int `swaggertype:"integer"`
+	Payout       null.Int  `swaggertype:"integer"` // Connected payout payment
+	IsPayoutFor  []Payment `db:"ispayoutfor"`      // Connected payout payment
+	Item         null.Int  `swaggertype:"integer"`
 	Quantity     int
 	Price        int // Price at time of purchase in cents
 }
