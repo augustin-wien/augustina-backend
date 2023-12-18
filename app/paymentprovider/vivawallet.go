@@ -50,7 +50,7 @@ func AuthenticateToVivaWallet() (string, error) {
 
 	if config.Config.VivaWalletSmartCheckoutClientID == "" || config.Config.VivaWalletSmartCheckoutClientKey == "" {
 		err := errors.New("VivaWalletSmartCheckoutClientCredentials not in .env or empty")
-		log.Error(err)
+		log.Error("AuthenticateToVivaWallet: ", err)
 		return "", err
 	}
 	clientID := config.Config.VivaWalletSmartCheckoutClientID

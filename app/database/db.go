@@ -166,7 +166,7 @@ func (db *Database) EmptyDatabase() (err error) {
 	}
 	_, err = db.Dbpool.Exec(context.Background(), "SELECT truncate_tables('user');")
 	if err != nil {
-		log.Error(err)
+		log.Error("EmptyDatabase: ", err)
 	}
 	return
 }

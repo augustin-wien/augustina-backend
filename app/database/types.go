@@ -57,6 +57,7 @@ type Item struct {
 	LicenseItem   null.Int // License has to be bought before item
 	Archived      bool
 	IsLicenseItem bool
+	LicenseGroup  null.String
 }
 
 // Order is a struct that is used for the order table
@@ -67,7 +68,7 @@ type Order struct {
 	Verified          bool
 	TransactionTypeID int
 	Timestamp         time.Time
-	User              null.String // Keycloak UUID if user is authenticated
+	User              null.String `db:"userid"` // Keycloak UUID if user is authenticated
 	Vendor            int
 	Entries           []OrderEntry
 	CustomerEmail     null.String

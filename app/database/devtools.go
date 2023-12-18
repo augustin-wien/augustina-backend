@@ -74,16 +74,17 @@ func (db *Database) createDevItems() (ids []int, err error) {
 
 	digitalNewspaperLicenseID, err := db.CreateItem(digitalNewspaperLicense)
 	if err != nil {
-		log.Error(err)
+		log.Error("createDevItems: ", err)
 		return
 	}
 
 	digitalNewspaper := Item{
-		Name:        "Digitale Zeitung",
-		Description: "Digitale Zeitungsausgabe",
-		Price:       300,
-		LicenseItem: null.NewInt(int64(digitalNewspaperLicenseID), true),
-		Archived:    false,
+		Name:         "Digitale Zeitung",
+		Description:  "Digitale Zeitungsausgabe",
+		Price:        300,
+		LicenseItem:  null.NewInt(int64(digitalNewspaperLicenseID), true),
+		Archived:     false,
+		LicenseGroup: null.NewString("testedition", true),
 	}
 
 	calendar := Item{

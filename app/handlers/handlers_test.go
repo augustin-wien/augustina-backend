@@ -301,7 +301,8 @@ func CreateTestItemWithLicense(t *testing.T, name string) (string, string) {
 	f2 := `{
 		"Name": "` + name + `Test item",
 		"Price": 20,
-		"LicenseItem": ` + licenseItemID + `
+		"LicenseItem": ` + licenseItemID + `,
+		"LicenseGroup": "testedition"
 	}`
 	res2 := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f2, 200, adminUserToken)
 	itemID := res2.Body.String()
@@ -312,10 +313,16 @@ func CreateTestItemWithLicense(t *testing.T, name string) (string, string) {
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
 	keycloak.KeycloakClient.DeleteUser("testorders123@example.com")
+	keycloak.KeycloakClient.DeleteUser("test_customer@example.com")
+	orders, _ := database.Db.GetOrders()
+	for _, order := range orders {
+		database.Db.DeleteOrder(order.ID)
+	}
 	// Set up a payment account
 	vendorLicenseId := "testorders123"
 	vendorID := createTestVendor(t, vendorLicenseId)
 	vendorIDInt, _ := strconv.Atoi(vendorID)
+	customerEmail := "test_customer@example.com"
 	_, err := database.Db.GetAccountByVendorID(vendorIDInt)
 
 	// Test that maxOrderAmount is set and cannot be exceeded
@@ -333,6 +340,7 @@ func TestOrders(t *testing.T) {
 	resWithoutLicense := utils.TestRequestStr(t, r, "POST", "/api/orders/", request, 400)
 	require.Equal(t, resWithoutLicense.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
+	// Create test item with license, test for valid customer email
 	itemIDWithLicense, licenseItemID := CreateTestItemWithLicense(t, "testorders")
 	itemIDWithLicenseInt, _ := strconv.Atoi(itemIDWithLicense)
 	licenseItemIDInt, _ := strconv.Atoi(licenseItemID)
@@ -349,6 +357,7 @@ func TestOrders(t *testing.T) {
 	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithoutEmail, 400)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"you are not allowed to purchase this item without a customer email"}}`)
 
+	// Create order with customer email and order amount to high
 	requestWithEmail := `{
 		"entries": [
 			{
@@ -357,36 +366,43 @@ func TestOrders(t *testing.T) {
 			}
 		  ],
 		  "vendorLicenseID": "` + vendorLicenseId + `",
-		  "customerEmail": "test_customer@example.com"
+		  "customerEmail": "` + customerEmail + `"
 	}`
 	res2 := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithEmail, 400)
 	require.Equal(t, res2.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
+	// Check that order cannot contain duplicate items
+	jsonPost := `{
+			"entries": [
+				{
+				  "item": ` + itemIDWithLicense + `,
+				  "quantity": 2
+				},
+				{
+					"item": ` + itemIDWithLicense + `,
+					"quantity": 2
+				}
+			  ],
+			  "vendorLicenseID": "` + vendorLicenseId + `",
+			  "customerEmail": "` + customerEmail + `"
+		}`
+	res3 := utils.TestRequestStr(t, r, "POST", "/api/orders/", jsonPost, 400)
+	require.Equal(t, res3.Body.String(), `{"error":{"message":"Nice try! You are not supposed to have duplicate item ids in your order request"}}`)
+
+	// Test order with customer email and order amount not to high
+
 	// Set max order amount to 5000 so that order can be created
 	setMaxOrderAmount(t, 5000)
 
-	res3 := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithEmail, 200)
+	res4 := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithEmail, 200)
 
-	require.Equal(t, res3.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
+	require.Equal(t, res4.Body.String(), `{"SmartCheckoutURL":"`+config.Config.VivaWalletSmartCheckoutURL+`0"}`)
 
-	// Check that order cannot contain duplicate items
-	jsonPost := `{
-		"entries": [
-			{
-			  "item": ` + itemIDWithLicense + `,
-			  "quantity": 2
-			},
-			{
-				"item": ` + itemIDWithLicense + `,
-				"quantity": 2
-			}
-		  ],
-		  "vendorLicenseID": "` + vendorLicenseId + `",
-		  "customerEmail": "test_customer@example.com"
-	}`
-	res4 := utils.TestRequestStr(t, r, "POST", "/api/orders/", jsonPost, 400)
+	// Check if order was created
+	orders, _ = database.Db.GetOrders()
+	require.Equal(t, 1, len(orders))
 
-	require.Equal(t, res4.Body.String(), `{"error":{"message":"Nice try! You are not supposed to have duplicate item ids in your order request"}}`)
+	// Check if order was created correctly
 
 	order, err := database.Db.GetOrderByOrderCode("0")
 	if err != nil {
@@ -407,6 +423,7 @@ func TestOrders(t *testing.T) {
 
 	require.Equal(t, order.Vendor, vendorIDInt)
 	require.Equal(t, order.Verified, false)
+	require.Equal(t, order.CustomerEmail, null.StringFrom(customerEmail))
 	require.Equal(t, order.Entries[0].Item, licenseItemIDInt)
 	require.Equal(t, order.Entries[1].Item, itemIDWithLicenseInt)
 	require.Equal(t, order.Entries[1].Quantity, 2)
@@ -441,10 +458,26 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, receiverAccount.Balance, 34)
 	// 2*3 has been payed for license item
 
+	// Check if customer has been added to keycloak
+	user, err := keycloak.KeycloakClient.GetUser(customerEmail)
+	if err != nil {
+		panic(err)
+	}
+
+	// Check if customer was added to group
+	groups, err := keycloak.KeycloakClient.GetUserGroups(*user.ID)
+	if err != nil {
+		t.Error(err)
+	}
+	require.Equal(t, 2, len(groups))
+	require.Equal(t, *groups[0].Name, "customer")
+	require.Equal(t, *groups[1].Name, "newspaper/testedition")
+
 	// Cleanup
 	for _, payment := range payments {
 		database.Db.DeletePayment(payment.ID)
 	}
+
 }
 
 // TestPayments tests CRUD operations on payments
