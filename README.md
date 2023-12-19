@@ -355,3 +355,13 @@ NOTIFICATIONS_MATRIX_ACCESS_TOKEN=
 NOTIFICATIONS_MATRIX_ROOM_ID=
 NOTIFICATIONS_MATRIX_USER_ID=
 ```
+
+
+## Optional: Setup for digital license items like ePaper
+
+To enable the digital license items, you need to set the following environment variables:
+
+```bash
+SEND_CUSTOMER_EMAIL=true
+ONLINE_PAPER_URL=http://augustin.local
+```

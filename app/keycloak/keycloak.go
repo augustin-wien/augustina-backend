@@ -161,6 +161,36 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 	return k.Client.AddUserToGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID)
 }
 
+func (k *Keycloak) AssignDigitalLicenseGroup(userID string, licenseGroup string) error {
+	k.checkAdminToken()
+	licenseGroupPath := "newspaper/" + licenseGroup
+	// Check if group exists
+	_, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, licenseGroupPath)
+	if err != nil {
+		// Create group
+		err = k.CreateGroup(licenseGroupPath)
+		if err != nil {
+			return err
+		}
+		// Check if group exists
+		_, err = k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, licenseGroupPath)
+		if err != nil {
+			return err
+		}
+	}
+	// Assign user to group
+	return k.AssignGroup(userID, licenseGroupPath)
+}
+
+func (k *Keycloak) CreateGroup(groupName string) error {
+	k.checkAdminToken()
+	group := gocloak.Group{
+		Name: &groupName,
+	}
+	_, err := k.Client.CreateGroup(k.Context, k.clientToken.AccessToken, k.Realm, group)
+	return err
+}
+
 // UnassignRole function unassigns a role from a user by userID
 func (k *Keycloak) UnassignRole(userID string, roleName string) error {
 	k.checkAdminToken()
@@ -210,6 +240,37 @@ func (k *Keycloak) CreateUser(firstName string, lastName string, email string, p
 		EmailVerified: gocloak.BoolP(true),
 		Enabled:       gocloak.BoolP(true),
 	})
+}
+
+func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
+	k.checkAdminToken()
+	user, err := k.GetUser(email)
+	if err != nil {
+		// User does not exist
+		password := utils.RandomString(10)
+		user, err := k.CreateUser(email, "", email, password)
+		if err != nil {
+			return "", err
+		}
+		log.Info("Created user ", user)
+		// Todo: send welcome email with password reset link
+		// if config.Config.SendCustomerEmail && config.Config.OnlinePaperUrl != "" {
+		// 	log.Info("Keycloak: execute actions email for ", user)
+
+		// 	err = k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{
+		// 		UserID:      &user,
+		// 		Lifespan:    gocloak.IntP(0),
+		// 		Actions:     &[]string{"UPDATE_PASSWORD"},
+		// 		ClientID:    gocloak.StringP("wordpress"),
+		// 		RedirectURI: gocloak.StringP(config.Config.OnlinePaperUrl),
+		// 	})
+		// 	if err != nil {
+		// 		log.Errorf("Keycloak: execute actions email failed for %s %s: %v", user, email, err)
+		// 	}
+		// }
+		return user, nil
+	}
+	return *user.ID, nil
 }
 
 // DeleteUser function deletes a user given by userID

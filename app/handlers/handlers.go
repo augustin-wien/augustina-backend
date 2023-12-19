@@ -37,7 +37,7 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, payload)
 	if err != nil {
-		log.Error(err)
+		log.Error("respond: ", err)
 	}
 }
 
@@ -59,7 +59,7 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, greeting)
 	if err != nil {
-		log.Error(err)
+		log.Error("HelloWorld: ", err)
 	}
 }
 
@@ -82,7 +82,7 @@ func HelloWorldAuth(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, greeting)
 	if err != nil {
-		log.Error(err)
+		log.Error("HelloWorldAuth: ", err)
 	}
 }
 
@@ -119,7 +119,7 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 	response := checkLicenseIDResponse{FirstName: users.FirstName}
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error(err)
+		log.Error("CheckVendorsLicenseID: ", err)
 	}
 }
 
@@ -536,7 +536,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	return
 }
 
-// 	fields := mForm.Value               // Values are stored in []string
+// fields := mForm.Value               // Values are stored in []string
 func updateItemNormal(fields map[string][]string) (item database.Item, err error) {
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
@@ -572,6 +572,8 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 				log.Error(err)
 				return
 			}
+		} else if key == "LicenseGroup" {
+			fieldsClean[key] = null.StringFrom(value[0])
 		} else {
 			fieldsClean[key] = value[0]
 		}
@@ -764,6 +766,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("you are not allowed to purchase this item without a customer email"), http.StatusBadRequest)
 				return
 			}
+			order.CustomerEmail = requestData.CustomerEmail
 		}
 	}
 
@@ -820,11 +823,12 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		buyerAccountID = buyerAccount.ID
 	} else {
 		buyerAccountID, err = database.Db.GetAccountTypeID("UserAnon")
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
 	}
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
+
 	vendorAccount, err := database.Db.GetAccountByVendorID(order.Vendor)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -891,7 +895,6 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
 		return
 	}
-
 	// Submit order to vivawallet (disabled in tests)
 	var OrderCode int
 	if database.Db.IsProduction {
@@ -1654,7 +1657,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			fieldsClean[key] = value[0]
 		}
 	}
-	
+
 	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
 		log.Error(err)

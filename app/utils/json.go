@@ -93,7 +93,7 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 
 	if err := dec.Decode(&m); err != nil {
 		log.Info(zap.Any("Body of data at ReadJSON", m))
-		log.Error(err)
+		log.Error("ReadJSON: ", err)
 		return err
 	}
 
@@ -106,14 +106,14 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 
 	// Unmarshal the JSON back into the provided data structure
 	if err := json.Unmarshal(jsonData, data); err != nil {
-		log.Error(err)
+		log.Error("ReadJSON: ", err)
 		return err
 	}
 
 	// Make sure only one JSON value in payload
 	err = dec.Decode(&struct{}{})
 	if err != io.EOF {
-		log.Error(err)
+		log.Error("ReadJSON: ", err)
 		return errors.New("body must only contain a single JSON value")
 	}
 

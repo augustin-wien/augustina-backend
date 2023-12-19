@@ -15,7 +15,7 @@ func (db *Database) InitiateAccounts() (err error) {
 			Type: account,
 		})
 		if err != nil {
-			log.Error(err)
+			log.Error("InitiateAccounts: ", err)
 			return err
 		}
 	}
@@ -26,10 +26,11 @@ func (db *Database) InitiateAccounts() (err error) {
 func (db *Database) InitiateItems() (err error) {
 
 	newspaper := Item{
-		Name:        "Zeitung",
-		Description: "Aktuelle Zeitungsausgabe",
-		Price:       300,
-		Archived:    false,
+		Name:         "Zeitung",
+		Description:  "Aktuelle Zeitungsausgabe",
+		Price:        300,
+		Archived:     false,
+		LicenseGroup: null.NewString("analog_edition", true),
 	}
 
 	if config.Config.DonationName == "" {
