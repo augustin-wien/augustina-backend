@@ -496,8 +496,8 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 
 	// Debugging
 	name := strings.Split(header.Filename, ".")
-	if len(name) != 2 {
-		log.Error("updateItemImage: ", err)
+	if len(name) < 2 {
+		log.Error("updateItemImage: image name is wrong")
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
 	}
@@ -514,14 +514,14 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	// Generate unique filename
 	i := 0
 	for {
-		path = "img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[1]
+		path = "img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[len(name)-1]
 		_, err = os.Stat(dir + "/" + path)
 		if errors.Is(err, os.ErrNotExist) {
 			break
 		}
 		i++
 		if i > 1000 {
-			log.Error("updateItemImage: ", err)
+			log.Error("updateItemImage: too many files with same name", err)
 			utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
 			return
 		}
@@ -531,7 +531,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	// Save file with unique name
 	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
-		log.Error("updateItemImage: ", err)
+		log.Error("updateItemImage: failed to write file", err)
 	}
 	return
 }
