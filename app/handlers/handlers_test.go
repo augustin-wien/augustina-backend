@@ -187,12 +187,16 @@ func TestVendors(t *testing.T) {
 
 }
 
-func CreateTestItem(t *testing.T, name string) string {
-	f := `{
-		"Name": "` + name + `Test item",
-		"Price": 314
-	}`
-	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
+func CreateTestItem(t *testing.T, name string, price int, licenseItemID string) string {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("Name", name)
+	writer.WriteField("Price", strconv.Itoa(price))
+	if licenseItemID != "" {
+		writer.WriteField("LicenseItem", licenseItemID)
+	}
+	writer.Close()
+	res := utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 200, adminUserToken)
 	itemID := res.Body.String()
 	return itemID
 }
@@ -207,7 +211,7 @@ func TestItems(t *testing.T) {
 	}
 
 	// Create
-	itemID := CreateTestItem(t, "testitems")
+	itemID := CreateTestItem(t, "Test item", 314, "")
 
 	// Read
 	res := utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
@@ -215,7 +219,7 @@ func TestItems(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
 	require.Equal(t, 2, len(resItems))
-	require.Equal(t, "testitemsTest item", resItems[1].Name)
+	require.Equal(t, "Test item", resItems[1].Name)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
@@ -290,22 +294,9 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 	require.Equal(t, amount, settings.MaxOrderAmount)
 }
 
-func CreateTestItemWithLicense(t *testing.T, name string) (string, string) {
-	f := `{
-		"Name": "` + name + `License item",
-		"Price": 3
-	}`
-	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
-	licenseItemID := res.Body.String()
-
-	f2 := `{
-		"Name": "` + name + `Test item",
-		"Price": 20,
-		"LicenseItem": ` + licenseItemID + `,
-		"LicenseGroup": "testedition"
-	}`
-	res2 := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f2, 200, adminUserToken)
-	itemID := res2.Body.String()
+func CreateTestItemWithLicense(t *testing.T) (string, string) {
+	licenseItemID := CreateTestItem(t, "License item", 3, "")
+	itemID := CreateTestItem(t, "Test item", 20, licenseItemID)
 	return itemID, licenseItemID
 }
 
@@ -324,10 +315,11 @@ func TestOrders(t *testing.T) {
 	vendorIDInt, _ := strconv.Atoi(vendorID)
 	customerEmail := "test_customer@example.com"
 	_, err := database.Db.GetAccountByVendorID(vendorIDInt)
+	utils.CheckError(t, err)
 
 	// Test that maxOrderAmount is set and cannot be exceeded
 	setMaxOrderAmount(t, 10)
-	itemID := CreateTestItem(t, "testordersItemWithoutLicense")
+	itemID := CreateTestItem(t, "testordersItemWithoutLicense", 20, "")
 	request := `{
 		"entries": [
 			{
@@ -340,8 +332,7 @@ func TestOrders(t *testing.T) {
 	resWithoutLicense := utils.TestRequestStr(t, r, "POST", "/api/orders/", request, 400)
 	require.Equal(t, resWithoutLicense.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
 
-	// Create test item with license, test for valid customer email
-	itemIDWithLicense, licenseItemID := CreateTestItemWithLicense(t, "testorders")
+	itemIDWithLicense, licenseItemID := CreateTestItemWithLicense(t)
 	itemIDWithLicenseInt, _ := strconv.Atoi(itemIDWithLicense)
 	licenseItemIDInt, _ := strconv.Atoi(licenseItemID)
 
@@ -752,20 +743,10 @@ func TestPaymentPayout(t *testing.T) {
 
 }
 
-func CreateTestMainItem(t *testing.T) string {
-	f := `{
-		"Name": "Test main item",
-		"Price": 314
-	}`
-	res := utils.TestRequestStrWithAuth(t, r, "POST", "/api/items/", f, 200, adminUserToken)
-	itemID := res.Body.String()
-	return itemID
-}
-
 // TestSettings tests GET and PUT operations on settings
 func TestSettings(t *testing.T) {
 
-	itemID := CreateTestMainItem(t)
+	itemID := CreateTestItem(t, "Test main item", 314, "")
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
