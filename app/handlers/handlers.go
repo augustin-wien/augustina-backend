@@ -393,7 +393,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, items)
 	if err != nil {
-		log.Error(err)
+		log.Error("ListItems", err)
 	}
 }
 
@@ -433,7 +433,7 @@ func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, items)
 	if err != nil {
-		log.Error(err)
+		log.Error("ListItemsBackoffice: ", err)
 	}
 }
 
@@ -451,7 +451,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Read multipart form
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		log.Error(err)
+		log.Error("CreateItem: ", err)
 		return
 	}
 
@@ -482,7 +482,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, id)
 	if err != nil {
-		log.Error(err)
+		log.Error("CreateItem: ", err)
 	}
 }
 
@@ -497,7 +497,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	// Debugging
 	name := strings.Split(header.Filename, ".")
 	if len(name) != 2 {
-		log.Error(err)
+		log.Error("updateItemImage: ", err)
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
 	}
@@ -509,7 +509,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	}
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Error(err)
+		log.Error("updateItemImage: ", err)
 	}
 	// Generate unique filename
 	i := 0
@@ -521,7 +521,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 		}
 		i++
 		if i > 1000 {
-			log.Error(err)
+			log.Error("updateItemImage: ", err)
 			utils.ErrorJSON(w, errors.New("too many files with same name"), http.StatusBadRequest)
 			return
 		}
@@ -531,7 +531,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	// Save file with unique name
 	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
-		log.Error(err)
+		log.Error("updateItemImage: ", err)
 	}
 	return
 }
@@ -543,25 +543,25 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 		if key == "Price" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
-				log.Error(err)
+				log.Error("updateItemNormal: ", err)
 				return
 			}
 		} else if key == "IsLicenseItem" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error(err)
+				log.Error("updateItemNormal: ", err)
 				return
 			}
 		} else if key == "Archived" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error(err)
+				log.Error("updateItemNormal: ", err)
 				return
 			}
 		} else if key == "LicenseItem" {
 			licensitem, err := strconv.Atoi(value[0])
 			if err != nil {
-				log.Error(err)
+				log.Error("updateItemNormal: ", err)
 				return item, err
 			}
 			fieldsClean[key] = null.IntFrom(int64(licensitem))
@@ -569,7 +569,7 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 		} else if key == "ID" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
-				log.Error(err)
+				log.Error("updateItemNormal: ", err)
 				return
 			}
 		} else if key == "LicenseGroup" {
@@ -580,7 +580,7 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 	}
 	err = mapstructure.Decode(fieldsClean, &item)
 	if err != nil {
-		log.Error(err)
+		log.Error("updateItemNormal: ", err)
 		return
 	}
 	return
@@ -641,12 +641,12 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	// Save item to database
 	err = database.Db.UpdateItem(ItemID, item)
 	if err != nil {
-		log.Error(err)
+		log.Error("UpdateItem: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
 	err = utils.WriteJSON(w, http.StatusOK, err)
 	if err != nil {
-		log.Error(err)
+		log.Error("UpdateItem: ", err)
 	}
 }
 
@@ -958,7 +958,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error(err)
+		log.Error("CreatePaymentOrder: ", err)
 	}
 }
 
@@ -1045,7 +1045,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Create response
 	err = utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
 	if err != nil {
-		log.Error(err)
+		log.Error("VerifyPaymentOrder: ", err)
 	}
 }
 
@@ -1275,7 +1275,7 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.WriteJSON(w, http.StatusOK, paymentID)
 	if err != nil {
-		log.Error(err)
+		log.Error("CreatePayment: ", err)
 	}
 }
 
@@ -1391,7 +1391,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	// Return success with paymentID
 	err = utils.WriteJSON(w, http.StatusOK, paymentID)
 	if err != nil {
-		log.Error(err)
+		log.Error("CreatePaymentPayout: ", err)
 	}
 
 }
@@ -1422,7 +1422,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
 	err = paymentprovider.HandlePaymentSuccessfulResponse(paymentSuccessful)
 	if err != nil {
-		log.Error(err)
+		log.Error("VivaWalletWebhookSuccess: ", err)
 		return
 	}
 
@@ -1431,7 +1431,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error(err)
+		log.Error("VivaWalletWebhookSuccess:", err)
 	}
 }
 
@@ -1456,7 +1456,7 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 
 	err = paymentprovider.HandlePaymentFailureResponse(paymentFailure)
 	if err != nil {
-		log.Error(err)
+		log.Error("VivaWalletWebhookFailure: ", err)
 		return
 	}
 
@@ -1465,7 +1465,7 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error(err)
+		log.Error("VivaWalletWebhookFailure: ", err)
 	}
 }
 
@@ -1491,7 +1491,7 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 
 	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
 	if err != nil {
-		log.Error(err)
+		log.Error("VivaWalletWebhookPrice: ", err)
 		return
 	}
 
@@ -1500,7 +1500,7 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error(err)
+		log.Error("VivaWalletWebhookPrice: ", err)
 	}
 }
 
@@ -1525,7 +1525,7 @@ func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 	response := paymentprovider.VivaWalletVerificationKeyResponse{Key: key}
 	err := utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error(err)
+		log.Error("VivaWalletVerificationKey: ", err)
 	}
 }
 
@@ -1548,7 +1548,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, settings)
 	if err != nil {
-		log.Error(err)
+		log.Error("getSettings: ", err)
 	}
 }
 
@@ -1567,19 +1567,20 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 
 	// Debugging
 	name := strings.Split(header.Filename, ".")
-	if len(name) != 2 {
-		log.Error(err)
+	if len(name) < 2 {
+		log.Error("updateSettingsLogo: file name to short", err)
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
 	}
-	if name[1] != "png" {
-		log.Error("wrong file ending:", name[1])
+	if name[len(name)-1] != "png" {
+		log.Error("updateSettingsLogo: wrong file ending: ", name[1])
 		utils.ErrorJSON(w, errors.New("file type must be png"), http.StatusBadRequest)
 		return
 	}
 
 	buf := bytes.NewBuffer(nil)
 	if _, err = io.Copy(buf, file); err != nil {
+		log.Error("updateSettingsLogo: copying file failed", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -1588,11 +1589,11 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 	path = "/img/logo.png"
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Error(err)
+		log.Error("updateSettingsLogo: couldn't get wd", err)
 	}
 	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
-		log.Error(err)
+		log.Error("updateSettingsLogo: saving failed", err)
 	}
 	return
 }
@@ -1615,13 +1616,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	// Read multipart form
 	err = r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		log.Error(err)
+		log.Error("updateSettings: parse multipart:", err)
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
 	mForm := r.MultipartForm
 	if mForm == nil {
-		log.Error(errors.New("form is nil"))
+		log.Error("updateSettings: ", errors.New("form is nil"))
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
@@ -1660,7 +1661,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
-		log.Error(err)
+		log.Error("updateSettings: ", err)
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
@@ -1682,7 +1683,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, settings)
 	if err != nil {
-		log.Error(err)
+		log.Error("updateSettings: ", err)
 	}
 }
 
@@ -1706,6 +1707,6 @@ func GetVendorLocations(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, locationData)
 	if err != nil {
-		log.Error(err)
+		log.Error("GetVendorLocations: ", err)
 	}
 }

@@ -26,7 +26,7 @@ func deferTx(tx pgx.Tx, err error) error {
 		panic(p)
 	} else if err != nil {
 		// Rollback the transaction if an error occurred
-		log.Error(err)
+		log.Error("deferTx: ", err)
 		_ = tx.Rollback(context.Background())
 	} else {
 		// Commit the transaction if everything is successful

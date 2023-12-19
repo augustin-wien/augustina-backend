@@ -18,7 +18,7 @@ func JSONMarshal(t interface{}) ([]byte, error) {
 	encoder.SetEscapeHTML(false)
 	err := encoder.Encode(t)
 	if err != nil {
-		log.Error(err)
+		log.Error("JSONMarshal: ", err)
 		return nil, err
 	}
 	b := bytes.TrimRight(buffer.Bytes(), "\n")
@@ -78,7 +78,7 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) {
 
 	err = WriteJSON(w, statusCode, theError, "error")
 	if err != nil {
-		log.Error(err)
+		log.Error("ErrorJSON: ", err)
 	}
 }
 
@@ -100,7 +100,7 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	// Convert the map to JSON to ignore unknown fields
 	jsonData, err := json.Marshal(m)
 	if err != nil {
-		log.Error(err)
+		log.Error("ReadJSON: ", err)
 		return err
 	}
 
