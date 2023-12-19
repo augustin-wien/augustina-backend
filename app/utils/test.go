@@ -43,7 +43,7 @@ func CheckResponse(t *testing.T, expected, actual int) {
 // CheckError is a simple utility to check the error
 func CheckError(t *testing.T, err error) {
 	if err != nil {
-		log.Error(err)
+		log.Error("CheckError: ", err)
 		t.Error(err)
 		t.FailNow()
 	}
