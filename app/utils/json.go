@@ -17,6 +17,10 @@ func JSONMarshal(t interface{}) ([]byte, error) {
 	encoder := json.NewEncoder(buffer)
 	encoder.SetEscapeHTML(false)
 	err := encoder.Encode(t)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
 	b := bytes.TrimRight(buffer.Bytes(), "\n")
 	return b, err
 }
@@ -57,6 +61,10 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}, wrap ...stri
 	return nil
 }
 
+type jsonError struct {
+	Message string `json:"message"`
+}
+
 // ErrorJSON writes an error to the response writer as json
 func ErrorJSON(w http.ResponseWriter, err error, status ...int) {
 	statusCode := http.StatusBadRequest
@@ -64,15 +72,14 @@ func ErrorJSON(w http.ResponseWriter, err error, status ...int) {
 		statusCode = status[0]
 	}
 
-	type jsonError struct {
-		Message string `json:"message"`
-	}
-
 	theError := jsonError{
 		Message: err.Error(),
 	}
 
-	_ = WriteJSON(w, statusCode, theError, "error")
+	err = WriteJSON(w, statusCode, theError, "error")
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 // ReadJSON reads the request body and decodes the json into the data interface
@@ -93,6 +100,7 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	// Convert the map to JSON to ignore unknown fields
 	jsonData, err := json.Marshal(m)
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 
