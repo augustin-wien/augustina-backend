@@ -26,6 +26,7 @@ func deferTx(tx pgx.Tx, err error) error {
 		panic(p)
 	} else if err != nil {
 		// Rollback the transaction if an error occurred
+		log.Error(err)
 		_ = tx.Rollback(context.Background())
 	} else {
 		// Commit the transaction if everything is successful
@@ -59,6 +60,7 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 		log.Error("ListVendors", err)
 		return vendors, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var vendor Vendor
 		err = rows.Scan(&vendor.ID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.LastPayout, &vendor.Balance)
@@ -192,6 +194,7 @@ func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, 
 		log.Error("ListItems: ", err)
 		return items, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var item Item
 		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup)
@@ -297,6 +300,7 @@ func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err erro
 		log.Error("GetOrderEntries: ", err)
 		return
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var entry OrderEntry
 		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver, &entry.SenderName, &entry.ReceiverName, &entry.IsSale)
@@ -335,6 +339,7 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 		log.Error("GetOrders: ", err)
 		return orders, err
 	}
+	defer rows.Close()
 	tmpOrders, err := pgx.CollectRows(rows, pgx.RowToStructByName[Order])
 	if err != nil {
 		log.Error("GetOrders: failed to collect rows: ", err)
@@ -870,6 +875,7 @@ func (db *Database) ListAccounts() (accounts []Account, err error) {
 		log.Error("ListAccounts: ", err)
 		return accounts, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var account Account
 		err = rows.Scan(&account.ID, &account.Name, &account.Balance, &account.Type, &account.User, &account.Vendor)
@@ -1061,11 +1067,9 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6
 	WHERE ID = 1
 	`, settings.Color, settings.FontColor, settings.Logo, settings.MainItem, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts)
-
 	if err != nil {
 		log.Error("UpdateSettings: ", err)
 	}
-
 	return err
 }
 
@@ -1091,11 +1095,9 @@ func (db *Database) UpdateDBSettings(dbsettings DBSettings) (err error) {
 	SET isInitialized = $1
 	WHERE ID = 1
 	`, dbsettings.IsInitialized)
-
 	if err != nil {
 		log.Error("UpdateDBSettings: ", err)
 	}
-
 	return err
 }
 

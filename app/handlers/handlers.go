@@ -1494,12 +1494,15 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
-	path = ""
 
 	// Get file from image field
 	file, header, err := r.FormFile("Logo")
 	if err != nil {
-		return // No file passed, which is ok
+		log.Info("No file passed or file is invalid", err)
+		// Do not return error, as not passing a file is ok
+		// Could be improved by differentiating between not passed and invalid file
+		err = nil
+		return
 	}
 	defer file.Close()
 
@@ -1581,7 +1584,6 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Error("OrgaCoversTransactionCosts is not a boolean")
 				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
-
 				return
 			}
 		} else if key == "MainItem" {
@@ -1596,6 +1598,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			fieldsClean[key] = value[0]
 		}
 	}
+	
 	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
 		log.Error(err)
@@ -1605,9 +1608,9 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	path, err := updateSettingsLogo(w, r)
 	if err != nil {
-		log.Info("No new image provided")
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
-
 	if path != "" {
 		settings.Logo = "img/logo.png"
 	}
@@ -1618,7 +1621,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = utils.WriteJSON(w, http.StatusOK, err)
+	err = utils.WriteJSON(w, http.StatusOK, settings)
 	if err != nil {
 		log.Error(err)
 	}
