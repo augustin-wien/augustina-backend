@@ -95,26 +95,33 @@ func GetRouter() (r *chi.Mux) {
 
 	// Payments
 	r.Route("/api/payments", func(r chi.Router) {
-		r.Post("/", CreatePayment)
-		r.Post("/batch/", CreatePayments)
 		r.Group(func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.AdminAuthMiddleware)
+			r.Post("/", CreatePayment)
+			r.Post("/batch/", CreatePayments)
 			r.Get("/", ListPayments)
 			r.Get("/forpayout/", ListPaymentsForPayout)
+			r.Get("/statistics/", ListPaymentsStatistics)
 			r.Post("/payout/", CreatePaymentPayout)
 		})
 	})
 
 	// Payment service providers
 	r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
-		// todo: add auth middleware for viva wallet ip addresses
 		r.Post("/success/", VivaWalletWebhookSuccess)
 		r.Get("/success/", VivaWalletVerificationKey)
 		r.Post("/failure/", VivaWalletWebhookFailure)
 		r.Get("/failure/", VivaWalletVerificationKey)
 		r.Post("/price/", VivaWalletWebhookPrice)
 		r.Get("/price/", VivaWalletVerificationKey)
+	})
+
+	// Online Map
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares.AuthMiddleware)
+		r.Use(middlewares.AdminAuthMiddleware)
+		r.Get("/api/map/", GetVendorLocations)
 	})
 
 	// Swagger documentation

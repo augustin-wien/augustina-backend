@@ -243,6 +243,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/map/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Get longitudes and latitudes of all vendors for online map",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Map"
+                ],
+                "summary": "Get longitudes and latitudes of all vendors for online map",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.LocationData"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/orders/": {
             "post": {
                 "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
@@ -384,6 +415,43 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "TODO: This handler is not working right now and to be done for manually setting payments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Create a set of payments",
+                "parameters": [
+                    {
+                        "description": "Create Payment",
+                        "name": "amount",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createPaymentsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                }
             }
         },
         "/payments/forpayout/": {
@@ -475,6 +543,56 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/statistics/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    },
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Filter by date, get statistical information, sorted by item.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Calculate statistics of items \u0026 payments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Minimum date (RFC3339, UTC)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2006-01-02T15:04:05Z",
+                        "description": "Maximum date (RFC3339, UTC)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.PaymentsStatistics"
+                            }
                         }
                     }
                 }
@@ -969,6 +1087,23 @@ const docTemplate = `{
                 }
             }
         },
+        "database.LocationData": {
+            "type": "object",
+            "properties": {
+                "firstName": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "licenseID": {
+                    "$ref": "#/definitions/null.String"
+                },
+                "longitude": {
+                    "type": "number"
+                }
+            }
+        },
         "database.OrderEntry": {
             "type": "object",
             "properties": {
@@ -1178,6 +1313,34 @@ const docTemplate = `{
                 },
                 "workingTime": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.ItemStatistics": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sumAmount": {
+                    "type": "integer"
+                },
+                "sumQuantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.PaymentsStatistics": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ItemStatistics"
+                    }
                 }
             }
         },

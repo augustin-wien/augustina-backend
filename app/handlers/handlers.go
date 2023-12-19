@@ -236,6 +236,10 @@ func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 	// Get vendor information from database
 	vendor, err := database.Db.GetVendorByEmail(vendorEmail)
 	if err != nil {
+		if err.Error() == "no rows in result set" {
+			utils.ErrorJSON(w, fmt.Errorf("User is not a vendor"), http.StatusBadRequest)
+			return
+		}
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -681,6 +685,7 @@ type createOrderRequest struct {
 	Entries         []createOrderRequestEntry
 	User            string
 	VendorLicenseID string
+	CustomerEmail   null.String
 }
 
 type createOrderResponse struct {
@@ -740,7 +745,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// 2. Check: All items have to exist
-		_, err := database.Db.GetItem(entry.Item)
+		item, err := database.Db.GetItem(entry.Item)
 		if err != nil {
 			utils.ErrorJSON(w, errors.New("Nice try! Item does not exist"), http.StatusBadRequest)
 			return
@@ -750,6 +755,15 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		if entry.Item == 3 {
 			utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
 			return
+		}
+
+		// 4. Check: If there is a item that needs a customerEmail, the user has to be given
+
+		if item.LicenseItem.Valid {
+			if !requestData.CustomerEmail.Valid || requestData.CustomerEmail.String == "" {
+				utils.ErrorJSON(w, errors.New("you are not allowed to purchase this item without a customer email"), http.StatusBadRequest)
+				return
+			}
 		}
 	}
 
@@ -864,7 +878,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			}
 			// Prepend license item without overwriting next entries
 			order.Entries = append([]database.OrderEntry{licenseItemEntry}, order.Entries...)
-
+			// Add customer email to order
+			order.CustomerEmail = requestData.CustomerEmail
 			// Increase licenseItemAdded by one
 			licenseItemAdded++
 
@@ -1132,6 +1147,107 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, payments)
 }
 
+type ItemStatistics struct {
+	ID          int
+	Name        string
+	SumAmount   int
+	SumQuantity int
+}
+
+// PaymentsStatistics is the response to ListPaymentsStatistics
+type PaymentsStatistics struct {
+	From  time.Time
+	To    time.Time
+	Items []ItemStatistics
+}
+
+// ListPaymentsStatistics godoc
+//
+//	 	@Summary 		Calculate statistics of items & payments
+//		@Description 	Filter by date, get statistical information, sorted by item.
+//		@Tags			Payments
+//		@Accept			json
+//		@Produce		json
+//		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//		@Success		200	{array}	PaymentsStatistics
+//		@Security		KeycloakAuth
+//		@Security		KeycloakAuth
+//		@Router			/payments/statistics/ [get]
+func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	// Get filter parameters
+	minDateRaw := r.URL.Query().Get("from")
+	maxDateRaw := r.URL.Query().Get("to")
+
+	// Parse filter parameters
+	var minDate, maxDate time.Time
+	if minDateRaw != "" {
+		minDate, err = time.Parse(time.RFC3339, minDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+	if maxDateRaw != "" {
+		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+		}
+	}
+
+	// Get items
+	items, err := database.Db.ListItems(false, false)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Get payments with filter parameters
+	payments, err := database.Db.ListPayments(minDate, maxDate, "", false, false, false)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Create map of items
+	itemsMap := make(map[int]ItemStatistics)
+	for _, item := range items {
+		itemsMap[item.ID] = ItemStatistics{
+			ID:          item.ID,
+			Name:        item.Name,
+			SumAmount:   0,
+			SumQuantity: 0,
+		}
+	}
+
+	// Create sums per item
+	for _, payment := range payments {
+		if !payment.Item.Valid {
+			continue
+		}
+		itemID := int(payment.Item.Int64)
+		if entry, ok := itemsMap[itemID]; ok {
+			entry.SumAmount += payment.Amount
+			entry.SumQuantity += payment.Quantity
+			itemsMap[itemID] = entry
+		} else {
+			utils.ErrorJSON(w, errors.New("item not found"), http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Create payment statistics
+	var paymentsStatistics PaymentsStatistics
+	paymentsStatistics.From = minDate
+	paymentsStatistics.To = maxDate
+	for _, item := range itemsMap {
+		paymentsStatistics.Items = append(paymentsStatistics.Items, item)
+	}
+
+	respond(w, err, paymentsStatistics)
+}
+
 // CreatePayment godoc
 //
 //	 	@Summary 		Create a payment
@@ -1167,11 +1283,14 @@ type createPaymentsRequest struct {
 // CreatePayments godoc
 //
 //	 	@Summary 		Create a set of payments
+//		@Description 	TODO: This handler is not working right now and to be done for manually setting payments
 //		@Tags			Payments
 //		@Accept			json
 //		@Produce		json
-//		@Param			amount body createPaymentsRequest true " Create Payment"
+//		@Param			amount body createPaymentsRequest true "Create Payment"
 //		@Success		200 {integer} id
+//		@Security		KeycloakAuth
+//		@Router			/payments/ [post]
 func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)
@@ -1431,12 +1550,15 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
-	path = ""
 
 	// Get file from image field
 	file, header, err := r.FormFile("Logo")
 	if err != nil {
-		return // No file passed, which is ok
+		log.Info("No file passed or file is invalid", err)
+		// Do not return error, as not passing a file is ok
+		// Could be improved by differentiating between not passed and invalid file
+		err = nil
+		return
 	}
 	defer file.Close()
 
@@ -1518,7 +1640,6 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Error("OrgaCoversTransactionCosts is not a boolean")
 				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
-
 				return
 			}
 		} else if key == "MainItem" {
@@ -1533,6 +1654,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			fieldsClean[key] = value[0]
 		}
 	}
+	
 	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
 		log.Error(err)
@@ -1542,9 +1664,9 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 
 	path, err := updateSettingsLogo(w, r)
 	if err != nil {
-		log.Info("No new image provided")
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
-
 	if path != "" {
 		settings.Logo = "img/logo.png"
 	}
@@ -1555,7 +1677,31 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = utils.WriteJSON(w, http.StatusOK, err)
+	err = utils.WriteJSON(w, http.StatusOK, settings)
+	if err != nil {
+		log.Error(err)
+	}
+}
+
+// Online Map -----------------------------------------------------------------
+
+// GetVendorLocations godoc
+//
+//	 	@Summary 		Get longitudes and latitudes of all vendors for online map
+//		@Description	Get longitudes and latitudes of all vendors for online map
+//		@Tags			Map
+//		@Accept			json
+//		@Produce		json
+//		@Security		KeycloakAuth
+//		@Success		200	{array}	database.LocationData
+//		@Router			/map/ [get]
+func GetVendorLocations(w http.ResponseWriter, r *http.Request) {
+	locationData, err := database.Db.GetVendorLocations()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, locationData)
 	if err != nil {
 		log.Error(err)
 	}

@@ -41,56 +41,56 @@ func TestKeycloak(t *testing.T) {
 	role_name := "testrole"
 	err = keycloak.KeycloakClient.CreateRole(role_name)
 	if err != nil {
-		log.Error("Create role failed:", err)
+		log.Error("TestKeycloak: Create role failed:", err)
 	}
 	role, err := keycloak.KeycloakClient.GetRole(role_name)
 	if err != nil {
-		log.Error("Get role failed:", err)
+		log.Error("TestKeycloak: Get role failed:", err)
 	}
 
 	require.Equal(t, role_name, *role.Name)
 
 	_, err = keycloak.KeycloakClient.CreateUser("testuser", "testuser", "testuser@example.com", "password")
 	if err != nil {
-		log.Errorf("Create user failed: %v \n", err)
+		log.Errorf("TestKeycloak: Create user failed: %v \n", err)
 	}
 
 	user, err := keycloak.KeycloakClient.GetUser("testuser@example.com")
 	if err != nil {
-		log.Error("Get user failed:", err)
+		log.Error("TestKeycloak: Get user failed:", err)
 		panic(err)
 	}
 
 	err = keycloak.KeycloakClient.AssignRole(*user.ID, role_name)
 	if err != nil {
-		log.Error("Assign role failed:", err)
+		log.Error("TestKeycloak: Assign role failed:", err)
 	}
 
 	roles, err := keycloak.KeycloakClient.GetUserRoles(*user.ID)
 	if err != nil {
-		log.Error("Get user failed:", err)
+		log.Error("TestKeycloak: Get user failed:", err)
 	}
 	require.NotNil(t, lookupRole(role_name, roles))
 
 	err = keycloak.KeycloakClient.UnassignRole(*user.ID, role_name)
 	if err != nil {
-		log.Error("Unassign role failed:", err)
+		log.Error("TestKeycloak: Unassign role failed:", err)
 	}
 
 	roles, err = keycloak.KeycloakClient.GetUserRoles(*user.ID)
 	if err != nil {
-		log.Error("Get user failed:", err)
+		log.Error("TestKeycloak: Get user failed:", err)
 	}
 	require.Nil(t, lookupRole(role_name, roles))
 
 	err = keycloak.KeycloakClient.DeleteUser(*user.ID)
 	if err != nil {
-		log.Error("Delete user failed:", err)
+		log.Error("TestKeycloak: Delete user failed:", err)
 	}
 
 	err = keycloak.KeycloakClient.DeleteRole(role_name)
 	if err != nil {
-		log.Error("Delete role failed:", err)
+		log.Error("TestKeycloak: Delete role failed:", err)
 	}
 
 }

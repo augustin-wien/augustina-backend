@@ -80,7 +80,7 @@ func (db *Database) InitiateItems() (err error) {
 // UpdateInitialSettings creates test settings for the application
 func (db *Database) UpdateInitialSettings() (err error) {
 	settings := Settings{
-		Color:                      "#E7534A",
+		Color:                      "#F45793",
 		FontColor:                  "#FFFFFF",
 		Logo:                       "img/logo.png",
 		MainItem:                   null.IntFrom(1),
