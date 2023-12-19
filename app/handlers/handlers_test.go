@@ -187,13 +187,16 @@ func TestVendors(t *testing.T) {
 
 }
 
-func CreateTestItem(t *testing.T, name string, price int, licenseItemID string) string {
+func CreateTestItem(t *testing.T, name string, price int, licenseItemID string, licenseGroup string) string {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	writer.WriteField("Name", name)
 	writer.WriteField("Price", strconv.Itoa(price))
 	if licenseItemID != "" {
 		writer.WriteField("LicenseItem", licenseItemID)
+	}
+	if licenseGroup != "" {
+		writer.WriteField("LicenseGroup", licenseGroup)
 	}
 	writer.Close()
 	res := utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 200, adminUserToken)
@@ -211,7 +214,7 @@ func TestItems(t *testing.T) {
 	}
 
 	// Create
-	itemID := CreateTestItem(t, "Test item", 314, "")
+	itemID := CreateTestItem(t, "Test item", 314, "", "")
 
 	// Read
 	res := utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
@@ -295,8 +298,8 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 }
 
 func CreateTestItemWithLicense(t *testing.T) (string, string) {
-	licenseItemID := CreateTestItem(t, "License item", 3, "")
-	itemID := CreateTestItem(t, "Test item", 20, licenseItemID)
+	licenseItemID := CreateTestItem(t, "License item", 3, "", "")
+	itemID := CreateTestItem(t, "Test item", 20, licenseItemID, "testedition")
 	return itemID, licenseItemID
 }
 
@@ -319,7 +322,7 @@ func TestOrders(t *testing.T) {
 
 	// Test that maxOrderAmount is set and cannot be exceeded
 	setMaxOrderAmount(t, 10)
-	itemID := CreateTestItem(t, "testordersItemWithoutLicense", 20, "")
+	itemID := CreateTestItem(t, "testordersItemWithoutLicense", 20, "", "")
 	request := `{
 		"entries": [
 			{
@@ -468,7 +471,6 @@ func TestOrders(t *testing.T) {
 	for _, payment := range payments {
 		database.Db.DeletePayment(payment.ID)
 	}
-
 }
 
 // TestPayments tests CRUD operations on payments
@@ -746,7 +748,7 @@ func TestPaymentPayout(t *testing.T) {
 // TestSettings tests GET and PUT operations on settings
 func TestSettings(t *testing.T) {
 
-	itemID := CreateTestItem(t, "Test main item", 314, "")
+	itemID := CreateTestItem(t, "Test main item", 314, "", "")
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)

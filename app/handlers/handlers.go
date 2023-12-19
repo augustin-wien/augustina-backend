@@ -536,7 +536,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	return
 }
 
-// 	fields := mForm.Value               // Values are stored in []string
+// fields := mForm.Value               // Values are stored in []string
 func updateItemNormal(fields map[string][]string) (item database.Item, err error) {
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
@@ -572,6 +572,8 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 				log.Error(err)
 				return
 			}
+		} else if key == "LicenseGroup" {
+			fieldsClean[key] = null.StringFrom(value[0])
 		} else {
 			fieldsClean[key] = value[0]
 		}
@@ -1655,7 +1657,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			fieldsClean[key] = value[0]
 		}
 	}
-	
+
 	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
 		log.Error(err)
