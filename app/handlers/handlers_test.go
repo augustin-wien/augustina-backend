@@ -308,6 +308,7 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 func TestOrders(t *testing.T) {
 	keycloak.KeycloakClient.DeleteUser("testorders123@example.com")
 	keycloak.KeycloakClient.DeleteUser("test_customer@example.com")
+	keycloak.KeycloakClient.DeleteUser("testdeadlock@example.com")
 	orders, _ := database.Db.GetOrders()
 	for _, order := range orders {
 		database.Db.DeleteOrder(order.ID)
@@ -426,9 +427,20 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, order.Entries[1].Receiver, receiverAccount.ID)
 
 	// Verify order and create payments
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 48)
-	if err != nil {
-		t.Error(err)
+	// verify for deadlock
+	c := make(chan int)
+	go func() {
+		err = database.Db.VerifyOrderAndCreatePayments(order.ID, 48)
+		utils.CheckError(t, err)
+		c <- 1
+	}()
+
+	resSuccess := utils.TestRequestStr(t, r, "GET", "/api/orders/verify/?s=0&t=0", "", 200)
+	require.Equal(t, resSuccess.Body.String(), `{"success":true}`)
+	utils.CheckError(t, err)
+
+	if <-c != 1 {
+		t.Error("Webhook did not finish")
 	}
 	// Check payments
 	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
@@ -471,6 +483,19 @@ func TestOrders(t *testing.T) {
 	for _, payment := range payments {
 		database.Db.DeletePayment(payment.ID)
 	}
+
+	// Clean up after test
+	paymentOrder, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	utils.CheckError(t, err)
+	for _, payment := range paymentOrder {
+		database.Db.DeletePayment(payment.ID)
+	}
+
+	for _, entry := range order.Entries {
+		database.Db.DeleteOrderEntry(entry.ID)
+	}
+	database.Db.DeleteOrder(order.ID)
+
 }
 
 // TestPayments tests CRUD operations on payments

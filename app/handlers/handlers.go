@@ -1422,7 +1422,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
 	err = paymentprovider.HandlePaymentSuccessfulResponse(paymentSuccessful)
 	if err != nil {
-		log.Error("VivaWalletWebhookSuccess: ", err)
+		log.Error("VivaWalletWebhookSuccess: handle payment failed: ", err)
 		return
 	}
 
@@ -1431,7 +1431,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error("VivaWalletWebhookSuccess:", err)
+		log.Error("VivaWalletWebhookSuccess: write json: ", err)
 	}
 }
 
