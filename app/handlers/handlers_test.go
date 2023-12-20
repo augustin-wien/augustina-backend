@@ -306,8 +306,10 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
+	customerEmail := "test_customer_for_test@example.com"
+
 	keycloak.KeycloakClient.DeleteUser("testorders123@example.com")
-	keycloak.KeycloakClient.DeleteUser("test_customer@example.com")
+	keycloak.KeycloakClient.DeleteUser(customerEmail)
 	orders, _ := database.Db.GetOrders()
 	for _, order := range orders {
 		database.Db.DeleteOrder(order.ID)
@@ -316,7 +318,6 @@ func TestOrders(t *testing.T) {
 	vendorLicenseId := "testorders123"
 	vendorID := createTestVendor(t, vendorLicenseId)
 	vendorIDInt, _ := strconv.Atoi(vendorID)
-	customerEmail := "test_customer@example.com"
 	_, err := database.Db.GetAccountByVendorID(vendorIDInt)
 	utils.CheckError(t, err)
 
@@ -465,7 +466,7 @@ func TestOrders(t *testing.T) {
 	}
 	require.Equal(t, 2, len(groups))
 	require.Equal(t, *groups[0].Name, "customer")
-	require.Equal(t, *groups[1].Name, "newspaper/testedition")
+	require.Equal(t, *groups[1].Name, "testedition")
 
 	// Cleanup
 	for _, payment := range payments {

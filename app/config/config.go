@@ -24,6 +24,10 @@ type config struct {
 	VivaWalletSmartCheckoutClientKey  string
 	VivaWalletSourceCode              string
 	VivaWalletTransactionTypeIDPaypal int
+	KeycloakHostname                  string
+	KeycloakRealm                     string
+	KeycloakClientID                  string
+	KeycloakClientSecret              string
 	KeycloakVendorGroup               string
 	KeycloakCustomerGroup             string
 	KeycloakBackofficeGroup           string
@@ -41,6 +45,7 @@ func InitConfig() {
 		os.Exit(1)
 	}
 	err = godotenv.Load(pwd + "/.env")
+
 	if err != nil {
 		// ignore error
 		fmt.Println(err)
@@ -64,6 +69,10 @@ func InitConfig() {
 		KeycloakVendorGroup:               getEnv("KEYCLOAK_VENDOR_GROUP", "/vendors"),
 		KeycloakCustomerGroup:             getEnv("KEYCLOAK_CUSTOMER_GROUP", "/customer"),
 		KeycloakBackofficeGroup:           getEnv("KEYCLOAK_BACKOFFICE_GROUP", "/backoffice"),
+		KeycloakHostname:                  getEnv("KEYCLOAK_HOST", ""),
+		KeycloakRealm:                     getEnv("KEYCLOAK_REALM", ""),
+		KeycloakClientID:                  getEnv("KEYCLOAK_CLIENT_ID", ""),
+		KeycloakClientSecret:              getEnv("KEYCLOAK_CLIENT_SECRET", ""),
 		SendCustomerEmail:                 (getEnv("SEND_CUSTOMER_EMAIL", "false") == "true"),
 		OnlinePaperUrl:                    getEnv("ONLINE_PAPER_URL", ""),
 	}
