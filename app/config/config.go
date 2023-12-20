@@ -62,7 +62,7 @@ func InitConfig() {
 		VivaWalletSourceCode:              getEnv("VIVA_WALLET_SOURCE_CODE", ""),
 		VivaWalletTransactionTypeIDPaypal: getEnvInt("VIVA_WALLET_TRANSACTION_TYPE_ID_PAYPAL", 0),
 		KeycloakVendorGroup:               getEnv("KEYCLOAK_VENDOR_GROUP", "/vendors"),
-		KeycloakCustomerGroup:             getEnv("KEYCLOAK_CUSTOMER_GROUP", "/customers"),
+		KeycloakCustomerGroup:             getEnv("KEYCLOAK_CUSTOMER_GROUP", "/customer"),
 		KeycloakBackofficeGroup:           getEnv("KEYCLOAK_BACKOFFICE_GROUP", "/backoffice"),
 		SendCustomerEmail:                 (getEnv("SEND_CUSTOMER_EMAIL", "false") == "true"),
 		OnlinePaperUrl:                    getEnv("ONLINE_PAPER_URL", ""),

@@ -169,6 +169,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	}
 	err = keycloak.KeycloakClient.AssignGroup(user, config.Config.KeycloakVendorGroup)
 	if err != nil {
+		log.Error("CreateVendor: Assigning user to vendor group failed: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -317,17 +318,20 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 		randomPassword := utils.RandomString(10)
 		keycloakUser, err := keycloak.KeycloakClient.CreateUser(vendor.Email, vendor.Email, vendor.Email, randomPassword)
 		if err != nil {
+			log.Error("UpdateVendor: create vendor failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
 		err = keycloak.KeycloakClient.AssignGroup(keycloakUser, config.Config.KeycloakVendorGroup)
 		if err != nil {
+			log.Error("UpdateVendor: Assigning user to vendor group failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
 	} else {
 		err = keycloak.KeycloakClient.UpdateUser(*user.Username, vendor.FirstName, vendor.LastName, vendor.Email)
 		if err != nil {
+			log.Error("UpdateVendor: update vendor failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
