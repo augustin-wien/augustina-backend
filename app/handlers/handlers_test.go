@@ -12,6 +12,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -25,6 +26,7 @@ var r *chi.Mux
 var adminUser string
 var adminUserEmail string
 var adminUserToken *gocloak.JWT
+var mutex sync.Mutex
 
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
@@ -208,6 +210,8 @@ func CreateTestItem(t *testing.T, name string, price int, licenseItemID string, 
 // TestItems tests CRUD operations on items (including images)
 // Todo: delete file after test
 func TestItems(t *testing.T) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	// Initialize database and empty it
 	err := database.Db.InitEmptyTestDb()
 	if err != nil {
@@ -307,6 +311,8 @@ func CreateTestItemWithLicense(t *testing.T) (string, string) {
 // TestOrders tests CRUD operations on orders
 // TODO: Test independent of vivawallet
 func TestOrders(t *testing.T) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	keycloak.KeycloakClient.DeleteUser("testorders123@example.com")
 	keycloak.KeycloakClient.DeleteUser("test_customer@example.com")
 	keycloak.KeycloakClient.DeleteUser("testdeadlock@example.com")
@@ -496,11 +502,12 @@ func TestOrders(t *testing.T) {
 		database.Db.DeleteOrderEntry(entry.ID)
 	}
 	database.Db.DeleteOrder(order.ID)
-
 }
 
 // TestPayments tests CRUD operations on payments
 func TestPayments(t *testing.T) {
+	defer mutex.Unlock()
+	mutex.Lock()
 	// Initialize database and empty it
 	err := database.Db.InitEmptyTestDb()
 	if err != nil {

@@ -109,7 +109,6 @@ func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
 
 // GetVendor returns the vendor with the given id
 func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
-
 	// Get vendor data
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount)
 	if err != nil {
