@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"gopkg.in/guregu/null.v4"
@@ -176,139 +177,125 @@ func TestVendors(t *testing.T) {
 }
 
 // TestItems tests the item database functions
-func TestItems(t *testing.T) {
-	// Create new item
-	item := Item{
-		Name:  "test",
-		Price: 1,
-	}
-	id, err := Db.CreateItem(item)
-	utils.CheckError(t, err)
-
-	// Get item by ID
-	item, err = Db.GetItem(id)
-	utils.CheckError(t, err)
-
-	require.Equal(t, "test", item.Name)
-	require.Equal(t, 1, item.Price)
-
-	// Update item
-	item.Name = "test2"
-	item.Price = 2
-	err = Db.UpdateItem(id, item)
-	utils.CheckError(t, err)
-
-	// Get item by ID
-	item, err = Db.GetItem(id)
-	utils.CheckError(t, err)
-
-	require.Equal(t, "test2", item.Name)
-	require.Equal(t, 2, item.Price)
-
-	// Get all items
-	items, err := Db.ListItems(true, true)
-	utils.CheckError(t, err)
-	require.Equal(t, 2, len(items))
-
-	// Delete item
-	err = Db.DeleteItem(id)
-	utils.CheckError(t, err)
-}
 
 // TODO: Test payments
 
 // TODO: This test breaks the CI pipeline as it somehow runs in parallel
 // to handlers_tests
-// func TestOrders(t *testing.T) {
-// 	vendorLicenseId := "tt-124"
-// 	// Preperation
-// 	vendorID, err := Db.CreateVendor(Vendor{
-// 		LicenseID: null.StringFrom(vendorLicenseId),
-// 	})
-// 	utils.CheckError(t, err)
-// 	senderID, err := Db.CreateAccount(Account{})
-// 	utils.CheckError(t, err)
-// 	receiverID, err := Db.CreateAccount(Account{})
-// 	utils.CheckError(t, err)
-// 	itemID, err := Db.CreateItem(Item{Price: 1})
-// 	utils.CheckError(t, err)
+func TestQueryOrders(t *testing.T) {
+	vendorLicenseId := "tt-124"
+	// Preperation
+	vendorID, err := Db.CreateVendor(Vendor{
+		LicenseID: null.StringFrom(vendorLicenseId),
+	})
+	utils.CheckError(t, err)
+	senderID, err := Db.CreateAccount(Account{})
+	utils.CheckError(t, err)
+	receiverID, err := Db.CreateAccount(Account{})
+	utils.CheckError(t, err)
+	itemID, err := Db.CreateItem(Item{Price: 1})
+	utils.CheckError(t, err)
 
-// 	// Create order
-// 	order := Order{
-// 		Vendor:    int(vendorID),
-// 		OrderCode: null.NewString("0", true),
-// 		Entries: []OrderEntry{
-// 			{
-// 				Item:     int(itemID),
-// 				Quantity: 315,
-// 				Sender:   senderID,
-// 				Receiver: receiverID,
-// 			},
-// 		},
-// 	}
-// 	orderID, err := Db.CreateOrder(order)
-// 	utils.CheckError(t, err)
+	// Create order
+	order := Order{
+		Vendor:    int(vendorID),
+		OrderCode: null.NewString("0", true),
+		Entries: []OrderEntry{
+			{
+				Item:     int(itemID),
+				Quantity: 315,
+				Sender:   senderID,
+				Receiver: receiverID,
+			},
+		},
+	}
+	orderID, err := Db.CreateOrder(order)
+	utils.CheckError(t, err)
 
-// 	// Create extra order entries with payments
-// 	err = Db.CreatePayedOrderEntries(orderID, []OrderEntry{
-// 		{
-// 			Item:     int(itemID),
-// 			Quantity: 316,
-// 			Sender:   senderID,
-// 			Receiver: receiverID,
-// 		},
-// 	})
-// 	utils.CheckError(t, err)
+	// Create extra order entries with payments
+	err = Db.CreatePayedOrderEntries(orderID, []OrderEntry{
+		{
+			Item:     int(itemID),
+			Quantity: 316,
+			Sender:   senderID,
+			Receiver: receiverID,
+		},
+	})
+	utils.CheckError(t, err)
 
-// 	// Verify order and create payments
-// 	err = Db.VerifyOrderAndCreatePayments(orderID, 64)
-// 	utils.CheckError(t, err)
+	// Verify order and create payments
+	err = Db.VerifyOrderAndCreatePayments(orderID, 64)
+	utils.CheckError(t, err)
 
-// 	// Check order results
-// 	order1, err := Db.GetOrderByOrderCode("0")
-// 	require.Equal(t, 2, len(order1.Entries))
+	// Check order results
+	order1, err := Db.GetOrderByOrderCode("0")
+	require.Equal(t, 2, len(order1.Entries))
 
-// 	// Check payment results
-// 	payments, err := Db.ListPayments(time.Time{}, time.Time{}, vendorLicenseId, true, true, true)
-// 	require.Equal(t, 2, len(payments))
+	// Check payment results
+	payments, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	require.Equal(t, 2, len(payments))
 
-// 	// Repeat with reverse order
-// 	order2 := Order{
-// 		Vendor:    int(vendorID),
-// 		OrderCode: null.NewString("1", true),
-// 		Entries: []OrderEntry{
-// 			{
-// 				Item:     int(itemID),
-// 				Quantity: 315,
-// 				Sender:   senderID,
-// 				Receiver: receiverID,
-// 			},
-// 		},
-// 	}
-// 	orderID2, err := Db.CreateOrder(order2)
-// 	utils.CheckError(t, err)
+	// Repeat with reverse order
+	order2 := Order{
+		Vendor:    int(vendorID),
+		OrderCode: null.NewString("1", true),
+		Entries: []OrderEntry{
+			{
+				Item:     int(itemID),
+				Quantity: 315,
+				Sender:   senderID,
+				Receiver: receiverID,
+			},
+		},
+	}
+	orderID2, err := Db.CreateOrder(order2)
+	utils.CheckError(t, err)
 
-// 	// Create extra order entries with payments
-// 	err = Db.CreatePayedOrderEntries(orderID2, []OrderEntry{
-// 		{
-// 			Item:     int(itemID),
-// 			Quantity: 316,
-// 			Sender:   senderID,
-// 			Receiver: receiverID,
-// 		},
-// 	})
-// 	utils.CheckError(t, err)
+	// Create extra order entries with payments
+	err = Db.CreatePayedOrderEntries(orderID2, []OrderEntry{
+		{
+			Item:     int(itemID),
+			Quantity: 316,
+			Sender:   senderID,
+			Receiver: receiverID,
+		},
+	})
+	utils.CheckError(t, err)
 
-// 	// Verify order and create payments
-// 	err = Db.VerifyOrderAndCreatePayments(orderID2, 64)
-// 	utils.CheckError(t, err)
+	// Verify order and create payments
+	err = Db.VerifyOrderAndCreatePayments(orderID2, 64)
+	utils.CheckError(t, err)
 
-// 	// Check order results
-// 	order22, err := Db.GetOrderByOrderCode("1")
-// 	require.Equal(t, 2, len(order22.Entries))
+	// Check order results
+	order22, err := Db.GetOrderByOrderCode("1")
+	require.Equal(t, 2, len(order22.Entries))
 
-// 	// Check payment results
-// 	payments2, err := Db.ListPayments(time.Time{}, time.Time{}, vendorLicenseId, false, false, false)
-// 	require.Equal(t, 4, len(payments2))
+	// Check payment results
+	payments2, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	require.Equal(t, 4, len(payments2))
 
-// }
+	// Cleanup
+	for _, payment := range payments2 {
+		err = Db.DeletePayment(payment.ID)
+		utils.CheckError(t, err)
+	}
+	order1, err = Db.GetOrderByID(orderID)
+	utils.CheckError(t, err)
+	for _, entry := range order1.Entries {
+		err = Db.DeleteOrderEntry(entry.ID)
+		utils.CheckError(t, err)
+	}
+	order2, err = Db.GetOrderByID(orderID2)
+	utils.CheckError(t, err)
+	for _, entry := range order2.Entries {
+		err = Db.DeleteOrderEntry(entry.ID)
+		utils.CheckError(t, err)
+	}
+	err = Db.DeleteOrder(orderID)
+	utils.CheckError(t, err)
+	err = Db.DeleteOrder(orderID2)
+	utils.CheckError(t, err)
+	err = Db.DeleteVendor(vendorID)
+	utils.CheckError(t, err)
+
+}

@@ -109,6 +109,22 @@ func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
 
 // GetVendor returns the vendor with the given id
 func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
+	// Get vendor data
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount)
+	if err != nil {
+		log.Error("GetVendor: Couldn't get vendor ", vendorID, err)
+		return vendor, err
+	}
+	// Get vendor balance
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
+	if err != nil {
+		log.Error("GetVendor: ", err)
+	}
+	return vendor, err
+}
+
+// GetVendor returns the vendor with the given id
+func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err error) {
 
 	// Update Account balance by open payments
 	_, err = db.UpdateAccountBalanceByOpenPayments(vendorID)
@@ -136,14 +152,14 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 	// Create vendor
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Vendor (Keycloakid, UrlID, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Language, Comment, Telephone, RegistrationDate, VendorSince, OnlineMap, HasSmartphone, HasBankAccount) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING ID", vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Language, vendor.Comment, vendor.Telephone, vendor.RegistrationDate, vendor.VendorSince, vendor.OnlineMap, vendor.HasSmartphone, vendor.HasBankAccount).Scan(&vendorID)
 	if err != nil {
-		log.Error("CreateVendor: ", err)
+		log.Errorf("CreateVendor: create vendor %s %+v", vendor.Email, err)
 		return
 	}
 
 	// Create vendor account
 	_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, "Vendor", vendorID)
 	if err != nil {
-		log.Error("CreateVendor: ", err)
+		log.Error("CreateVendor: create vendor account %s %+v", vendor.Email, err)
 		return
 	}
 
@@ -332,6 +348,18 @@ func (db *Database) GetOrderEntriesTx(tx pgx.Tx, orderID int) (entries []OrderEn
 	return
 }
 
+// DeleteOrderEntry deletes an entry in the database
+func (db *Database) DeleteOrderEntry(id int) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	DELETE FROM OrderEntry
+	WHERE ID = $1
+	`, id)
+	if err != nil {
+		log.Error("DeleteOrderEntry: ", err)
+	}
+	return
+}
+
 // GetOrders returns all orders from the database
 func (db *Database) GetOrders() (orders []Order, err error) {
 	rows, err := db.Dbpool.Query(context.Background(), "SELECT *, null as entries FROM PaymentOrder")
@@ -359,7 +387,7 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 
 // GetOrderByID returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
 	if err != nil {
 		log.Error("GetOrderByID: ", err)
 		return
@@ -429,7 +457,7 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	for _, entry := range order.Entries {
 		_, err = createOrderEntryTx(tx, orderID, entry)
 		if err != nil {
-			log.Error("CreateOrder create order entries: ", err)
+			log.Errorf("CreateOrder create order entries: %+v %+v", entry, err)
 			return
 		}
 	}
@@ -456,7 +484,7 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, e
 	var item Item
 	err := tx.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
 	if err != nil {
-		log.Error("createOrderEntryTx: ", err)
+		log.Error("createOrderEntryTx: query row", err)
 		return entry, err
 	}
 	entry.Price = item.Price
@@ -464,7 +492,7 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, e
 	// Create order entry
 	err = tx.QueryRow(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver, IsSale) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", entry.Item, entry.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver, entry.IsSale).Scan(&entry.ID)
 	if err != nil {
-		log.Error("createOrderEntryTx: ", err)
+		log.Error("createOrderEntryTx: insert ", err)
 	}
 	return entry, err
 }
@@ -518,35 +546,35 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 	WHERE ID = $2
 	`, transactionTypeID, orderID)
 	if err != nil {
-		log.Error("VerifyOrderAndCreatePayments: ", err)
+		log.Error("VerifyOrderAndCreatePayments: update payment order:", orderID, err)
 	}
 
 	// Get Paymentorder (including payments)
 	order, err := db.GetOrderByIDTx(tx, orderID)
 	if err != nil {
-		log.Error("VerifyOrderAndCreatePayments: ", err)
+		log.Error("VerifyOrderAndCreatePayments: get order by id", orderID, err)
 		return err
 	}
 	if order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
 		customer, err := keycloak.KeycloakClient.GetOrCreateUser(order.CustomerEmail.String)
 		if err != nil {
-			log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", err)
+			log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", orderID, err)
 		}
 		// add customer to customer group
 		err = keycloak.KeycloakClient.AssignGroup(customer, "customer")
 		if err != nil {
-			log.Error("VerifyOrderAndCreatePayments: failed to assign customer to group: ", err)
+			log.Error("VerifyOrderAndCreatePayments: failed to assign customer to group: ", orderID, err)
 		}
 		// add customer to licenseItemGroup
 		for _, entry := range order.Entries {
 			item, err := db.GetItemTx(tx, entry.Item)
 			if err != nil {
-				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", err)
+				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", orderID, err)
 			}
 			if item.LicenseItem.Valid {
 				err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(customer, item.LicenseGroup.String)
 				if err != nil {
-					log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", err)
+					log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", orderID, err)
 				}
 			}
 		}
@@ -557,7 +585,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 	for _, entry := range order.Entries {
 		_, err = createPaymentForOrderEntryTx(tx, orderID, entry, false)
 		if err != nil {
-			log.Error("VerifyOrderAndCreatePayments: ", err)
+			log.Error("VerifyOrderAndCreatePayments: create payments for order entry: ", orderID, err)
 			return err
 		}
 	}
@@ -579,12 +607,12 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 	for _, entry := range entries {
 		entry, err = createOrderEntryTx(tx, orderID, entry)
 		if err != nil {
-			log.Error("CreatePayedOrderEntries: ", err)
+			log.Error("CreatePayedOrderEntries: create order entry", err)
 			return err
 		}
 		_, err = createPaymentForOrderEntryTx(tx, orderID, entry, false)
 		if err != nil {
-			log.Error("CreatePayedOrderEntries: ", err)
+			log.Error("CreatePayedOrderEntries: create payment for order entry", err)
 			return err
 		}
 	}
@@ -718,18 +746,18 @@ func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 	// Create payment
 	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry, payment.IsSale, payment.Payout, payment.Item, payment.Quantity, payment.Price).Scan(&paymentID)
 	if err != nil {
-		log.Error("createPaymentTx: ", err)
+		log.Error("createPaymentTx: query row ", err)
 		return
 	}
 
 	// Update account balances
 	err = updateAccountBalanceTx(tx, payment.Sender, -payment.Amount)
 	if err != nil {
-		log.Error("createPaymentTx: ", err)
+		log.Error("createPaymentTx: update sender ", err)
 	}
 	err = updateAccountBalanceTx(tx, payment.Receiver, payment.Amount)
 	if err != nil {
-		log.Error("createPaymentTx: ", err)
+		log.Error("createPaymentTx: update receiver", err)
 	}
 	return
 }
@@ -964,9 +992,9 @@ func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
 
 	// Lock account balance via "for update"
 	// https://stackoverflow.com/a/45871295/19932351
-	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1 for update", id).Scan(&account.Balance)
+	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1", id).Scan(&account.Balance)
 	if err != nil {
-		log.Error("updateAccountBalanceTx: ", err)
+		log.Error("updateAccountBalanceTx: query row", err)
 	}
 	newBalance := account.Balance + balanceDiff
 
@@ -976,7 +1004,7 @@ func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
 	WHERE ID = $1
 	`, id, newBalance)
 	if err != nil {
-		log.Error("updateAccountBalanceTx: ", err)
+		log.Error("updateAccountBalanceTx: update ", err)
 	}
 
 	return
