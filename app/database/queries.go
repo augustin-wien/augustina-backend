@@ -110,6 +110,23 @@ func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
 // GetVendor returns the vendor with the given id
 func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
 
+	// Get vendor data
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount)
+	if err != nil {
+		log.Error("GetVendor: Couldn't get vendor ", vendorID, err)
+		return vendor, err
+	}
+	// Get vendor balance
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
+	if err != nil {
+		log.Error("GetVendor: ", err)
+	}
+	return vendor, err
+}
+
+// GetVendor returns the vendor with the given id
+func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err error) {
+
 	// Update Account balance by open payments
 	_, err = db.UpdateAccountBalanceByOpenPayments(vendorID)
 	if err != nil {

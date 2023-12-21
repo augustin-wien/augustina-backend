@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -436,7 +437,7 @@ func TestOrders(t *testing.T) {
 	}()
 
 	resSuccess := utils.TestRequestStr(t, r, "GET", "/api/orders/verify/?s=0&t=0", "", 200)
-	require.Equal(t, resSuccess.Body.String(), `{"success":true}`)
+	require.Equal(t, strings.Contains(resSuccess.Body.String(), vendorLicenseId), true)
 	utils.CheckError(t, err)
 
 	if <-c != 1 {

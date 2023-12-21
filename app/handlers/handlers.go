@@ -191,7 +191,7 @@ func GetVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	vendor, err := database.Db.GetVendor(vendorID)
+	vendor, err := database.Db.GetVendorWithBalanceUpdate(vendorID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
