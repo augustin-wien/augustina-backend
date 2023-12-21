@@ -14,6 +14,8 @@ definitions:
         type: string
       isLicenseItem:
         type: boolean
+      licenseGroup:
+        $ref: '#/definitions/null.String'
       licenseItem:
         allOf:
         - $ref: '#/definitions/null.Int'
@@ -28,6 +30,8 @@ definitions:
     properties:
       firstName:
         type: string
+      id:
+        type: integer
       latitude:
         type: number
       licenseID:
@@ -67,6 +71,7 @@ definitions:
       id:
         type: integer
       isPayoutFor:
+        description: Connected payout payment
         items:
           $ref: '#/definitions/database.Payment'
         type: array
@@ -89,13 +94,15 @@ definitions:
       receiver:
         type: integer
       receiverName:
+        allOf:
+        - $ref: '#/definitions/null.String'
         description: JOIN from Receiver Account
-        type: string
       sender:
         type: integer
       senderName:
+        allOf:
+        - $ref: '#/definitions/null.String'
         description: JOIN from Sender Account
-        type: string
       timestamp:
         type: string
     type: object
@@ -191,10 +198,14 @@ definitions:
     type: object
   handlers.PaymentsStatistics:
     properties:
+      from:
+        type: string
       items:
         items:
           $ref: '#/definitions/handlers.ItemStatistics'
         type: array
+      to:
+        type: string
     type: object
   handlers.VendorOverview:
     properties:
@@ -243,6 +254,8 @@ definitions:
     type: object
   handlers.createOrderRequest:
     properties:
+      customerEmail:
+        $ref: '#/definitions/null.String'
       entries:
         items:
           $ref: '#/definitions/handlers.createOrderRequestEntry'

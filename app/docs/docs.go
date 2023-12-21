@@ -1070,6 +1070,9 @@ const docTemplate = `{
                 "isLicenseItem": {
                     "type": "boolean"
                 },
+                "licenseGroup": {
+                    "$ref": "#/definitions/null.String"
+                },
                 "licenseItem": {
                     "description": "License has to be bought before item",
                     "allOf": [
@@ -1092,6 +1095,9 @@ const docTemplate = `{
             "properties": {
                 "firstName": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "latitude": {
                     "type": "number"
@@ -1151,6 +1157,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "isPayoutFor": {
+                    "description": "Connected payout payment",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.Payment"
@@ -1184,14 +1191,22 @@ const docTemplate = `{
                 },
                 "receiverName": {
                     "description": "JOIN from Receiver Account",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/null.String"
+                        }
+                    ]
                 },
                 "sender": {
                     "type": "integer"
                 },
                 "senderName": {
                     "description": "JOIN from Sender Account",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/null.String"
+                        }
+                    ]
                 },
                 "timestamp": {
                     "type": "string"
@@ -1336,11 +1351,17 @@ const docTemplate = `{
         "handlers.PaymentsStatistics": {
             "type": "object",
             "properties": {
+                "from": {
+                    "type": "string"
+                },
                 "items": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handlers.ItemStatistics"
                     }
+                },
+                "to": {
+                    "type": "string"
                 }
             }
         },
@@ -1415,6 +1436,9 @@ const docTemplate = `{
         "handlers.createOrderRequest": {
             "type": "object",
             "properties": {
+                "customerEmail": {
+                    "$ref": "#/definitions/null.String"
+                },
                 "entries": {
                     "type": "array",
                     "items": {

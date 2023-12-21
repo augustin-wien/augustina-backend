@@ -1064,6 +1064,9 @@
                 "isLicenseItem": {
                     "type": "boolean"
                 },
+                "licenseGroup": {
+                    "$ref": "#/definitions/null.String"
+                },
                 "licenseItem": {
                     "description": "License has to be bought before item",
                     "allOf": [
@@ -1086,6 +1089,9 @@
             "properties": {
                 "firstName": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "latitude": {
                     "type": "number"
@@ -1145,6 +1151,7 @@
                     "type": "integer"
                 },
                 "isPayoutFor": {
+                    "description": "Connected payout payment",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.Payment"
@@ -1178,14 +1185,22 @@
                 },
                 "receiverName": {
                     "description": "JOIN from Receiver Account",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/null.String"
+                        }
+                    ]
                 },
                 "sender": {
                     "type": "integer"
                 },
                 "senderName": {
                     "description": "JOIN from Sender Account",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/null.String"
+                        }
+                    ]
                 },
                 "timestamp": {
                     "type": "string"
@@ -1330,11 +1345,17 @@
         "handlers.PaymentsStatistics": {
             "type": "object",
             "properties": {
+                "from": {
+                    "type": "string"
+                },
                 "items": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handlers.ItemStatistics"
                     }
+                },
+                "to": {
+                    "type": "string"
                 }
             }
         },
@@ -1409,6 +1430,9 @@
         "handlers.createOrderRequest": {
             "type": "object",
             "properties": {
+                "customerEmail": {
+                    "$ref": "#/definitions/null.String"
+                },
                 "entries": {
                     "type": "array",
                     "items": {
