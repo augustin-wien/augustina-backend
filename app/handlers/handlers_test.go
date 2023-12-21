@@ -224,10 +224,6 @@ func TestItems(t *testing.T) {
 	var resItems []database.Item
 	err = json.Unmarshal(res.Body.Bytes(), &resItems)
 	utils.CheckError(t, err)
-	log.Info("res items length", len(resItems))
-	log.Info("res items name 1", resItems[0].Name)
-	log.Info("res items name 2", resItems[1].Name)
-	log.Info("res items name 3", resItems[2].Name)
 
 	// For C.I. pipeline
 	if len(resItems) == 3 && resItems[1].Name == "" {
