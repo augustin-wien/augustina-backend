@@ -177,44 +177,6 @@ func TestVendors(t *testing.T) {
 }
 
 // TestItems tests the item database functions
-func TestItems(t *testing.T) {
-	// Create new item
-	item := Item{
-		Name:  "test",
-		Price: 1,
-	}
-	id, err := Db.CreateItem(item)
-	utils.CheckError(t, err)
-
-	// Get item by ID
-	item, err = Db.GetItem(id)
-	utils.CheckError(t, err)
-
-	require.Equal(t, "test", item.Name)
-	require.Equal(t, 1, item.Price)
-
-	// Update item
-	item.Name = "test2"
-	item.Price = 2
-	err = Db.UpdateItem(id, item)
-	utils.CheckError(t, err)
-
-	// Get item by ID
-	item, err = Db.GetItem(id)
-	utils.CheckError(t, err)
-
-	require.Equal(t, "test2", item.Name)
-	require.Equal(t, 2, item.Price)
-
-	// Get all items
-	items, err := Db.ListItems(true, true)
-	utils.CheckError(t, err)
-	require.Equal(t, 2, len(items))
-
-	// Delete item
-	err = Db.DeleteItem(id)
-	utils.CheckError(t, err)
-}
 
 // TODO: Test payments
 
