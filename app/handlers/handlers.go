@@ -192,7 +192,7 @@ func GetVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	vendor, err := database.Db.GetVendor(vendorID)
+	vendor, err := database.Db.GetVendorWithBalanceUpdate(vendorID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -1426,7 +1426,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
 	err = paymentprovider.HandlePaymentSuccessfulResponse(paymentSuccessful)
 	if err != nil {
-		log.Error("VivaWalletWebhookSuccess: ", err)
+		log.Error("VivaWalletWebhookSuccess: handle payment failed: ", err)
 		return
 	}
 
@@ -1435,7 +1435,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error("VivaWalletWebhookSuccess:", err)
+		log.Error("VivaWalletWebhookSuccess: write json: ", err)
 	}
 }
 
