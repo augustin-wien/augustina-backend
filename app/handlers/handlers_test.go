@@ -210,8 +210,6 @@ func CreateTestItem(t *testing.T, name string, price int, licenseItemID string, 
 // TestItems tests CRUD operations on items (including images)
 // Todo: delete file after test
 func TestItems(t *testing.T) {
-	mutex.Lock()
-	defer mutex.Unlock()
 	// Initialize database and empty it
 	err := database.Db.InitEmptyTestDb()
 	if err != nil {
