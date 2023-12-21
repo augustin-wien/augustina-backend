@@ -230,7 +230,7 @@ func TestItems(t *testing.T) {
 	log.Info("res items name 2", resItems[1].Name)
 	log.Info("res items name 3", resItems[2].Name)
 
-	require.Equal(t, "Test item", resItems[1].Name)
+	require.Equal(t, "Test item", resItems[2].Name)
 
 	// Update (multipart form!)
 	body := new(bytes.Buffer)
