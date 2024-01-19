@@ -140,7 +140,6 @@ services:
       - /dockerstorage/convive/augustin-backend/docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
       - /dockerstorage/convive/augustin-backend/docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
       - /dockerstorage/convive/augustin-backend/docker/wpcli/:/wpcli/
-      - /dockerstorage/convive/augustin-backend/docker/.env.parser:/wpcli/.env.parser
 
     environment:
       - WORDPRESS_DB_HOST=wordpress-db
@@ -156,8 +155,6 @@ services:
     build:
       context: ./docker/augustin-plugin
     image: dkia/augustin-parser
-    env_file:
-      - /dockerstorage/convive/augustin-backend/docker/.env.parser
     ports:
       - "7003:8000"
     volumes:
