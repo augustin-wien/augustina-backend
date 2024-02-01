@@ -1002,12 +1002,20 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if database.Db.IsProduction {
+	if database.Db.IsProduction && !config.Config.Development {
 		// Verify transaction
 		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
+		}
+	}
+
+	if config.Config.Development {
+		// Verify transaction
+		err = database.Db.VerifyOrderAndCreatePayments(order.ID, 0)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
 		}
 	}
 
