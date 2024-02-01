@@ -222,7 +222,7 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 }
 
 // CreateUser function creates a user given by first_name, last_name and email returns the userID
-func (k *Keycloak) CreateUser(firstName string, lastName string, email string, password string) (userID string, err error) {
+func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, email string, password string) (userID string, err error) {
 	k.checkAdminToken()
 	credentials := []gocloak.CredentialRepresentation{
 		{
@@ -232,7 +232,7 @@ func (k *Keycloak) CreateUser(firstName string, lastName string, email string, p
 		},
 	}
 	return k.Client.CreateUser(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.User{
-		Username:      &email,
+		Username:      &userid,
 		FirstName:     &firstName,
 		LastName:      &lastName,
 		Email:         &email,
@@ -248,7 +248,7 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 	if err != nil {
 		// User does not exist
 		password := utils.RandomString(10)
-		user, err := k.CreateUser(email, "", email, password)
+		user, err := k.CreateUser(email, email, "", email, password)
 		if err != nil {
 			return "", err
 		}
@@ -305,6 +305,25 @@ func (k *Keycloak) UpdateUser(username string, firstName string, lastName string
 	user.LastName = &lastName
 	user.Email = &email
 	user.EmailVerified = gocloak.BoolP(true)
+	user.Enabled = gocloak.BoolP(true)
+	user.Username = &username
+	return k.Client.UpdateUser(k.Context, k.clientToken.AccessToken, k.Realm, *user)
+}
+
+func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email string) error {
+	k.checkAdminToken()
+	user, err := k.GetUserByID(k.clientToken.AccessToken, userID)
+	if err != nil {
+		return err
+	}
+	if user.Email != nil && *user.Email != email {
+		user.EmailVerified = gocloak.BoolP(false)
+	} else {
+		user.EmailVerified = gocloak.BoolP(true)
+	}
+	user.FirstName = &firstName
+	user.LastName = &lastName
+	user.Email = &email
 	user.Enabled = gocloak.BoolP(true)
 	user.Username = &email
 	return k.Client.UpdateUser(k.Context, k.clientToken.AccessToken, k.Realm, *user)

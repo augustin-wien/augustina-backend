@@ -70,7 +70,7 @@ jobs:
           done
       - name: Test
         run: cp .env.example ./app/.env && ls -lah && cd app && cd migrations &&
-          tern migrate --config ./tern_test.conf && cd .. && go test ./... -p 1
+          tern migrate --config ./tern_test.conf && cd .. && go test ./... -p 1 -v -cover
           -v
 
       - name: Collect docker logs on failure
