@@ -99,6 +99,17 @@ To run a specific Test Case:
 go test ./... -p 1 -v -cover -run NameOfTestCase
 ```
 
+Test coverage:
+
+```bash
+go test ./... -p 1 -coverprofile=cover.out
+go tool cover -html cover.out -o cover.html
+```
+
+and then open the `app/cover.html` file in your browser.
+
+### Database
+
 Open SQL shell in the container (assuming the variables from `.env.example` are used):
 
 ```bash
