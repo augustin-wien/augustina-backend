@@ -167,6 +167,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 
 	err = keycloak.KeycloakClient.AssignGroup(user, config.Config.KeycloakVendorGroup)
 	if err != nil {
+		log.Error("CreateVendor: Assigning user to vendor group failed: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
