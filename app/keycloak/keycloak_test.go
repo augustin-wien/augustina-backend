@@ -64,7 +64,7 @@ func TestKeycloak(t *testing.T) {
 
 	require.Equal(t, role_name, *role.Name)
 
-	_, err = keycloak.KeycloakClient.CreateUser("testuser", "testuser", "testuser@example.com", "password")
+	_, err = keycloak.KeycloakClient.CreateUser("testuser", "testuser", "testuser", "testuser@example.com", "password")
 	if err != nil {
 		log.Errorf("TestKeycloak: Create user failed: testuser@example.com %v \n", err)
 	}
