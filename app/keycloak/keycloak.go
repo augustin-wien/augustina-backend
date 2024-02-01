@@ -397,7 +397,7 @@ func (k *Keycloak) UpdateUser(username string, firstName string, lastName string
 
 func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email string) error {
 	k.checkAdminToken()
-	user, err := k.GetUserByID(k.clientToken.AccessToken, userID)
+	user, err := k.GetUserByID(userID)
 	if err != nil {
 		return err
 	}
