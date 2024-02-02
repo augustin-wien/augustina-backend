@@ -229,10 +229,12 @@ func TestQueryOrders(t *testing.T) {
 
 	// Check order results
 	order1, err := Db.GetOrderByOrderCode("0")
+	utils.CheckError(t, err)
 	require.Equal(t, 2, len(order1.Entries))
 
 	// Check payment results
 	payments, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	utils.CheckError(t, err)
 	require.Equal(t, 2, len(payments))
 
 	// Repeat with reverse order
@@ -268,10 +270,12 @@ func TestQueryOrders(t *testing.T) {
 
 	// Check order results
 	order22, err := Db.GetOrderByOrderCode("1")
+	utils.CheckError(t, err)
 	require.Equal(t, 2, len(order22.Entries))
 
 	// Check payment results
 	payments2, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	utils.CheckError(t, err)
 	require.Equal(t, 4, len(payments2))
 
 	// Cleanup

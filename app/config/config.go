@@ -33,6 +33,7 @@ type config struct {
 	KeycloakBackofficeGroup           string
 	SendCustomerEmail                 bool
 	OnlinePaperUrl                    string
+	Development                       bool
 }
 
 // Config is the global configuration variable
@@ -75,6 +76,7 @@ func InitConfig() {
 		KeycloakClientSecret:              getEnv("KEYCLOAK_CLIENT_SECRET", ""),
 		SendCustomerEmail:                 (getEnv("SEND_CUSTOMER_EMAIL", "false") == "true"),
 		OnlinePaperUrl:                    getEnv("ONLINE_PAPER_URL", ""),
+		Development:                       (getEnv("DEVELOPMENT", "false") == "true"),
 	}
 }
 

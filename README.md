@@ -153,6 +153,7 @@ If you keep using our demo account and stick with our code basis this command sh
 ngrok http --domain=workable-credible-mole.ngrok-free.app 3000
 ```
 
+
 ### Setup for production
 
 When initializing the whole system, the database is being setup with three items (Newspapers, Donation and transaction cost) and default settings, which can be changed afterwards from the offices portal.
@@ -324,6 +325,10 @@ http://localhost:3000/api/transaction/
 - After a successful transaction the user is being redirected to a success page, which is right now `https://local.com/success` and will be changed towards production.
 - NOTE: The whole sample URL, looks something like this `https://local.com/success?t=d87ea0e6-91da-4312-abdf-67ebb84ee981&s=5857961245421135&lang=en-GB&eventId=0&eci=1`
 - Here the frontend (or developer for testing purposes) has to extract the transactionID, which is **t** or in this sample URL above `d87ea0e6-91da-4312-abdf-67ebb84ee981`
+
+#### Note on developing process
+When the `.env` variable `Development` is set to `true`, every order is automatically being verified.\
+To see the 'Payment-Confirmation-Page', simply paste the query of the redirected link i.e. something like `success?t=d87ea0e6-91da-4312-abdf-67ebb84ee981&s=5857961245421135&lang=en-GB&eventId=0&eci=1` and paste it after `localhost:5173`.
 
 #### 4. Create verification call
 
