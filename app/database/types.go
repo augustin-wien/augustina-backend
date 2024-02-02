@@ -43,7 +43,7 @@ type Account struct {
 	Name    string
 	Balance int
 	Type    string
-	User    null.String // Keycloak UUID if type = user_auth
+	User    null.String // Keycloak UUID
 	Vendor  null.Int    `swaggertype:"integer"`
 }
 

@@ -155,21 +155,24 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := database.Db.CreateVendor(vendor)
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
 	// Create user in keycloak
 	randomPassword := utils.RandomString(10)
-	user, err := keycloak.KeycloakClient.CreateUser(vendor.Email, vendor.Email, vendor.Email, randomPassword)
+	user, err := keycloak.KeycloakClient.CreateUser(vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email, randomPassword)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	log.Info("Created user in keycloak: ", user)
+	vendor.KeycloakID = user
+
 	err = keycloak.KeycloakClient.AssignGroup(user, config.Config.KeycloakVendorGroup)
 	if err != nil {
 		log.Error("CreateVendor: Assigning user to vendor group failed: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	id, err := database.Db.CreateVendor(vendor)
+	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -293,6 +296,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	log.Info(r.Header.Get("X-Auth-User-Name")+" is updating vendor with id: ", vendorID)
 	var vendor database.Vendor
 	err = utils.ReadJSON(w, r, &vendor)
 	if err != nil {
@@ -301,12 +305,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	}
 	oldVendor, err := database.Db.GetVendor(vendorID)
 	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	err = database.Db.UpdateVendor(vendorID, vendor)
-	if err != nil {
+		log.Error("UpdateVendor: "+fmt.Sprint(vendorID)+"failed: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -316,27 +315,37 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// create user if it does not exist
 		randomPassword := utils.RandomString(10)
-		keycloakUser, err := keycloak.KeycloakClient.CreateUser(vendor.Email, vendor.Email, vendor.Email, randomPassword)
+		keycloakUser, err := keycloak.KeycloakClient.CreateUser(vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email, randomPassword)
 		if err != nil {
-			log.Error("UpdateVendor: create vendor failed: ", err)
+			log.Error("UpdateVendor: create keycloak user for "+fmt.Sprint(vendorID)+" failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
+		vendor.KeycloakID = keycloakUser
 		err = keycloak.KeycloakClient.AssignGroup(keycloakUser, config.Config.KeycloakVendorGroup)
 		if err != nil {
-			log.Error("UpdateVendor: Assigning user to vendor group failed: ", err)
+			log.Error("UpdateVendor: assign keycloak group for "+fmt.Sprint(vendorID)+" failed: ", err)
+
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
 	} else {
-		err = keycloak.KeycloakClient.UpdateUser(*user.Username, vendor.FirstName, vendor.LastName, vendor.Email)
+		err = keycloak.KeycloakClient.UpdateUserById(*user.ID, vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email)
 		if err != nil {
-			log.Error("UpdateVendor: update vendor failed: ", err)
+			log.Error("UpdateVendor: update keycloak user for "+fmt.Sprint(vendorID)+" failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
+		vendor.KeycloakID = *user.ID
 	}
+	log.Infof("Updated user in keycloak: %v", vendor)
 
+	err = database.Db.UpdateVendor(vendorID, vendor)
+	if err != nil {
+		log.Error("UpdateVendor: update vendor in db for "+fmt.Sprint(vendorID)+" failed: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	respond(w, err, vendor)
 }
 

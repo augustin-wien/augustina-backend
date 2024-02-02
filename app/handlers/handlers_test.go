@@ -57,7 +57,7 @@ func TestMain(m *testing.M) {
 		keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	}()
 	keycloak.KeycloakClient.DeleteUser(adminUserEmail)
-	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", adminUserEmail, "password")
+	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", "testadmin", adminUserEmail, "password")
 	if err != nil {
 		log.Errorf("TestMain: Create user failed testadmin: %v \n", err)
 	}
@@ -893,7 +893,7 @@ func TestVendorsOverview(t *testing.T) {
 	utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/me/", nil, 400, adminUserToken)
 
 	// test if random user can see vendor overview
-	_, err = keycloak.KeycloakClient.CreateUser(randomUserEmail, randomUserEmail, randomUserEmail, "password")
+	_, err = keycloak.KeycloakClient.CreateUser(randomUserEmail, randomUserEmail, randomUserEmail, randomUserEmail, "password")
 	if err != nil {
 		log.Errorf("TestVendorsOverview: Create user failed: %v \n", err)
 	}
