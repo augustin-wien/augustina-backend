@@ -1433,6 +1433,9 @@ type webhookResponse struct {
 //	@Router			/webhooks/vivawallet/success/ [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
+	// Message to console that handler was entered
+	log.Info("Transaction Success Webhook entered")
+
 	var paymentSuccessful paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
@@ -1501,6 +1504,9 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 //	@Param			data body paymentprovider.TransactionPriceRequest true "Payment Price Response"
 //	@Router			/webhooks/vivawallet/price/ [post]
 func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
+
+	// Message to console that handler was entered
+	log.Info("Transaction Price Webhook entered")
 
 	var paymentPrice paymentprovider.TransactionPriceRequest
 	err := utils.ReadJSON(w, r, &paymentPrice)
