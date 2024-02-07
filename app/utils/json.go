@@ -104,6 +104,9 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 		return err
 	}
 
+	// Print the JSON to the log
+	log.Info(zap.String("JSON of data at ReadJSON", string(jsonData)))
+
 	// Unmarshal the JSON back into the provided data structure
 	if err := json.Unmarshal(jsonData, data); err != nil {
 		log.Error("ReadJSON: ", err)

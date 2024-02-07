@@ -268,8 +268,10 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	}
 
 	// Since every check passed, now set verification status of order and create payments
+	log.Info("Order has been verified and payments are being created")
 	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeID)
 	if err != nil {
+		log.Error("Verifying order and creating payments failed: ", err)
 		return err
 	}
 
@@ -412,12 +414,14 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
 	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionID, false)
 	if err != nil {
+		log.Error("TransactionID could not be verified: ", err)
 		return err
 	}
 
 	// 2. Check: Verify that order can be found by ordercode
 	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentPrice.EventData.OrderCode))
 	if err != nil {
+		log.Error("Getting order from database failed: ", err)
 		return err
 	}
 
@@ -430,6 +434,7 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	// Create order entries for transaction costs
 	err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
 	if err != nil {
+		log.Error("Creating transaction costs failed: ", err)
 		return err
 	}
 
@@ -446,18 +451,21 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	// Get ID of transaction costs item
 	transactionCostsItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
 	if err != nil {
+		log.Error("Getting transaction costs item failed: ", err)
 		return err
 	}
 
 	// Get ID of VivaWallet account
 	paymentProviderAccountID, err := database.Db.GetAccountTypeID(paymentProvider)
 	if err != nil {
+		log.Error("Getting account type ID failed: ", err)
 		return err
 	}
 
 	// Get ID of vendor account
 	vendorAccount, err := database.Db.GetAccountByVendorID(order.Vendor)
 	if err != nil {
+		log.Error("Getting ID of vendor account failed: ", err)
 		return err
 	}
 
@@ -474,12 +482,14 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 	// Create payment with order entries
 	err = database.Db.CreatePayedOrderEntries(order.ID, entries)
 	if err != nil {
+		log.Error("Creating payment with order entries failed: ", err)
 		return err
 	}
 
 	var settings database.Settings
 	settings, err = database.Db.GetSettings()
 	if err != nil {
+		log.Error("Getting settings failed: ", err)
 		return err
 	}
 
@@ -488,6 +498,7 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		// Get ID of Orga account
 		orgaAccountID, err := database.Db.GetAccountTypeID("Orga")
 		if err != nil {
+			log.Error("Getting Orga account ID failed: ", err)
 			return err
 		}
 		// Create payment for covering transaction costs by Organization
@@ -499,9 +510,10 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 				Receiver: vendorAccount.ID,        // ID of vendor
 			},
 		}
-		// append transaction cost entries here
+		// Append transaction cost entries here
 		err = database.Db.CreatePayedOrderEntries(order.ID, entries)
 		if err != nil {
+			log.Error("Appending transaction costs failed: ", err)
 			return err
 		}
 	}

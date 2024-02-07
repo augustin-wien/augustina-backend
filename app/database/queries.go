@@ -535,6 +535,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())
 	if err != nil {
+		log.Error("VerifyOrderAndCreatePayments: Opening DBPool failed", err)
 		return err
 	}
 
@@ -546,7 +547,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 	WHERE ID = $2
 	`, transactionTypeID, orderID)
 	if err != nil {
-		log.Error("VerifyOrderAndCreatePayments: update payment order:", orderID, err)
+		log.Error("VerifyOrderAndCreatePayments: update payment order", orderID, err)
 	}
 
 	// Get Paymentorder (including payments)
