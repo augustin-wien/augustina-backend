@@ -92,7 +92,7 @@ func VendorAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if r.Header.Get("X-Auth-Groups-Vendors") != "" || r.Header.Get("X-Auth-Roles-admin") != "" {
+		if r.Header.Get("X-Auth-Groups-"+keycloak.KeycloakClient.GetVendorGroup()) != "" || r.Header.Get("X-Auth-Roles-admin") != "" {
 			next.ServeHTTP(w, r)
 		} else {
 			log.Info("VendorAuthMiddleware: user is missing vendor role with user id ", r.Header.Get("X-Auth-User"))

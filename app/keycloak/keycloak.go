@@ -427,3 +427,7 @@ func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email s
 	user.Username = &email
 	return k.Client.UpdateUser(k.Context, k.clientToken.AccessToken, k.Realm, *user)
 }
+
+func (k *Keycloak) GetVendorGroup() string {
+	return k.vendorGroup
+}
