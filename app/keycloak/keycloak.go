@@ -202,6 +202,9 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 // Assign group to user
 func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 	k.checkAdminToken()
+	if groupName[0] != '/' {
+		groupName = "/" + groupName
+	}
 	group, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, groupName)
 	if err != nil {
 		log.Errorf("Error getting group by path %s", groupName)
@@ -212,22 +215,25 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 
 func (k *Keycloak) AssignDigitalLicenseGroup(userID string, licenseGroup string) error {
 	k.checkAdminToken()
-	licenseGroupPath := k.newspaperGroup + "/" + licenseGroup
+	licenseGroupPath := "/" + k.customerGroup + "/" + k.newspaperGroup + "/" + licenseGroup
 	// Check if group exists
 	_, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, licenseGroupPath)
 	if err != nil {
 		// Create group
-		parentGroup, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, k.newspaperGroup)
+		parentGroup, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, "/"+k.customerGroup+"/"+k.newspaperGroup)
 		if err != nil {
+			log.Errorf("AssignDigitalLicenseGroup: Error getting group by path %s for %s", "/"+k.customerGroup+"/"+k.newspaperGroup, k.newspaperGroup)
 			return err
 		}
 		err = k.CreateSubGroup(licenseGroup, *parentGroup.ID)
 		if err != nil {
+			log.Errorf("AssignDigitalLicenseGroup: Error creating group %s", licenseGroup)
 			return err
 		}
 		// Check if group exists
 		_, err = k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, licenseGroupPath)
 		if err != nil {
+			log.Errorf("AssignDigitalLicenseGroup: Error getting group by path %s", licenseGroupPath)
 			return err
 		}
 	}
