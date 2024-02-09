@@ -154,6 +154,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	log.Info(r.Header.Get("X-Auth-User-Name") + " is creating a vendor for" + vendor.Email)
 
 	// Create user in keycloak
 	randomPassword := utils.RandomString(10)

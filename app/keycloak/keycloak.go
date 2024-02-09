@@ -210,6 +210,7 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 		log.Errorf("Error getting group by path %s", groupName)
 		return err
 	}
+	log.Infof("Assigning user to group %s %s %s", userID, *group.ID, groupName)
 	return k.Client.AddUserToGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID)
 }
 
