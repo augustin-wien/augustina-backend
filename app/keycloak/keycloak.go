@@ -368,8 +368,8 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 		// send welcome email with password reset link
 		err = k.SendPasswordResetEmail(email)
 		if err != nil {
+			// send password reset email only should soft fail
 			log.Error("GetOrCreateUser: Error sending password reset email ", err)
-			return "", err
 		}
 		return user, nil
 
