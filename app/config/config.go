@@ -34,6 +34,11 @@ type config struct {
 	SendCustomerEmail                 bool
 	OnlinePaperUrl                    string
 	Development                       bool
+	SMTPServer                        string
+	SMTPPort                          string
+	SMTPUsername                      string
+	SMTPPassword                      string
+	SMTPSenderAddress                 string
 }
 
 // Config is the global configuration variable
@@ -77,6 +82,11 @@ func InitConfig() {
 		SendCustomerEmail:                 (getEnv("SEND_CUSTOMER_EMAIL", "false") == "true"),
 		OnlinePaperUrl:                    getEnv("ONLINE_PAPER_URL", ""),
 		Development:                       (getEnv("DEVELOPMENT", "false") == "true"),
+		SMTPServer:                        getEnv("SMTP_SERVER", ""),
+		SMTPPort:                          getEnv("SMTP_PORT", ""),
+		SMTPUsername:                      getEnv("SMTP_USERNAME", ""),
+		SMTPPassword:                      getEnv("SMTP_PASSWORD", ""),
+		SMTPSenderAddress:                 getEnv("SMTP_SENDER_ADDRESS", ""),
 	}
 }
 

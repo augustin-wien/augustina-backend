@@ -144,6 +144,26 @@ Revert last migration:
 tern migrate --destination -1
 ```
 
+### E-Mail templates
+
+The e-mail templates are stored in the `app/templates` folder. Currently, the following templates are available:
+
+- `digitalLicenceItemTemplate.html`: This template is used to send the digital licence item to the customer after a successful purchase.
+
+The password reset e-mail is sent by the Keycloak server and has to be configured there.
+
+### E-Mail Credentials
+
+To send e-mails, you need to set the following environment variables in the .env file:
+
+```bash
+SMTP_SERVER=smtp.example.com
+SMTP_PORT=587
+SMTP_USERNAME=user
+SMTP_PASSWORD=password
+SMTP_SENDER_ADDRESS=user@example.com
+```
+
 ### Setup for developing with VivaWallet Webhooks
 
 For tunneling endpoints from the internet to your locaĺhost port, we use [ngrok](https://ngrok.com/).
