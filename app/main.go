@@ -23,14 +23,14 @@ func main() {
 	// Initialize Keycloak client
 	err := keycloak.InitializeOauthServer()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Keycloak: ", err)
 	}
 
 	// Initialize database
 	go func() {
 		err = database.Db.InitDb()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Db init:" err)
 		}
 	}()
 
@@ -38,6 +38,6 @@ func main() {
 	log.Info("Listening on port ", conf.Port)
 	err = http.ListenAndServe(":"+conf.Port, handlers.GetRouter())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Http-server: ", err)
 	}
 }

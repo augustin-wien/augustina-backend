@@ -212,8 +212,9 @@ services:
     environment:
       - AUGUSTIN_PLUGIN_URL=http://wordpress/wp-json/wp/v2/
       - AUGUSTIN_PLUGIN_PATH=/sample_data/
-      - AUGUSTIN_PLUGIN_SAVE_PATH=/pdf-files/
+      - SAVE_PATH=/pdf-files/
       - WP_API_USER=api_user
+      - DEBUG=1
     depends_on:
       wordpress:
         condition: service_healthy

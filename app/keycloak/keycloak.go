@@ -46,7 +46,7 @@ func InitializeOauthServer() (err error) {
 		vendorGroup:     config.Config.KeycloakVendorGroup,
 		customerGroup:   config.Config.KeycloakCustomerGroup,
 		backofficeGroup: config.Config.KeycloakBackofficeGroup,
-		newspaperGroup:  config.Config.KeycloakCustomerGroup + "/newspapers",
+		newspaperGroup:  "newspapers",
 	}
 	// Initialize Keycloak client
 	client := gocloak.NewClient(KeycloakClient.hostname)
@@ -63,7 +63,7 @@ func InitializeOauthServer() (err error) {
 		// Create group
 		err = KeycloakClient.CreateGroup(KeycloakClient.vendorGroup)
 		if err != nil {
-			log.Error("Error creating keycloak vendor group ", err)
+			log.Error("Error creating keycloak vendor group ", KeycloakClient.vendorGroup, err)
 		}
 	}
 	_, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, KeycloakClient.customerGroup)
@@ -71,7 +71,7 @@ func InitializeOauthServer() (err error) {
 		// Create group
 		err = KeycloakClient.CreateGroup(KeycloakClient.customerGroup)
 		if err != nil {
-			log.Error("Error creating keycloak customer group ", err)
+			log.Error("Error creating keycloak customer group ", KeycloakClient.customerGroup, err)
 		}
 	}
 	_, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, KeycloakClient.backofficeGroup)
@@ -79,16 +79,23 @@ func InitializeOauthServer() (err error) {
 		// Create group
 		err = KeycloakClient.CreateGroup(KeycloakClient.backofficeGroup)
 		if err != nil {
-			log.Error("Error creating keycloak backoffice group ", err)
+			log.Error("Error creating keycloak backoffice group ", KeycloakClient.backofficeGroup, err)
 		}
 	}
-	_, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, KeycloakClient.newspaperGroup)
+	_, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, "/"+KeycloakClient.customerGroup+"/"+KeycloakClient.newspaperGroup)
 	if err != nil {
 		// Create group
-		err = KeycloakClient.CreateGroup(KeycloakClient.newspaperGroup)
+		var customerGroup *gocloak.Group
+		customerGroup, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, "/"+KeycloakClient.customerGroup)
 		if err != nil {
-			log.Error("Error creating keycloak newspaper group ", err)
+			log.Error("Error creating keycloak newspaper group: customer group not found ", err)
+		} else {
+			err = KeycloakClient.CreateSubGroup(KeycloakClient.newspaperGroup, *customerGroup.ID)
+			if err != nil {
+				log.Error("Error creating keycloak newspaper group ", err)
+			}
 		}
+
 	}
 
 	return err
