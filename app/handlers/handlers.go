@@ -919,7 +919,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order, requestData.VendorLicenseID)
 		if err != nil {
-			log.Error("Creating payment order failed: ", err)
+			log.Errorf("Creating payment order failed for %+v with order id %+v failed", requestData.VendorLicenseID, order.ID, err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}

@@ -30,7 +30,7 @@ func main() {
 	go func() {
 		err = database.Db.InitDb()
 		if err != nil {
-			log.Fatal("Db init:" err)
+			log.Fatal("Db init:", err)
 		}
 	}()
 
