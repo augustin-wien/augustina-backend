@@ -202,6 +202,7 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 // Assign group to user
 func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 	k.checkAdminToken()
+	// Groups can only be searched by group paths and not by group names. Group paths have to start with / and if it's not there, we add it.
 	if groupName[0] != '/' {
 		groupName = "/" + groupName
 	}
