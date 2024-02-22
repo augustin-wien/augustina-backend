@@ -120,7 +120,7 @@ services:
       - "8080:8080"
   wordpress-db:
     # We use a mariadb image which supports both amd64 & arm64 architecture
-    image: mariadb:10.6.4-focal
+    image: mariadb
     # If you really want to use MySQL, uncomment the following line
     #image: mysql:8.0.27
     command: "--default-authentication-plugin=mysql_native_password"
@@ -128,15 +128,15 @@ services:
       - wp_db_data:/var/lib/mysql
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=${WORDPRESS_DB_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${WORDPRESS_DB_NAME}
-      - MYSQL_USER=${WORDPRESS_DB_USER}
-      - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD}
+      - MARIADB_ROOT_PASSWORD=${WORDPRESS_DB_ROOT_PASSWORD}
+      - MARIADB_DATABASE=${WORDPRESS_DB_NAME}
+      - MARIADB_USER=${WORDPRESS_DB_USER}
+      - MARIADB_PASSWORD=${WORDPRESS_DB_PASSWORD}
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "mysqladmin ping -p$$(echo $$MYSQL_ROOT_PASSWORD) | grep 'mysqld is
+          "mariadb-admin ping -p$$(echo $$MARIADB_ROOT_PASSWORD) | grep 'mysqld is
           alive' || exit 1",
         ]
       interval: 10s
@@ -209,11 +209,11 @@ services:
       - ./docker/augustin-plugin-data/sample_data:/sample_data
       - ./docker/augustin-plugin-data/pdf-files:/pdf-files
       - ./docker/augustin-plugin/:/app
-    env_file:
-      - path: ./docker/augustin-plugin/.env.example
-        required: true # default
-      - path: ./docker/augustin-plugin/.env
-        required: false
+    # env_file:
+    #   - path: ./docker/augustin-plugin/.env.example
+    #     required: true # default
+    #   - path: ./docker/augustin-plugin/.env
+    #     required: false
     depends_on:
       wordpress:
         condition: service_healthy
