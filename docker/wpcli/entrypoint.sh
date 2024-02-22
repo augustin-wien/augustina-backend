@@ -9,22 +9,26 @@ while ! nc -z wordpress-db 3306; do
 done &&
 echo "Database started" &&
 echo "Set up WordPress" &&
-wp --allow-root config create --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=wordpress-db --force &&
+export WP_API_KEY=$(wp --allow-root user application-password create api_user augustin --porcelain --allow-root) &&
+echo "WP_API_KEY=$WP_API_KEY" &&
+sed -i '3s/.*/WP_API_KEY='$WP_API_KEY'/' /wpcli/parser/.env.parser &&
+cat /wpcli/parser/.env.parser &&
+wp --allow-root config create --dbname=$WORDPRESS_DB_NAME --dbuser=$WORDPRESS_DB_USER --dbpass=$WORDPRESS_DB_PASSWORD --dbhost=$WORDPRESS_DB_NAME --force &&
 echo "Drop database" &&
 (wp --allow-root db drop --yes) || true &&
 echo "Create database" &&
 wp --allow-root db create || true &&
 echo "Install WordPress" &&
-wp --allow-root core install --url=localhost:8090 --title="Augustin" --admin_user=test_superuser --admin_password=Test123! --admin_email=test_superuser@example.com &&
+wp --allow-root core install --url=${WORDPRESS_URL} --title="Augustin" --admin_user=$WORDPRESS_ADMIN_USER --admin_password=$WORDPRESS_ADMIN_PASSWORD --admin_email=$WORDPRESS_ADMIN_EMAIL &&
 echo "Install plugins and themes" &&
 wp --allow-root theme activate augustin-wp-theme &&
 wp --allow-root config set OIDC_LOGIN_TYPE auto &&
 wp --allow-root config set OIDC_CLIENT_ID wordpress &&
 wp --allow-root config set OIDC_CLIENT_SECRET 84uZmW6FlEPgvUd201QUsWRmHzUIamZB &&
-wp --allow-root config set OIDC_ENDPOINT_LOGIN_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/auth &&
-wp --allow-root config set OIDC_ENDPOINT_USERINFO_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/userinfo &&
-wp --allow-root config set OIDC_ENDPOINT_TOKEN_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/token &&
-wp --allow-root config set OIDC_ENDPOINT_LOGOUT_URL http://keycloak:8080/realms/augustin/protocol/openid-connect/logout &&
+wp --allow-root config set OIDC_ENDPOINT_LOGIN_URL ${KEYCLOAK_URL}realms/augustin/protocol/openid-connect/auth &&
+wp --allow-root config set OIDC_ENDPOINT_USERINFO_URL ${KEYCLOAK_URL}realms/augustin/protocol/openid-connect/userinfo &&
+wp --allow-root config set OIDC_ENDPOINT_TOKEN_URL ${KEYCLOAK_URL}realms/augustin/protocol/openid-connect/token &&
+wp --allow-root config set OIDC_ENDPOINT_LOGOUT_URL ${KEYCLOAK_URL}realms/augustin/protocol/openid-connect/logout &&
 wp --allow-root config set OIDC_CLIENT_SCOPE "email profile openid offline_access roles" &&
 wp --allow-root config set OIDC_ENFORCE_PRIVACY true --raw &&
 wp --allow-root config set OIDC_CREATE_IF_DOES_NOT_EXIST true --raw &&
@@ -102,9 +106,11 @@ wp --allow-root media import /wpcli/demo_content/papers/paper-3/article-2.jpg --
 wp --allow-root media import /wpcli/demo_content/papers/paper-3/article-3.jpg --post_id=19 --title="Article 9" --featured_image &&
 wp --allow-root user create api_user user@user.com --role="administrator" --user_pass="Test123!" &&
 wp --allow-root user application-password delete api_user --all  --allow-root &&
-# echo WP_API_KEY=$(wp --allow-root user application-password create api_user augustin --porcelain --allow-root)>/wpcli/parser/.env &&
+sed -i '3s/.*/WP_API_KEY='$(wp --allow-root user application-password create api_user augustin --porcelain --allow-root)'/' /wpcli/parser/.env.parser &&
 wp --allow-root media import "/wpcli/demo_content/logo.png" --porcelain | wp --allow-root option update site_icon &&
 wp --allow-root media import "/wpcli/demo_content/logo.png" --porcelain | wp --allow-root option update site_logo  &&
+chown www-data:www-data /var/www/html/wp-content/uploads -R &&
+chown www-data:www-data /var/www/html/wp-content/ &&
 # wp --allow-root menu create "Top Menu" &&
 # wp --allow-root menu item add-custom top-menu Ausgaben / &&
 # wp --allow-root menu location assign top-menu primary
