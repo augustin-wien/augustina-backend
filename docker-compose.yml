@@ -131,13 +131,11 @@ services:
       - MARIADB_DATABASE=${WORDPRESS_DB_NAME}
       - MARIADB_USER=${WORDPRESS_DB_USER}
       - MARIADB_PASSWORD=${WORDPRESS_DB_PASSWORD}
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
+      - MARIADB_MYSQL_LOCALHOST_USER=1
+      - MARIADB_MYSQL_LOCALHOST_GRANTS=USAGE
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mariadb-admin ping -p$$(echo $$MARIADB_ROOT_PASSWORD) | grep 'mysqld is
-          alive' || exit 1",
-        ]
+      test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
       interval: 10s
       timeout: 5s
       retries: 5
