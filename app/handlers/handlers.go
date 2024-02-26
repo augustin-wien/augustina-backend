@@ -798,6 +798,13 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// 6. Check: If item 2 (donation) is ordered without another item
+	if len(requestData.Entries) == 1 && requestData.Entries[0].Item == 2 {
+		// Throw error
+		utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item without another item"), http.StatusBadRequest)
+		return
+	}
+
 	// Create slice of order entries depending on size of requestData.Entries
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
 
