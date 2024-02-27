@@ -12,6 +12,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -28,6 +29,8 @@ import (
 )
 
 var log = utils.GetLogger()
+
+var mutex sync.Mutex
 
 // respond takes care of writing the response to the client
 func respond(w http.ResponseWriter, err error, payload interface{}) {
@@ -1581,6 +1584,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
+	log.Info("updateSettingsLogo: entered")
 
 	// Get file from image field
 	file, header, err := r.FormFile("Logo")
@@ -1613,8 +1617,10 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 		return
 	}
 
+	mutex.Lock()
+	defer mutex.Unlock()
 	// Save file with name "logo"
-	path = "/img/logo.png"
+	path = "/img/logo" + strconv.FormatInt(time.Now().Unix(), 10) + ".png"
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Error("updateSettingsLogo: couldn't get wd", err)
@@ -1623,6 +1629,7 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 	if err != nil {
 		log.Error("updateSettingsLogo: saving failed", err)
 	}
+	log.Info("updateSettingsLogo: saved file to ", dir+path)
 	return
 }
 
@@ -1700,7 +1707,11 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if path != "" {
-		settings.Logo = "img/logo.png"
+		log.Info("updateSettings: path is not empty but ", path)
+		// Note the missing / at the beginning, which is set on purpose
+		// Therefore remove first character of path
+		settings.Logo = path[1:]
+		log.Info("updateSettings: settings.Logo is ", settings.Logo)
 	}
 
 	// Save settings to database
@@ -1713,6 +1724,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("updateSettings: ", err)
 	}
+	log.Info("updateSettings: settings updated")
 }
 
 // Online Map -----------------------------------------------------------------
