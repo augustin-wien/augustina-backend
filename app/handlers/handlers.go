@@ -801,6 +801,13 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// 6. Check: If item 2 (donation) is ordered without another item
+	if len(requestData.Entries) == 1 && requestData.Entries[0].Item == 2 {
+		// Throw error
+		utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item without another item"), http.StatusBadRequest)
+		return
+	}
+
 	// Create slice of order entries depending on size of requestData.Entries
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
 
@@ -1624,14 +1631,19 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Error("updateSettingsLogo: couldn't get wd", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
 		log.Error("updateSettingsLogo: saving failed", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
 	log.Info("updateSettingsLogo: saved file to ", dir+path)
 	return
 }
+
+var updateSettingsMutex sync.Mutex
 
 // updateSettings godoc
 //
@@ -1645,7 +1657,8 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 //		@Security		KeycloakAuth
 //		@Router			/settings/ [put]
 func updateSettings(w http.ResponseWriter, r *http.Request) {
-
+	updateSettingsMutex.Lock()
+	defer updateSettingsMutex.Unlock()
 	var err error
 
 	// Read multipart form
