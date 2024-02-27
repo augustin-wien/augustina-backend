@@ -30,8 +30,6 @@ import (
 
 var log = utils.GetLogger()
 
-var mutex sync.Mutex
-
 // respond takes care of writing the response to the client
 func respond(w http.ResponseWriter, err error, payload interface{}) {
 	if err != nil {
@@ -1624,10 +1622,8 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 		return
 	}
 
-	mutex.Lock()
-	defer mutex.Unlock()
 	// Save file with name "logo"
-	path = "/img/logo" + strconv.FormatInt(time.Now().Unix(), 10) + ".png"
+	path = "/img/logo.png"
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Error("updateSettingsLogo: couldn't get wd", err)
@@ -1721,8 +1717,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	if path != "" {
 		log.Info("updateSettings: path is not empty but ", path)
-		// Note the missing / at the beginning, which is set on purpose
-		// Therefore remove first character of path
+		// Remove first character of path to have correct URL
 		settings.Logo = path[1:]
 		log.Info("updateSettings: settings.Logo is ", settings.Logo)
 	}
