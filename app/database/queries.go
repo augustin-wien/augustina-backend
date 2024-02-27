@@ -123,7 +123,7 @@ func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
 	return vendor, err
 }
 
-// GetVendor returns the vendor with the given id
+// GetVendorWithBalanceUpdate returns the vendor with the given id
 func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err error) {
 
 	// Update Account balance by open payments
@@ -1151,6 +1151,7 @@ func (db *Database) GetDBSettings() (DBSettings, error) {
 
 // Online Map -----------------------------------------------------------------
 
+// LocationData is used to return the location data of a vendor for the online map
 type LocationData struct {
 	ID        int         `json:"id"`
 	FirstName string      `json:"firstName"`

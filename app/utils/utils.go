@@ -68,6 +68,7 @@ func GetUnixTime() int64 {
 	return time.Now().Unix()
 }
 
+// ReadUserIP returns the user's IP address
 func ReadUserIP(r *http.Request) string {
 	IPAddress := r.Header.Get("X-Real-Ip")
 	if IPAddress == "" {
