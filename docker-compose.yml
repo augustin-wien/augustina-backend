@@ -41,6 +41,7 @@ services:
       VIVA_WALLET_VERIFICATION_KEY: ${VIVA_WALLET_VERIFICATION_KEY}
       VIVA_WALLET_API_URL: ${VIVA_WALLET_API_URL}
       VIVA_WALLET_ACCOUNTS_URL: ${VIVA_WALLET_ACCOUNTS_URL}
+      BACKEND_HOST: ${BACKEND_HOST}
     depends_on:
       augustin-db:
         condition: service_healthy
@@ -50,6 +51,12 @@ services:
       - keycloak
     ports:
       - "3000:3000"
+    healthcheck:
+      test: curl -f "$BACKEND_HOST/api/hello/" || exit 1
+      interval: 60s   # check every minute
+      timeout: 20s    # maximum time to wait for a response
+      retries: 3      # number of retries before considering the container unhealthy
+      start_period: 2m
   augustin-db:
     container_name: augustin-db
     image: postgres:16.0
@@ -114,7 +121,7 @@ services:
       - ./docker/keycloak/import:/opt/keycloak/data/import:ro
       - ./docker/keycloak/export:/tmp/export
       - ./docker/keycloak/themes/augustin:/opt/keycloak/themes/augustin:ro
-    
+
     command: start-dev --import-realm
     ports:
       - "8080:8080"
