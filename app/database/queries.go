@@ -1091,7 +1091,14 @@ func (db *Database) GetSettings() (Settings, error) {
 // UpdateSettings updates the settings in the database
 func (db *Database) UpdateSettings(settings Settings) (err error) {
 
-	_, err = db.Dbpool.Query(context.Background(), `
+	tx, err := db.Dbpool.Begin(context.Background())
+	defer func() { err = deferTx(tx, err) }()
+	if err != nil {
+		log.Error("UpdateSettings failed to access db pool: ", err)
+		return err
+	}
+
+	_, err = tx.Exec(context.Background(), `
 	UPDATE Settings
 	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6
 	WHERE ID = 1
