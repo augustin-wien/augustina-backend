@@ -586,8 +586,8 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		}{
 			URL: config.Config.OnlinePaperUrl,
 		}
-		recivers := []string{order.CustomerEmail.String}
-		mail, err := mailer.NewRequestFromTemplate(recivers, "A new newspaper has been purchased", "digitalLicenceItemTemplate.html", templateData)
+		receivers := []string{order.CustomerEmail.String}
+		mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "digitalLicenceItemTemplate.html", templateData)
 		if err != nil {
 			log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 		}
