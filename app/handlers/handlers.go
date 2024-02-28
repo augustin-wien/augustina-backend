@@ -1589,6 +1589,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
+	log.Info("updateSettingsLogo: entered")
 
 	// Get file from image field
 	file, header, err := r.FormFile("Logo")
@@ -1634,6 +1635,7 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 		log.Error("updateSettingsLogo: saving failed", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
+	log.Info("updateSettingsLogo: saved file to ", dir+path)
 	return
 }
 
@@ -1714,7 +1716,10 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if path != "" {
-		settings.Logo = "img/logo.png"
+		log.Info("updateSettings: path is not empty but ", path)
+		// Remove first character of path to have correct URL
+		settings.Logo = path[1:]
+		log.Info("updateSettings: settings.Logo is ", settings.Logo)
 	}
 
 	// Save settings to database
@@ -1727,6 +1732,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("updateSettings: ", err)
 	}
+	log.Info("updateSettings: settings updated")
 }
 
 // Online Map -----------------------------------------------------------------

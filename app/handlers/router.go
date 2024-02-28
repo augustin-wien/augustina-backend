@@ -20,16 +20,33 @@ func GetRouter() (r *chi.Mux) {
 	r = chi.NewRouter()
 	// Mount all Middleware here
 	r.Use(middleware.Logger)
-	r.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://localhost*", "http://localhost*", os.Getenv("FRONTEND_URL")},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+
+	// Check that FRONTEND_URL environment variable is set
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		log.Fatal("FRONTEND_URL environment variable is not set")
+	}
+
+	// Define allowed origins
+	allowedOrigins := []string{
+		"http://localhost:*",  // Any open port on localhost without SSL
+		"https://localhost:*", // Any open port on localhost with SSL
+		frontendURL,           // Frontend URL from environment variable
+	}
+
+	// CORS handler configuration
+	corsHandler := cors.Handler(cors.Options{
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	}))
+	})
+
+	// Use CORS handler with Chi router
+	r.Use(corsHandler)
+
 	r.Use(middleware.Recoverer)
 
 	// Protected routes
