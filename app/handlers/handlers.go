@@ -12,6 +12,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -798,6 +799,13 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// 6. Check: If item 2 (donation) is ordered without another item
+	if len(requestData.Entries) == 1 && requestData.Entries[0].Item == 2 {
+		// Throw error
+		utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item without another item"), http.StatusBadRequest)
+		return
+	}
+
 	// Create slice of order entries depending on size of requestData.Entries
 	order.Entries = make([]database.OrderEntry, len(requestData.Entries))
 
@@ -1581,6 +1589,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
+	log.Info("updateSettingsLogo: entered")
 
 	// Get file from image field
 	file, header, err := r.FormFile("Logo")
@@ -1618,13 +1627,19 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Error("updateSettingsLogo: couldn't get wd", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
 		log.Error("updateSettingsLogo: saving failed", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
+	log.Info("updateSettingsLogo: saved file to ", dir+path)
 	return
 }
+
+var updateSettingsMutex sync.Mutex
 
 // updateSettings godoc
 //
@@ -1638,7 +1653,8 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 //		@Security		KeycloakAuth
 //		@Router			/settings/ [put]
 func updateSettings(w http.ResponseWriter, r *http.Request) {
-
+	updateSettingsMutex.Lock()
+	defer updateSettingsMutex.Unlock()
 	var err error
 
 	// Read multipart form
@@ -1700,7 +1716,10 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if path != "" {
-		settings.Logo = "img/logo.png"
+		log.Info("updateSettings: path is not empty but ", path)
+		// Remove first character of path to have correct URL
+		settings.Logo = path[1:]
+		log.Info("updateSettings: settings.Logo is ", settings.Logo)
 	}
 
 	// Save settings to database
@@ -1713,6 +1732,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("updateSettings: ", err)
 	}
+	log.Info("updateSettings: settings updated")
 }
 
 // Online Map -----------------------------------------------------------------

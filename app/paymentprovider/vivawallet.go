@@ -287,6 +287,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	return
 }
 
+// CreatePaypalTransactionCosts creates transaction costs for Paypal payments
 func CreatePaypalTransactionCosts(paymentSuccessful TransactionSuccessRequest, order database.Order) (err error) {
 	// Check if VivaWalletTransactionTypeIDPaypal is set
 	if config.Config.VivaWalletTransactionTypeIDPaypal == 0 {
