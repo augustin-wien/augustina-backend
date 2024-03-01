@@ -755,8 +755,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Security checks for entries
 	for _, entry := range requestData.Entries {
 
-		// 1. Check: Quantity has to be > 0
-		if entry.Quantity <= 0 {
+		// 1. Check: Quantity has to be > 0 for any item except donation
+		if entry.Quantity <= 0 && entry.Item != 2 {
 			utils.ErrorJSON(w, errors.New("Nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
 			return
 		}
