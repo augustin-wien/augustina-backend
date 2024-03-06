@@ -3,6 +3,7 @@ package database
 import (
 	"augustin/config"
 	"augustin/keycloak"
+	"augustin/mailer"
 	"context"
 	"errors"
 	"strconv"
@@ -579,8 +580,21 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 				}
 			}
 		}
-		// Todo: send email with link to the license Item
-
+		// Send email with link to the license Item
+		templateData := struct {
+			URL string
+		}{
+			URL: config.Config.OnlinePaperUrl,
+		}
+		receivers := []string{order.CustomerEmail.String}
+		mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "digitalLicenceItemTemplate.html", templateData)
+		if err != nil {
+			log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
+		}
+		success, err := mail.SendEmail()
+		if err != nil || !success {
+			log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+		}
 	}
 	// Create payments
 	for _, entry := range order.Entries {

@@ -5,6 +5,7 @@ import (
 	"augustin/database"
 	"augustin/handlers"
 	"augustin/keycloak"
+	"augustin/mailer"
 	"augustin/notifications"
 	"augustin/utils"
 	"net/http"
@@ -34,6 +35,7 @@ func main() {
 		}
 	}()
 
+	mailer.Init()
 	// Initialize server
 	log.Info("Listening on port ", conf.Port)
 	err = http.ListenAndServe(":"+conf.Port, handlers.GetRouter())

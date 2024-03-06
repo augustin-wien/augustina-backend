@@ -310,11 +310,37 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 		Exact:    &exact,
 	}
 	users, err := k.Client.GetUsers(k.Context, k.clientToken.AccessToken, k.Realm, p)
+	if err != nil {
+		return nil, err
+	}
 	// if length of users is 0, then user does not exist
 	if len(users) == 0 {
 		err = gocloak.APIError{
 			Code:    404,
-			Message: "User does not exist",
+			Message: "Keycloak GetUser: User does not exist " + username,
+		}
+		return nil, err
+	}
+	return users[0], err
+}
+
+// GetUserByEmail function returns the user by email
+func (k *Keycloak) GetUserByEmail(email string) (*gocloak.User, error) {
+	k.checkAdminToken()
+	exact := true
+	p := gocloak.GetUsersParams{
+		Email: &email,
+		Exact: &exact,
+	}
+	users, err := k.Client.GetUsers(k.Context, k.clientToken.AccessToken, k.Realm, p)
+	if err != nil {
+		return nil, err
+	}
+	// if length of users is 0, then user does not exist
+	if len(users) == 0 {
+		err = gocloak.APIError{
+			Code:    404,
+			Message: "Keycloak GetUser: User does not exist " + email,
 		}
 		return nil, err
 	}
@@ -352,25 +378,36 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 		if err != nil {
 			return "", err
 		}
-		log.Info("Created user ", user)
-		// Todo: send welcome email with password reset link
-		// if config.Config.SendCustomerEmail && config.Config.OnlinePaperUrl != "" {
-		// 	log.Info("Keycloak: execute actions email for ", user)
+		log.Info("GetOrCreateUser: Created user ", user)
 
-		// 	err = k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{
-		// 		UserID:      &user,
-		// 		Lifespan:    gocloak.IntP(0),
-		// 		Actions:     &[]string{"UPDATE_PASSWORD"},
-		// 		ClientID:    gocloak.StringP("wordpress"),
-		// 		RedirectURI: gocloak.StringP(config.Config.OnlinePaperUrl),
-		// 	})
-		// 	if err != nil {
-		// 		log.Errorf("Keycloak: execute actions email failed for %s %s: %v", user, email, err)
-		// 	}
-		// }
+		// send welcome email with password reset link
+		err = k.SendPasswordResetEmail(email)
+		if err != nil {
+			// send password reset email only should soft fail
+			log.Error("GetOrCreateUser: Error sending password reset email ", err)
+		}
 		return user, nil
+
 	}
 	return *user.ID, nil
+}
+
+// SendPasswordResetEmail function sends a password reset email to the user
+func (k *Keycloak) SendPasswordResetEmail(email string) error {
+	k.checkAdminToken()
+	user, err := k.GetUserByEmail(email)
+	if err != nil {
+		log.Error("SendPasswordResetEmail: Error getting user by email ", err)
+		return err
+	}
+	log.Info("SendPasswordResetEmail: Keycloak: execute password reset email for ", email)
+	return k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{
+		UserID:      user.ID,
+		Lifespan:    gocloak.IntP(600),
+		Actions:     &[]string{"UPDATE_PASSWORD"},
+		ClientID:    gocloak.StringP("wordpress"),
+		RedirectURI: gocloak.StringP(config.Config.OnlinePaperUrl),
+	})
 }
 
 // DeleteUser function deletes a user given by userID
