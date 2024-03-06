@@ -127,3 +127,8 @@ type DBSettings struct {
 	ID            int
 	IsInitialized bool
 }
+
+type PDF struct {
+	ID   int
+	Path string
+}
