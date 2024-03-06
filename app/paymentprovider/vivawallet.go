@@ -175,7 +175,13 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	}
 
 	if res.StatusCode != 200 {
-		return 0, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode))
+		// Log the request body
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Error("Reading body failed: ", err)
+			body = []byte("Reading body failed: " + err.Error())
+		}
+		return 0, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode) + " " + fmt.Sprint(body))
 	}
 
 	// Close the body after the function returns
@@ -281,6 +287,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	return
 }
 
+// CreatePaypalTransactionCosts creates transaction costs for Paypal payments
 func CreatePaypalTransactionCosts(paymentSuccessful TransactionSuccessRequest, order database.Order) (err error) {
 	// Check if VivaWalletTransactionTypeIDPaypal is set
 	if config.Config.VivaWalletTransactionTypeIDPaypal == 0 {

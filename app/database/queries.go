@@ -124,7 +124,7 @@ func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
 	return vendor, err
 }
 
-// GetVendor returns the vendor with the given id
+// GetVendorWithBalanceUpdate returns the vendor with the given id
 func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err error) {
 
 	// Update Account balance by open payments
@@ -752,12 +752,6 @@ func (db *Database) GetPayment(id int) (payment Payment, err error) {
 // CreatePayment creates a payment in an transaction
 func createPaymentTx(tx pgx.Tx, payment Payment) (paymentID int, err error) {
 
-	// Validation
-	if payment.Amount <= 0 {
-		err = errors.New("Payment amount must be greater than 0")
-		return
-	}
-
 	// Create payment
 	err = tx.QueryRow(context.Background(), "INSERT INTO Payment (Sender, Receiver, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, Item, Quantity, Price) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING ID", payment.Sender, payment.Receiver, payment.Amount, payment.AuthorizedBy, payment.Order, payment.OrderEntry, payment.IsSale, payment.Payout, payment.Item, payment.Quantity, payment.Price).Scan(&paymentID)
 	if err != nil {
@@ -1105,7 +1099,14 @@ func (db *Database) GetSettings() (Settings, error) {
 // UpdateSettings updates the settings in the database
 func (db *Database) UpdateSettings(settings Settings) (err error) {
 
-	_, err = db.Dbpool.Query(context.Background(), `
+	tx, err := db.Dbpool.Begin(context.Background())
+	defer func() { err = deferTx(tx, err) }()
+	if err != nil {
+		log.Error("UpdateSettings failed to access db pool: ", err)
+		return err
+	}
+
+	_, err = tx.Exec(context.Background(), `
 	UPDATE Settings
 	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6
 	WHERE ID = 1
@@ -1158,6 +1159,7 @@ func (db *Database) GetDBSettings() (DBSettings, error) {
 
 // Online Map -----------------------------------------------------------------
 
+// LocationData is used to return the location data of a vendor for the online map
 type LocationData struct {
 	ID        int         `json:"id"`
 	FirstName string      `json:"firstName"`
