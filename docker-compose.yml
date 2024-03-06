@@ -132,7 +132,7 @@ services:
       - "8080:8080"
   wordpress-db:
     # We use a mariadb image which supports both amd64 & arm64 architecture
-    image: mariadb:10.6.4-focal
+    image: mariadb
     # If you really want to use MySQL, uncomment the following line
     #image: mysql:8.0.27
     command: "--default-authentication-plugin=mysql_native_password"
@@ -140,17 +140,14 @@ services:
       - wp_db_data:/var/lib/mysql
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=somewordpress
-      - MYSQL_DATABASE=wordpress
-      - MYSQL_USER=wordpress
-      - MYSQL_PASSWORD=wordpress
+      - MARIADB_DATABASE=${WORDPRESS_DB_NAME}
+      - MARIADB_USER=${WORDPRESS_DB_USER}
+      - MARIADB_PASSWORD=${WORDPRESS_DB_PASSWORD}
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
+      - MARIADB_MYSQL_LOCALHOST_USER=1
+      - MARIADB_MYSQL_LOCALHOST_GRANTS=USAGE
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mysqladmin ping -p$$(echo $$MYSQL_ROOT_PASSWORD) | grep 'mysqld is
-          alive' || exit 1",
-        ]
+      test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -171,10 +168,10 @@ services:
     restart: always
     environment:
       - WORDPRESS_DB_HOST=wordpress-db
-      - WORDPRESS_DB_USER=wordpress
-      - WORDPRESS_DB_PASSWORD=wordpress
-      - WORDPRESS_DB_NAME=wordpress
-      - AUGUSTIN_PLUGIN_URL=http://localhost:8070
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
+      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
+      - AUGUSTIN_PARSER_URL=${AUGUSTIN_PARSER_URL}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 30s
@@ -197,13 +194,19 @@ services:
       - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
       - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
       - ./docker/wpcli/:/wpcli/
-      - ./docker/parser/:/wpcli/parser/
+      - ./docker/augustin-plugin/:/wpcli/parser/
 
     environment:
       - WORDPRESS_DB_HOST=wordpress-db
-      - WORDPRESS_DB_USER=root
-      - WORDPRESS_DB_PASSWORD=somewordpress
-      - WORDPRESS_DB_NAME=wordpress
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
+      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
+      - WORDPRESS_URL=${WORDPRESS_URL}
+      - WORDPRESS_ADMIN_USER=${WORDPRESS_ADMIN_USER}
+      - WORDPRESS_ADMIN_PASSWORD=${WORDPRESS_ADMIN_PASSWORD}
+      - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL}
+
+      - KEYCLOAK_URL=${KEYCLOAK_URL} 
     depends_on:
       wordpress-db:
         condition: service_healthy
@@ -220,13 +223,11 @@ services:
       - ./docker/augustin-plugin-data/sample_data:/sample_data
       - ./docker/augustin-plugin-data/pdf-files:/pdf-files
       - ./docker/augustin-plugin/:/app
-      - ./docker/parser/.env:/app/.env
-    environment:
-      - AUGUSTIN_PLUGIN_URL=http://wordpress/wp-json/wp/v2/
-      - AUGUSTIN_PLUGIN_PATH=/sample_data/
-      - SAVE_PATH=/pdf-files/
-      - WP_API_USER=api_user
-      - DEBUG=1
+    # env_file:
+    #   - path: ./docker/augustin-plugin/.env.example
+    #     required: true # default
+    #   - path: ./docker/augustin-plugin/.env
+    #     required: false
     depends_on:
       wordpress:
         condition: service_healthy
