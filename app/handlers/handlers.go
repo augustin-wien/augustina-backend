@@ -648,7 +648,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, _ := updateItemImage(w, r)
+	path, _ := uploadPDF(w, r)
 	if path != "" {
 		item.Image = path
 	}
@@ -1864,4 +1864,94 @@ func GetPDF(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("GetPDF: ", err)
 	}
+}
+
+// Upload PDF -----------------------------------------------------------------
+func uploadPDF(w http.ResponseWriter, r *http.Request) (path string, err error) {
+
+	// Get file from image field
+	file, header, err := r.FormFile("Image")
+	if err != nil {
+		return // No file passed, which is ok
+	}
+	defer file.Close()
+
+	// Debugging
+	name := strings.Split(header.Filename, ".")
+	if len(name) < 2 {
+		log.Error("UploadPDF: pdf name is wrong")
+		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
+		return
+	}
+	// Check if file is a pdf
+	if name[len(name)-1] != "pdf" {
+		log.Error("UploadPDF: file is not a pdf")
+		utils.ErrorJSON(w, errors.New("file type must be pdf "), http.StatusBadRequest)
+		return
+	}
+
+	// Get current path to remove old pdf after successful uploading
+	// var old_path string
+	// old_path, err = database.Db.GetPDF()
+	// if err != nil {
+	// 	log.Error("UploadPDF: Fetching old PDF failed ", err)
+	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
+	// 	return
+	// }
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error("UploadPDF: Failed to get current directory ", err)
+	}
+	// Generate unique filename
+	i := 0
+	for {
+		path = "pdf/" + name[0] + "_" + strconv.Itoa(i) + "." + name[len(name)-1]
+		_, err = os.Stat(dir + "/" + path)
+		if errors.Is(err, os.ErrNotExist) {
+			break
+		}
+		i++
+		if i > 1000 {
+			log.Error("UploadPDF: Too many PDFs with same name ", err)
+			utils.ErrorJSON(w, errors.New("Too many PDFs with same name "), http.StatusBadRequest)
+			return
+		}
+	}
+	// current file path from os
+
+	// Save file with unique name
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
+	if err != nil {
+		log.Error("UploadPDF: failed to write file ", err)
+	}
+
+	//Initiate PDF if not already done
+	err = database.Db.InitiatePDF()
+	if err != nil {
+		log.Error("UploadPDF: Failed to initiate PDF ", err)
+		return
+	}
+
+	// Save item to database
+	err = database.Db.UpdatePDF(path)
+	if err != nil {
+		log.Error("UploadPDF: Failed to upload PDF in database ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+	}
+
+	// Remove old pdf
+	// if old_path != "" {
+	// 	err = os.Remove(dir + "/" + old_path)
+	// 	if err != nil {
+	// 		log.Error("UploadPDF: failed to remove old pdf", err)
+	// 	}
+	// }
+
+	return
 }
