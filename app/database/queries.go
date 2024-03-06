@@ -1186,3 +1186,35 @@ func (db *Database) GetVendorLocations() (locationData []LocationData, err error
 	}
 	return locationData, nil
 }
+
+// InitiatePDF creates default pdf values if they don't exist
+func (db *Database) InitiatePDF() (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	INSERT INTO PDF (ID, Path) VALUES (1, '')
+	ON CONFLICT (ID) DO NOTHING;
+	`)
+	if err != nil {
+		log.Error("InitiatePDF: ", err)
+		return err
+	}
+	return err
+}
+
+func (db *Database) UpdatePDF(path string) (err error) {
+
+	// UpdatePDF updates the path of the PDF in the database with the id 1
+	err = db.Dbpool.QueryRow(context.Background(), "UPDATE PDF SET Path = $1 WHERE ID = 1", path).Scan()
+	if err != nil {
+		log.Error("UpdatePDF: ", err)
+	}
+	return
+}
+
+func (db *Database) GetPDF() (path string, err error) {
+	var pdf PDF
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDF WHERE ID = 1").Scan(&pdf.ID, &pdf.Path)
+	if err != nil {
+		log.Error("GetPDF: ", err)
+	}
+	return pdf.Path, err
+}
