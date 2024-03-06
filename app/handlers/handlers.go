@@ -1758,3 +1758,110 @@ func GetVendorLocations(w http.ResponseWriter, r *http.Request) {
 		log.Error("GetVendorLocations: ", err)
 	}
 }
+
+// Upload PDF -----------------------------------------------------------------
+func UploadPDF(w http.ResponseWriter, r *http.Request) {
+	var path string
+	// Get file from image field
+	file, header, err := r.FormFile("Image")
+	if err != nil {
+		return // No file passed, which is ok
+	}
+	defer file.Close()
+
+	// Debugging
+	name := strings.Split(header.Filename, ".")
+	if len(name) < 2 {
+		log.Error("UploadPDF: pdf name is wrong")
+		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
+		return
+	}
+	// Check if file is a pdf
+	if name[len(name)-1] != "pdf" {
+		log.Error("UploadPDF: file is not a pdf")
+		utils.ErrorJSON(w, errors.New("file type must be pdf"), http.StatusBadRequest)
+		return
+	}
+
+	// Get current path to remove old pdf after successful uploading
+	var old_path string
+	old_path, err = database.Db.GetPDF()
+	if err != nil {
+		log.Error("UploadPDF: Fetching old PDF failed ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error("UploadPDF: ", err)
+	}
+	// Generate unique filename
+	i := 0
+	for {
+		path = "pdf/" + name[0] + "_" + strconv.Itoa(i) + "." + name[len(name)-1]
+		_, err = os.Stat(dir + "/" + path)
+		if errors.Is(err, os.ErrNotExist) {
+			break
+		}
+		i++
+		if i > 1000 {
+			log.Error("UploadPDF: Too many PDFs with same name", err)
+			utils.ErrorJSON(w, errors.New("Too many PDFs with same name"), http.StatusBadRequest)
+			return
+		}
+	}
+	// current file path from os
+
+	// Save file with unique name
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
+	if err != nil {
+		log.Error("UploadPDF: failed to write file", err)
+	}
+
+	// Save item to database
+	err = database.Db.UpdatePDF(path)
+	if err != nil {
+		log.Error("UploadPDF: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+	}
+
+	// Remove old pdf
+	if old_path != "" {
+		err = os.Remove(dir + "/" + old_path)
+		if err != nil {
+			log.Error("UploadPDF: failed to remove old pdf", err)
+		}
+	}
+
+	err = utils.WriteJSON(w, http.StatusOK, err)
+	if err != nil {
+		log.Error("UploadPDF: ", err)
+	}
+}
+
+// GetPDF godoc
+//
+//	@Summary		Get PDF path
+//	@Description	Get PDF path
+//	@Tags			PDF
+//	@Accept			json
+//	@Produce		json
+//	@Success		200
+//	@Router			/pdf/ [get]
+func GetPDF(w http.ResponseWriter, r *http.Request) {
+	pdf, err := database.Db.GetPDF()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, pdf)
+	if err != nil {
+		log.Error("GetPDF: ", err)
+	}
+}
