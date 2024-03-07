@@ -129,6 +129,7 @@ type DBSettings struct {
 }
 
 type PDF struct {
-	ID   int
-	Path string
+	ID        int
+	Path      string
+	Timestamp time.Time
 }

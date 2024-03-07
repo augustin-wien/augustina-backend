@@ -1191,34 +1191,45 @@ func (db *Database) GetVendorLocations() (locationData []LocationData, err error
 	return locationData, nil
 }
 
-// InitiatePDF creates default pdf values if they don't exist
-func (db *Database) InitiatePDF() (err error) {
+// DeletePDF removes pdfs if their creation date is older than 6 weeks
+func (db *Database) DeletePDF() (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
-	INSERT INTO PDF (ID, Path) VALUES (1, '')
-	ON CONFLICT (ID) DO NOTHING;
+		DELETE FROM PDF
+		WHERE timestamp_column < NOW() - INTERVAL 6 WEEK;
 	`)
+	// Close rows after function returns
+	defer func() {
+		db.Dbpool.Close()
+	}()
 	if err != nil {
-		log.Error("InitiatePDF: ", err)
+		log.Error("DeletePDF: ", err)
 		return err
 	}
 	return err
 }
 
-func (db *Database) UpdatePDF(path string) (err error) {
+func (db *Database) CreatePDF(pdf PDF) (err error) {
 
-	// UpdatePDF updates the path of the PDF in the database with the id 1
-	err = db.Dbpool.QueryRow(context.Background(), "UPDATE PDF SET Path = $1 WHERE ID = 1", path).Scan()
+	// CreatePDF creates an instance of the PDF with given path and timestamp into the database
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDF (Path, Timestamp) values ($1, $2) RETURNING ID", pdf.Path, pdf.Timestamp).Scan(&pdf.ID)
+	// Close rows after function returns
+	defer func() {
+		db.Dbpool.Close()
+	}()
 	if err != nil {
-		log.Error("UpdatePDF: ", err)
+		log.Error("CreatePDF: ", err)
 	}
 	return
 }
 
-func (db *Database) GetPDF() (path string, err error) {
-	var pdf PDF
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDF WHERE ID = 1").Scan(&pdf.ID, &pdf.Path)
+func (db *Database) GetPDF() (pdf PDF, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDF ORDER BY ID DESC LIMIT 1").Scan(&pdf.ID, &pdf.Path, &pdf.Timestamp)
+	// Close rows after function returns
+	defer func() {
+		db.Dbpool.Close()
+	}()
 	if err != nil {
 		log.Error("GetPDF: ", err)
 	}
-	return pdf.Path, err
+	return pdf, err
 }
