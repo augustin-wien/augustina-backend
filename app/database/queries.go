@@ -1195,12 +1195,8 @@ func (db *Database) GetVendorLocations() (locationData []LocationData, err error
 func (db *Database) DeletePDF() (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 		DELETE FROM PDF
-		WHERE timestamp_column < NOW() - INTERVAL 6 WEEK;
+		WHERE "timestamp" < NOW() - INTERVAL '6 weeks';
 	`)
-	// Close rows after function returns
-	defer func() {
-		db.Dbpool.Close()
-	}()
 	if err != nil {
 		log.Error("DeletePDF: ", err)
 		return err
@@ -1214,7 +1210,7 @@ func (db *Database) CreatePDF(pdf PDF) (err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDF (Path, Timestamp) values ($1, $2) RETURNING ID", pdf.Path, pdf.Timestamp).Scan(&pdf.ID)
 	// Close rows after function returns
 	defer func() {
-		db.Dbpool.Close()
+		db.DeletePDF()
 	}()
 	if err != nil {
 		log.Error("CreatePDF: ", err)
@@ -1224,10 +1220,6 @@ func (db *Database) CreatePDF(pdf PDF) (err error) {
 
 func (db *Database) GetPDF() (pdf PDF, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDF ORDER BY ID DESC LIMIT 1").Scan(&pdf.ID, &pdf.Path, &pdf.Timestamp)
-	// Close rows after function returns
-	defer func() {
-		db.Dbpool.Close()
-	}()
 	if err != nil {
 		log.Error("GetPDF: ", err)
 	}
