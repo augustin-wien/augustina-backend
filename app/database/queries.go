@@ -446,7 +446,11 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	if err != nil {
 		return
 	}
-	defer func() { err = deferTx(tx, err) }()
+	defer func() {
+		err = deferTx(tx, err)
+		// Close the transaction
+		tx.Conn().Close(context.Background())
+	}()
 
 	err = tx.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor, CustomerEmail) values ($1, $2, $3) RETURNING ID", order.OrderCode, order.Vendor, order.CustomerEmail).Scan(&orderID)
 	if err != nil {
