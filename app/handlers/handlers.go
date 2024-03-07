@@ -479,6 +479,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Handle normal fields
 	item, err := updateItemNormal(mForm.Value)
 	if err != nil {
+		log.Error("CreateItem: updateItemNormal failed ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -492,12 +493,13 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Save item to database
 	id, err := database.Db.CreateItem(item)
 	if err != nil {
+		log.Error("CreateItem: Database call create item failed", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 	err = utils.WriteJSON(w, http.StatusOK, id)
 	if err != nil {
-		log.Error("CreateItem: ", err)
+		log.Error("CreateItem: WriteJSON failed", err)
 	}
 }
 
@@ -619,6 +621,7 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
+		log.Error("UpdateItem: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -630,13 +633,17 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read multipart form
-	err = r.ParseMultipartForm(32 << 20)
+	log.Info("Request Content Length:", r.ContentLength)
+	err = r.ParseMultipartForm(64 << 20)
+	log.Info("Parsed Form Content Length:", r.ContentLength)
 	if err != nil {
+		log.Error("UpdateItem: ParseMultipartForm failed ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 	mForm := r.MultipartForm
 	if mForm == nil {
+		log.Error("UpdateItem: ", errors.New("invalid form"))
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
@@ -644,12 +651,14 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	// Handle normal fields
 	item, err := updateItemNormal(mForm.Value)
 	if err != nil {
+		log.Error("UpdateItem: UpdateItemNormal failed ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	path, _ := uploadPDF(w, r)
+	path, _ := updateItemImage(w, r)
 	if path != "" {
+		log.Info("UpdateItem: Path is empty", path)
 		item.Image = path
 	}
 
@@ -1761,9 +1770,10 @@ func GetVendorLocations(w http.ResponseWriter, r *http.Request) {
 
 // Upload PDF -----------------------------------------------------------------
 func UploadPDF(w http.ResponseWriter, r *http.Request) {
-	var path string
-	// Get file from image field
-	file, header, err := r.FormFile("Image")
+	// Create instance of PDF
+	var pdf database.PDF
+	// Get file from PDF field
+	file, header, err := r.FormFile("PDF")
 	if err != nil {
 		return // No file passed, which is ok
 	}
@@ -1783,15 +1793,6 @@ func UploadPDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get current path to remove old pdf after successful uploading
-	var old_path string
-	old_path, err = database.Db.GetPDF()
-	if err != nil {
-		log.Error("UploadPDF: Fetching old PDF failed ", err)
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
 	buf := bytes.NewBuffer(nil)
 	if _, err = io.Copy(buf, file); err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -1804,8 +1805,8 @@ func UploadPDF(w http.ResponseWriter, r *http.Request) {
 	// Generate unique filename
 	i := 0
 	for {
-		path = "pdf/" + name[0] + "_" + strconv.Itoa(i) + "." + name[len(name)-1]
-		_, err = os.Stat(dir + "/" + path)
+		pdf.Path = "pdf/" + name[0] + "_" + strconv.Itoa(i) + "." + name[len(name)-1]
+		_, err = os.Stat(dir + "/" + pdf.Path)
 		if errors.Is(err, os.ErrNotExist) {
 			break
 		}
@@ -1816,27 +1817,21 @@ func UploadPDF(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// current file path from os
 
 	// Save file with unique name
-	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
+	err = os.WriteFile(dir+"/"+pdf.Path, buf.Bytes(), 0666)
 	if err != nil {
 		log.Error("UploadPDF: failed to write file", err)
 	}
 
+	// Set timestamp of PDF to current time
+	pdf.Timestamp = time.Now()
+
 	// Save item to database
-	err = database.Db.UpdatePDF(path)
+	err = database.Db.CreatePDF(pdf)
 	if err != nil {
 		log.Error("UploadPDF: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
-	}
-
-	// Remove old pdf
-	if old_path != "" {
-		err = os.Remove(dir + "/" + old_path)
-		if err != nil {
-			log.Error("UploadPDF: failed to remove old pdf", err)
-		}
 	}
 
 	err = utils.WriteJSON(w, http.StatusOK, err)
@@ -1872,6 +1867,7 @@ func uploadPDF(w http.ResponseWriter, r *http.Request) (path string, err error) 
 	// Get file from image field
 	file, header, err := r.FormFile("Image")
 	if err != nil {
+		log.Error("UploadPDF: No file passed or file is invalid ", err)
 		return // No file passed, which is ok
 	}
 	defer file.Close()
@@ -1880,33 +1876,23 @@ func uploadPDF(w http.ResponseWriter, r *http.Request) (path string, err error) 
 	name := strings.Split(header.Filename, ".")
 	if len(name) < 2 {
 		log.Error("UploadPDF: pdf name is wrong")
-		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
-		return
+		return path, errors.New("invalid filename")
 	}
 	// Check if file is a pdf
 	if name[len(name)-1] != "pdf" {
 		log.Error("UploadPDF: file is not a pdf")
-		utils.ErrorJSON(w, errors.New("file type must be pdf "), http.StatusBadRequest)
-		return
+		return path, errors.New("file type must be pdf")
 	}
-
-	// Get current path to remove old pdf after successful uploading
-	// var old_path string
-	// old_path, err = database.Db.GetPDF()
-	// if err != nil {
-	// 	log.Error("UploadPDF: Fetching old PDF failed ", err)
-	// 	utils.ErrorJSON(w, err, http.StatusBadRequest)
-	// 	return
-	// }
 
 	buf := bytes.NewBuffer(nil)
 	if _, err = io.Copy(buf, file); err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+		log.Error("UploadPDF: failed to copy file ", err)
+		return path, err
 	}
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Error("UploadPDF: Failed to get current directory ", err)
+		return path, err
 	}
 	// Generate unique filename
 	i := 0
@@ -1919,11 +1905,9 @@ func uploadPDF(w http.ResponseWriter, r *http.Request) (path string, err error) 
 		i++
 		if i > 1000 {
 			log.Error("UploadPDF: Too many PDFs with same name ", err)
-			utils.ErrorJSON(w, errors.New("Too many PDFs with same name "), http.StatusBadRequest)
-			return
+			return path, errors.New("Too many PDFs with same name")
 		}
 	}
-	// current file path from os
 
 	// Save file with unique name
 	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
@@ -1931,26 +1915,14 @@ func uploadPDF(w http.ResponseWriter, r *http.Request) (path string, err error) 
 		log.Error("UploadPDF: failed to write file ", err)
 	}
 
-	//Initiate PDF if not already done
-	err = database.Db.InitiatePDF()
-	if err != nil {
-		log.Error("UploadPDF: Failed to initiate PDF ", err)
-		return
-	}
+	// Set timestamp of PDF to current time
+	// pdf.Timestamp = time.Now()
 
 	// Save item to database
-	err = database.Db.UpdatePDF(path)
-	if err != nil {
-		log.Error("UploadPDF: Failed to upload PDF in database ", err)
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-	}
-
-	// Remove old pdf
-	// if old_path != "" {
-	// 	err = os.Remove(dir + "/" + old_path)
-	// 	if err != nil {
-	// 		log.Error("UploadPDF: failed to remove old pdf", err)
-	// 	}
+	// err = database.Db.CreatePDF(pdf)
+	// if err != nil {
+	// 	log.Error("UploadPDF: Failed to upload PDF in database ", err)
+	// 	return "", err
 	// }
 
 	return
