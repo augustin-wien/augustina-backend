@@ -1,10 +1,10 @@
 -- Write your migrate up statements here
 
 ALTER TABLE PDFDownload ADD COLUMN EmailSent Boolean DEFAULT FALSE;
-ALTER TABLE PDFDownload ADD COLUMN OrderID integer REFERENCES paymentorder(ID);
+ALTER TABLE PDFDownload ADD COLUMN OrderID integer REFERENCES paymentorder(ID) ON DELETE SET NULL;
 ALTER TABLE PDFDownload ADD COLUMN LastDownload timestamp DEFAULT NULL;
 ALTER TABLE PDFDownload ADD COLUMN DownloadCount integer DEFAULT 0;
-ALTER TABLE PDFDownload ADD COLUMN ItemID integer REFERENCES item(ID);
+ALTER TABLE PDFDownload ADD COLUMN ItemID integer REFERENCES item(ID) ON DELETE SET NULL;
 
 ---- create above / drop below ----
 

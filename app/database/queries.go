@@ -265,6 +265,13 @@ func (db *Database) GetItemTx(tx pgx.Tx, id int) (item Item, err error) {
 
 // CreateItem creates an item in the database
 func (db *Database) CreateItem(item Item) (id int, err error) {
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		log.Error("VerifyOrderAndCreatePayments: Opening DBPool failed", err)
+		return 0, err
+	}
+
+	defer func() { err = DeferTx(tx, err) }()
 	// Check if the item name already exists
 	var count int
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Item WHERE Name = $1", item.Name).Scan(&count)
@@ -279,10 +286,10 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 	// Insert the new item
 	err = db.Dbpool.QueryRow(context.Background(), `
 	INSERT INTO Item
-	(Name, Description, Price, LicenseItem, Archived, IsLicenseItem, LicenseGroup, IsPDFItem, PDF)
-	values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	(Name, Description, Price, Image, LicenseItem, Archived, IsLicenseItem, LicenseGroup, IsPDFItem, PDF)
+	values ($1, $2, $3, '', $4, $5, $6, $7, $8, NULL)
 	RETURNING ID
-	`, item.Name, item.Description, item.Price, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup, item.IsPDFItem, item.PDF).Scan(&id)
+	`, item.Name, item.Description, item.Price, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup, item.IsPDFItem).Scan(&id)
 	if err != nil {
 		log.Error("CreateItem: failed to insert item ", err)
 	}
