@@ -1894,7 +1894,7 @@ func GetPDF(w http.ResponseWriter, r *http.Request) {
 // Download PDF from id
 func downloadPDF(w http.ResponseWriter, r *http.Request) {
 	// Get id from URL
-	id := r.URL.Query().Get("id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Error("DownloadPDF: No id passed")
 		utils.ErrorJSON(w, errors.New("missing parameter id"), http.StatusBadRequest)

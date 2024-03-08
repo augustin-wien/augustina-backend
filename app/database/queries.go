@@ -1305,9 +1305,9 @@ func (db *Database) GetPDFDownload(linkID string) (pdfDownload PDFDownload, err 
 	if len(linkID) == 0 {
 		return pdfDownload, errors.New("linkID is empty")
 	}
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDFDownload WHERE LinkID = $1", linkID).Scan(&pdfDownload.ID, &pdfDownload.LinkID, &pdfDownload.PDF, &pdfDownload.Timestamp)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDFDownload WHERE LinkID = $1", linkID).Scan(&pdfDownload.ID, &pdfDownload.PDF, &pdfDownload.LinkID, &pdfDownload.Timestamp)
 	if err != nil {
-		log.Error("GetPDFDownload: ", linkID, err)
+		log.Error("GetPDFDownload: ", linkID, "err: ", err)
 	}
 	return pdfDownload, err
 }
