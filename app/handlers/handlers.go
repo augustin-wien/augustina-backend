@@ -466,7 +466,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Read multipart form
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		log.Error("CreateItem: ", err)
+		log.Error("CreateItem: failed to parse Multipartform ", err)
 		return
 	}
 

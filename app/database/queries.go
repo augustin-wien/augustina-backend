@@ -249,7 +249,7 @@ func (db *Database) GetItemByName(name string) (item Item, err error) {
 func (db *Database) GetItem(id int) (item Item, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 	if err != nil {
-		log.Error("GetItem: ", err)
+		log.Error("GetItem: failed in Getitem() ", err)
 	}
 	return
 }
@@ -258,7 +258,7 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 func (db *Database) GetItemTx(tx pgx.Tx, id int) (item Item, err error) {
 	err = tx.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 	if err != nil {
-		log.Error("GetItem: ", err)
+		log.Error("GetItem: failed in GetItemTx() ", err)
 	}
 	return
 }
@@ -269,7 +269,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 	var count int
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Item WHERE Name = $1", item.Name).Scan(&count)
 	if err != nil {
-		log.Error("CreateItem: ", err)
+		log.Error("CreateItem: failed to select item ", err)
 		return 0, err
 	}
 	if count > 0 {
@@ -284,7 +284,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 	RETURNING ID
 	`, item.Name, item.Description, item.Price, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup, item.IsPDFItem, item.PDF).Scan(&id)
 	if err != nil {
-		log.Error("CreateItem: ", err)
+		log.Error("CreateItem: failed to insert item ", err)
 	}
 	return id, err
 }
@@ -454,8 +454,6 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	}
 	defer func() {
 		err = deferTx(tx, err)
-		// Close the transaction
-		tx.Conn().Close(context.Background())
 	}()
 
 	err = tx.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor, CustomerEmail) values ($1, $2, $3) RETURNING ID", order.OrderCode, order.Vendor, order.CustomerEmail).Scan(&orderID)
