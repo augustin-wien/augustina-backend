@@ -567,17 +567,17 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err error) {
 	pdfId = 0
 	// Check if a digit is sent instead of pdf
-	contentType := r.Header.Get("Content-Type")
-	if contentType != "multipart/form-data" {
-		log.Info("handleItemPDF: Content-Type is not multipart/form-data", contentType)
-		// Assuming that if it's not multipart/form-data, it's a digit being sent
-		// Handle the case where a digit is sent
-		pdfId, err = strconv.ParseInt(r.FormValue("pdfId"), 10, 64)
-		if err != nil {
-			log.Error("handleItemPDF: parsing the id failed", err)
-		}
-		return pdfId, nil
-	}
+	// contentType := r.Header.Get("Content-Type")
+	// if contentType != "multipart/form-data" {
+	// 	log.Info("handleItemPDF: Content-Type is not multipart/form-data", contentType)
+	// 	// Assuming that if it's not multipart/form-data, it's a digit being sent
+	// 	// Handle the case where a digit is sent
+	// 	pdfId, err = strconv.ParseInt(r.FormValue("pdfId"), 10, 64)
+	// 	if err != nil {
+	// 		log.Error("handleItemPDF: parsing the id failed", err)
+	// 	}
+	// 	return pdfId, nil
+	// }
 
 	// Get file from pdf field
 	file, header, err := r.FormFile("PDF")
@@ -607,7 +607,7 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err err
 		return
 	}
 	path := "pdf/" + name[0] + "." + name[len(name)-1]
-	_, err = os.Stat(dir + "pdf")
+	_, err = os.Stat(dir + "/pdf")
 	if errors.Is(err, os.ErrNotExist) {
 		err = os.Mkdir(dir+"/pdf", 0777)
 		if err != nil {

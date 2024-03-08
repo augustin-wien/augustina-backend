@@ -1233,10 +1233,9 @@ func (db *Database) GetVendorLocations() (locationData []LocationData, err error
 
 // DeletePDF removes pdfs if their creation date is older than 6 weeks
 func (db *Database) DeletePDF() (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-		DELETE FROM PDF
-		WHERE "timestamp" < NOW() - INTERVAL '6 weeks';
-	`)
+	deleteInterval := config.Config.IntervalToDeletePDFsInWeeks
+	log.Info("DeletePDF entered: ", deleteInterval)
+	_, err = db.Dbpool.Exec(context.Background(), "DELETE FROM PDF WHERE timestamp < NOW() - $1 * INTERVAL '1 week'", deleteInterval)
 	if err != nil {
 		log.Error("DeletePDF: ", err)
 		return err
@@ -1251,7 +1250,10 @@ func (db *Database) CreatePDF(pdf PDF) (pdfId int64, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDF (Path, Timestamp) values ($1, $2) RETURNING ID", pdf.Path, pdf.Timestamp).Scan(&pdf.ID)
 	// Close rows after function returns
 	defer func() {
-		db.DeletePDF()
+		err = db.DeletePDF()
+		if err != nil {
+			log.Error("CreatePDF: DeletePDF failed ", err)
+		}
 	}()
 	if err != nil {
 		log.Error("CreatePDF: ", err)
@@ -1292,7 +1294,10 @@ func (db *Database) CreatePDFDownload(pdf PDF) (pdfDownload PDFDownload, err err
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDFDownload (LinkID, PDF, Timestamp) values ($1, $2, $3) RETURNING ID", pdfDownload.LinkID, pdfDownload.PDF, pdfDownload.Timestamp).Scan(&pdfDownload.ID)
 	// Close rows after function returns
 	defer func() {
-		db.DeletePDFDownload()
+		err = db.DeletePDFDownload()
+		if err != nil {
+			log.Error("CreatePDFDownload: DeletePDFDownload failed ", err)
+		}
 	}()
 	if err != nil {
 		log.Error("CreatePDFDownload: ", err)
@@ -1314,10 +1319,9 @@ func (db *Database) GetPDFDownload(linkID string) (pdfDownload PDFDownload, err 
 
 // DeletePDFDownload removes pdfs if their creation date is older than 6 weeks
 func (db *Database) DeletePDFDownload() (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-		DELETE FROM PDFDownload
-		WHERE "timestamp" < NOW() - INTERVAL '6 weeks';
-	`)
+	// Get interval from config
+	deleteInterval := config.Config.IntervalToDeletePDFsInWeeks
+	_, err = db.Dbpool.Exec(context.Background(), "DELETE FROM PDFDownload WHERE timestamp < NOW() - $1 * INTERVAL '1 week'", deleteInterval)
 	if err != nil {
 		log.Error("DeletePDFDownload: ", err)
 		return err
