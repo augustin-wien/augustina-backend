@@ -33,6 +33,7 @@ type config struct {
 	KeycloakBackofficeGroup           string
 	SendCustomerEmail                 bool
 	OnlinePaperUrl                    string
+	FrontendURL                       string
 	Development                       bool
 	SMTPServer                        string
 	SMTPPort                          string
@@ -87,6 +88,7 @@ func InitConfig() {
 		SMTPUsername:                      getEnv("SMTP_USERNAME", ""),
 		SMTPPassword:                      getEnv("SMTP_PASSWORD", ""),
 		SMTPSenderAddress:                 getEnv("SMTP_SENDER_ADDRESS", ""),
+		FrontendURL:                       getEnv("FRONTEND_URL", ""),
 	}
 }
 

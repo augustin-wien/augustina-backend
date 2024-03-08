@@ -20,7 +20,10 @@ require (
 	maunium.net/go/mautrix v0.16.2
 )
 
-require github.com/perimeterx/marshmallow v1.1.5
+require (
+	github.com/google/uuid v1.3.0
+	github.com/perimeterx/marshmallow v1.1.5
+)
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect

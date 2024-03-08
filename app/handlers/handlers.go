@@ -490,6 +490,12 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 		item.Image = path
 	}
 
+	// Handle pdf field
+	pdfId := handleItemPDF(w, r)
+	if pdfId != 0 {
+		item.PDF = null.IntFrom(pdfId)
+	}
+
 	// Save item to database
 	id, err := database.Db.CreateItem(item)
 	if err != nil {
@@ -553,6 +559,52 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	return
 }
 
+func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64) {
+	pdfId = 0
+	// Get file from pdf field
+	file, header, err := r.FormFile("PDF")
+	if err != nil {
+		return // No file passed, which is ok
+	}
+	defer file.Close()
+
+	// Debugging
+	name := strings.Split(header.Filename, ".")
+	if len(name) < 2 {
+		log.Error("handleItemPDF: pdf name is wrong")
+		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	path := "pdf/" + name[0] + "." + name[len(name)-1]
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error("UploadPDF: Failed to get current directory ", err)
+		return
+	}
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
+	if err != nil {
+		log.Error("handleItemPDF: failed to write file", err)
+		return
+	}
+	pdf := database.PDF{
+		Path:      path,
+		Timestamp: time.Now(),
+	}
+
+	pdfId, err = database.Db.CreatePDF(pdf)
+	if err != nil {
+		log.Error("handleItemPDF: failed to create db entry", err)
+	}
+	return
+}
+
 // fields := mForm.Value               // Values are stored in []string
 func updateItemNormal(fields map[string][]string) (item database.Item, err error) {
 	fieldsClean := make(map[string]any) // Values are stored in string
@@ -564,6 +616,12 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 				return
 			}
 		} else if key == "IsLicenseItem" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("updateItemNormal: ", err)
+				return
+			}
+		} else if key == "IsPDFItem" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: ", err)
@@ -660,6 +718,11 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	if path != "" {
 		log.Info("UpdateItem: Path is empty", path)
 		item.Image = path
+	}
+
+	pdfId := handleItemPDF(w, r)
+	if pdfId != 0 {
+		item.PDF = null.IntFrom(pdfId)
 	}
 
 	// Save item to database
@@ -1828,7 +1891,7 @@ func UploadPDF(w http.ResponseWriter, r *http.Request) {
 	pdf.Timestamp = time.Now()
 
 	// Save item to database
-	err = database.Db.CreatePDF(pdf)
+	_, err = database.Db.CreatePDF(pdf)
 	if err != nil {
 		log.Error("UploadPDF: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -1926,4 +1989,42 @@ func uploadPDF(w http.ResponseWriter, r *http.Request) (path string, err error) 
 	// }
 
 	return
+}
+
+// Download PDF from id
+func downloadPDF(w http.ResponseWriter, r *http.Request) {
+	// Get id from URL
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		log.Error("DownloadPDF: No id passed")
+		utils.ErrorJSON(w, errors.New("missing parameter id"), http.StatusBadRequest)
+		return
+	}
+
+	// Get PDF from database
+	pdfDownload, err := database.Db.GetPDFDownload(id)
+	if err != nil {
+		log.Error("DownloadPDF: Failed to get PDF from database ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if pdfDownload.Timestamp.IsZero() {
+		log.Error("DownloadPDF: Timestamp is zero")
+		utils.ErrorJSON(w, errors.New("timestamp is zero"), http.StatusBadRequest)
+		return
+	}
+	// check for expiration < 6 weeks
+	if time.Until(pdfDownload.Timestamp).Hours() < -6*7*24 {
+		log.Error("DownloadPDF: PDF is expired")
+		utils.ErrorJSON(w, errors.New("pdf is expired"), http.StatusBadRequest)
+		return
+	}
+	pdf, err := database.Db.GetPDFByID(pdfDownload.PDF)
+	if err != nil {
+		log.Error("DownloadPDF: Failed to get PDF from database ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	// send file
+	http.ServeFile(w, r, pdf.Path)
 }

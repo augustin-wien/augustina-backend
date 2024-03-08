@@ -149,6 +149,7 @@ func GetRouter() (r *chi.Mux) {
 			r.Post("/", UploadPDF)
 			r.Get("/", GetPDF)
 		})
+		r.Get("/download/{id}/", downloadPDF)
 	})
 
 	// Swagger documentation
