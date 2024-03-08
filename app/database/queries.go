@@ -215,7 +215,7 @@ func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, 
 	defer rows.Close()
 	for rows.Next() {
 		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup)
+		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 		if err != nil {
 			log.Error("ListItems: ", err)
 			return items, err
@@ -238,7 +238,7 @@ func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, 
 
 // GetItemByName returns the item with the given name
 func (db *Database) GetItemByName(name string) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 	if err != nil {
 		log.Error("GetItemByName: ", err)
 	}
@@ -247,7 +247,7 @@ func (db *Database) GetItemByName(name string) (item Item, err error) {
 
 // GetItem returns the item with the given ID
 func (db *Database) GetItem(id int) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 	if err != nil {
 		log.Error("GetItem: ", err)
 	}
@@ -256,7 +256,7 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 
 // GetItemTx returns the item with the given ID
 func (db *Database) GetItemTx(tx pgx.Tx, id int) (item Item, err error) {
-	err = tx.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup)
+	err = tx.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 	if err != nil {
 		log.Error("GetItem: ", err)
 	}
@@ -278,9 +278,9 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 
 	// Insert the new item
 	err = db.Dbpool.QueryRow(context.Background(), `
-	INSERT INTO Item 
-	(Name, Description, Price, LicenseItem, Archived, IsLicenseItem, LicenseGroup, IsPDFItem, PDF) 
-	values ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+	INSERT INTO Item
+	(Name, Description, Price, LicenseItem, Archived, IsLicenseItem, LicenseGroup, IsPDFItem, PDF)
+	values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	RETURNING ID
 	`, item.Name, item.Description, item.Price, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup, item.IsPDFItem, item.PDF).Scan(&id)
 	if err != nil {
@@ -1252,6 +1252,7 @@ func (db *Database) CreatePDF(pdf PDF) (pdfId int64, err error) {
 	if err != nil {
 		log.Error("CreatePDF: ", err)
 	}
+	log.Info("Created new PDF with ID: ", pdf.ID, " and path: ", pdf.Path)
 	return int64(pdf.ID), err
 }
 

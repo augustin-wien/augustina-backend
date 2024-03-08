@@ -1,6 +1,6 @@
 -- Write your migrate up statements here
 
-ALTER TABLE Item ADD COLUMN IsPDFItem varchar(255);
+ALTER TABLE Item ADD COLUMN IsPDFItem boolean NOT NULL DEFAULT false;
 ALTER TABLE Item ADD COLUMN PDF integer REFERENCES PDF(ID);
 
 

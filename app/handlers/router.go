@@ -143,12 +143,6 @@ func GetRouter() (r *chi.Mux) {
 
 	// PDF Upload
 	r.Route("/api/pdf", func(r chi.Router) {
-		r.Group(func(r chi.Router) {
-			r.Use(middlewares.AuthMiddleware)
-			r.Use(middlewares.AdminAuthMiddleware)
-			r.Post("/", UploadPDF)
-			r.Get("/", GetPDF)
-		})
 		r.Get("/download/{id}/", downloadPDF)
 	})
 
