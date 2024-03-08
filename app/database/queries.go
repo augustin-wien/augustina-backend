@@ -574,6 +574,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", orderID, err)
 			}
 			if item.LicenseItem.Valid {
+
 				if !item.IsPDFItem {
 					// add customer to licenseItemGroup
 
@@ -607,9 +608,14 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					}
 				} else {
 					// Generate download link and send it to the
-					pdf, err := db.GetPDFByID(item.ID)
+					if !item.PDF.Valid {
+						log.Error("VerifyOrderAndCreatePayments: item has no pdf: oder id: ", orderID, "itemid: ", item.ID, err)
+					}
+					pdf_id := item.PDF.ValueOrZero()
+					// TODO: check if pdf exists
+					pdf, err := db.GetPDFByID(pdf_id)
 					if err != nil {
-						log.Error("VerifyOrderAndCreatePayments: failed to get pdf: ", orderID, err)
+						log.Error("VerifyOrderAndCreatePayments: failed to get pdf: orderid", orderID, "item", item.ID, err)
 					}
 					pdfDownload, err := db.CreatePDFDownload(pdf)
 					if err != nil {
@@ -1266,10 +1272,10 @@ func (db *Database) GetPDF() (pdf PDF, err error) {
 }
 
 // GetPDFByID returns the PDF with the given ID
-func (db *Database) GetPDFByID(id int) (pdf PDF, err error) {
+func (db *Database) GetPDFByID(id int64) (pdf PDF, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDF WHERE ID = $1", id).Scan(&pdf.ID, &pdf.Path, &pdf.Timestamp)
 	if err != nil {
-		log.Error("GetPDFByID: ", err)
+		log.Error("GetPDFByID: failed for id:", id, err)
 	}
 	return pdf, err
 }
@@ -1285,7 +1291,7 @@ func (db *Database) CreatePDFDownload(pdf PDF) (pdfDownload PDFDownload, err err
 	}
 
 	// CreatePDF creates an instance of the PDF with given path and timestamp into the database
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDFDownload (LinkID, PDF, Timestamp) values ($1, $2) RETURNING ID", pdfDownload.LinkID, pdfDownload.PDF, pdfDownload.Timestamp).Scan(&pdfDownload.ID)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDFDownload (LinkID, PDF, Timestamp) values ($1, $2, $3) RETURNING ID", pdfDownload.LinkID, pdfDownload.PDF, pdfDownload.Timestamp).Scan(&pdfDownload.ID)
 	// Close rows after function returns
 	defer func() {
 		db.DeletePDFDownload()
@@ -1298,9 +1304,12 @@ func (db *Database) CreatePDFDownload(pdf PDF) (pdfDownload PDFDownload, err err
 
 // GetPDFDownload returns the latest PDFDownload from the database
 func (db *Database) GetPDFDownload(linkID string) (pdfDownload PDFDownload, err error) {
+	if len(linkID) == 0 {
+		return pdfDownload, errors.New("linkID is empty")
+	}
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDFDownload WHERE LinkID = $1", linkID).Scan(&pdfDownload.ID, &pdfDownload.LinkID, &pdfDownload.PDF, &pdfDownload.Timestamp)
 	if err != nil {
-		log.Error("GetPDFDownload: ", err)
+		log.Error("GetPDFDownload: ", linkID, err)
 	}
 	return pdfDownload, err
 }

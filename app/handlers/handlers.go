@@ -581,12 +581,21 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	// create base dir if not exist
 
-	path := "pdf/" + name[0] + "." + name[len(name)-1]
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Error("UploadPDF: Failed to get current directory ", err)
 		return
+	}
+	path := "pdf/" + name[0] + "." + name[len(name)-1]
+	_, err = os.Stat(dir + "pdf")
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.Mkdir(dir+"/pdf", 0777)
+		if err != nil {
+			log.Error("handleItemPDF: failed to create directory", err)
+			return
+		}
 	}
 	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
 	if err != nil {
@@ -1880,7 +1889,8 @@ func downloadPDF(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("pdf is expired"), http.StatusBadRequest)
 		return
 	}
-	pdf, err := database.Db.GetPDFByID(pdfDownload.PDF)
+	// Get PDF from database
+	pdf, err := database.Db.GetPDFByID(int64(pdfDownload.PDF))
 	if err != nil {
 		log.Error("DownloadPDF: Failed to get PDF from database ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -1888,4 +1898,36 @@ func downloadPDF(w http.ResponseWriter, r *http.Request) {
 	}
 	// send file
 	http.ServeFile(w, r, pdf.Path)
+}
+func validatePDFLink(w http.ResponseWriter, r *http.Request) {
+	// Get id from URL
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		log.Error("DownloadPDF: No id passed")
+		utils.ErrorJSON(w, errors.New("missing parameter id"), http.StatusBadRequest)
+		return
+	}
+
+	// Get PDF from database
+	pdfDownload, err := database.Db.GetPDFDownload(id)
+	if err != nil {
+		log.Error("DownloadPDF: Failed to get PDF from database ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if pdfDownload.Timestamp.IsZero() {
+		log.Error("DownloadPDF: Timestamp is zero")
+		utils.ErrorJSON(w, errors.New("timestamp is zero"), http.StatusBadRequest)
+		return
+	}
+	// check for expiration < 6 weeks
+	if time.Until(pdfDownload.Timestamp).Hours() < -6*7*24 {
+		log.Error("DownloadPDF: PDF is expired")
+		utils.ErrorJSON(w, errors.New("pdf is expired"), http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, "valid")
+	if err != nil {
+		log.Error("validatePDFLink: ", err)
+	}
 }

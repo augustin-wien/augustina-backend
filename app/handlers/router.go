@@ -143,7 +143,8 @@ func GetRouter() (r *chi.Mux) {
 
 	// PDF Upload
 	r.Route("/api/pdf", func(r chi.Router) {
-		r.Get("/download/{id}/", downloadPDF)
+		r.Get("/{id}/validate/", validatePDFLink)
+		r.Get("/{id}/", downloadPDF)
 	})
 
 	// Swagger documentation
