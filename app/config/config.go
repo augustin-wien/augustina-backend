@@ -16,6 +16,7 @@ type config struct {
 	PaypalPercentageCosts             float64
 	TransactionCostsName              string
 	DonationName                      string
+	IntervalToDeletePDFsInWeeks       int
 	VivaWalletVerificationKey         string
 	VivaWalletAPIURL                  string
 	VivaWalletAccountsURL             string
@@ -33,6 +34,7 @@ type config struct {
 	KeycloakBackofficeGroup           string
 	SendCustomerEmail                 bool
 	OnlinePaperUrl                    string
+	FrontendURL                       string
 	Development                       bool
 	SMTPServer                        string
 	SMTPPort                          string
@@ -64,6 +66,7 @@ func InitConfig() {
 		PaypalPercentageCosts:             getEnvFloat("PAYPAL_PERCENTAGE_COSTS", 0.00),
 		DonationName:                      getEnv("DONATION_NAME", "donation"),
 		TransactionCostsName:              getEnv("TRANSACTION_COSTS_NAME", "transactionCosts"),
+		IntervalToDeletePDFsInWeeks:       getEnvInt("INTERVAL_TO_DELETE_PDFS_IN_WEEKS", 0),
 		VivaWalletVerificationKey:         getEnv("VIVA_WALLET_VERIFICATION_KEY", ""),
 		VivaWalletAPIURL:                  getEnv("VIVA_WALLET_API_URL", ""),
 		VivaWalletAccountsURL:             getEnv("VIVA_WALLET_ACCOUNTS_URL", ""),
@@ -87,6 +90,7 @@ func InitConfig() {
 		SMTPUsername:                      getEnv("SMTP_USERNAME", ""),
 		SMTPPassword:                      getEnv("SMTP_PASSWORD", ""),
 		SMTPSenderAddress:                 getEnv("SMTP_SENDER_ADDRESS", ""),
+		FrontendURL:                       getEnv("FRONTEND_URL", ""),
 	}
 }
 

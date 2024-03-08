@@ -141,6 +141,12 @@ func GetRouter() (r *chi.Mux) {
 		r.Get("/api/map/", GetVendorLocations)
 	})
 
+	// PDF Upload
+	r.Route("/api/pdf", func(r chi.Router) {
+		r.Get("/{id}/validate/", validatePDFLink)
+		r.Get("/{id}/", downloadPDF)
+	})
+
 	// Swagger documentation
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),

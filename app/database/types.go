@@ -57,6 +57,8 @@ type Item struct {
 	LicenseItem   null.Int // License has to be bought before item
 	Archived      bool
 	IsLicenseItem bool
+	IsPDFItem     bool
+	PDF           null.Int
 	LicenseGroup  null.String
 }
 
@@ -126,4 +128,17 @@ type Settings struct {
 type DBSettings struct {
 	ID            int
 	IsInitialized bool
+}
+
+type PDF struct {
+	ID        int
+	Path      string
+	Timestamp time.Time
+}
+
+type PDFDownload struct {
+	ID        int
+	LinkID    string
+	PDF       int
+	Timestamp time.Time
 }

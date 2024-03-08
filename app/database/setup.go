@@ -26,11 +26,13 @@ func (db *Database) InitiateAccounts() (err error) {
 func (db *Database) InitiateItems() (err error) {
 
 	newspaper := Item{
-		Name:         "Zeitung",
-		Description:  "Aktuelle Zeitungsausgabe",
-		Price:        300,
-		Archived:     false,
-		LicenseGroup: null.NewString("analog_edition", true),
+		Name:          "Zeitung",
+		Description:   "Aktuelle Zeitungsausgabe",
+		Price:         300,
+		Archived:      false,
+		IsLicenseItem: false,
+		IsPDFItem:     false,
+		LicenseGroup:  null.NewString("analog_edition", true),
 	}
 
 	if config.Config.DonationName == "" {

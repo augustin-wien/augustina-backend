@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
@@ -214,7 +215,7 @@ func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, 
 	defer rows.Close()
 	for rows.Next() {
 		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup)
+		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 		if err != nil {
 			log.Error("ListItems: ", err)
 			return items, err
@@ -237,7 +238,7 @@ func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, 
 
 // GetItemByName returns the item with the given name
 func (db *Database) GetItemByName(name string) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 	if err != nil {
 		log.Error("GetItemByName: ", err)
 	}
@@ -246,18 +247,18 @@ func (db *Database) GetItemByName(name string) (item Item, err error) {
 
 // GetItem returns the item with the given ID
 func (db *Database) GetItem(id int) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 	if err != nil {
-		log.Error("GetItem: ", err)
+		log.Error("GetItem: failed in Getitem() ", err)
 	}
 	return
 }
 
 // GetItemTx returns the item with the given ID
 func (db *Database) GetItemTx(tx pgx.Tx, id int) (item Item, err error) {
-	err = tx.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup)
+	err = tx.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF)
 	if err != nil {
-		log.Error("GetItem: ", err)
+		log.Error("GetItem: failed in GetItemTx() ", err)
 	}
 	return
 }
@@ -268,7 +269,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 	var count int
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Item WHERE Name = $1", item.Name).Scan(&count)
 	if err != nil {
-		log.Error("CreateItem: ", err)
+		log.Error("CreateItem: failed to select item ", err)
 		return 0, err
 	}
 	if count > 0 {
@@ -276,9 +277,14 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 	}
 
 	// Insert the new item
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Item (Name, Description, Price, LicenseItem, Archived, IsLicenseItem, LicenseGroup) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", item.Name, item.Description, item.Price, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup).Scan(&id)
+	err = db.Dbpool.QueryRow(context.Background(), `
+	INSERT INTO Item
+	(Name, Description, Price, LicenseItem, Archived, IsLicenseItem, LicenseGroup, IsPDFItem, PDF)
+	values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	RETURNING ID
+	`, item.Name, item.Description, item.Price, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup, item.IsPDFItem, item.PDF).Scan(&id)
 	if err != nil {
-		log.Error("CreateItem: ", err)
+		log.Error("CreateItem: failed to insert item ", err)
 	}
 	return id, err
 }
@@ -287,9 +293,9 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 func (db *Database) UpdateItem(id int, item Item) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Item
-	SET Name = $2, Description = $3, Price = $4, Image = $5, LicenseItem = $6, Archived = $7, IsLicenseItem = $8, LicenseGroup = $9
+	SET Name = $2, Description = $3, Price = $4, Image = $5, LicenseItem = $6, Archived = $7, IsLicenseItem = $8, LicenseGroup = $9, IsPDFItem = $10, PDF = $11
 	WHERE ID = $1
-	`, id, item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup)
+	`, id, item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup, item.IsPDFItem, item.PDF)
 	if err != nil {
 		log.Error("UpdateItem: ", err)
 	}
@@ -446,7 +452,9 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 	if err != nil {
 		return
 	}
-	defer func() { err = deferTx(tx, err) }()
+	defer func() {
+		err = deferTx(tx, err)
+	}()
 
 	err = tx.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor, CustomerEmail) values ($1, $2, $3) RETURNING ID", order.OrderCode, order.Vendor, order.CustomerEmail).Scan(&orderID)
 	if err != nil {
@@ -558,42 +566,78 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		return err
 	}
 	if order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
-		customer, err := keycloak.KeycloakClient.GetOrCreateUser(order.CustomerEmail.String)
-		if err != nil {
-			log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", orderID, err)
-		}
-		// add customer to customer group
-		err = keycloak.KeycloakClient.AssignGroup(customer, "customer")
-		if err != nil {
-			log.Error("VerifyOrderAndCreatePayments: failed to assign customer to group: ", orderID, err)
-		}
-		// add customer to licenseItemGroup
 		for _, entry := range order.Entries {
 			item, err := db.GetItemTx(tx, entry.Item)
 			if err != nil {
 				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", orderID, err)
 			}
 			if item.LicenseItem.Valid {
-				err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(customer, item.LicenseGroup.String)
-				if err != nil {
-					log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", orderID, err)
+
+				if !item.IsPDFItem {
+					// add customer to licenseItemGroup
+
+					customer, err := keycloak.KeycloakClient.GetOrCreateUser(order.CustomerEmail.String)
+					if err != nil {
+						log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", orderID, err)
+					}
+					// add customer to customer group
+					err = keycloak.KeycloakClient.AssignGroup(customer, "customer")
+					if err != nil {
+						log.Error("VerifyOrderAndCreatePayments: failed to assign customer to group: ", orderID, err)
+					}
+					err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(customer, item.LicenseGroup.String)
+					if err != nil {
+						log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", orderID, err)
+					}
+					// Send email with link to the license Item
+					templateData := struct {
+						URL string
+					}{
+						URL: config.Config.OnlinePaperUrl,
+					}
+					receivers := []string{order.CustomerEmail.String}
+					mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "digitalLicenceItemTemplate.html", templateData)
+					if err != nil {
+						log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
+					}
+					success, err := mail.SendEmail()
+					if err != nil || !success {
+						log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+					}
+				} else {
+					// Generate download link and send it to the
+					if !item.PDF.Valid {
+						log.Error("VerifyOrderAndCreatePayments: item has no pdf: oder id: ", orderID, "itemid: ", item.ID, err)
+					}
+					pdf_id := item.PDF.ValueOrZero()
+					// TODO: check if pdf exists
+					pdf, err := db.GetPDFByID(pdf_id)
+					if err != nil {
+						log.Error("VerifyOrderAndCreatePayments: failed to get pdf: orderid", orderID, "item", item.ID, err)
+					}
+					pdfDownload, err := db.CreatePDFDownload(pdf)
+					if err != nil {
+						log.Error("VerifyOrderAndCreatePayments: failed to create pdf download: ", orderID, err)
+					}
+					url := config.Config.FrontendURL + "/pdf/" + pdfDownload.LinkID
+					templateData := struct {
+						URL string
+					}{
+						URL: url,
+					}
+					receivers := []string{order.CustomerEmail.String}
+					mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "PDFLicenceItemTemplate.html", templateData)
+					if err != nil {
+						log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
+					}
+					success, err := mail.SendEmail()
+					if err != nil || !success {
+						log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+					}
+
 				}
+
 			}
-		}
-		// Send email with link to the license Item
-		templateData := struct {
-			URL string
-		}{
-			URL: config.Config.OnlinePaperUrl,
-		}
-		receivers := []string{order.CustomerEmail.String}
-		mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "digitalLicenceItemTemplate.html", templateData)
-		if err != nil {
-			log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
-		}
-		success, err := mail.SendEmail()
-		if err != nil || !success {
-			log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
 		}
 	}
 	// Create payments
@@ -1185,4 +1229,102 @@ func (db *Database) GetVendorLocations() (locationData []LocationData, err error
 		locationData = append(locationData, nextLocationData)
 	}
 	return locationData, nil
+}
+
+// DeletePDF removes pdfs if their creation date is older than 6 weeks
+func (db *Database) DeletePDF() (err error) {
+	deleteInterval := config.Config.IntervalToDeletePDFsInWeeks
+	log.Info("DeletePDF entered: ", deleteInterval)
+	_, err = db.Dbpool.Exec(context.Background(), "DELETE FROM PDF WHERE timestamp < NOW() - $1 * INTERVAL '1 week'", deleteInterval)
+	if err != nil {
+		log.Error("DeletePDF: ", err)
+		return err
+	}
+	return err
+}
+
+// CreatePDF creates an instance of the PDF with given path and timestamp into the database
+func (db *Database) CreatePDF(pdf PDF) (pdfId int64, err error) {
+
+	// CreatePDF creates an instance of the PDF with given path and timestamp into the database
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDF (Path, Timestamp) values ($1, $2) RETURNING ID", pdf.Path, pdf.Timestamp).Scan(&pdf.ID)
+	// Close rows after function returns
+	defer func() {
+		err = db.DeletePDF()
+		if err != nil {
+			log.Error("CreatePDF: DeletePDF failed ", err)
+		}
+	}()
+	if err != nil {
+		log.Error("CreatePDF: ", err)
+	}
+	log.Info("Created new PDF with ID: ", pdf.ID, " and path: ", pdf.Path)
+	return int64(pdf.ID), err
+}
+
+// GetPDF returns the latest PDF from the database
+func (db *Database) GetPDF() (pdf PDF, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDF ORDER BY ID DESC LIMIT 1").Scan(&pdf.ID, &pdf.Path, &pdf.Timestamp)
+	if err != nil {
+		log.Error("GetPDF: ", err)
+	}
+	return pdf, err
+}
+
+// GetPDFByID returns the PDF with the given ID
+func (db *Database) GetPDFByID(id int64) (pdf PDF, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDF WHERE ID = $1", id).Scan(&pdf.ID, &pdf.Path, &pdf.Timestamp)
+	if err != nil {
+		log.Error("GetPDFByID: failed for id:", id, err)
+	}
+	return pdf, err
+}
+
+// CreatePDFDownload creates an instance of the PDFDownload with given linkID and timestamp into the database
+func (db *Database) CreatePDFDownload(pdf PDF) (pdfDownload PDFDownload, err error) {
+	// generate download id
+	linkID := uuid.New()
+	pdfDownload = PDFDownload{
+		LinkID:    linkID.String(),
+		PDF:       pdf.ID,
+		Timestamp: time.Now(),
+	}
+
+	// CreatePDF creates an instance of the PDF with given path and timestamp into the database
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDFDownload (LinkID, PDF, Timestamp) values ($1, $2, $3) RETURNING ID", pdfDownload.LinkID, pdfDownload.PDF, pdfDownload.Timestamp).Scan(&pdfDownload.ID)
+	// Close rows after function returns
+	defer func() {
+		err = db.DeletePDFDownload()
+		if err != nil {
+			log.Error("CreatePDFDownload: DeletePDFDownload failed ", err)
+		}
+	}()
+	if err != nil {
+		log.Error("CreatePDFDownload: ", err)
+	}
+	return
+}
+
+// GetPDFDownload returns the latest PDFDownload from the database
+func (db *Database) GetPDFDownload(linkID string) (pdfDownload PDFDownload, err error) {
+	if len(linkID) == 0 {
+		return pdfDownload, errors.New("linkID is empty")
+	}
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDFDownload WHERE LinkID = $1", linkID).Scan(&pdfDownload.ID, &pdfDownload.PDF, &pdfDownload.LinkID, &pdfDownload.Timestamp)
+	if err != nil {
+		log.Error("GetPDFDownload: ", linkID, "err: ", err)
+	}
+	return pdfDownload, err
+}
+
+// DeletePDFDownload removes pdfs if their creation date is older than 6 weeks
+func (db *Database) DeletePDFDownload() (err error) {
+	// Get interval from config
+	deleteInterval := config.Config.IntervalToDeletePDFsInWeeks
+	_, err = db.Dbpool.Exec(context.Background(), "DELETE FROM PDFDownload WHERE timestamp < NOW() - $1 * INTERVAL '1 week'", deleteInterval)
+	if err != nil {
+		log.Error("DeletePDFDownload: ", err)
+		return err
+	}
+	return err
 }

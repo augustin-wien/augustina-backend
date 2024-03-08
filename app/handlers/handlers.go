@@ -466,7 +466,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Read multipart form
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		log.Error("CreateItem: ", err)
+		log.Error("CreateItem: failed to parse Multipartform ", err)
 		return
 	}
 
@@ -479,6 +479,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// Handle normal fields
 	item, err := updateItemNormal(mForm.Value)
 	if err != nil {
+		log.Error("CreateItem: updateItemNormal failed ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -489,15 +490,27 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 		item.Image = path
 	}
 
+	// Handle pdf field
+	pdfId, err := handleItemPDF(w, r)
+	if err != nil {
+		log.Error("CreateItem: handleItemPDF failed ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if pdfId != 0 {
+		item.PDF = null.IntFrom(pdfId)
+	}
+
 	// Save item to database
 	id, err := database.Db.CreateItem(item)
 	if err != nil {
+		log.Error("CreateItem: Database call create item failed", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 	err = utils.WriteJSON(w, http.StatusOK, id)
 	if err != nil {
-		log.Error("CreateItem: ", err)
+		log.Error("CreateItem: WriteJSON failed", err)
 	}
 }
 
@@ -551,6 +564,74 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	return
 }
 
+func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err error) {
+	pdfId = 0
+	// Check if a digit is sent instead of pdf
+	// contentType := r.Header.Get("Content-Type")
+	// if contentType != "multipart/form-data" {
+	// 	log.Info("handleItemPDF: Content-Type is not multipart/form-data", contentType)
+	// 	// Assuming that if it's not multipart/form-data, it's a digit being sent
+	// 	// Handle the case where a digit is sent
+	// 	pdfId, err = strconv.ParseInt(r.FormValue("pdfId"), 10, 64)
+	// 	if err != nil {
+	// 		log.Error("handleItemPDF: parsing the id failed", err)
+	// 	}
+	// 	return pdfId, nil
+	// }
+
+	// Get file from pdf field
+	file, header, err := r.FormFile("PDF")
+	if err != nil {
+		return pdfId, nil // No file passed, which is ok
+	}
+	defer file.Close()
+
+	// Debugging
+	name := strings.Split(header.Filename, ".")
+	if len(name) < 2 {
+		log.Error("handleItemPDF: pdf name is wrong")
+		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err = io.Copy(buf, file); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	// create base dir if not exist
+
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error("UploadPDF: Failed to get current directory ", err)
+		return
+	}
+	path := "pdf/" + name[0] + "." + name[len(name)-1]
+	_, err = os.Stat(dir + "/pdf")
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.Mkdir(dir+"/pdf", 0777)
+		if err != nil {
+			log.Error("handleItemPDF: failed to create directory", err)
+			return
+		}
+	}
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
+	if err != nil {
+		log.Error("handleItemPDF: failed to write file", err)
+		return
+	}
+	pdf := database.PDF{
+		Path:      path,
+		Timestamp: time.Now(),
+	}
+
+	pdfId, err = database.Db.CreatePDF(pdf)
+	if err != nil {
+		log.Error("handleItemPDF: failed to create db entry", err)
+	}
+	return
+}
+
 // fields := mForm.Value               // Values are stored in []string
 func updateItemNormal(fields map[string][]string) (item database.Item, err error) {
 	fieldsClean := make(map[string]any) // Values are stored in string
@@ -558,25 +639,31 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 		if key == "Price" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse Price failed ", err)
 				return
 			}
 		} else if key == "IsLicenseItem" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse IfLicenseItem failed ", err)
+				return
+			}
+		} else if key == "IsPDFItem" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("updateItemNormal: Parse IsPDFItem failed ", err)
 				return
 			}
 		} else if key == "Archived" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse Archived failed ", err)
 				return
 			}
 		} else if key == "LicenseItem" {
 			licensitem, err := strconv.Atoi(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse LicenseItem failed ", err)
 				return item, err
 			}
 			fieldsClean[key] = null.IntFrom(int64(licensitem))
@@ -584,9 +671,16 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 		} else if key == "ID" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse ID failed ", err)
 				return
 			}
+		} else if key == "PDF" {
+			pdf, err := strconv.Atoi(value[0])
+			if err != nil {
+				log.Error("updateItemNormal: Parse PDF failed ", err)
+				return item, err
+			}
+			fieldsClean[key] = null.IntFrom(int64(pdf))
 		} else if key == "LicenseGroup" {
 			fieldsClean[key] = null.StringFrom(value[0])
 		} else {
@@ -595,7 +689,7 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 	}
 	err = mapstructure.Decode(fieldsClean, &item)
 	if err != nil {
-		log.Error("updateItemNormal: ", err)
+		log.Error("updateItemNormal: Decoding fields failed", err)
 		return
 	}
 	return
@@ -619,6 +713,7 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
+		log.Error("UpdateItem: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -630,13 +725,17 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read multipart form
-	err = r.ParseMultipartForm(32 << 20)
+	log.Info("Request Content Length:", r.ContentLength)
+	err = r.ParseMultipartForm(64 << 20)
+	log.Info("Parsed Form Content Length:", r.ContentLength)
 	if err != nil {
+		log.Error("UpdateItem: ParseMultipartForm failed ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 	mForm := r.MultipartForm
 	if mForm == nil {
+		log.Error("UpdateItem: ", errors.New("invalid form"))
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
@@ -644,13 +743,25 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	// Handle normal fields
 	item, err := updateItemNormal(mForm.Value)
 	if err != nil {
+		log.Error("UpdateItem: UpdateItemNormal failed ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	path, _ := updateItemImage(w, r)
 	if path != "" {
+		log.Info("UpdateItem: Path is empty", path)
 		item.Image = path
+	}
+
+	pdfId, err := handleItemPDF(w, r)
+	if err != nil {
+		log.Error("CreateItem: handleItemPDF failed ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if pdfId != 0 {
+		item.PDF = null.IntFrom(pdfId)
 	}
 
 	// Save item to database
@@ -1756,5 +1867,97 @@ func GetVendorLocations(w http.ResponseWriter, r *http.Request) {
 	err = utils.WriteJSON(w, http.StatusOK, locationData)
 	if err != nil {
 		log.Error("GetVendorLocations: ", err)
+	}
+}
+
+// GetPDF godoc
+//
+//	@Summary		Get PDF path
+//	@Description	Get PDF path
+//	@Tags			PDF
+//	@Accept			json
+//	@Produce		json
+//	@Success		200
+//	@Router			/pdf/ [get]
+func GetPDF(w http.ResponseWriter, r *http.Request) {
+	pdf, err := database.Db.GetPDF()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, pdf)
+	if err != nil {
+		log.Error("GetPDF: ", err)
+	}
+}
+
+// Download PDF from id
+func downloadPDF(w http.ResponseWriter, r *http.Request) {
+	// Get id from URL
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		log.Error("DownloadPDF: No id passed")
+		utils.ErrorJSON(w, errors.New("missing parameter id"), http.StatusBadRequest)
+		return
+	}
+
+	// Get PDF from database
+	pdfDownload, err := database.Db.GetPDFDownload(id)
+	if err != nil {
+		log.Error("DownloadPDF: Failed to get PDF from database ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if pdfDownload.Timestamp.IsZero() {
+		log.Error("DownloadPDF: Timestamp is zero")
+		utils.ErrorJSON(w, errors.New("timestamp is zero"), http.StatusBadRequest)
+		return
+	}
+	// check for expiration < 6 weeks
+	if time.Until(pdfDownload.Timestamp).Hours() < -6*7*24 {
+		log.Error("DownloadPDF: PDF is expired")
+		utils.ErrorJSON(w, errors.New("pdf is expired"), http.StatusBadRequest)
+		return
+	}
+	// Get PDF from database
+	pdf, err := database.Db.GetPDFByID(int64(pdfDownload.PDF))
+	if err != nil {
+		log.Error("DownloadPDF: Failed to get PDF from database ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	// send file
+	http.ServeFile(w, r, pdf.Path)
+}
+func validatePDFLink(w http.ResponseWriter, r *http.Request) {
+	// Get id from URL
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		log.Error("DownloadPDF: No id passed")
+		utils.ErrorJSON(w, errors.New("missing parameter id"), http.StatusBadRequest)
+		return
+	}
+
+	// Get PDF from database
+	pdfDownload, err := database.Db.GetPDFDownload(id)
+	if err != nil {
+		log.Error("DownloadPDF: Failed to get PDF from database ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if pdfDownload.Timestamp.IsZero() {
+		log.Error("DownloadPDF: Timestamp is zero")
+		utils.ErrorJSON(w, errors.New("timestamp is zero"), http.StatusBadRequest)
+		return
+	}
+	// check for expiration < 6 weeks
+	if time.Until(pdfDownload.Timestamp).Hours() < -6*7*24 {
+		log.Error("DownloadPDF: PDF is expired")
+		utils.ErrorJSON(w, errors.New("pdf is expired"), http.StatusBadRequest)
+		return
+	}
+	err = utils.WriteJSON(w, http.StatusOK, "valid")
+	if err != nil {
+		log.Error("validatePDFLink: ", err)
 	}
 }
