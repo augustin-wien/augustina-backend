@@ -491,7 +491,12 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Handle pdf field
-	pdfId := handleItemPDF(w, r)
+	pdfId, err := handleItemPDF(w, r)
+	if err != nil {
+		log.Error("CreateItem: handleItemPDF failed ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	if pdfId != 0 {
 		item.PDF = null.IntFrom(pdfId)
 	}
@@ -559,12 +564,25 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	return
 }
 
-func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64) {
+func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err error) {
 	pdfId = 0
+	// Check if a digit is sent instead of pdf
+	contentType := r.Header.Get("Content-Type")
+	if contentType != "multipart/form-data" {
+		log.Info("handleItemPDF: Content-Type is not multipart/form-data", contentType)
+		// Assuming that if it's not multipart/form-data, it's a digit being sent
+		// Handle the case where a digit is sent
+		pdfId, err = strconv.ParseInt(r.FormValue("pdfId"), 10, 64)
+		if err != nil {
+			log.Error("handleItemPDF: parsing the id failed", err)
+		}
+		return pdfId, nil
+	}
+
 	// Get file from pdf field
 	file, header, err := r.FormFile("PDF")
 	if err != nil {
-		return // No file passed, which is ok
+		return pdfId, nil // No file passed, which is ok
 	}
 	defer file.Close()
 
@@ -621,31 +639,31 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 		if key == "Price" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse Price failed ", err)
 				return
 			}
 		} else if key == "IsLicenseItem" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse IfLicenseItem failed ", err)
 				return
 			}
 		} else if key == "IsPDFItem" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse IsPDFItem failed ", err)
 				return
 			}
 		} else if key == "Archived" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse Archived failed ", err)
 				return
 			}
 		} else if key == "LicenseItem" {
 			licensitem, err := strconv.Atoi(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse LicenseItem failed ", err)
 				return item, err
 			}
 			fieldsClean[key] = null.IntFrom(int64(licensitem))
@@ -653,9 +671,16 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 		} else if key == "ID" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
-				log.Error("updateItemNormal: ", err)
+				log.Error("updateItemNormal: Parse ID failed ", err)
 				return
 			}
+		} else if key == "PDF" {
+			pdf, err := strconv.Atoi(value[0])
+			if err != nil {
+				log.Error("updateItemNormal: Parse PDF failed ", err)
+				return item, err
+			}
+			fieldsClean[key] = null.IntFrom(int64(pdf))
 		} else if key == "LicenseGroup" {
 			fieldsClean[key] = null.StringFrom(value[0])
 		} else {
@@ -664,7 +689,7 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 	}
 	err = mapstructure.Decode(fieldsClean, &item)
 	if err != nil {
-		log.Error("updateItemNormal: ", err)
+		log.Error("updateItemNormal: Decoding fields failed", err)
 		return
 	}
 	return
@@ -729,7 +754,12 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		item.Image = path
 	}
 
-	pdfId := handleItemPDF(w, r)
+	pdfId, err := handleItemPDF(w, r)
+	if err != nil {
+		log.Error("CreateItem: handleItemPDF failed ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	if pdfId != 0 {
 		item.PDF = null.IntFrom(pdfId)
 	}
