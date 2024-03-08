@@ -137,8 +137,13 @@ type PDF struct {
 }
 
 type PDFDownload struct {
-	ID        int
-	LinkID    string
-	PDF       int
-	Timestamp time.Time
+	ID            int
+	LinkID        string
+	PDF           int
+	Timestamp     time.Time
+	EmailSent     bool
+	OrderID       null.Int
+	LastDownload  time.Time
+	DownloadCount int
+	ItemID        null.Int
 }

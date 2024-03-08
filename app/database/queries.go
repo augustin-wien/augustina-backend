@@ -20,7 +20,7 @@ import (
 // Helpers --------------------------------------------------------------------
 
 // deferTx executes a transaction after a function returns
-func deferTx(tx pgx.Tx, err error) error {
+func DeferTx(tx pgx.Tx, err error) error {
 	if p := recover(); p != nil {
 		// Rollback the transaction if a panic occurred
 		_ = tx.Rollback(context.Background())
@@ -297,7 +297,7 @@ func (db *Database) UpdateItem(id int, item Item) (err error) {
 	WHERE ID = $1
 	`, id, item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup, item.IsPDFItem, item.PDF)
 	if err != nil {
-		log.Error("UpdateItem: ", err)
+		log.Error("DB UpdateItem: ", err)
 	}
 	return
 }
@@ -453,7 +453,10 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 		return
 	}
 	defer func() {
-		err = deferTx(tx, err)
+		err = DeferTx(tx, err)
+		if err != nil {
+			log.Error("CreateOrder: reached defer error ", err)
+		}
 	}()
 
 	err = tx.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor, CustomerEmail) values ($1, $2, $3) RETURNING ID", order.OrderCode, order.Vendor, order.CustomerEmail).Scan(&orderID)
@@ -548,7 +551,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		return err
 	}
 
-	defer func() { err = deferTx(tx, err) }()
+	defer func() { err = DeferTx(tx, err) }()
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
 	UPDATE PaymentOrder
@@ -615,24 +618,41 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					if err != nil {
 						log.Error("VerifyOrderAndCreatePayments: failed to get pdf: orderid", orderID, "item", item.ID, err)
 					}
-					pdfDownload, err := db.CreatePDFDownload(pdf)
+					// Check if link already created for Download
+
+					pdfDownload, err := db.GetPDFDownloadByOrderIdAndItemTx(tx, orderID, item.ID)
+
 					if err != nil {
-						log.Error("VerifyOrderAndCreatePayments: failed to create pdf download: ", orderID, err)
+						log.Error("VerifyOrderAndCreatePayments: failed to get pdf download: ", orderID, err)
+						pdfDownload, err = db.CreatePDFDownload(tx, pdf, orderID, item.ID)
+						if err != nil {
+							log.Error("VerifyOrderAndCreatePayments: failed to create pdf download: ", orderID, err)
+						}
 					}
-					url := config.Config.FrontendURL + "/pdf/" + pdfDownload.LinkID
-					templateData := struct {
-						URL string
-					}{
-						URL: url,
-					}
-					receivers := []string{order.CustomerEmail.String}
-					mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "PDFLicenceItemTemplate.html", templateData)
-					if err != nil {
-						log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
-					}
-					success, err := mail.SendEmail()
-					if err != nil || !success {
-						log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+
+					if !pdfDownload.EmailSent {
+						url := config.Config.FrontendURL + "/pdf/" + pdfDownload.LinkID
+						templateData := struct {
+							URL string
+						}{
+							URL: url,
+						}
+						receivers := []string{order.CustomerEmail.String}
+						mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "PDFLicenceItemTemplate.html", templateData)
+						if err != nil {
+							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
+						}
+						success, err := mail.SendEmail()
+						if err != nil || !success {
+							log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+						}
+						pdfDownload.EmailSent = true
+						pdfDownload.OrderID = null.IntFrom(int64(orderID))
+						pdfDownload.ItemID = null.IntFrom(int64(item.ID))
+						err = db.UpdatePdfDownloadTx(tx, pdfDownload)
+						if err != nil {
+							log.Error("VerifyOrderAndCreatePayments; failed to update pdfdownload ", err)
+						}
 					}
 
 				}
@@ -660,7 +680,7 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 	if err != nil {
 		return err
 	}
-	defer func() { err = deferTx(tx, err) }()
+	defer func() { err = DeferTx(tx, err) }()
 
 	// Create entries & associated payments
 	for _, entry := range entries {
@@ -690,7 +710,7 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		return nil, err
 	}
 
-	defer func() { err = deferTx(tx, err) }()
+	defer func() { err = DeferTx(tx, err) }()
 	// Create filters
 	var filters []string
 	var filterValues []any
@@ -823,7 +843,7 @@ func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
 	if err != nil {
 		return
 	}
-	defer func() { err = deferTx(tx, err) }()
+	defer func() { err = DeferTx(tx, err) }()
 
 	paymentID, err = createPaymentTx(tx, payment)
 
@@ -839,7 +859,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 		log.Error("CreatePayments: ", err)
 		return err
 	}
-	defer func() { err = deferTx(tx, err) }()
+	defer func() { err = DeferTx(tx, err) }()
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
@@ -861,7 +881,7 @@ func (db *Database) CreatePaymentPayout(vendor Vendor, vendorAccountID int, auth
 		log.Error("CreatePaymentPayout: ", err)
 		return
 	}
-	defer func() { err = deferTx(tx, err) }()
+	defer func() { err = DeferTx(tx, err) }()
 
 	// Get cash account
 	cashAccount, err := db.GetAccountByType("Cash")
@@ -1073,7 +1093,7 @@ func (db *Database) UpdateAccountBalanceByOpenPayments(vendorID int) (payoutAmou
 	}
 
 	// Provide defer func to commit or rollback transaction after function returns
-	defer func() { err = deferTx(tx, err) }()
+	defer func() { err = DeferTx(tx, err) }()
 
 	// Get account
 	vendorAccount, err := db.GetAccountByVendorID(vendorID)
@@ -1144,7 +1164,7 @@ func (db *Database) GetSettings() (Settings, error) {
 func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	tx, err := db.Dbpool.Begin(context.Background())
-	defer func() { err = deferTx(tx, err) }()
+	defer func() { err = DeferTx(tx, err) }()
 	if err != nil {
 		log.Error("UpdateSettings failed to access db pool: ", err)
 		return err
@@ -1248,13 +1268,9 @@ func (db *Database) CreatePDF(pdf PDF) (pdfId int64, err error) {
 
 	// CreatePDF creates an instance of the PDF with given path and timestamp into the database
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDF (Path, Timestamp) values ($1, $2) RETURNING ID", pdf.Path, pdf.Timestamp).Scan(&pdf.ID)
-	// Close rows after function returns
-	defer func() {
-		err = db.DeletePDF()
-		if err != nil {
-			log.Error("CreatePDF: DeletePDF failed ", err)
-		}
-	}()
+	if err != nil {
+		log.Error("CreatePDF: failed to add to database ", err)
+	}
 	if err != nil {
 		log.Error("CreatePDF: ", err)
 	}
@@ -1281,24 +1297,22 @@ func (db *Database) GetPDFByID(id int64) (pdf PDF, err error) {
 }
 
 // CreatePDFDownload creates an instance of the PDFDownload with given linkID and timestamp into the database
-func (db *Database) CreatePDFDownload(pdf PDF) (pdfDownload PDFDownload, err error) {
+func (db *Database) CreatePDFDownload(tx pgx.Tx, pdf PDF, orderId, itemId int) (pdfDownload PDFDownload, err error) {
 	// generate download id
 	linkID := uuid.New()
 	pdfDownload = PDFDownload{
-		LinkID:    linkID.String(),
-		PDF:       pdf.ID,
-		Timestamp: time.Now(),
+		LinkID:        linkID.String(),
+		PDF:           pdf.ID,
+		Timestamp:     time.Now(),
+		EmailSent:     false,
+		LastDownload:  time.Time{},
+		DownloadCount: 0,
+		OrderID:       null.IntFrom(int64(orderId)),
+		ItemID:        null.IntFrom(int64(itemId)),
 	}
 
 	// CreatePDF creates an instance of the PDF with given path and timestamp into the database
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDFDownload (LinkID, PDF, Timestamp) values ($1, $2, $3) RETURNING ID", pdfDownload.LinkID, pdfDownload.PDF, pdfDownload.Timestamp).Scan(&pdfDownload.ID)
-	// Close rows after function returns
-	defer func() {
-		err = db.DeletePDFDownload()
-		if err != nil {
-			log.Error("CreatePDFDownload: DeletePDFDownload failed ", err)
-		}
-	}()
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO PDFDownload (LinkID, PDF, Timestamp, OrderId, ItemId) values ($1, $2, $3, $4, $5) RETURNING ID", pdfDownload.LinkID, pdfDownload.PDF, pdfDownload.Timestamp, pdfDownload.OrderID, pdfDownload.ItemID).Scan(&pdfDownload.ID)
 	if err != nil {
 		log.Error("CreatePDFDownload: ", err)
 	}
@@ -1310,7 +1324,19 @@ func (db *Database) GetPDFDownload(linkID string) (pdfDownload PDFDownload, err 
 	if len(linkID) == 0 {
 		return pdfDownload, errors.New("linkID is empty")
 	}
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDFDownload WHERE LinkID = $1", linkID).Scan(&pdfDownload.ID, &pdfDownload.PDF, &pdfDownload.LinkID, &pdfDownload.Timestamp)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDFDownload WHERE LinkID = $1", linkID).Scan(&pdfDownload.ID, &pdfDownload.PDF, &pdfDownload.LinkID, &pdfDownload.Timestamp, &pdfDownload.EmailSent, &pdfDownload.OrderID, &pdfDownload.LastDownload, &pdfDownload.DownloadCount, &pdfDownload.ItemID)
+	if err != nil {
+		log.Error("GetPDFDownload: ", linkID, "err: ", err)
+	}
+	return pdfDownload, err
+}
+
+// GetPDFDownload returns the latest PDFDownload from the database
+func (db *Database) GetPDFDownloadTx(tx pgx.Tx, linkID string) (pdfDownload PDFDownload, err error) {
+	if len(linkID) == 0 {
+		return pdfDownload, errors.New("linkID is empty")
+	}
+	err = tx.QueryRow(context.Background(), "SELECT * FROM PDFDownload WHERE LinkID = $1", linkID).Scan(&pdfDownload.ID, &pdfDownload.PDF, &pdfDownload.LinkID, &pdfDownload.Timestamp, &pdfDownload.EmailSent, &pdfDownload.OrderID, &pdfDownload.LastDownload, &pdfDownload.DownloadCount, &pdfDownload.ItemID)
 	if err != nil {
 		log.Error("GetPDFDownload: ", linkID, "err: ", err)
 	}
@@ -1327,4 +1353,70 @@ func (db *Database) DeletePDFDownload() (err error) {
 		return err
 	}
 	return err
+}
+
+func (db *Database) UpdatePdfDownloadTx(tx pgx.Tx, pdfDownload PDFDownload) (err error) {
+	_, err = tx.Exec(context.Background(), `
+	UPDATE PDFDownload SET PDF = $1, LinkID = $2, Timestamp = $3, EmailSent = $4, OrderID = $5, LastDownload = $6, DownloadCount = $7, ItemId = $8 WHERE ID = $9`,
+		pdfDownload.PDF, pdfDownload.LinkID, pdfDownload.Timestamp, pdfDownload.EmailSent, pdfDownload.OrderID, pdfDownload.LastDownload, pdfDownload.DownloadCount, pdfDownload.ItemID, pdfDownload.ID)
+	if err != nil {
+		log.Error("UpdatePdfDownload: ", err)
+	}
+	return err
+}
+
+func (db *Database) UpdatePdfDownload(pdfDownload PDFDownload) (err error) {
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		log.Error("UpdatePdfDownload: failed to start transaction ", err)
+		return
+	}
+	defer func() {
+		err = DeferTx(tx, err)
+		if err != nil {
+
+			log.Error("UpdatePdfDownload: reached defer error ", err)
+		}
+	}()
+	log.Info("UpdatePdfDownload: pdfDownload: ", pdfDownload)
+	return db.UpdatePdfDownloadTx(tx, pdfDownload)
+}
+
+func (db *Database) GetPDFDownloadByOrderIdTx(tx pgx.Tx, order int) (pdfDownload []PDFDownload, err error) {
+	rows, err := tx.Query(context.Background(), "SELECT * FROM PDFDownload WHERE OrderId = $1", order)
+	if err != nil {
+		log.Error("GetPDFDownloadByOrderIdTx: ", err)
+		return pdfDownload, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var nextPdfDownload PDFDownload
+		err = rows.Scan(&nextPdfDownload.ID, &nextPdfDownload.PDF, &nextPdfDownload.LinkID, &nextPdfDownload.Timestamp, &nextPdfDownload.EmailSent, &nextPdfDownload.OrderID, &nextPdfDownload.LastDownload, &nextPdfDownload.DownloadCount, &nextPdfDownload.ItemID)
+		if err != nil {
+			log.Error("GetPDFDownloadByOrderIdTx: ", err)
+			return pdfDownload, err
+		}
+		pdfDownload = append(pdfDownload, nextPdfDownload)
+	}
+	return pdfDownload, nil
+}
+
+func (db *Database) GetPDFDownloadByOrderId(order int) (pdfDownload []PDFDownload, err error) {
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		return
+	}
+	defer func() {
+		err = DeferTx(tx, err)
+		if err != nil {
+
+			log.Error("GetPDFDownloadByOrderId: reached defer error ", err)
+		}
+	}()
+	return db.GetPDFDownloadByOrderIdTx(tx, order)
+}
+
+func (db *Database) GetPDFDownloadByOrderIdAndItemTx(tx pgx.Tx, order int, item int) (pdfDownload PDFDownload, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PDFDownload WHERE OrderId = $1 AND ItemId = $2", order, item).Scan(&pdfDownload.ID, &pdfDownload.PDF, &pdfDownload.LinkID, &pdfDownload.Timestamp, &pdfDownload.EmailSent, &pdfDownload.OrderID, &pdfDownload.LastDownload, &pdfDownload.DownloadCount, &pdfDownload.ItemID)
+	return pdfDownload, err
 }
