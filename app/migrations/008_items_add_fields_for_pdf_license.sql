@@ -1,7 +1,7 @@
 -- Write your migrate up statements here
 
 ALTER TABLE Item ADD COLUMN IsPDFItem boolean NOT NULL DEFAULT false;
-ALTER TABLE Item ADD COLUMN PDF integer REFERENCES PDF(ID);
+ALTER TABLE Item ADD COLUMN PDF integer REFERENCES PDF(ID) ON DELETE SET NULL;
 
 
 ---- create above / drop below ----
