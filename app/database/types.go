@@ -56,10 +56,10 @@ type Item struct {
 	Image         string
 	LicenseItem   null.Int // License has to be bought before item
 	Archived      bool
+	LicenseGroup  null.String
 	IsLicenseItem bool
 	IsPDFItem     bool
 	PDF           null.Int
-	LicenseGroup  null.String
 }
 
 // Order is a struct that is used for the order table
@@ -137,8 +137,13 @@ type PDF struct {
 }
 
 type PDFDownload struct {
-	ID        int
-	LinkID    string
-	PDF       int
-	Timestamp time.Time
+	ID            int
+	LinkID        string
+	PDF           int
+	Timestamp     time.Time
+	EmailSent     bool
+	OrderID       null.Int
+	LastDownload  time.Time
+	DownloadCount int
+	ItemID        null.Int
 }

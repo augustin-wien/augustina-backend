@@ -5,6 +5,7 @@ import (
 	"augustin/keycloak"
 	"augustin/utils"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -565,7 +566,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 }
 
 func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err error) {
-	pdfId = 0
+	pdfId = -1
 	// Check if a digit is sent instead of pdf
 	// contentType := r.Header.Get("Content-Type")
 	// if contentType != "multipart/form-data" {
@@ -760,14 +761,14 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	if pdfId != 0 {
+	if pdfId != -1 {
 		item.PDF = null.IntFrom(pdfId)
 	}
 
 	// Save item to database
 	err = database.Db.UpdateItem(ItemID, item)
 	if err != nil {
-		log.Error("UpdateItem: ", err)
+		log.Error("UpdateItem: db update", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
 	err = utils.WriteJSON(w, http.StatusOK, err)
@@ -1097,10 +1098,11 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 // VerifyPaymentOrderResponse is the response to VerifyPaymentOrder
 type VerifyPaymentOrderResponse struct {
-	TimeStamp      time.Time
-	FirstName      string
-	PurchasedItems []database.OrderEntry
-	TotalSum       int
+	TimeStamp        time.Time
+	FirstName        string
+	PurchasedItems   []database.OrderEntry
+	TotalSum         int
+	PDFDownloadLinks *[]database.PDFDownloadLinks
 }
 
 // VerifyPaymentOrder godoc
@@ -1173,6 +1175,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Declare total sum from order
 	verifyPaymentOrderResponse.TotalSum = order.GetTotal()
+	verifyPaymentOrderResponse.PDFDownloadLinks = order.GetPDFDownloadLinks()
 
 	// Get first name of vendor from vendor id in order
 	vendor, err := database.Db.GetVendor(order.Vendor)
@@ -1900,11 +1903,22 @@ func downloadPDF(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("missing parameter id"), http.StatusBadRequest)
 		return
 	}
+	tx, err := database.Db.Dbpool.Begin(context.Background())
+	if err != nil {
+		log.Error("UpdatePdfDownload: failed to start transaction ", err)
+		return
+	}
+	defer func() {
+		err = database.DeferTx(tx, err)
+		if err != nil {
+			log.Error("DownloadPDF: failed to defer transaction ", err)
+		}
+	}()
 
 	// Get PDF from database
-	pdfDownload, err := database.Db.GetPDFDownload(id)
+	pdfDownload, err := database.Db.GetPDFDownloadTx(tx, id)
 	if err != nil {
-		log.Error("DownloadPDF: Failed to get PDF from database ", err)
+		log.Error("DownloadPDF: Failed to get PDF download from database ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -1925,6 +1939,14 @@ func downloadPDF(w http.ResponseWriter, r *http.Request) {
 		log.Error("DownloadPDF: Failed to get PDF from database ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
+	}
+	pdfDownload.DownloadCount = pdfDownload.DownloadCount + 1
+	pdfDownload.LastDownload = time.Now()
+	err = database.Db.UpdatePdfDownloadTx(tx, pdfDownload)
+	pdfDownload, err = database.Db.GetPDFDownloadTx(tx, id)
+
+	if err != nil {
+		log.Error("DownloadPDF: Failed to update downloadpdf ", err)
 	}
 	// send file
 	http.ServeFile(w, r, pdf.Path)
