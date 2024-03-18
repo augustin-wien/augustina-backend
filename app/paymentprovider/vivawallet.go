@@ -270,7 +270,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	sum = float64(sum) / 100
 
 	if sum != paymentSuccessful.EventData.Amount {
-		return errors.New("Amount mismatch")
+		return errors.New("Amount mismatch sum is" + fmt.Sprintf("%f", sum) + "  vs. payment amount" + fmt.Sprintf("%f", paymentSuccessful.EventData.Amount) + " with transaction id " + paymentSuccessful.EventData.TransactionID)
 	}
 
 	// Since every check passed, now set verification status of order and create payments
