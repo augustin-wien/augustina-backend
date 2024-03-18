@@ -254,13 +254,21 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		}
 
 		// Check if entry is transaction costs, which are not included in the sum
-		var item database.Item
-		item, err = database.Db.GetItemByName(config.Config.TransactionCostsName)
+		var transactionCostItem database.Item
+		transactionCostItem, err = database.Db.GetItemByName(config.Config.TransactionCostsName)
 		if err != nil {
 			return err
 		}
-		if entry.Item == item.ID {
+		if entry.Item == transactionCostItem.ID {
 			continue // Skip transaction costs
+		}
+		item, err := database.Db.GetItem(entry.Item) // Get item by ID
+		if err != nil {
+			log.Error("Item could not be found", zap.Error(err))
+		}
+
+		if item.IsLicenseItem {
+			continue // Skip license items
 		}
 
 		sum += float64(entry.Price * entry.Quantity)
