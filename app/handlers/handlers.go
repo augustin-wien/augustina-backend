@@ -318,9 +318,9 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// create user if it does not exist
 		randomPassword := utils.RandomString(10)
-		keycloakUser, err := keycloak.KeycloakClient.CreateUser(vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email, randomPassword)
+		keycloakUser, err2 := keycloak.KeycloakClient.CreateUser(vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email, randomPassword)
 		if err != nil {
-			log.Error("UpdateVendor: create keycloak user for "+fmt.Sprint(vendorID)+" failed: ", err)
+			log.Error("UpdateVendor: create keycloak user for "+fmt.Sprint(vendorID)+" failed: ", err2, err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
