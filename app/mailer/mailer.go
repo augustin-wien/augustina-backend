@@ -4,6 +4,7 @@ import (
 	"augustin/config"
 	"augustin/utils"
 	"bytes"
+	"errors"
 
 	"net/smtp"
 	"text/template"
@@ -58,6 +59,16 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 }
 
 func (r *EmailRequest) ParseTemplate(templateFileName string, data interface{}) error {
+	// Parse the template
+	if templateFileName == "" {
+		return errors.New("template file name is empty")
+	}
+	path := "./templates/" + templateFileName
+
+	if !utils.FileExists(path) {
+		return errors.New("template file does not exist")
+	}
+
 	t, err := template.ParseFiles("./templates/" + templateFileName)
 	if err != nil {
 		return err
