@@ -21,6 +21,7 @@ services:
       context: .
     volumes:
       - ./app:/app
+      - ./email_templates:/app/templates
     command: >
       sh -c "tern migrate --migrations ./migrations --config
       ./migrations/tern.conf && tern migrate --migrations ./migrations --config
