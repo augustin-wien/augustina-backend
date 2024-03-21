@@ -630,7 +630,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					pdfDownload, err := db.GetPDFDownloadByOrderIdAndItemTx(tx, orderID, item.ID)
 
 					if err != nil {
-						log.Error("VerifyOrderAndCreatePayments: failed to get pdf download: ", orderID, err)
+						log.Debug("VerifyOrderAndCreatePayments:create pdf download: ", orderID, item.ID, err)
 						pdfDownload, err = db.CreatePDFDownload(tx, pdf, orderID, item.ID)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create pdf download: ", orderID, err)
@@ -645,7 +645,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							URL: url,
 						}
 						receivers := []string{order.CustomerEmail.String}
-						mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "PDFLicenceItemTemplate.html", templateData)
+						mail, err := mailer.NewRequestFromTemplate(receivers, "Deine Zeitung ist bereit zum Download", "PDFLicenceItemTemplate.html", templateData)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 						}

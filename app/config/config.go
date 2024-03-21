@@ -41,6 +41,7 @@ type config struct {
 	SMTPUsername                      string
 	SMTPPassword                      string
 	SMTPSenderAddress                 string
+	SMTPSsl                           bool
 }
 
 // Config is the global configuration variable
@@ -90,6 +91,7 @@ func InitConfig() {
 		SMTPUsername:                      getEnv("SMTP_USERNAME", ""),
 		SMTPPassword:                      getEnv("SMTP_PASSWORD", ""),
 		SMTPSenderAddress:                 getEnv("SMTP_SENDER_ADDRESS", ""),
+		SMTPSsl:                           (getEnv("SMTP_SSL", "false") == "true"),
 		FrontendURL:                       getEnv("FRONTEND_URL", ""),
 	}
 }

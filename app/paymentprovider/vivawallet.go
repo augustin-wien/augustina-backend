@@ -181,7 +181,9 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 			log.Error("Reading body failed: ", err)
 			body = []byte("Reading body failed: " + err.Error())
 		}
-		return 0, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode) + " " + fmt.Sprint(body))
+		bodyString := string(body)
+
+		return 0, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode) + " " + bodyString)
 	}
 
 	// Close the body after the function returns
