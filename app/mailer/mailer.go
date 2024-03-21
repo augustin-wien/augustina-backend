@@ -4,6 +4,7 @@ import (
 	"augustin/config"
 	"augustin/utils"
 	"bytes"
+	"crypto/tls"
 	"errors"
 
 	"net/smtp"
@@ -16,7 +17,11 @@ var auth smtp.Auth
 
 func Init() {
 	log.Infoln("Initializing mailer")
-	auth = smtp.PlainAuth("", config.Config.SMTPUsername, config.Config.SMTPPassword, config.Config.SMTPServer)
+	host := config.Config.SMTPServer + ":" + config.Config.SMTPPort
+	if !config.Config.SMTPSsl {
+		host = config.Config.SMTPServer
+	}
+	auth = smtp.PlainAuth("", config.Config.SMTPUsername, config.Config.SMTPPassword, host)
 }
 
 // Request struct
@@ -44,18 +49,86 @@ func NewRequest(to []string, subject, body string) *EmailRequest {
 }
 
 func (r *EmailRequest) SendEmail() (bool, error) {
-	log.Info("Sending email to ", r.to, " with subject ", r.subject)
+
 	from := "From: " + config.Config.SMTPSenderAddress + "\n"
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 	subject := "Subject: " + r.subject + "!\n"
 	msg := []byte(from + subject + mime + "\n" + r.body)
-	addr := config.Config.SMTPServer + ":" + config.Config.SMTPPort
 
-	if err := smtp.SendMail(addr, auth, config.Config.SMTPUsername, r.to, msg); err != nil {
-		log.Error("Error sending email ", err)
-		return false, err
+	if !config.Config.SMTPSsl {
+		log.Info("Sending email to ", r.to, " with subject ", r.subject)
+		addr := config.Config.SMTPServer + ":" + config.Config.SMTPPort
+		if err := smtp.SendMail(addr, auth, config.Config.SMTPUsername, r.to, msg); err != nil {
+			log.Error("SendEmail: noSSL: Error sending email ", err)
+			return false, err
+		}
+		return true, nil
+	} else {
+		log.Info("Sending ssl email to ", r.to, " with subject ", r.subject)
+
+		// TLS config
+		tlsconfig := &tls.Config{
+			InsecureSkipVerify: true,
+			ServerName:         config.Config.SMTPServer,
+		}
+		host := config.Config.SMTPServer + ":" + config.Config.SMTPPort
+
+		// Here is the key, you need to call tls.Dial instead of smtp.Dial
+		// for smtp servers running on 465 that require an ssl connection
+		// from the very beginning (no starttls)
+		conn, err := tls.Dial("tcp", host, tlsconfig)
+		if err != nil {
+			log.Error("SendEmail: failed tls dial", err)
+			return false, err
+		}
+
+		c, err := smtp.NewClient(conn, host)
+		if err != nil {
+			log.Error("SendMail: Ssl: create smtp client", err)
+			return false, err
+
+		}
+
+		// Auth
+		if err = c.Auth(auth); err != nil {
+			log.Error("SendMail: Ssl:", err)
+			return false, err
+		}
+
+		// To && From
+		if err = c.Mail(config.Config.SMTPSenderAddress); err != nil {
+			log.Error("SendMail: Ssl: create mail: ", err)
+			return false, err
+		}
+
+		if err = c.Rcpt(r.to[0]); err != nil {
+			log.Error("SendMail: Ssl: set recipient:", err)
+			return false, err
+		}
+
+		// Data
+		w, err := c.Data()
+		if err != nil {
+			log.Error("SendMail: Ssl: data", err)
+			return false, err
+		}
+
+		_, err = w.Write([]byte(msg))
+		if err != nil {
+			log.Error("SendMail: Ssl: send message", err)
+			return false, err
+		}
+
+		err = w.Close()
+		if err != nil {
+			log.Error("SendMail: Ssl: close connection", err)
+			return false, err
+		}
+
+		c.Quit()
+		return true, nil
 	}
-	return true, nil
+
 }
 
 func (r *EmailRequest) ParseTemplate(templateFileName string, data interface{}) error {
