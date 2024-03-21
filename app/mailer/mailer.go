@@ -125,7 +125,11 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 			return false, err
 		}
 
-		c.Quit()
+		err = c.Quit()
+		if err != nil {
+			log.Error("SendMail: Ssl: quit", err)
+			return false, err
+		}
 		return true, nil
 	}
 
