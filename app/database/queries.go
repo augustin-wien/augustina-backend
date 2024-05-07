@@ -1048,7 +1048,7 @@ func (db *Database) GetAccountTypeID(accountType string) (accountTypeID int, err
 	}
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID FROM Account WHERE Type = $1", accountType).Scan(&accountTypeID)
 	if err != nil {
-		log.Error("GetAccountTypeID: ", err)
+		log.Error("GetAccountTypeID: ", accountType, err)
 		return
 	}
 	accountTypeIDCache[accountType] = accountTypeID
