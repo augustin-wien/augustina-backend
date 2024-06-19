@@ -71,17 +71,19 @@ services:
     depends_on:
       - augustin-db
     environment:
-        - POSTGRES_HOST=${DB_HOST}
-        - POSTGRES_PORT=${DB_PORT}
+        - POSTGRES_HOST=${DB_BACKUP_HOST}
+        - POSTGRES_PORT=7005
         - POSTGRES_DB=${DB_NAME}
         - POSTGRES_USER=${DB_USER}
-        - POSTGRES_PASSWORD=${DB_PASSWORD}
+        - POSTGRES_PASSWORD=${DB_PASS}
         - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
-        - SCHEDULE=@daily
+        - SCHEDULE=@every 3m
++       - BACKUP_KEEP_MINS=1900
         - BACKUP_KEEP_DAYS=7
         - BACKUP_KEEP_WEEKS=4
         - BACKUP_KEEP_MONTHS=6
         - HEALTHCHECK_PORT=8080
+
   keycloak:
     build:
       context: ./docker/keycloak
