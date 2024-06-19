@@ -122,6 +122,7 @@ type Settings struct {
 	MainItemPrice              null.Int
 	MainItemDescription        null.String
 	MainItemImage              null.String
+	WebshopIsClosed            bool
 }
 
 // DBSettings is a struct that is used for the dbsettings table
