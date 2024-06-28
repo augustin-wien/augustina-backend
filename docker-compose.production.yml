@@ -78,7 +78,7 @@ services:
         - POSTGRES_PASSWORD=${DB_PASS}
         - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
         - SCHEDULE=@every 3m
-+       - BACKUP_KEEP_MINS=1900
+        - BACKUP_KEEP_MINS=1900
         - BACKUP_KEEP_DAYS=7
         - BACKUP_KEEP_WEEKS=4
         - BACKUP_KEEP_MONTHS=6
