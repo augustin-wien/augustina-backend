@@ -1688,6 +1688,15 @@ func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type KeycloakSettings struct {
+	Realm string
+	URL   string
+}
+type ExtendedSettings struct {
+	database.Settings
+	Keycloak KeycloakSettings
+}
+
 // Settings -------------------------------------------------------------------
 
 // getSettings godoc
@@ -1705,7 +1714,14 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = utils.WriteJSON(w, http.StatusOK, settings)
+	exSettings := ExtendedSettings{
+		Settings: settings,
+		Keycloak: KeycloakSettings{
+			Realm: config.Config.KeycloakRealm,
+			URL:   config.Config.KeycloakHostname,
+		},
+	}
+	err = utils.WriteJSON(w, http.StatusOK, exSettings)
 	if err != nil {
 		log.Error("getSettings: ", err)
 	}
