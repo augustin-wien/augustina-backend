@@ -314,18 +314,27 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update user in keycloak
-	user, err := keycloak.KeycloakClient.GetUser(oldVendor.Email)
+	user, err := keycloak.KeycloakClient.GetUserByEmail(oldVendor.Email)
 	if err != nil {
-		// create user if it does not exist
-		randomPassword := utils.RandomString(10)
-		keycloakUser, err2 := keycloak.KeycloakClient.CreateUser(vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email, randomPassword)
+		keycloak_user_id := ""
+		// check if new email already exists in keycloak
+		new_keycloak_user, err := keycloak.KeycloakClient.GetUserByEmail(vendor.Email)
 		if err != nil {
-			log.Error("UpdateVendor: create keycloak user for "+fmt.Sprint(vendorID)+" failed: ", err2, err)
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
+
+			randomPassword := utils.RandomString(10)
+			keycloakUser, err2 := keycloak.KeycloakClient.CreateUser(vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email, randomPassword)
+			if err != nil {
+				log.Error("UpdateVendor: create keycloak user for "+fmt.Sprint(vendorID)+" failed: ", err2, err)
+				utils.ErrorJSON(w, err, http.StatusBadRequest)
+				return
+			}
+			keycloak_user_id = keycloakUser
+		} else {
+			keycloak_user_id = *new_keycloak_user.ID
 		}
-		vendor.KeycloakID = keycloakUser
-		err = keycloak.KeycloakClient.AssignGroup(keycloakUser, config.Config.KeycloakVendorGroup)
+
+		vendor.KeycloakID = keycloak_user_id
+		err = keycloak.KeycloakClient.AssignGroup(keycloak_user_id, config.Config.KeycloakVendorGroup)
 		if err != nil {
 			log.Error("UpdateVendor: assign keycloak group for "+fmt.Sprint(vendorID)+" failed: ", err)
 
@@ -1679,6 +1688,15 @@ func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type KeycloakSettings struct {
+	Realm string
+	URL   string
+}
+type ExtendedSettings struct {
+	database.Settings
+	Keycloak KeycloakSettings
+}
+
 // Settings -------------------------------------------------------------------
 
 // getSettings godoc
@@ -1696,7 +1714,14 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = utils.WriteJSON(w, http.StatusOK, settings)
+	exSettings := ExtendedSettings{
+		Settings: settings,
+		Keycloak: KeycloakSettings{
+			Realm: config.Config.KeycloakRealm,
+			URL:   config.Config.KeycloakHostname,
+		},
+	}
+	err = utils.WriteJSON(w, http.StatusOK, exSettings)
 	if err != nil {
 		log.Error("getSettings: ", err)
 	}

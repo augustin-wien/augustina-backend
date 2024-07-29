@@ -1,9 +1,19 @@
 version: "3.8"
 
+# This is an example of a multi-instance setup. To use it copy the .env.multi.example to .env and adjust the values.
+# Add /etc/hosts:
+# 127.0.0.1 augustin1 augustin2 keycloak keycloak2 backend 
+
+# After starting the containers, the second keyclaok has to be imported manually, the clients can be imported from
+# docker/keycloak-multi/
+
 services:
   augustin-frontend:
+    container_name: augustin-frontend
     build:
       context: ./docker/augustin-frontend
+    volumes:
+      - ./docker/augustin-frontend/docker/entrypoint.sh:/docker-entrypoint.d/10-entrypoint.sh
     ports:
       - "8060:80"
     environment:
@@ -12,9 +22,10 @@ services:
       VITE_AUGUSTIN_COVER: ${AUGUSTIN_COVER}
       VITE_AGB_URL: ${AGB_URL}
     depends_on:
-      - augustin
-  augustin:
-    container_name: augustin
+      - augustin_backend1
+      - augustin_backend2
+  augustin_backend1:
+    container_name: augustin_backend1
     env_file:
       - .env
     build:
@@ -58,7 +69,58 @@ services:
       - augustin-db-test
       - keycloak
     ports:
-      - "3000:3000"
+      - "3001:3000"
+    healthcheck:
+      test: curl -f "$BACKEND_HOST/api/hello/" || exit 1
+      interval: 60s   # check every minute
+      timeout: 20s    # maximum time to wait for a response
+      retries: 3      # number of retries before considering the container unhealthy
+      start_period: 2m
+  augustin_backend2:
+    container_name: augustin_backend2
+    env_file:
+      - .env
+    build:
+      context: .
+    volumes:
+      - ./app:/app
+      - ./email_templates:/app/templates
+    command: >
+      sh -c "tern migrate --migrations ./migrations --config
+      ./migrations/tern.conf && go run main.go"
+    environment:
+      DB_USER: ${DB_USER2}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME2}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_HOST_TEST: ${DB_HOST_TEST}
+      DB_PORT_TEST: ${DB_PORT_TEST}
+      DEVELOPMENT: false
+      FRONTEND_URL: ${FRONTEND_URL}
+      VIVA_WALLET_SOURCE_CODE: ${VIVA_WALLET_SOURCE_CODE}
+      VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID: ${VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID}
+      VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY: ${VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY}
+      VIVA_WALLET_VERIFICATION_KEY: ${VIVA_WALLET_VERIFICATION_KEY}
+      VIVA_WALLET_API_URL: ${VIVA_WALLET_API_URL}
+      VIVA_WALLET_ACCOUNTS_URL: ${VIVA_WALLET_ACCOUNTS_URL}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_SENDER_ADDRESS: ${SMTP_SENDER_ADDRESS}
+      BACKEND_HOST: ${BACKEND_HOST2}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM2}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET2}
+    depends_on:
+      augustin-db:
+        condition: service_healthy
+    links:
+      - augustin-db
+      - augustin-db-test
+      - keycloak
+    ports:
+      - "3002:3000"
     healthcheck:
       test: curl -f "$BACKEND_HOST/api/hello/" || exit 1
       interval: 60s   # check every minute
@@ -74,6 +136,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
+      POSTGRES_MULTIPLE_DATABASES: ${DB_NAME}, ${DB_NAME2}
       TZ: "UTC"
       PGTZ: "UTC"
     command: -p ${DB_PORT}
@@ -81,12 +144,19 @@ services:
       - "${DB_PORT}:${DB_PORT}"
     volumes:
       - dbdata:/var/lib/postgresql/data
+      - ./docker/postgres/multiple-databases.sh:/docker-entrypoint-initdb.d/multiple-databases.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
-
+  api-reverse-proxy:
+    image: nginx:stable
+    container_name: api-reverse-proxy
+    volumes:
+      - ./docker/api-reverse-proxy/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 3000:80
   augustin-db-test:
     container_name: augustin-db-test
     image: postgres:16.0
@@ -133,107 +203,6 @@ services:
     command: start-dev --import-realm
     ports:
       - "8080:8080"
-  wordpress-db:
-    # We use a mariadb image which supports both amd64 & arm64 architecture
-    image: mariadb
-    # If you really want to use MySQL, uncomment the following line
-    #image: mysql:8.0.27
-    command: "--default-authentication-plugin=mysql_native_password"
-    volumes:
-      - wp_db_data:/var/lib/mysql
-    restart: always
-    environment:
-      - MARIADB_DATABASE=${WORDPRESS_DB_NAME}
-      - MARIADB_USER=${WORDPRESS_DB_USER}
-      - MARIADB_PASSWORD=${WORDPRESS_DB_PASSWORD}
-      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
-      - MARIADB_MYSQL_LOCALHOST_USER=1
-      - MARIADB_MYSQL_LOCALHOST_GRANTS=USAGE
-    healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    expose:
-      - 3306
-      - 33060
-    ports:
-      - 8091:3306
-  wordpress:
-    image: wordpress:latest
-    volumes:
-      - wp_data:/var/www/html
-      - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
-      - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
-
-    ports:
-      - 8090:80
-    restart: always
-    environment:
-      - WORDPRESS_DB_HOST=wordpress-db
-      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
-      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
-      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
-      - AUGUSTIN_PARSER_URL=${AUGUSTIN_PARSER_URL}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    depends_on:
-      wordpress-db:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
-  wpcli:
-    container_name: wp-cli
-    image: wordpress:cli-php8.2
-    user: 0:0
-    command: >
-      sh -c " chmod +x /wpcli/entrypoint.sh && /wpcli/entrypoint.sh && tail -f
-      /dev/null"
-    volumes:
-      - wp_data:/var/www/html
-      - ./docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
-      - ./docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
-      - ./docker/wpcli/:/wpcli/
-      - ./docker/augustin-plugin/:/wpcli/parser/
-
-    environment:
-      - WORDPRESS_DB_HOST=wordpress-db
-      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
-      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
-      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
-      - WORDPRESS_URL=${WORDPRESS_URL}
-      - WORDPRESS_ADMIN_USER=${WORDPRESS_ADMIN_USER}
-      - WORDPRESS_ADMIN_PASSWORD=${WORDPRESS_ADMIN_PASSWORD}
-      - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL}
-
-      - KEYCLOAK_URL=${KEYCLOAK_URL} 
-    depends_on:
-      wordpress-db:
-        condition: service_healthy
-      wordpress:
-        condition: service_healthy
-    links:
-      - wordpress-db
-  parser:
-    build:
-      context: ./docker/augustin-plugin
-    ports:
-      - "8070:8000"
-    volumes:
-      - ./docker/augustin-plugin-data/sample_data:/sample_data
-      - ./docker/augustin-plugin-data/pdf-files:/pdf-files
-      - ./docker/augustin-plugin/:/app
-    # env_file:
-    #   - path: ./docker/augustin-plugin/.env.example
-    #     required: true # default
-    #   - path: ./docker/augustin-plugin/.env
-    #     required: false
-    depends_on:
-      wordpress:
-        condition: service_healthy
 volumes:
   dbdata:
   wp_data:
