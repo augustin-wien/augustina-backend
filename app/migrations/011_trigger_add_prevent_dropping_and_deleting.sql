@@ -13,20 +13,7 @@ BEFORE DELETE ON Vendor
 FOR EACH ROW
 EXECUTE FUNCTION prevent_delete_vendor();
 
--- Same for Accounttype, Account, Item, PaymentOrder, OrderEntry, Payment, Settings, DBsettings, PDF, PDFDownloads
-CREATE OR REPLACE FUNCTION prevent_delete_accounttype()
-RETURNS trigger AS $$
-BEGIN
-    RAISE EXCEPTION 'Cannot delete from table AccountType';
-    -- This will prevent the delete operation
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER prevent_deleting_on_table_accounttype
-BEFORE DELETE ON AccountType
-FOR EACH ROW
-EXECUTE FUNCTION prevent_delete_accounttype();
+-- Same for Account, Item, PaymentOrder, OrderEntry, Payment, Settings, DBsettings, PDF, PDFDownloads
 
 CREATE OR REPLACE FUNCTION prevent_delete_accounts()
 RETURNS trigger AS $$
@@ -158,7 +145,6 @@ EXECUTE FUNCTION prevent_delete_pdfdownloads();
 
 
 DROP TRIGGER prevent_deleting_on_table_vendor ON Vendor;
-DROP TRIGGER prevent_deleting_on_table_accounttype ON AccountType;
 DROP TRIGGER prevent_deleting_on_table_accounts ON Account;
 DROP TRIGGER prevent_deleting_on_table_item ON Item;
 DROP TRIGGER prevent_deleting_on_table_paymentorder ON PaymentOrder;
