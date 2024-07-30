@@ -243,7 +243,8 @@ func TestItems(t *testing.T) {
 		// require.Equal(t, len(resItems), 2)
 	}
 
-	require.Equal(t, len(resItems) == 2, true)
+	require.Equal(t, true, len(resItems) == 2)
+	require.Equal(t, 2, len(resItems))
 	require.Equal(t, "Test item", resItems[1].Name)
 
 	// Update (multipart form!)
