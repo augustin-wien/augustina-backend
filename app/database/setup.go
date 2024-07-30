@@ -89,6 +89,12 @@ func (db *Database) UpdateInitialSettings() (err error) {
 		MainItem:                   null.IntFrom(1),
 		MaxOrderAmount:             5000,
 		OrgaCoversTransactionCosts: true,
+		VendorEmailPostfix:         "@example.com",
+		WebshopIsClosed:            false,
+		NewspaperName:              "Zeitung",
+		QRCodeUrl:                  "https://localhost:5134/v/",
+		MaintainanceModeHelpUrl:    "https://example.com",
+		AGBUrl:                     "https://example.com/AGB",
 	}
 
 	err = db.UpdateSettings(settings)
