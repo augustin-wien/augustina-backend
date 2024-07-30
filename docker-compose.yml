@@ -23,9 +23,11 @@ services:
       - ./app:/app
       - ./email_templates:/app/templates
     command: >
-      sh -c "tern migrate --migrations ./migrations --config
-      ./migrations/tern.conf && tern migrate --migrations ./migrations --config
-      ./migrations/tern_test.conf  && go run main.go"
+        sh -c "tern migrate --migrations ./migrations --config ./migrations/tern.conf &&
+        mv ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql.bak &&
+        tern migrate --migrations ./migrations --config ./migrations/tern_test.conf &&
+        mv ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql.bak ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql &&
+        go run main.go"
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
