@@ -28,8 +28,6 @@ var adminUserEmail string
 var adminUserToken *gocloak.JWT
 var mutex_test sync.Mutex
 
-
-
 // TestMain is executed before all tests and initializes an empty database
 func TestMain(m *testing.M) {
 	var err error
@@ -93,6 +91,7 @@ func TestHelloWorld(t *testing.T) {
 func TestHelloWorldAuth(t *testing.T) {
 	res := utils.TestRequestWithAuth(t, r, "GET", "/api/auth/hello/", nil, 200, adminUserToken)
 	require.Equal(t, "\"Hello, world!\"", res.Body.String())
+
 }
 
 func createTestVendor(t *testing.T, licenseID string) string {
@@ -139,7 +138,7 @@ func TestVendors(t *testing.T) {
 	var vendors []database.Vendor
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-	// require.Equal(t, 1, len(vendors))
+	require.Equal(t, 1, len(vendors))
 	require.Equal(t, "test1234", vendors[0].FirstName)
 	require.Equal(t, vendorLicenseId, vendors[0].LicenseID.String)
 	require.Equal(t, "test", vendors[0].LastName)
@@ -180,13 +179,11 @@ func TestVendors(t *testing.T) {
 	require.Equal(t, 48.210033, mapData[0].Latitude)
 
 	// Delete
-	// utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-
-	// Check amount of vendors
-	require.Equal(t, 1, len(vendors))
+	require.Equal(t, 0, len(vendors))
 
 	// Clean up after test
 	keycloak.KeycloakClient.DeleteUser(vendorEmail)
@@ -234,17 +231,16 @@ func TestItems(t *testing.T) {
 	// For C.I. pipeline
 	if len(resItems) == 3 && resItems[1].Name == "" {
 		// Remove empty item
-		// database.Db.DeleteItem(resItems[1].ID)
+		database.Db.DeleteItem(resItems[1].ID)
 		res := utils.TestRequest(t, r, "GET", "/api/items/", nil, 200)
 		err = json.Unmarshal(res.Body.Bytes(), &resItems)
 		utils.CheckError(t, err)
 		log.Info("res items name 1", resItems[0].Name)
 		log.Info("res items name 2", resItems[1].Name)
-		// require.Equal(t, len(resItems), 2)
+		require.Equal(t, len(resItems), 2)
 	}
 
-	require.Equal(t, true, len(resItems) == 2)
-	require.Equal(t, 2, len(resItems))
+	require.Equal(t, len(resItems) == 2, true)
 	require.Equal(t, "Test item", resItems[1].Name)
 
 	// Update (multipart form!)
@@ -338,9 +334,9 @@ func TestOrders(t *testing.T) {
 	keycloak.KeycloakClient.DeleteUser(customerEmail)
 	keycloak.KeycloakClient.DeleteUser("testdeadlock@example.com")
 	orders, _ := database.Db.GetOrders()
-	// for _, order := range orders {
-	// 	database.Db.DeleteOrder(order.ID)
-	// }
+	for _, order := range orders {
+		database.Db.DeleteOrder(order.ID)
+	}
 	// Set up a payment account
 	vendorLicenseId := "testorders123"
 	vendorID := createTestVendor(t, vendorLicenseId)
@@ -507,21 +503,21 @@ func TestOrders(t *testing.T) {
 	require.Equal(t, *groups[1].Name, "testedition")
 
 	// Cleanup
-	// for _, payment := range payments {
-	// 	database.Db.DeletePayment(payment.ID)
-	// }
+	for _, payment := range payments {
+		database.Db.DeletePayment(payment.ID)
+	}
 
 	// Clean up after test
-	// paymentOrder, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
-	// utils.CheckError(t, err)
-	// for _, payment := range paymentOrder {
-	// 	database.Db.DeletePayment(payment.ID)
-	// }
+	paymentOrder, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	utils.CheckError(t, err)
+	for _, payment := range paymentOrder {
+		database.Db.DeletePayment(payment.ID)
+	}
 
-	// for _, entry := range order.Entries {
-	// 	database.Db.DeleteOrderEntry(entry.ID)
-	// }
-	// database.Db.DeleteOrder(order.ID)
+	for _, entry := range order.Entries {
+		database.Db.DeleteOrderEntry(entry.ID)
+	}
+	database.Db.DeleteOrder(order.ID)
 }
 
 // TestPayments tests CRUD operations on payments
@@ -557,7 +553,7 @@ func TestPayments(t *testing.T) {
 	utils.CheckError(t, err)
 
 	// Create payments via API
-	_, err = database.Db.CreatePayment(
+	p1, err := database.Db.CreatePayment(
 		database.Payment{
 			Sender:       senderAccountID,
 			Receiver:     receiverAccountID,
@@ -577,7 +573,7 @@ func TestPayments(t *testing.T) {
 	var payments []database.Payment
 	err = json.Unmarshal(response2.Body.Bytes(), &payments)
 	utils.CheckError(t, err)
-	// require.Equal(t, 1, len(payments))
+	require.Equal(t, 1, len(payments))
 	if t.Failed() {
 		return
 	}
@@ -614,7 +610,7 @@ func TestPayments(t *testing.T) {
 	timeRequest(t, 0, -1, 0)
 
 	// Test statistics
-	_, err = database.Db.CreatePayment(
+	p2, err := database.Db.CreatePayment(
 		database.Payment{
 			Sender:       senderAccountID,
 			Receiver:     receiverAccountID,
@@ -640,9 +636,9 @@ func TestPayments(t *testing.T) {
 	}
 
 	// Clean up
-	// database.Db.DeletePayment(p1)
-	// database.Db.DeletePayment(p2)
-	// database.Db.DeleteItem(itemID)
+	database.Db.DeletePayment(p1)
+	database.Db.DeletePayment(p2)
+	database.Db.DeleteItem(itemID)
 }
 
 func timeRequest(t *testing.T, from int, to int, expectedLength int) {
@@ -783,7 +779,7 @@ func TestPaymentPayout(t *testing.T) {
 	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 	err = json.Unmarshal(response3.Body.Bytes(), &payouts)
 	utils.CheckError(t, err)
-	// require.Equal(t, 5, len(payouts))
+	require.Equal(t, 3, len(payouts))
 
 	// Check that there are no more payments for payout
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor="+vendorLicenseId, f, 200, adminUserToken)
