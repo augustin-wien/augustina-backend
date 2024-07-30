@@ -71,15 +71,12 @@ jobs:
       - name: Test
         run: |
 
-          # Temporarily move the migration file to be excluded
-          mv migrations/011_trigger_add_prevent_dropping_and_deleting.sql migrations/011_trigger_add_prevent_dropping_and_deleting.sql.bak
+          # Remove the migration file to be excluded
+          rm app/migrations/011_trigger_add_prevent_dropping_and_deleting.sql 
 
           cp .env.example ./app/.env && ls -lah && cd app && cd migrations &&
           tern migrate --config ./tern_test.conf && cd .. && go test ./... -p 1
           -v -cover
-
-          # Move the migration file back
-          mv migrations/011_trigger_add_prevent_dropping_and_deleting.sql.bak migrations/011_trigger_add_prevent_dropping_and_deleting.sql
 
       - name: Collect docker logs on failure
         if: failure()
