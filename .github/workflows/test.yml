@@ -70,13 +70,20 @@ jobs:
           done
       - name: Test
         run: |
+          cp .env.example ./app/.env
+          ls -lah
+          cd app
 
           # Remove the migration file to be excluded
           rm app/migrations/011_trigger_add_prevent_dropping_and_deleting.sql 
 
-          cp .env.example ./app/.env && ls -lah && cd app && cd migrations &&
-          tern migrate --config ./tern_test.conf && cd .. && go test ./... -p 1
-          -v -cover
+          # Run the migrations
+          cd app/migrations
+          tern migrate --config ./tern_test.conf
+
+          # Run the tests
+          cd .. 
+          go test ./... -p 1 -v -cover
 
       - name: Collect docker logs on failure
         if: failure()
