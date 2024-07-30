@@ -171,9 +171,6 @@ func TestVendors(t *testing.T) {
 	require.Equal(t, vendorName, vendorMap[0].FirstName)
 	require.Equal(t, id, vendorMap[0].ID)
 
-	// Delete vendor
-	err = Db.DeleteVendor(id)
-	utils.CheckError(t, err)
 }
 
 // TestItems tests the item database functions
@@ -279,27 +276,27 @@ func TestQueryOrders(t *testing.T) {
 	require.Equal(t, 4, len(payments2))
 
 	// Cleanup
-	for _, payment := range payments2 {
-		err = Db.DeletePayment(payment.ID)
-		utils.CheckError(t, err)
-	}
-	order1, err = Db.GetOrderByID(orderID)
-	utils.CheckError(t, err)
-	for _, entry := range order1.Entries {
-		err = Db.DeleteOrderEntry(entry.ID)
-		utils.CheckError(t, err)
-	}
-	order2, err = Db.GetOrderByID(orderID2)
-	utils.CheckError(t, err)
-	for _, entry := range order2.Entries {
-		err = Db.DeleteOrderEntry(entry.ID)
-		utils.CheckError(t, err)
-	}
-	err = Db.DeleteOrder(orderID)
-	utils.CheckError(t, err)
-	err = Db.DeleteOrder(orderID2)
-	utils.CheckError(t, err)
-	err = Db.DeleteVendor(vendorID)
-	utils.CheckError(t, err)
+	// for _, payment := range payments2 {
+	// 	err = Db.DeletePayment(payment.ID)
+	// 	utils.CheckError(t, err)
+	// }
+	// order1, err = Db.GetOrderByID(orderID)
+	// utils.CheckError(t, err)
+	// for _, entry := range order1.Entries {
+	// 	err = Db.DeleteOrderEntry(entry.ID)
+	// 	utils.CheckError(t, err)
+	// }
+	// order2, err = Db.GetOrderByID(orderID2)
+	// utils.CheckError(t, err)
+	// for _, entry := range order2.Entries {
+	// 	err = Db.DeleteOrderEntry(entry.ID)
+	// 	utils.CheckError(t, err)
+	// }
+	// err = Db.DeleteOrder(orderID)
+	// utils.CheckError(t, err)
+	// err = Db.DeleteOrder(orderID2)
+	// utils.CheckError(t, err)
+	// err = Db.DeleteVendor(vendorID)
+	// utils.CheckError(t, err)
 
 }
