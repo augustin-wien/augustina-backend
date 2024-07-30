@@ -127,19 +127,19 @@ BEFORE DELETE ON PDF
 FOR EACH ROW
 EXECUTE FUNCTION prevent_delete_pdf();
 
--- CREATE OR REPLACE FUNCTION prevent_delete_pdfdownloads()
--- RETURNS trigger AS $$
--- BEGIN
---     RAISE EXCEPTION 'Cannot delete from table PDFDownloads';
---     -- This will prevent the delete operation
---     RETURN NULL;
--- END;
--- $$ LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION prevent_delete_pdfdownloads()
+RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'Cannot delete from table PDFDownloads';
+    -- This will prevent the delete operation
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
 
--- CREATE TRIGGER prevent_deleting_on_table_pdfdownloads
--- BEFORE DELETE ON PDFDownloads
--- FOR EACH ROW
--- EXECUTE FUNCTION prevent_delete_pdfdownloads();
+CREATE TRIGGER prevent_deleting_on_table_pdfdownloads
+BEFORE DELETE ON PDFDownload
+FOR EACH ROW
+EXECUTE FUNCTION prevent_delete_pdfdownloads();
 
 ---- create above / drop below ----
 
@@ -153,7 +153,7 @@ DROP TRIGGER prevent_deleting_on_table_payment ON Payment;
 DROP TRIGGER prevent_deleting_on_table_settings ON Settings;
 DROP TRIGGER prevent_deleting_on_table_dbsettings ON DBsettings;
 DROP TRIGGER prevent_deleting_on_table_pdf ON PDF;
-DROP TRIGGER prevent_deleting_on_table_pdfdownloads ON PDFDownloads;
+DROP TRIGGER prevent_deleting_on_table_pdfdownloads ON PDFDownload;
 
 -- Write your migrate down statements here. If this migration is irreversible
 -- Then delete the separator line above.
