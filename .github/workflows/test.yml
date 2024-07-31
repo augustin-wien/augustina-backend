@@ -78,6 +78,9 @@ jobs:
           # Remove the migration file to be excluded
           rm 011_trigger_add_prevent_dropping_and_deleting.sql 
 
+          # Create a dummy table for migration 11 so the following migrations can run
+          echo "CREATE TABLE Dummy (ID SERIAL PRIMARY KEY);" > 011_sample_dummy_table.sql
+
           # Run the migrations
           tern migrate --config ./tern_test.conf
 
