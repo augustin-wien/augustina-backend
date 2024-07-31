@@ -92,9 +92,13 @@ func (db *Database) UpdateInitialSettings() (err error) {
 		VendorEmailPostfix:         "@example.com",
 		WebshopIsClosed:            false,
 		NewspaperName:              "Zeitung",
-		QRCodeUrl:                  "https://localhost:5134/v/",
+		QRCodeUrl:                  "https://localhost:5134/",
 		MaintainanceModeHelpUrl:    "https://example.com",
 		AGBUrl:                     "https://example.com/AGB",
+		MapCenterLat:               48.2083,
+		MapCenterLong:              16.3731,
+		QRCodeLogoImgUrl:           null.StringFrom("/img/logo.png"),
+		VendorNotFoundHelpUrl:      "https://example.com/vendornotfound",
 	}
 
 	err = db.UpdateSettings(settings)

@@ -134,6 +134,8 @@ type Settings struct {
 	VendorEmailPostfix         string
 	VendorNotFoundHelpUrl      string
 	WebshopIsClosed            bool
+	MapCenterLat               float64
+	MapCenterLong              float64
 }
 
 // DBSettings is a struct that is used for the dbsettings table

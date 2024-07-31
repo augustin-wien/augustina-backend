@@ -1850,6 +1850,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			} else {
 				fieldsClean[key] = null.StringFrom(value[0])
 			}
+		} else if key == "MapCenterLat" || key == "MapCenterLong" {
+			if s, err := strconv.ParseFloat(value[0], 64); err == nil {
+				fieldsClean[key] = (s)
+			} else {
+				fieldsClean[key] = 0.1
+			}
+			log.Infof(value[0], fieldsClean[key])
 		} else {
 			fieldsClean[key] = value[0]
 		}

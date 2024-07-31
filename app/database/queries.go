@@ -1160,9 +1160,15 @@ func (db *Database) InitiateSettings() (err error) {
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
-	SELECT Settings.ID, Color, FontColor, Logo, MainItem, MaxOrderAmount, OrgaCoversTransactionCosts, Name, Price, Description, Image, WebshopIsClosed, VendorNotFoundHelpUrl, MaintainanceModeHelpUrl, VendorEmailPostfix, NewspaperName, QRCodeUrl, QRCodeLogoImgUrl, AGBUrl from Settings LEFT JOIN Item ON Item.ID = MainItem LIMIT 1
-	`).Scan(&settings.ID, &settings.Color, &settings.FontColor, &settings.Logo, &settings.MainItem, &settings.MaxOrderAmount, &settings.OrgaCoversTransactionCosts, &settings.MainItemName, &settings.MainItemPrice, &settings.MainItemDescription, &settings.MainItemImage, &settings.WebshopIsClosed, &settings.VendorNotFoundHelpUrl,
-		&settings.MaintainanceModeHelpUrl, &settings.VendorEmailPostfix, &settings.NewspaperName, &settings.QRCodeUrl, &settings.QRCodeLogoImgUrl, &settings.AGBUrl)
+	SELECT Settings.ID, Color, FontColor, Logo, MainItem, MaxOrderAmount, OrgaCoversTransactionCosts, Name, Price, Description, Image, WebshopIsClosed, VendorNotFoundHelpUrl, MaintainanceModeHelpUrl, VendorEmailPostfix, NewspaperName, QRCodeUrl, QRCodeLogoImgUrl, AGBUrl, MapCenterLat, MapCenterLong from Settings LEFT JOIN Item ON Item.ID = MainItem LIMIT 1
+	`).Scan(&settings.ID, &settings.Color, &settings.FontColor,
+		&settings.Logo, &settings.MainItem, &settings.MaxOrderAmount,
+		&settings.OrgaCoversTransactionCosts, &settings.MainItemName,
+		&settings.MainItemPrice, &settings.MainItemDescription, &settings.MainItemImage,
+		&settings.WebshopIsClosed, &settings.VendorNotFoundHelpUrl,
+		&settings.MaintainanceModeHelpUrl, &settings.VendorEmailPostfix,
+		&settings.NewspaperName, &settings.QRCodeUrl, &settings.QRCodeLogoImgUrl,
+		&settings.AGBUrl, &settings.MapCenterLat, &settings.MapCenterLong)
 	if err != nil {
 		log.Error("GetSettings: ", err)
 	}
@@ -1181,9 +1187,14 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = tx.Exec(context.Background(), `
 	UPDATE Settings
-	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6, WebshopIsClosed = $7, VendorNotFoundHelpUrl = $8, MaintainanceModeHelpUrl = $9, VendorEmailPostfix = $10, NewspaperName = $11, QRCodeUrl = $12, QRCodeLogoImgUrl = $13, AGBUrl = $14
-	WHERE ID = 1
-	`, settings.Color, settings.FontColor, settings.Logo, settings.MainItem, settings.MaxOrderAmount, settings.OrgaCoversTransactionCosts, settings.WebshopIsClosed, settings.VendorNotFoundHelpUrl, settings.MaintainanceModeHelpUrl, settings.VendorEmailPostfix, settings.NewspaperName, settings.QRCodeUrl, settings.QRCodeLogoImgUrl, settings.AGBUrl)
+	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6, WebshopIsClosed = $7, VendorNotFoundHelpUrl = $8, MaintainanceModeHelpUrl = $9, VendorEmailPostfix = $10, NewspaperName = $11, QRCodeUrl = $12, QRCodeLogoImgUrl = $13, AGBUrl = $14, MapCenterLat = $15, MapCenterLong = $16
+	WHERE ID = 1`,
+		settings.Color, settings.FontColor, settings.Logo,
+		settings.MainItem, settings.MaxOrderAmount,
+		settings.OrgaCoversTransactionCosts, settings.WebshopIsClosed,
+		settings.VendorNotFoundHelpUrl, settings.MaintainanceModeHelpUrl, settings.VendorEmailPostfix,
+		settings.NewspaperName, settings.QRCodeUrl,
+		settings.QRCodeLogoImgUrl, settings.AGBUrl, settings.MapCenterLat, settings.MapCenterLong)
 	if err != nil {
 		log.Error("db UpdateSettings: ", err)
 	}
