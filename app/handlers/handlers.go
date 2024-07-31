@@ -1829,6 +1829,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
 				return
 			}
+		} else if key == "WebshopIsClosed" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("WebShopIsClosed is not a boolean")
+				utils.ErrorJSON(w, errors.New("WebShopIsClosed is not a boolean"), http.StatusBadRequest)
+				return
+			}
 		} else if key == "MainItem" {
 			value, err := strconv.Atoi(value[0])
 			if err != nil {
@@ -1837,6 +1844,12 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			fieldsClean[key] = null.NewInt(int64(value), true)
+		} else if key == "QRCodeLogoImgUrl" {
+			if value[0] == "null" {
+				fieldsClean[key] = nil
+			} else {
+				fieldsClean[key] = null.StringFrom(value[0])
+			}
 		} else {
 			fieldsClean[key] = value[0]
 		}
