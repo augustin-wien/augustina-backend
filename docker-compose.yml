@@ -23,9 +23,14 @@ services:
       - ./app:/app
       - ./email_templates:/app/templates
     command: >
-      sh -c "tern migrate --migrations ./migrations --config
-      ./migrations/tern.conf && tern migrate --migrations ./migrations --config
-      ./migrations/tern_test.conf  && go run main.go"
+        sh -c 'tern migrate --migrations ./migrations --config ./migrations/tern.conf &&
+        mv ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql.bak &&
+        echo "CREATE TABLE Dummy (ID SERIAL PRIMARY KEY);" > ./migrations/011_sample_dummy_table.sql &&
+        tern migrate --migrations ./migrations --config ./migrations/tern_test.conf &&
+        rm ./migrations/011_sample_dummy_table.sql &&
+        mv ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql.bak ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql &&
+        go run main.go'
+
     environment:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
