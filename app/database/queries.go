@@ -208,7 +208,7 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 // ListItems returns all items from the database
 func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, error) {
 	var items []Item
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item ORDER BY ItemOrder ASC")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item ORDER BY ItemOrder DESC")
 	if err != nil {
 		log.Error("ListItems: ", err)
 		return items, err

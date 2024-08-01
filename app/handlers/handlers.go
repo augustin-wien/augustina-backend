@@ -693,6 +693,8 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 			fieldsClean[key] = null.IntFrom(int64(pdf))
 		} else if key == "LicenseGroup" {
 			fieldsClean[key] = null.StringFrom(value[0])
+		} else if key == "ItemOrder" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
 		} else {
 			fieldsClean[key] = value[0]
 		}
