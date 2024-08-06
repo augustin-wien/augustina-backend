@@ -23,8 +23,8 @@ type Vendor struct {
 	Balance          int       // This is joined in from the account
 	IsDisabled       bool
 	IsDeleted        bool
-	Longitude        float64
-	Latitude         float64
+	Longitude        float64 `json:"Longitude,omitempty"`
+	Latitude         float64 `json:"Latitude,omitempty"`
 	Address          string
 	PLZ              string
 	Location         string
