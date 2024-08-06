@@ -159,8 +159,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	log.Info(r.Header.Get("X-Auth-User-Name") + " is creating a vendor for" + vendor.Email)
 
 	// Create user in keycloak
-	randomPassword := utils.RandomString(10)
-	user, err := keycloak.KeycloakClient.CreateUser(vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email, randomPassword)
+	user, err := keycloak.KeycloakClient.GetOrCreateUser(vendor.Email)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -693,6 +692,8 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 			fieldsClean[key] = null.IntFrom(int64(pdf))
 		} else if key == "LicenseGroup" {
 			fieldsClean[key] = null.StringFrom(value[0])
+		} else if key == "ItemOrder" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
 		} else {
 			fieldsClean[key] = value[0]
 		}
