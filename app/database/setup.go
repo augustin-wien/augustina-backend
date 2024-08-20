@@ -10,9 +10,8 @@ import (
 // InitiateAccounts creates default settings if they don't exist
 func (db *Database) InitiateAccounts() (err error) {
 	for _, account := range []string{"Cash", "Orga", "UserAnon", "VivaWallet", "Paypal"} {
-		_, err = Db.CreateAccount(Account{
-			Name: account,
-			Type: account,
+		_, err = Db.CreateVendor(Vendor{
+			LicenseID: account,
 		})
 		if err != nil {
 			log.Error("InitiateAccounts: ", err)
