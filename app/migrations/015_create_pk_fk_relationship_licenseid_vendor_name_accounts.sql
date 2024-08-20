@@ -6,7 +6,7 @@ ALTER TABLE Vendor ALTER COLUMN LicenseID SET NOT NULL;
 -- Step 2: Ensure Name in Account table is NOT NULL
 ALTER TABLE Account ALTER COLUMN Name SET NOT NULL;
 
--- Step 3: Create unique indexes to ensure uniqueness of LicenseID and Name
+-- Step 3: Create unique indexes to ensure uniqueness of Name in Accounts table
 CREATE UNIQUE INDEX idx_account_name ON Account(Name);
 
 -- Step 4: Drop foreign key constraints that depend on the existing primary key
