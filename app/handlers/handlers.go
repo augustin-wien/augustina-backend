@@ -159,8 +159,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	log.Info(r.Header.Get("X-Auth-User-Name") + " is creating a vendor for" + vendor.Email)
 
 	// Create user in keycloak
-	randomPassword := utils.RandomString(10)
-	user, err := keycloak.KeycloakClient.CreateUser(vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email, randomPassword)
+	user, err := keycloak.KeycloakClient.GetOrCreateUser(vendor.Email)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -693,6 +692,8 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 			fieldsClean[key] = null.IntFrom(int64(pdf))
 		} else if key == "LicenseGroup" {
 			fieldsClean[key] = null.StringFrom(value[0])
+		} else if key == "ItemOrder" {
+			fieldsClean[key], err = strconv.Atoi(value[0])
 		} else {
 			fieldsClean[key] = value[0]
 		}
@@ -1829,6 +1830,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
 				return
 			}
+		} else if key == "WebshopIsClosed" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("WebShopIsClosed is not a boolean")
+				utils.ErrorJSON(w, errors.New("WebShopIsClosed is not a boolean"), http.StatusBadRequest)
+				return
+			}
 		} else if key == "MainItem" {
 			value, err := strconv.Atoi(value[0])
 			if err != nil {
@@ -1837,6 +1845,19 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			fieldsClean[key] = null.NewInt(int64(value), true)
+		} else if key == "QRCodeLogoImgUrl" {
+			if value[0] == "null" {
+				fieldsClean[key] = nil
+			} else {
+				fieldsClean[key] = null.StringFrom(value[0])
+			}
+		} else if key == "MapCenterLat" || key == "MapCenterLong" {
+			if s, err := strconv.ParseFloat(value[0], 64); err == nil {
+				fieldsClean[key] = (s)
+			} else {
+				fieldsClean[key] = 0.1
+			}
+			log.Infof(value[0], fieldsClean[key])
 		} else {
 			fieldsClean[key] = value[0]
 		}

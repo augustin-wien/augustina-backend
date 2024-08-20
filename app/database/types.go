@@ -12,6 +12,7 @@ import (
 // Vendor is a struct that is used for the vendor table
 type Vendor struct {
 	ID               int
+	AccountProofUrl  null.String
 	KeycloakID       string
 	UrlID            string // This is used for the QR code
 	LicenseID        null.String
@@ -21,8 +22,9 @@ type Vendor struct {
 	LastPayout       null.Time `swaggertype:"string" format:"date-time"`
 	Balance          int       // This is joined in from the account
 	IsDisabled       bool
-	Longitude        float64
-	Latitude         float64
+	IsDeleted        bool
+	Longitude        float64 `json:"Longitude,omitempty"`
+	Latitude         float64 `json:"Latitude,omitempty"`
 	Address          string
 	PLZ              string
 	Location         string
@@ -50,16 +52,18 @@ type Account struct {
 // Item is a struct that is used for the item table
 type Item struct {
 	ID            int
-	Name          string
-	Description   string
-	Price         int // Price in cents
-	Image         string
-	LicenseItem   null.Int // License has to be bought before item
 	Archived      bool
-	LicenseGroup  null.String
+	ItemColor     null.String // Color of the item in the webshop
+	Description   string
+	Name          string
+	Image         string
 	IsLicenseItem bool
 	IsPDFItem     bool
+	ItemOrder     int // Order in the webshop
+	LicenseGroup  null.String
+	LicenseItem   null.Int // License has to be bought before item
 	PDF           null.Int
+	Price         int // Price in cents
 }
 
 // Order is a struct that is used for the order table
@@ -112,17 +116,26 @@ type Payment struct {
 // Settings is a struct that is used for the settings table
 type Settings struct {
 	ID                         int
+	AGBUrl                     string
 	Color                      string
 	FontColor                  string
 	Logo                       string
 	MainItem                   null.Int `swaggertype:"integer"`
 	MaxOrderAmount             int
-	OrgaCoversTransactionCosts bool
 	MainItemName               null.String
 	MainItemPrice              null.Int
 	MainItemDescription        null.String
 	MainItemImage              null.String
+	MaintainanceModeHelpUrl    string
+	NewspaperName              string
+	QRCodeLogoImgUrl           null.String `db:"qrcodelogourl"`
+	QRCodeUrl                  string
+	OrgaCoversTransactionCosts bool
+	VendorEmailPostfix         string
+	VendorNotFoundHelpUrl      string
 	WebshopIsClosed            bool
+	MapCenterLat               float64
+	MapCenterLong              float64
 }
 
 // DBSettings is a struct that is used for the dbsettings table
