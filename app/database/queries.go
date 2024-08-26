@@ -950,29 +950,9 @@ func (db *Database) DeletePayment(paymentID int) (err error) {
 
 // CreateSingleAccount creates an account in the database
 func (db *Database) CreateSpecialVendorAccount(vendor Vendor) (vendorID int, err error) {
-	// TODO: Validate that User should only be filled if type is user_auth
-	// Check if account.type = UserAuth
-	// if account.Type == "UserAuth" && account.User.String == "" {
-	// 	err = new (Error)
-
-	// Define a slice of types, which should only exist once
-	// existOnceTypes := []string{"Cash", "Orga", "UserAnon", "VivaWallet", "Paypal"}
-
-	// Check if an account of the specified type already exists
-	// if slices.Contains(existOnceTypes, vendor.LicenseID) {
-	// 	var existingCount int
-	// 	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Account WHERE Type = $1", vendor.LicenseID).Scan(&existingCount)
-	// 	if err != nil {
-	// 		return 0, err
-	// 	}
-	// 	// If an account of the specified type already exists, return an error
-	// 	if existingCount > 0 {
-	// 		return 0, errors.New("An account of this type, which should exist only once, already exists: " + vendor.LicenseID)
-	// 	}
-	// }
 
 	// Create a new vendor account
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Vendor (Keycloakid, UrlID, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Language, Comment, Telephone, RegistrationDate, VendorSince, OnlineMap, HasSmartphone, HasBankAccount) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING ID", "", "",  vendor.LicenseID,  vendor.FirstName,  vendor.LastName,  vendor.Email, time.Now(), "", "", "", "", "", "", "", "", "", "", "", "", false, false, false).Scan(&vendorID)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Vendor (Keycloakid, UrlID, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Language, Comment, Telephone, RegistrationDate, VendorSince, OnlineMap, HasSmartphone, HasBankAccount) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING ID", "", "",  vendor.LicenseID,  "",  "",  vendor.Email, time.Now(), false, 0, 0, "", "", "", "", "", "", "", "", "", false, false, false).Scan(&vendorID)
 	if err != nil {
 		log.Errorf("CreateVendor: create vendor %s %+v", vendor.Email, err)
 		return
@@ -984,9 +964,6 @@ func (db *Database) CreateSpecialVendorAccount(vendor Vendor) (vendorID int, err
 		return
 	}
 
-
-	// Insert the new account
-	// err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Name, Type) values ($1, $2) RETURNING ID", account.Name, account.Type).Scan(&id)
 	return vendorID, err
 }
 

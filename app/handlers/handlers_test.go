@@ -138,8 +138,8 @@ func TestVendors(t *testing.T) {
 	var vendors []database.Vendor
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(vendors))
-	require.Equal(t, "test1234", vendors[0].FirstName)
+	require.Equal(t, 6, len(vendors))
+	require.Equal(t, "Cash", vendors[0].FirstName)
 	require.Equal(t, vendorLicenseId, vendors[0].LicenseID.String)
 	require.Equal(t, "test", vendors[0].LastName)
 
@@ -531,15 +531,15 @@ func TestPayments(t *testing.T) {
 	}
 
 	// Set up a payment account
-	senderAccountID, err := database.Db.CreateAccount(
-		database.Account{Name: "Test sender"},
+	senderAccountID, err := database.Db.CreateSpecialVendorAccount(
+		database.Vendor{LicenseID: null.StringFrom("Test sender"), Email: "testSender@account.com",},
 	)
 	if err != nil {
 		t.Error(err)
 	}
 
-	receiverAccountID, err := database.Db.CreateAccount(
-		database.Account{Name: "Test receiver"},
+	receiverAccountID, err := database.Db.CreateSpecialVendorAccount(
+		database.Vendor{LicenseID: null.StringFrom("Test receiver"), Email: "testReceiver@account.com",},
 	)
 	if err != nil {
 		t.Error(err)
@@ -573,7 +573,7 @@ func TestPayments(t *testing.T) {
 	var payments []database.Payment
 	err = json.Unmarshal(response2.Body.Bytes(), &payments)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(payments))
+	require.Equal(t, 0, len(payments))
 	if t.Failed() {
 		return
 	}

@@ -94,20 +94,20 @@ func TestAccounts(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, "Cash", account.Name)
 
-	// Create new account
-	account = Account{
-		Name: "test",
-		Type: "UserAuth",
-		User: null.StringFrom("550e8400-e29b-41d4-a716-446655440000"),
+	// Create new account with known
+	test_vendor := Vendor{
+		LicenseID: null.StringFrom("UserAuth"),
+		Email: "UserAuth@account.com",
 	}
-	id, err := Db.CreateAccount(account)
+
+	id, err := Db.CreateSpecialVendorAccount(test_vendor)
 	utils.CheckError(t, err)
 
 	// Get account by ID
-	account, err = Db.GetAccountByID(id)
+	test_vendor, err = Db.GetVendor(id)
 	utils.CheckError(t, err)
 
-	require.Equal(t, "test", account.Name)
+	require.Equal(t, "UserAuth", test_vendor.LicenseID.String)
 }
 
 func TestVendors(t *testing.T) {
@@ -150,7 +150,7 @@ func TestVendors(t *testing.T) {
 	// Get all vendors
 	vendors, err := Db.ListVendors()
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(vendors))
+	require.Equal(t, 7, len(vendors))
 
 	// Get vendor by LicenseID
 	vendor, err = Db.GetVendorByLicenseID(licenseId)
@@ -165,11 +165,11 @@ func TestVendors(t *testing.T) {
 	// Get vendor locations
 	vendorMap, err := Db.GetVendorLocations()
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(vendorMap))
-	require.Equal(t, 10.0, vendorMap[0].Longitude)
-	require.Equal(t, 20.0, vendorMap[0].Latitude)
-	require.Equal(t, vendorName, vendorMap[0].FirstName)
-	require.Equal(t, id, vendorMap[0].ID)
+	require.Equal(t, 7, len(vendorMap))
+	require.Equal(t, 10.0, vendorMap[6].Longitude)
+	require.Equal(t, 20.0, vendorMap[6].Latitude)
+	require.Equal(t, vendorName, vendorMap[6].FirstName)
+	require.Equal(t, id, vendorMap[6].ID)
 
 	// Delete vendor
 	err = Db.DeleteVendor(id)
@@ -189,9 +189,9 @@ func TestQueryOrders(t *testing.T) {
 		LicenseID: null.StringFrom(vendorLicenseId),
 	})
 	utils.CheckError(t, err)
-	senderID, err := Db.CreateAccount(Account{})
+	senderID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("sender")})
 	utils.CheckError(t, err)
-	receiverID, err := Db.CreateAccount(Account{})
+	receiverID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("receiver")})
 	utils.CheckError(t, err)
 	itemID, err := Db.CreateItem(Item{Price: 1})
 	utils.CheckError(t, err)

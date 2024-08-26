@@ -12,8 +12,6 @@ func (db *Database) InitiateAccounts() (err error) {
 	for _, account := range []string{"Cash", "Orga", "UserAnon", "VivaWallet", "Paypal"} {
 		_, err = Db.CreateSpecialVendorAccount(Vendor{
 			LicenseID: null.StringFrom(account),
-			FirstName: account,
-			LastName: "Account",
 			Email: account + "@account.com",
 		})
 		if err != nil {
