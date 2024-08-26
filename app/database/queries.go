@@ -184,16 +184,16 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 // DeleteVendor deletes a user in the database and the associated account
 func (db *Database) DeleteVendor(vendorID int) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
-	DELETE FROM Vendor
-	WHERE ID = $1
+	DELETE FROM Account
+	WHERE Vendor = $1
 	`, vendorID)
 	if err != nil {
 		log.Error("DeleteVendor: ", err)
 	}
 
 	_, err = db.Dbpool.Exec(context.Background(), `
-	DELETE FROM Account
-	WHERE Vendor = $1
+	DELETE FROM Vendor
+	WHERE ID = $1
 	`, vendorID)
 	if err != nil {
 		log.Error("DeleteVendor: ", err)

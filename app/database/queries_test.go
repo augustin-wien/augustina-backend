@@ -189,11 +189,16 @@ func TestQueryOrders(t *testing.T) {
 		LicenseID: null.StringFrom(vendorLicenseId),
 	})
 	utils.CheckError(t, err)
-	senderID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("sender")})
+	senderVendorID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("sender")})
 	utils.CheckError(t, err)
-	receiverID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("receiver")})
+	receiverVendorID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("receiver")})
 	utils.CheckError(t, err)
 	itemID, err := Db.CreateItem(Item{Price: 1})
+	utils.CheckError(t, err)
+
+	senderAccount, err := Db.GetAccountByVendorID(senderVendorID)
+	utils.CheckError(t, err)
+	receiverAccount, err := Db.GetAccountByVendorID(receiverVendorID)
 	utils.CheckError(t, err)
 
 	// Create order
@@ -204,8 +209,8 @@ func TestQueryOrders(t *testing.T) {
 			{
 				Item:     int(itemID),
 				Quantity: 315,
-				Sender:   senderID,
-				Receiver: receiverID,
+				Sender:   senderAccount.ID,
+				Receiver: receiverAccount.ID,
 			},
 		},
 	}
@@ -217,8 +222,8 @@ func TestQueryOrders(t *testing.T) {
 		{
 			Item:     int(itemID),
 			Quantity: 316,
-			Sender:   senderID,
-			Receiver: receiverID,
+			Sender:   senderAccount.ID,
+			Receiver: receiverAccount.ID,
 		},
 	})
 	utils.CheckError(t, err)
@@ -245,8 +250,8 @@ func TestQueryOrders(t *testing.T) {
 			{
 				Item:     int(itemID),
 				Quantity: 315,
-				Sender:   senderID,
-				Receiver: receiverID,
+				Sender:   senderAccount.ID,
+				Receiver: receiverAccount.ID,
 			},
 		},
 	}
@@ -258,8 +263,8 @@ func TestQueryOrders(t *testing.T) {
 		{
 			Item:     int(itemID),
 			Quantity: 316,
-			Sender:   senderID,
-			Receiver: receiverID,
+			Sender:   senderAccount.ID,
+			Receiver: receiverAccount.ID,
 		},
 	})
 	utils.CheckError(t, err)
