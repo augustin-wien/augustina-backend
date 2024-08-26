@@ -139,9 +139,9 @@ func TestVendors(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
 	require.Equal(t, 6, len(vendors))
-	require.Equal(t, "Cash", vendors[0].FirstName)
-	require.Equal(t, vendorLicenseId, vendors[0].LicenseID.String)
-	require.Equal(t, "test", vendors[0].LastName)
+	require.Equal(t, "test1234", vendors[3].FirstName)
+	require.Equal(t, vendorLicenseId, vendors[3].LicenseID.String)
+	require.Equal(t, "test", vendors[3].LastName)
 
 	// Check if licenseID exists and returns first name of vendor
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/"+vendorLicenseId+"/", nil, 200)
@@ -161,7 +161,7 @@ func TestVendors(t *testing.T) {
 
 	// Update
 	var vendors2 []database.Vendor
-	jsonVendor := `{"firstName": "nameAfterUpdate", "email": "` + vendorEmail + `", "Longitude": 16.363449, "Latitude": 48.210033}`
+	jsonVendor := `{"firstName": "nameAfterUpdate", "licenseID": "IDAfterUpdate", "email": "` + vendorEmail + `", "Longitude": 16.363449, "Latitude": 48.210033}`
 	utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200, adminUserToken)
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors2)

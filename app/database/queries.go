@@ -168,18 +168,46 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 	return
 }
 
-// UpdateVendor updates a user in the database
+// UpdateVendor updates a vendor in the database
 func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	UPDATE Vendor
-	SET keycloakid = $1, UrlID = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7, IsDisabled = $8, Longitude = $9, Latitude = $10, Address = $11, PLZ = $12, Location = $13, WorkingTime = $14, Language = $15, Comment = $16, Telephone = $17, RegistrationDate = $18, VendorSince = $19, OnlineMap = $20, HasSmartphone = $21, HasBankAccount = $22
-	WHERE ID = $23
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		log.Error("UpdateVendor: Failed to begin transaction: ", err)
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	// Update the Account table first if necessary
+	_, err = tx.Exec(context.Background(), `
+		UPDATE Account
+		SET Name = $1
+		WHERE Vendor = $2
+	`, vendor.LicenseID, id)
+	if err != nil {
+		log.Error("UpdateVendor: Failed to update Account: ", err)
+		return err
+	}
+
+	// Update the Vendor table
+	_, err = tx.Exec(context.Background(), `
+		UPDATE Vendor
+		SET keycloakid = $1, UrlID = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7, IsDisabled = $8, Longitude = $9, Latitude = $10, Address = $11, PLZ = $12, Location = $13, WorkingTime = $14, Language = $15, Comment = $16, Telephone = $17, RegistrationDate = $18, VendorSince = $19, OnlineMap = $20, HasSmartphone = $21, HasBankAccount = $22
+		WHERE ID = $23
 	`, vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Language, vendor.Comment, vendor.Telephone, vendor.RegistrationDate, vendor.VendorSince, vendor.OnlineMap, vendor.HasSmartphone, vendor.HasBankAccount, id)
 	if err != nil {
-		log.Error("UpdateVendor: ", err)
+		log.Error("UpdateVendor: Failed to update Vendor: ", err)
+		return err
 	}
-	return
+
+	// Commit transaction
+	if err = tx.Commit(context.Background()); err != nil {
+		log.Error("UpdateVendor: Failed to commit transaction: ", err)
+		return err
+	}
+
+	return nil
 }
+
 
 // DeleteVendor deletes a user in the database and the associated account
 func (db *Database) DeleteVendor(vendorID int) (err error) {
