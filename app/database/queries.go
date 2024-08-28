@@ -177,17 +177,6 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	}
 	defer tx.Rollback(context.Background())
 
-	// Update the Account table first if necessary
-	_, err = tx.Exec(context.Background(), `
-		UPDATE Account
-		SET Name = $1
-		WHERE Vendor = $2
-	`, vendor.LicenseID, id)
-	if err != nil {
-		log.Error("UpdateVendor: Failed to update Account: ", err)
-		return err
-	}
-
 	// Update the Vendor table
 	_, err = tx.Exec(context.Background(), `
 		UPDATE Vendor

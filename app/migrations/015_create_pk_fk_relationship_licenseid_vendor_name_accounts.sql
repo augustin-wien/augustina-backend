@@ -28,7 +28,7 @@ ALTER TABLE Account ADD CONSTRAINT account_vendor_fkey FOREIGN KEY (Vendor) REFE
 ALTER TABLE PaymentOrder ADD CONSTRAINT paymentorder_vendor_fkey FOREIGN KEY (Vendor) REFERENCES Vendor(ID) ON DELETE SET NULL;
 
 -- Step 9: Add the foreign key constraint from Name in Account table to LicenseID in Vendor table
-ALTER TABLE Account ADD CONSTRAINT fk_account_name_licenseid FOREIGN KEY (Name) REFERENCES Vendor(LicenseID) ON DELETE SET NULL;
+ALTER TABLE Account ADD CONSTRAINT fk_account_name_licenseid FOREIGN KEY (Name) REFERENCES Vendor(LicenseID) ON DELETE SET NULL ON UPDATE CASCADE;
 
 
 ---- create above / drop below ----

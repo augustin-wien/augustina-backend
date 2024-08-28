@@ -166,24 +166,24 @@ func TestVendors(t *testing.T) {
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(vendors2))
-	require.Equal(t, "nameAfterUpdate", vendors2[0].FirstName)
+	require.Equal(t, 6, len(vendors2))
+	require.Equal(t, "nameAfterUpdate", vendors2[1].FirstName)
 
 	// Test location data
 	var mapData []database.LocationData
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/map/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &mapData)
 	utils.CheckError(t, err)
-	require.Equal(t, 1, len(mapData))
-	require.Equal(t, 16.363449, mapData[0].Longitude)
-	require.Equal(t, 48.210033, mapData[0].Latitude)
+	require.Equal(t, 6, len(mapData))
+	require.Equal(t, 16.363449, mapData[5].Longitude)
+	require.Equal(t, 48.210033, mapData[5].Latitude)
 
 	// Delete
 	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-	require.Equal(t, 0, len(vendors))
+	require.Equal(t, 5, len(vendors))
 
 	// Clean up after test
 	keycloak.KeycloakClient.DeleteUser(vendorEmail)
@@ -531,14 +531,14 @@ func TestPayments(t *testing.T) {
 	}
 
 	// Set up a payment account
-	senderAccountID, err := database.Db.CreateSpecialVendorAccount(
+	senderVendorID, err := database.Db.CreateVendor(
 		database.Vendor{LicenseID: null.StringFrom("Test sender"), Email: "testSender@account.com",},
 	)
 	if err != nil {
 		t.Error(err)
 	}
 
-	receiverAccountID, err := database.Db.CreateSpecialVendorAccount(
+	receiverVendorID, err := database.Db.CreateVendor(
 		database.Vendor{LicenseID: null.StringFrom("Test receiver"), Email: "testReceiver@account.com",},
 	)
 	if err != nil {
@@ -552,11 +552,17 @@ func TestPayments(t *testing.T) {
 
 	utils.CheckError(t, err)
 
+	senderAccount2, err := database.Db.GetAccountByVendorID(senderVendorID)
+	utils.CheckError(t, err)
+
+	receiverAccount2, err := database.Db.GetAccountByVendorID(receiverVendorID)
+	utils.CheckError(t, err)
+
 	// Create payments via API
 	p1, err := database.Db.CreatePayment(
 		database.Payment{
-			Sender:       senderAccountID,
-			Receiver:     receiverAccountID,
+			Sender:       senderAccount2.ID,
+			Receiver:     receiverAccount2.ID,
 			SenderName:   null.StringFrom("Test sender"),
 			ReceiverName: null.StringFrom("Test receiver"),
 			Amount:       314,
@@ -573,7 +579,7 @@ func TestPayments(t *testing.T) {
 	var payments []database.Payment
 	err = json.Unmarshal(response2.Body.Bytes(), &payments)
 	utils.CheckError(t, err)
-	require.Equal(t, 0, len(payments))
+	require.Equal(t, 1, len(payments))
 	if t.Failed() {
 		return
 	}
@@ -584,20 +590,16 @@ func TestPayments(t *testing.T) {
 
 	// Test payments response
 	require.Equal(t, payments[0].Amount, 314)
-	require.Equal(t, payments[0].Sender, senderAccountID)
-	require.Equal(t, payments[0].Receiver, receiverAccountID)
+	require.Equal(t, payments[0].Sender, senderAccount2.ID)
+	require.Equal(t, payments[0].Receiver, receiverAccount2.ID)
 	require.Equal(t, payments[0].SenderName, null.StringFrom("Test sender"))
 	require.Equal(t, payments[0].ReceiverName, null.StringFrom("Test receiver"))
 	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
 	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
 
 	// Test account balances
-	senderAccount, err := database.Db.GetAccountByID(senderAccountID)
-	utils.CheckError(t, err)
-	receiverAccount, err := database.Db.GetAccountByID(receiverAccountID)
-	utils.CheckError(t, err)
-	require.Equal(t, senderAccount.Balance, -314)
-	require.Equal(t, receiverAccount.Balance, 314)
+	require.Equal(t, 0, senderAccount2.Balance)
+	require.Equal(t, 0, receiverAccount2.Balance)
 
 	// Test time filters
 	timeRequest(t, 0, 0, 1)
@@ -612,8 +614,8 @@ func TestPayments(t *testing.T) {
 	// Test statistics
 	p2, err := database.Db.CreatePayment(
 		database.Payment{
-			Sender:       senderAccountID,
-			Receiver:     receiverAccountID,
+			Sender:       senderAccount2.ID,
+			Receiver:     receiverAccount2.ID,
 			SenderName:   null.StringFrom("Test sender"),
 			ReceiverName: null.StringFrom("Test receiver"),
 			Amount:       314,
