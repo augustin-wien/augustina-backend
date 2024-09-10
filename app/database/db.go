@@ -176,7 +176,7 @@ func (db *Database) EmptyDatabase() (err error) {
 	log.Info("Number of accounts before truncation: ", count)
 
 
-	_, err = db.Dbpool.Exec(context.Background(), `SELECT truncate_tables('user');`)
+	_, err = db.Dbpool.Exec(context.Background(), "SELECT truncate_tables('user')")
 	log.Info("Database emptied")
 	if err != nil {
 		log.Error("EmptyDatabase: ", err)
@@ -188,5 +188,29 @@ func (db *Database) EmptyDatabase() (err error) {
 		log.Error("EmptyDatabase: ", err)
 	}
 	log.Info("Number of accounts after truncation: ", count)
+	db.CheckRolePermissions()
 	return
+}
+
+func (db *Database) CheckRolePermissions() error {
+	// Log the current user (role) in use
+	var currentUser string
+	err := db.Dbpool.QueryRow(context.Background(), `SELECT current_user;`).Scan(&currentUser)
+	if err != nil {
+		log.Error("Failed to get current user: ", err)
+		return err
+	}
+	log.Info("Current database user: ", currentUser)
+
+
+	// Check TRUNCATE privilege on the 'Account' table
+	var hasTruncate bool
+	err = db.Dbpool.QueryRow(context.Background(), `SELECT has_table_privilege($1, 'Account', 'TRUNCATE');`, currentUser).Scan(&hasTruncate)
+	if err != nil {
+		log.Error("Failed to check TRUNCATE privilege: %v", err)
+		return err
+	}
+	log.Info("User", currentUser, "has TRUNCATE privilege on 'Account': ", hasTruncate)
+
+	return nil
 }
