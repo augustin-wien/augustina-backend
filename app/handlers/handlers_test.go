@@ -115,13 +115,13 @@ func createTestVendor(t *testing.T, licenseID string) string {
 
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
-	// vendorLicenseId := "testlicenseid1"
-	// vendorEmail := vendorLicenseId + "@example.com"
-	// // vendorPassword := "password"
-	// err := keycloak.KeycloakClient.DeleteUser(vendorEmail)
-	// if err != nil {
-	// 	log.Infof("Delete user %v failed, which is okey: %v \n", vendorLicenseId, err)
-	// }
+	vendorLicenseId := "testlicenseid1"
+	vendorEmail := vendorLicenseId + "@example.com"
+	// vendorPassword := "password"
+	err := keycloak.KeycloakClient.DeleteUser(vendorEmail)
+	if err != nil {
+		log.Infof("Delete user %v failed, which is okey: %v \n", vendorLicenseId, err)
+	}
 
 	// Initialize database and empty it
 	err := database.Db.InitEmptyTestDb()
@@ -129,64 +129,64 @@ func TestVendors(t *testing.T) {
 		panic(err)
 	}
 
-	// // Create
-	// vendorID := createTestVendor(t, vendorLicenseId)
-	// keycloak.KeycloakClient.UpdateUserPassword(vendorEmail, vendorPassword)
+	// Create
+	vendorID := createTestVendor(t, vendorLicenseId)
+	keycloak.KeycloakClient.UpdateUserPassword(vendorEmail, vendorPassword)
 
 	// Query ListVendors only returns few fields (not all) under /api/vendors/
 	res := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	var vendors []database.Vendor
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
+	require.Equal(t, 6, len(vendors))
+	require.Equal(t, "test1234", vendors[3].FirstName)
+	require.Equal(t, vendorLicenseId, vendors[3].LicenseID.String)
+	require.Equal(t, "test", vendors[3].LastName)
+
+	// Check if licenseID exists and returns first name of vendor
+	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/"+vendorLicenseId+"/", nil, 200)
+	require.Equal(t, res.Body.String(), `{"FirstName":"test1234"}`)
+
+	// GetVendorByID returns all fields under /api/vendors/{id}/
+	utils.TestRequest(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 401)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 200, adminUserToken)
+	var vendor database.Vendor
+	err = json.Unmarshal(res.Body.Bytes(), &vendor)
+	utils.CheckError(t, err)
+	require.Equal(t, "test1234", vendor.FirstName)
+	require.Equal(t, "+43123456789", vendor.Telephone)
+	require.Equal(t, "1/22", vendor.VendorSince)
+	require.Equal(t, "1234", vendor.PLZ)
+	require.Equal(t, vendorEmail, vendor.Email)
+
+	// Update
+	var vendors2 []database.Vendor
+	jsonVendor := `{"firstName": "nameAfterUpdate", "licenseID": "IDAfterUpdate", "email": "` + vendorEmail + `", "Longitude": 16.363449, "Latitude": 48.210033}`
+	utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
+	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
+	utils.CheckError(t, err)
+	require.Equal(t, 6, len(vendors2))
+	require.Equal(t, "nameAfterUpdate", vendors2[1].FirstName)
+
+	// Test location data
+	var mapData []database.LocationData
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/map/", nil, 200, adminUserToken)
+	err = json.Unmarshal(res.Body.Bytes(), &mapData)
+	utils.CheckError(t, err)
+	require.Equal(t, 6, len(mapData))
+	require.Equal(t, 16.363449, mapData[5].Longitude)
+	require.Equal(t, 48.210033, mapData[5].Latitude)
+
+	// Delete
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
+	err = json.Unmarshal(res.Body.Bytes(), &vendors)
+	utils.CheckError(t, err)
 	require.Equal(t, 5, len(vendors))
-	// require.Equal(t, "test1234", vendors[3].FirstName)
-	// require.Equal(t, vendorLicenseId, vendors[3].LicenseID.String)
-	// require.Equal(t, "test", vendors[3].LastName)
 
-	// // Check if licenseID exists and returns first name of vendor
-	// res = utils.TestRequest(t, r, "GET", "/api/vendors/check/"+vendorLicenseId+"/", nil, 200)
-	// require.Equal(t, res.Body.String(), `{"FirstName":"test1234"}`)
-
-	// // GetVendorByID returns all fields under /api/vendors/{id}/
-	// utils.TestRequest(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 401)
-	// res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 200, adminUserToken)
-	// var vendor database.Vendor
-	// err = json.Unmarshal(res.Body.Bytes(), &vendor)
-	// utils.CheckError(t, err)
-	// require.Equal(t, "test1234", vendor.FirstName)
-	// require.Equal(t, "+43123456789", vendor.Telephone)
-	// require.Equal(t, "1/22", vendor.VendorSince)
-	// require.Equal(t, "1234", vendor.PLZ)
-	// require.Equal(t, vendorEmail, vendor.Email)
-
-	// // Update
-	// var vendors2 []database.Vendor
-	// jsonVendor := `{"firstName": "nameAfterUpdate", "licenseID": "IDAfterUpdate", "email": "` + vendorEmail + `", "Longitude": 16.363449, "Latitude": 48.210033}`
-	// utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200, adminUserToken)
-	// res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
-	// err = json.Unmarshal(res.Body.Bytes(), &vendors2)
-	// utils.CheckError(t, err)
-	// require.Equal(t, 6, len(vendors2))
-	// require.Equal(t, "nameAfterUpdate", vendors2[1].FirstName)
-
-	// // Test location data
-	// var mapData []database.LocationData
-	// res = utils.TestRequestWithAuth(t, r, "GET", "/api/map/", nil, 200, adminUserToken)
-	// err = json.Unmarshal(res.Body.Bytes(), &mapData)
-	// utils.CheckError(t, err)
-	// require.Equal(t, 6, len(mapData))
-	// require.Equal(t, 16.363449, mapData[5].Longitude)
-	// require.Equal(t, 48.210033, mapData[5].Latitude)
-
-	// // Delete
-	// utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
-	// res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
-	// err = json.Unmarshal(res.Body.Bytes(), &vendors)
-	// utils.CheckError(t, err)
-	// require.Equal(t, 5, len(vendors))
-
-	// // Clean up after test
-	// keycloak.KeycloakClient.DeleteUser(vendorEmail)
+	// Clean up after test
+	keycloak.KeycloakClient.DeleteUser(vendorEmail)
 
 }
 
@@ -552,17 +552,17 @@ func TestPayments(t *testing.T) {
 
 	utils.CheckError(t, err)
 
-	senderAccount2, err := database.Db.GetAccountByVendorID(senderVendorID)
+	testSenderAccount, err := database.Db.GetAccountByVendorID(senderVendorID)
 	utils.CheckError(t, err)
 
-	receiverAccount2, err := database.Db.GetAccountByVendorID(receiverVendorID)
+	testReceiverAccount, err := database.Db.GetAccountByVendorID(receiverVendorID)
 	utils.CheckError(t, err)
 
 	// Create payments via API
 	p1, err := database.Db.CreatePayment(
 		database.Payment{
-			Sender:       senderAccount2.ID,
-			Receiver:     receiverAccount2.ID,
+			Sender:       testSenderAccount.ID,
+			Receiver:     testReceiverAccount.ID,
 			SenderName:   null.StringFrom("Test sender"),
 			ReceiverName: null.StringFrom("Test receiver"),
 			Amount:       314,
@@ -590,16 +590,16 @@ func TestPayments(t *testing.T) {
 
 	// Test payments response
 	require.Equal(t, payments[0].Amount, 314)
-	require.Equal(t, payments[0].Sender, senderAccount2.ID)
-	require.Equal(t, payments[0].Receiver, receiverAccount2.ID)
+	require.Equal(t, payments[0].Sender, testSenderAccount.ID)
+	require.Equal(t, payments[0].Receiver, testReceiverAccount.ID)
 	require.Equal(t, payments[0].SenderName, null.StringFrom("Test sender"))
 	require.Equal(t, payments[0].ReceiverName, null.StringFrom("Test receiver"))
 	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
 	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
 
 	// Test account balances
-	require.Equal(t, 0, senderAccount2.Balance)
-	require.Equal(t, 0, receiverAccount2.Balance)
+	require.Equal(t, 0, testSenderAccount.Balance)
+	require.Equal(t, 0, testReceiverAccount.Balance)
 
 	// Test time filters
 	timeRequest(t, 0, 0, 1)
@@ -614,8 +614,8 @@ func TestPayments(t *testing.T) {
 	// Test statistics
 	p2, err := database.Db.CreatePayment(
 		database.Payment{
-			Sender:       senderAccount2.ID,
-			Receiver:     receiverAccount2.ID,
+			Sender:       testSenderAccount.ID,
+			Receiver:     testReceiverAccount.ID,
 			SenderName:   null.StringFrom("Test sender"),
 			ReceiverName: null.StringFrom("Test receiver"),
 			Amount:       314,

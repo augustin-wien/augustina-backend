@@ -170,7 +170,7 @@ func (db *Database) EmptyDatabase() (err error) {
 	var count int
 	err = db.Dbpool.QueryRow(context.Background(), `SELECT COUNT(*) FROM Account;`).Scan(&count)
 	if err != nil {
-		log.Error("EmptyDatabase: ", err)
+		log.Error("EmptyDatabase show number of accounts before truncation: ", err)
 		return
 	}
 	log.Info("Number of accounts before truncation: ", count)
@@ -179,13 +179,13 @@ func (db *Database) EmptyDatabase() (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), "SELECT truncate_tables('user')")
 	log.Info("Database emptied")
 	if err != nil {
-		log.Error("EmptyDatabase: ", err)
+		log.Error("EmptyDatabase truncation failed: ", err)
 	}
 
 	// Show number of accounts existing in database after truncation
 	err = db.Dbpool.QueryRow(context.Background(), `SELECT COUNT(*) FROM Account;`).Scan(&count)
 	if err != nil {
-		log.Error("EmptyDatabase: ", err)
+		log.Error("EmptyDatabase show number of accounts after truncation: ", err)
 	}
 	log.Info("Number of accounts after truncation: ", count)
 	db.CheckRolePermissions()
