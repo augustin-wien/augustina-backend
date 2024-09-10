@@ -75,10 +75,11 @@ jobs:
             echo "Waiting for PostgreSQL..."
             sleep 5
           done
+          export PGPASSWORD=${{ env.DB_PASS }}
           psql -h localhost -U postgres -d djtesting -c "
             GRANT ALL PRIVILEGES ON DATABASE djtesting TO postgres;
             ALTER USER postgres WITH SUPERUSER;
-          "    
+          "
       - name: Test
         run: |
           cp .env.example ./app/.env
