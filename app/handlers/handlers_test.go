@@ -115,13 +115,13 @@ func createTestVendor(t *testing.T, licenseID string) string {
 
 // TestVendors tests CRUD operations on users
 func TestVendors(t *testing.T) {
-	vendorLicenseId := "testlicenseid1"
-	vendorEmail := vendorLicenseId + "@example.com"
-	// vendorPassword := "password"
-	err := keycloak.KeycloakClient.DeleteUser(vendorEmail)
-	if err != nil {
-		log.Infof("Delete user %v failed, which is okey: %v \n", vendorLicenseId, err)
-	}
+	// vendorLicenseId := "testlicenseid1"
+	// vendorEmail := vendorLicenseId + "@example.com"
+	// // vendorPassword := "password"
+	// err := keycloak.KeycloakClient.DeleteUser(vendorEmail)
+	// if err != nil {
+	// 	log.Infof("Delete user %v failed, which is okey: %v \n", vendorLicenseId, err)
+	// }
 
 	// Initialize database and empty it
 	err = database.Db.InitEmptyTestDb()
