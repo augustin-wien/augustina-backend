@@ -159,34 +159,34 @@ func (db *Database) CloseDbPool() {
 	db.Dbpool.Close()
 }
 
-	// EmptyDatabase truncates all tables in the database
-	func (db *Database) EmptyDatabase() (err error) {
-		log.Info("Emptying database executed")
-		if db.IsProduction {
-			log.Fatal("Cannot empty production database")
-			return
-		}
-		// Show number of accounts existing in database before truncation
-		var count int
-		err = db.Dbpool.QueryRow(context.Background(), `SELECT COUNT(*) FROM Account;`).Scan(&count)
-		if err != nil {
-			log.Error("EmptyDatabase: ", err)
-			return
-		}
-		log.Info("Number of accounts before truncation: ", count)
-
-
-		_, err = db.Dbpool.Exec(context.Background(), `SELECT truncate_tables('user');`)
-		log.Info("Database emptied")
-		if err != nil {
-			log.Error("EmptyDatabase: ", err)
-		}
-
-		// Show number of accounts existing in database after truncation
-		err = db.Dbpool.QueryRow(context.Background(), `SELECT COUNT(*) FROM Account;`).Scan(&count)
-		if err != nil {
-			log.Error("EmptyDatabase: ", err)
-		}
-		log.Info("Number of accounts after truncation: ", count)
+// EmptyDatabase truncates all tables in the database
+func (db *Database) EmptyDatabase() (err error) {
+	log.Info("Emptying database executed")
+	if db.IsProduction {
+		log.Fatal("Cannot empty production database")
 		return
 	}
+	// Show number of accounts existing in database before truncation
+	var count int
+	err = db.Dbpool.QueryRow(context.Background(), `SELECT COUNT(*) FROM Account;`).Scan(&count)
+	if err != nil {
+		log.Error("EmptyDatabase: ", err)
+		return
+	}
+	log.Info("Number of accounts before truncation: ", count)
+
+
+	_, err = db.Dbpool.Exec(context.Background(), `SELECT truncate_tables('user');`)
+	log.Info("Database emptied")
+	if err != nil {
+		log.Error("EmptyDatabase: ", err)
+	}
+
+	// Show number of accounts existing in database after truncation
+	err = db.Dbpool.QueryRow(context.Background(), `SELECT COUNT(*) FROM Account;`).Scan(&count)
+	if err != nil {
+		log.Error("EmptyDatabase: ", err)
+	}
+	log.Info("Number of accounts after truncation: ", count)
+	return
+}

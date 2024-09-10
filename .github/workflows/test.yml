@@ -68,6 +68,17 @@ jobs:
               } 1>&2
               sleep 10
           done
+
+      - name: Grant all privileges to test user
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 5
+          done
+          psql -h localhost -U postgres -d djtesting -c "
+            GRANT ALL PRIVILEGES ON DATABASE djtesting TO postgres;
+            ALTER USER postgres WITH SUPERUSER;
+          "    
       - name: Test
         run: |
           cp .env.example ./app/.env

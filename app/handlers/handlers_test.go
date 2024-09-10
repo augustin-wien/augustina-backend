@@ -124,7 +124,7 @@ func TestVendors(t *testing.T) {
 	// }
 
 	// Initialize database and empty it
-	err = database.Db.InitEmptyTestDb()
+	err := database.Db.InitEmptyTestDb()
 	if err != nil {
 		panic(err)
 	}
