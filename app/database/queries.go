@@ -56,12 +56,19 @@ func (db *Database) GetHelloWorld() (string, error) {
 
 // ListVendors returns all users from the database but not all fields for better overview
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id ORDER BY LicenseID ASC")
+	rows, err := db.Dbpool.Query(context.Background(), `
+		SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance 
+		FROM Vendor 
+		JOIN Account ON Account.vendor = Vendor.id 
+		WHERE Account.Type = 'Vendor' 
+		ORDER BY LicenseID ASC
+	`)
 	if err != nil {
 		log.Error("ListVendors", err)
 		return vendors, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var vendor Vendor
 		err = rows.Scan(&vendor.ID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.LastPayout, &vendor.Balance)
@@ -71,8 +78,10 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 		}
 		vendors = append(vendors, vendor)
 	}
+
 	return vendors, nil
 }
+
 
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
