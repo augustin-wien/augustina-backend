@@ -2069,5 +2069,5 @@ func updateCSS(w http.ResponseWriter, r *http.Request) {
 		err = errors.New("failed to update css")
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
-	log.Info("updateCSS: success)
+	log.Info("updateCSS: success")
 }
