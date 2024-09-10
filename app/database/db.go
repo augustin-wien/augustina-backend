@@ -34,6 +34,7 @@ func (db *Database) InitDb() (err error) {
 
 // InitEmptyTestDb connects to an empty testing database and store it in the global Db variable
 func (db *Database) InitEmptyTestDb() (err error) {
+	log.Info("Initializing empty test database")
 	err = db.initDb(false, false)
 	if err != nil {
 		return err
@@ -160,6 +161,7 @@ func (db *Database) CloseDbPool() {
 
 // EmptyDatabase truncates all tables in the database
 func (db *Database) EmptyDatabase() (err error) {
+	log.Info("Emptying database executed")
 	if db.IsProduction {
 		log.Fatal("Cannot empty production database")
 		return
