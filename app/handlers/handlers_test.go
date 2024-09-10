@@ -117,14 +117,14 @@ func createTestVendor(t *testing.T, licenseID string) string {
 func TestVendors(t *testing.T) {
 	vendorLicenseId := "testlicenseid1"
 	vendorEmail := vendorLicenseId + "@example.com"
-	// vendorPassword := "password"
+	vendorPassword := "password"
 	err := keycloak.KeycloakClient.DeleteUser(vendorEmail)
 	if err != nil {
 		log.Infof("Delete user %v failed, which is okey: %v \n", vendorLicenseId, err)
 	}
 
 	// Initialize database and empty it
-	err := database.Db.InitEmptyTestDb()
+	err = database.Db.InitEmptyTestDb()
 	if err != nil {
 		panic(err)
 	}
@@ -138,10 +138,10 @@ func TestVendors(t *testing.T) {
 	var vendors []database.Vendor
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-	require.Equal(t, 6, len(vendors))
-	require.Equal(t, "test1234", vendors[3].FirstName)
-	require.Equal(t, vendorLicenseId, vendors[3].LicenseID.String)
-	require.Equal(t, "test", vendors[3].LastName)
+	require.Equal(t, 1, len(vendors))
+	require.Equal(t, "test1234", vendors[0].FirstName)
+	require.Equal(t, vendorLicenseId, vendors[0].LicenseID.String)
+	require.Equal(t, "test", vendors[0].LastName)
 
 	// Check if licenseID exists and returns first name of vendor
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/"+vendorLicenseId+"/", nil, 200)
@@ -166,24 +166,24 @@ func TestVendors(t *testing.T) {
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
 	utils.CheckError(t, err)
-	require.Equal(t, 6, len(vendors2))
-	require.Equal(t, "nameAfterUpdate", vendors2[1].FirstName)
+	require.Equal(t, 1, len(vendors2))
+	require.Equal(t, "nameAfterUpdate", vendors2[0].FirstName)
 
 	// Test location data
 	var mapData []database.LocationData
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/map/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &mapData)
 	utils.CheckError(t, err)
-	require.Equal(t, 6, len(mapData))
-	require.Equal(t, 16.363449, mapData[5].Longitude)
-	require.Equal(t, 48.210033, mapData[5].Latitude)
+	require.Equal(t, 1, len(mapData))
+	require.Equal(t, 16.363449, mapData[0].Longitude)
+	require.Equal(t, 48.210033, mapData[0].Latitude)
 
 	// Delete
 	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors)
 	utils.CheckError(t, err)
-	require.Equal(t, 5, len(vendors))
+	require.Equal(t, 0, len(vendors))
 
 	// Clean up after test
 	keycloak.KeycloakClient.DeleteUser(vendorEmail)

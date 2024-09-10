@@ -111,6 +111,7 @@ func TestAccounts(t *testing.T) {
 }
 
 func TestVendors(t *testing.T) {
+	Db.InitEmptyTestDb()
 	licenseId := "tt-123"
 	vendorName := "test"
 	vendorEmail := vendorName + "@example.com"
@@ -150,7 +151,7 @@ func TestVendors(t *testing.T) {
 	// Get all vendors
 	vendors, err := Db.ListVendors()
 	utils.CheckError(t, err)
-	require.Equal(t, 7, len(vendors))
+	require.Equal(t, 1, len(vendors))
 
 	// Get vendor by LicenseID
 	vendor, err = Db.GetVendorByLicenseID(licenseId)
@@ -165,11 +166,11 @@ func TestVendors(t *testing.T) {
 	// Get vendor locations
 	vendorMap, err := Db.GetVendorLocations()
 	utils.CheckError(t, err)
-	require.Equal(t, 7, len(vendorMap))
-	require.Equal(t, 10.0, vendorMap[6].Longitude)
-	require.Equal(t, 20.0, vendorMap[6].Latitude)
-	require.Equal(t, vendorName, vendorMap[6].FirstName)
-	require.Equal(t, id, vendorMap[6].ID)
+	require.Equal(t, 1, len(vendorMap))
+	require.Equal(t, 10.0, vendorMap[0].Longitude)
+	require.Equal(t, 20.0, vendorMap[0].Latitude)
+	require.Equal(t, vendorName, vendorMap[0].FirstName)
+	require.Equal(t, id, vendorMap[0].ID)
 
 	// Delete vendor
 	err = Db.DeleteVendor(id)

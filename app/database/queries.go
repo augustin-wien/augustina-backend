@@ -1270,7 +1270,12 @@ type LocationData struct {
 
 // GetVendorLocations returns a list of all longitudes and latitudes given by the vendors table
 func (db *Database) GetVendorLocations() (locationData []LocationData, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, LicenseID, FirstName, Longitude, Latitude from Vendor")
+	rows, err := db.Dbpool.Query(context.Background(), `
+	SELECT vendor.ID, LicenseID, FirstName, Longitude, Latitude 
+	from Vendor 
+	JOIN Account ON Account.Vendor = Vendor.id 
+	WHERE Account.Type = 'Vendor'
+	`)
 	if err != nil {
 		log.Error("GetVendorLocations: ", err)
 		return locationData, err
