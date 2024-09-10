@@ -11,7 +11,7 @@ jobs:
 
     env:
       # Note: this sets the main database also as the test database
-      DB_USER: postgres
+      DB_USER: user
       DB_PASS: postgres
       DB_HOST: localhost
       DB_HOST_TEST: localhost # default host value for the database
