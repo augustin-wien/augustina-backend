@@ -1185,7 +1185,9 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Declare total sum from order
 	verifyPaymentOrderResponse.TotalSum = order.GetTotal()
-	verifyPaymentOrderResponse.PDFDownloadLinks = order.GetPDFDownloadLinks()
+	if order.HasDigitalItem() {
+		verifyPaymentOrderResponse.PDFDownloadLinks = order.GetPDFDownloadLinks()
+	}
 
 	// Get first name of vendor from vendor id in order
 	vendor, err := database.Db.GetVendor(order.Vendor)

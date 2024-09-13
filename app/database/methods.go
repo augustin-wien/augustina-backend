@@ -38,3 +38,24 @@ func (order Order) GetPDFDownloadLinks() *[]PDFDownloadLinks {
 	}
 	return nil
 }
+
+func (order Order) HasDigitalItem() bool {
+	for _, entry := range order.Entries {
+		if entry.IsDigital() {
+			return true
+		}
+	}
+	return false
+}
+
+func (entry OrderEntry) IsDigital() bool {
+	item, err := Db.GetItem(entry.Item)
+	if err != nil {
+		log.Error("Error getting item ", err)
+		return false
+	}
+	if item.IsPDFItem {
+		return true
+	}
+	return false
+}

@@ -25,6 +25,8 @@ func GetRouter() (r *chi.Mux) {
 	frontendURL := os.Getenv("FRONTEND_URL")
 	if frontendURL == "" {
 		log.Fatal("FRONTEND_URL environment variable is not set")
+	} else {
+		log.Info("FRONTEND_URL environment variable is set to: ", frontendURL)
 	}
 
 	// Define allowed origins
