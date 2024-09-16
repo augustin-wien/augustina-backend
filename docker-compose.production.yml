@@ -23,6 +23,7 @@ services:
     image: dkia/augustin-backend
     volumes:
       - /dockerstorage/convive/augustin/data/backend/img:/app/img
+      - /dockerstorage/convive/augustin/data/backend/public:/app/public
       - /dockerstorage/convive/augustin/data/backend/pdf:/app/pdf
       - /dockerstorage/convive/augustin/data/backend/email_templates:/app/templates
 

@@ -64,6 +64,7 @@ func GetRouter() (r *chi.Mux) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.AdminAuthMiddleware)
 			r.Put("/", updateSettings)
+			r.Put("/css/", updateCSS)
 		})
 	})
 
@@ -155,6 +156,11 @@ func GetRouter() (r *chi.Mux) {
 	// Mount static file servers in img folder
 	fsImg := http.FileServer(http.Dir("img"))
 	r.Handle("/img/*", http.StripPrefix("/img/", fsImg))
+
+	// Mount style.css file server and always serve the same file
+	fsCSS := http.FileServer(http.Dir("public"))
+	r.Handle("/public/*", http.StripPrefix("/public/", fsCSS))
+
 	// Docs file server is used for swagger documentation
 	fsDocs := http.FileServer(http.Dir("docs"))
 	r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))

@@ -2033,3 +2033,45 @@ func validatePDFLink(w http.ResponseWriter, r *http.Request) {
 		log.Error("validatePDFLink: ", err)
 	}
 }
+
+// UpdateCss godoc
+//
+//	@Summary 		Update CSS
+//	@Description	Gets a css as a string and saves it to the disk
+//	@Tags			Settings
+//	@Accept			txt
+//	@Produce		txt
+//	@Success		200
+//	@Router			/settings/css [put]
+
+func updateCSS(w http.ResponseWriter, r *http.Request) {
+
+	// Read data from request
+	body, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		log.Error("Reading body failed for css: ", err)
+		err = errors.New("failed to update css")
+
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Save file with name "style.css"
+	path := "/public/style.css"
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error("updateCSS: couldn't get wd", err)
+		err = errors.New("failed to update css")
+
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	err = os.WriteFile(dir+path, body, 0666)
+	if err != nil {
+		log.Error("updateCSS: saving failed", err)
+		err = errors.New("failed to update css")
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+	}
+	log.Info("updateCSS: success")
+}
