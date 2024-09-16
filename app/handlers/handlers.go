@@ -91,7 +91,8 @@ func HelloWorldAuth(w http.ResponseWriter, r *http.Request) {
 // Users ----------------------------------------------------------------------
 
 type checkLicenseIDResponse struct {
-	FirstName string
+	FirstName       string
+	AccountProofUrl null.String
 }
 
 // CheckVendorsLicenseID godoc
@@ -118,7 +119,10 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := checkLicenseIDResponse{FirstName: users.FirstName}
+	response := checkLicenseIDResponse{
+		FirstName:       users.FirstName,
+		AccountProofUrl: users.AccountProofUrl,
+	}
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
 		log.Error("CheckVendorsLicenseID: ", err)
