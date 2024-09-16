@@ -9,9 +9,7 @@ services:
       - "7002:80"
     environment:
       VITE_API_URL: ${BACKEND_HOST}
-      VITE_KEYCLOAK_URL: ${KEYCLOAK_HOST}
-      VITE_AUGUSTIN_COVER: ${AUGUSTIN_COVER}
-      VITE_AGB_URL: ${AGB_URL}
+      VITE_SENTRY_DSN: ${VITE_SENTRY_DSN}
     depends_on:
       - augustin-backend
   augustin-backend:
@@ -36,6 +34,7 @@ services:
       DB_PORT_TEST: ${DB_PORT_TEST}
       DEVELOPMENT: ${DEVELOPMENT}
       FRONTEND_URL: ${FRONTEND_URL}
+      SENTRY_DSN: ${SENTRY_DSN}
     depends_on:
       - augustin-db
     links:
