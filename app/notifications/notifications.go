@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/nikoksr/notify"
 	"github.com/nikoksr/notify/service/mail"
 	"github.com/nikoksr/notify/service/matrix"
@@ -15,10 +16,11 @@ import (
 var NotificationsClient Notifications
 
 type Notifications struct {
-	Client *notify.Notify
+	Client        *notify.Notify
+	SentryEnabled bool
 }
 
-func InitNotifications() *notify.Notify {
+func InitNotifications(enableSentry bool) *notify.Notify {
 	client := notify.New()
 	if os.Getenv("NOTIFICATIONS_EMAIL_ENABLED") == "true" {
 		email := mail.New(os.Getenv("NOTIFICATIONS_EMAIL_SENDER"), os.Getenv("NOTIFICATIONS_EMAIL_SERVER")+":"+os.Getenv("NOTIFICATIONS_EMAIL_PORT"))
@@ -38,11 +40,15 @@ func InitNotifications() *notify.Notify {
 	}
 	client.Disabled = false
 	NotificationsClient.Client = client
+	NotificationsClient.SentryEnabled = enableSentry
 	return client
 }
 
 // SendNotification sends a notification
 func (n *Notifications) SendNotification(subject, message string) {
+	if n != nil && n.SentryEnabled {
+		sentry.CaptureMessage(message)
+	}
 	prefix := "[" + os.Getenv("NOTIFICATIONS_EMAIL_PREFIX") + "] "
 	err := n.Client.Send(context.Background(), prefix+subject, message)
 	if err != nil {
@@ -52,6 +58,9 @@ func (n *Notifications) SendNotification(subject, message string) {
 
 // SendErrorNotification sends an error notification
 func (n *Notifications) SendErrorNotification(subject, message string) {
+	if n != nil && n.SentryEnabled {
+		sentry.CaptureMessage(message)
+	}
 	prefix := "[" + os.Getenv("NOTIFICATIONS_PREFIX") + "-Error] "
 	if n == nil {
 		fmt.Printf("Error: NotificationsClient is nil")
@@ -59,7 +68,7 @@ func (n *Notifications) SendErrorNotification(subject, message string) {
 	}
 	client := n.Client
 	if client == nil {
-		client = InitNotifications()
+		client = InitNotifications(n.SentryEnabled)
 		n.Client = client
 	}
 	err := client.Send(context.Background(), prefix+subject, message)
