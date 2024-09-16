@@ -145,7 +145,7 @@ func TestVendors(t *testing.T) {
 
 	// Check if licenseID exists and returns first name of vendor
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/"+vendorLicenseId+"/", nil, 200)
-	require.Equal(t, res.Body.String(), `{"FirstName":"test1234"}`)
+	require.Equal(t, res.Body.String(), `{"FirstName":"test1234","AccountProofUrl":null}`)
 
 	// GetVendorByID returns all fields under /api/vendors/{id}/
 	utils.TestRequest(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 401)

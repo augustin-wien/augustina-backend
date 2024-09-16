@@ -81,7 +81,7 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap,
 		&vendor.HasSmartphone, &vendor.HasBankAccount, &vendor.IsDeleted, &vendor.AccountProofUrl)
 	if err != nil {
-		log.Error("GetVendorByLicenseID: Couldn't get vendor: ", licenseID, err)
+		log.Info("GetVendorByLicenseID: Couldn't get vendor: ", licenseID, err)
 		return vendor, err
 	}
 
@@ -173,9 +173,9 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Vendor
-	SET keycloakid = $1, UrlID = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7, IsDisabled = $8, Longitude = $9, Latitude = $10, Address = $11, PLZ = $12, Location = $13, WorkingTime = $14, Language = $15, Comment = $16, Telephone = $17, RegistrationDate = $18, VendorSince = $19, OnlineMap = $20, HasSmartphone = $21, HasBankAccount = $22
-	WHERE ID = $23
-	`, vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Language, vendor.Comment, vendor.Telephone, vendor.RegistrationDate, vendor.VendorSince, vendor.OnlineMap, vendor.HasSmartphone, vendor.HasBankAccount, id)
+	SET keycloakid = $1, UrlID = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7, IsDisabled = $8, Longitude = $9, Latitude = $10, Address = $11, PLZ = $12, Location = $13, WorkingTime = $14, Language = $15, Comment = $16, Telephone = $17, RegistrationDate = $18, VendorSince = $19, OnlineMap = $20, HasSmartphone = $21, HasBankAccount = $22, AccountProofUrl = $23
+	WHERE ID = $24
+	`, vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Language, vendor.Comment, vendor.Telephone, vendor.RegistrationDate, vendor.VendorSince, vendor.OnlineMap, vendor.HasSmartphone, vendor.HasBankAccount, vendor.AccountProofUrl, id)
 	if err != nil {
 		log.Error("UpdateVendor: ", err)
 	}
