@@ -687,6 +687,10 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 				log.Error("updateItemNormal: Parse ID failed ", err)
 				return
 			}
+		} else if key == "ItemColor" {
+			fieldsClean[key] = null.StringFrom(value[0])
+		} else if key == "ItemTextColor" {
+			fieldsClean[key] = null.StringFrom(value[0])
 		} else if key == "PDF" {
 			pdf, err := strconv.Atoi(value[0])
 			if err != nil {
