@@ -409,3 +409,11 @@ To enable the digital license items, you need to set the following environment v
 SEND_CUSTOMER_EMAIL=true
 ONLINE_PAPER_URL=http://augustin.local
 ```
+
+## Optional: Setup for sentry error logging
+
+To enable sentry error logging please fill the env variables in `.env` with a valid sentry dsn. The system works perfectly fine with self hosted alternatives of sentry like GlitchTip.
+```
+SENTRY_DSN=             # Backend sentry
+VITE_SENTRY_DSN=        # Frontend sentry 
+```
