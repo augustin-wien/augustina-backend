@@ -94,23 +94,24 @@ func TestAccounts(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, "Cash", account.Name)
 
-	// Create new account
-	account = Account{
-		Name: "test",
-		Type: "UserAuth",
-		User: null.StringFrom("550e8400-e29b-41d4-a716-446655440000"),
+	// Create new account with known
+	test_vendor := Vendor{
+		LicenseID: null.StringFrom("UserAuth"),
+		Email: "UserAuth@augustina.cc",
 	}
-	id, err := Db.CreateAccount(account)
+
+	id, err := Db.CreateSpecialVendorAccount(test_vendor)
 	utils.CheckError(t, err)
 
 	// Get account by ID
-	account, err = Db.GetAccountByID(id)
+	test_vendor, err = Db.GetVendor(id)
 	utils.CheckError(t, err)
 
-	require.Equal(t, "test", account.Name)
+	require.Equal(t, "UserAuth", test_vendor.LicenseID.String)
 }
 
 func TestVendors(t *testing.T) {
+	Db.InitEmptyTestDb()
 	licenseId := "tt-123"
 	vendorName := "test"
 	vendorEmail := vendorName + "@example.com"
@@ -189,11 +190,16 @@ func TestQueryOrders(t *testing.T) {
 		LicenseID: null.StringFrom(vendorLicenseId),
 	})
 	utils.CheckError(t, err)
-	senderID, err := Db.CreateAccount(Account{})
+	senderVendorID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("sender")})
 	utils.CheckError(t, err)
-	receiverID, err := Db.CreateAccount(Account{})
+	receiverVendorID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("receiver")})
 	utils.CheckError(t, err)
 	itemID, err := Db.CreateItem(Item{Price: 1})
+	utils.CheckError(t, err)
+
+	senderAccount, err := Db.GetAccountByVendorID(senderVendorID)
+	utils.CheckError(t, err)
+	receiverAccount, err := Db.GetAccountByVendorID(receiverVendorID)
 	utils.CheckError(t, err)
 
 	// Create order
@@ -204,8 +210,8 @@ func TestQueryOrders(t *testing.T) {
 			{
 				Item:     int(itemID),
 				Quantity: 315,
-				Sender:   senderID,
-				Receiver: receiverID,
+				Sender:   senderAccount.ID,
+				Receiver: receiverAccount.ID,
 			},
 		},
 	}
@@ -217,8 +223,8 @@ func TestQueryOrders(t *testing.T) {
 		{
 			Item:     int(itemID),
 			Quantity: 316,
-			Sender:   senderID,
-			Receiver: receiverID,
+			Sender:   senderAccount.ID,
+			Receiver: receiverAccount.ID,
 		},
 	})
 	utils.CheckError(t, err)
@@ -245,8 +251,8 @@ func TestQueryOrders(t *testing.T) {
 			{
 				Item:     int(itemID),
 				Quantity: 315,
-				Sender:   senderID,
-				Receiver: receiverID,
+				Sender:   senderAccount.ID,
+				Receiver: receiverAccount.ID,
 			},
 		},
 	}
@@ -258,8 +264,8 @@ func TestQueryOrders(t *testing.T) {
 		{
 			Item:     int(itemID),
 			Quantity: 316,
-			Sender:   senderID,
-			Receiver: receiverID,
+			Sender:   senderAccount.ID,
+			Receiver: receiverAccount.ID,
 		},
 	})
 	utils.CheckError(t, err)

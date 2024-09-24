@@ -311,6 +311,14 @@ To get your Smart Checkout Client ID and Client Key, follow the instructions her
 
 To create a new verification key, follow the instructions here: https://developer.vivawallet.com/webhooks-for-payments/#generate-a-webhook-verification-key
 
+From the [documents](https://developer.viva.com/integration-reference/basic-auth/#in-a-base64-encoded-header) on how to create a Base64-encoded header.
+
+When you pass your credentials in the header, you must Base64-encode them in the format Merchant_ID:API_Key. You can then use these encoded values as follows:
+
+Authorization: Basic ZmJmMWUwOTAtNjVkZS00Yzc1LWI1ODAtZDlkOWJjNDk0YWQyOldEdi1WKw==
+
+With a client such as cURL, you pass your encoded credentials in the header with the -H option, as the following example shows:
+
 #### TransactionTypeID
 
 To have an overview which transaction type id means what, follow this link: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter

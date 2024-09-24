@@ -161,7 +161,7 @@ func TestVendors(t *testing.T) {
 
 	// Update
 	var vendors2 []database.Vendor
-	jsonVendor := `{"firstName": "nameAfterUpdate", "email": "` + vendorEmail + `", "Longitude": 16.363449, "Latitude": 48.210033}`
+	jsonVendor := `{"firstName": "nameAfterUpdate", "licenseID": "IDAfterUpdate", "email": "` + vendorEmail + `", "Longitude": 16.363449, "Latitude": 48.210033}`
 	utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/", jsonVendor, 200, adminUserToken)
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/", nil, 200, adminUserToken)
 	err = json.Unmarshal(res.Body.Bytes(), &vendors2)
@@ -531,15 +531,15 @@ func TestPayments(t *testing.T) {
 	}
 
 	// Set up a payment account
-	senderAccountID, err := database.Db.CreateAccount(
-		database.Account{Name: "Test sender"},
+	senderVendorID, err := database.Db.CreateVendor(
+		database.Vendor{LicenseID: null.StringFrom("Test sender"), Email: "testSender@augustina.cc",},
 	)
 	if err != nil {
 		t.Error(err)
 	}
 
-	receiverAccountID, err := database.Db.CreateAccount(
-		database.Account{Name: "Test receiver"},
+	receiverVendorID, err := database.Db.CreateVendor(
+		database.Vendor{LicenseID: null.StringFrom("Test receiver"), Email: "testReceiver@augustina.cc",},
 	)
 	if err != nil {
 		t.Error(err)
@@ -552,11 +552,17 @@ func TestPayments(t *testing.T) {
 
 	utils.CheckError(t, err)
 
+	testSenderAccount, err := database.Db.GetAccountByVendorID(senderVendorID)
+	utils.CheckError(t, err)
+
+	testReceiverAccount, err := database.Db.GetAccountByVendorID(receiverVendorID)
+	utils.CheckError(t, err)
+
 	// Create payments via API
 	p1, err := database.Db.CreatePayment(
 		database.Payment{
-			Sender:       senderAccountID,
-			Receiver:     receiverAccountID,
+			Sender:       testSenderAccount.ID,
+			Receiver:     testReceiverAccount.ID,
 			SenderName:   null.StringFrom("Test sender"),
 			ReceiverName: null.StringFrom("Test receiver"),
 			Amount:       314,
@@ -584,20 +590,16 @@ func TestPayments(t *testing.T) {
 
 	// Test payments response
 	require.Equal(t, payments[0].Amount, 314)
-	require.Equal(t, payments[0].Sender, senderAccountID)
-	require.Equal(t, payments[0].Receiver, receiverAccountID)
+	require.Equal(t, payments[0].Sender, testSenderAccount.ID)
+	require.Equal(t, payments[0].Receiver, testReceiverAccount.ID)
 	require.Equal(t, payments[0].SenderName, null.StringFrom("Test sender"))
 	require.Equal(t, payments[0].ReceiverName, null.StringFrom("Test receiver"))
 	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
 	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
 
 	// Test account balances
-	senderAccount, err := database.Db.GetAccountByID(senderAccountID)
-	utils.CheckError(t, err)
-	receiverAccount, err := database.Db.GetAccountByID(receiverAccountID)
-	utils.CheckError(t, err)
-	require.Equal(t, senderAccount.Balance, -314)
-	require.Equal(t, receiverAccount.Balance, 314)
+	require.Equal(t, 0, testSenderAccount.Balance)
+	require.Equal(t, 0, testReceiverAccount.Balance)
 
 	// Test time filters
 	timeRequest(t, 0, 0, 1)
@@ -612,8 +614,8 @@ func TestPayments(t *testing.T) {
 	// Test statistics
 	p2, err := database.Db.CreatePayment(
 		database.Payment{
-			Sender:       senderAccountID,
-			Receiver:     receiverAccountID,
+			Sender:       testSenderAccount.ID,
+			Receiver:     testReceiverAccount.ID,
 			SenderName:   null.StringFrom("Test sender"),
 			ReceiverName: null.StringFrom("Test receiver"),
 			Amount:       314,

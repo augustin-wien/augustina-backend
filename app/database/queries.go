@@ -5,6 +5,7 @@ import (
 	"augustin/keycloak"
 	"augustin/mailer"
 	"context"
+	"database/sql"	
 	"errors"
 	"strconv"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
-	"golang.org/x/exp/slices"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -23,18 +23,25 @@ import (
 func DeferTx(tx pgx.Tx, err error) error {
 	if p := recover(); p != nil {
 		// Rollback the transaction if a panic occurred
-		_ = tx.Rollback(context.Background())
+		err = tx.Rollback(context.Background())
+		if err != nil {
+			log.Error("DeferTx rollback after panic failed: ", err)
+		}
 		// Re-throw the panic
 		panic(p)
 	} else if err != nil {
 		// Rollback the transaction if an error occurred
 		log.Error("deferTx: ", err)
-		_ = tx.Rollback(context.Background())
+		err = tx.Rollback(context.Background())
+		if err != nil {
+			log.Error("DeferTx rollback on error failed: ", err)
+		}
+
 	} else {
 		// Commit the transaction if everything is successful
 		err = tx.Commit(context.Background())
 		if err != nil {
-			log.Error("deferTx: ", err)
+			log.Error("DeferTx commit failed: ", err)
 		}
 	}
 	return err
@@ -57,12 +64,19 @@ func (db *Database) GetHelloWorld() (string, error) {
 
 // ListVendors returns all users from the database but not all fields for better overview
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance from Vendor JOIN account ON account.vendor = vendor.id ORDER BY LicenseID ASC")
+	rows, err := db.Dbpool.Query(context.Background(), `
+		SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance 
+		FROM Vendor 
+		JOIN Account ON Account.vendor = Vendor.id 
+		WHERE Account.Type = 'Vendor' 
+		ORDER BY LicenseID ASC
+	`)
 	if err != nil {
 		log.Error("ListVendors", err)
 		return vendors, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var vendor Vendor
 		err = rows.Scan(&vendor.ID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.LastPayout, &vendor.Balance)
@@ -72,8 +86,10 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 		}
 		vendors = append(vendors, vendor)
 	}
+
 	return vendors, nil
 }
+
 
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
@@ -169,32 +185,54 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 	return
 }
 
-// UpdateVendor updates a user in the database
+// UpdateVendor updates a vendor in the database
 func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
+	tx, err := db.Dbpool.Begin(context.Background())
+	if err != nil {
+		log.Error("UpdateVendor: Failed to begin transaction: ", err)
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(context.Background()); err != nil && err != sql.ErrTxDone {
+			log.Error("tx.Rollback failed: %v", err)
+		}
+	}()
+	
+
+	// Update the Vendor table
 	_, err = db.Dbpool.Exec(context.Background(), `
 	UPDATE Vendor
 	SET keycloakid = $1, UrlID = $2, LicenseID = $3, FirstName = $4, LastName = $5, Email = $6, LastPayout = $7, IsDisabled = $8, Longitude = $9, Latitude = $10, Address = $11, PLZ = $12, Location = $13, WorkingTime = $14, Language = $15, Comment = $16, Telephone = $17, RegistrationDate = $18, VendorSince = $19, OnlineMap = $20, HasSmartphone = $21, HasBankAccount = $22, AccountProofUrl = $23
 	WHERE ID = $24
 	`, vendor.KeycloakID, vendor.UrlID, vendor.LicenseID, vendor.FirstName, vendor.LastName, vendor.Email, vendor.LastPayout, vendor.IsDisabled, vendor.Longitude, vendor.Latitude, vendor.Address, vendor.PLZ, vendor.Location, vendor.WorkingTime, vendor.Language, vendor.Comment, vendor.Telephone, vendor.RegistrationDate, vendor.VendorSince, vendor.OnlineMap, vendor.HasSmartphone, vendor.HasBankAccount, vendor.AccountProofUrl, id)
 	if err != nil {
-		log.Error("UpdateVendor: ", err)
+		log.Error("UpdateVendor: Failed to update Vendor: ", err)
+		return err
 	}
-	return
+
+	// Commit transaction
+	if err = tx.Commit(context.Background()); err != nil {
+		log.Error("UpdateVendor: Failed to commit transaction: ", err)
+		return err
+	}
+
+	return nil
 }
+
 
 // DeleteVendor deletes a user in the database and the associated account
 func (db *Database) DeleteVendor(vendorID int) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
-	DELETE FROM Vendor
-	WHERE ID = $1
+	DELETE FROM Account
+	WHERE Vendor = $1
 	`, vendorID)
 	if err != nil {
 		log.Error("DeleteVendor: ", err)
 	}
 
 	_, err = db.Dbpool.Exec(context.Background(), `
-	DELETE FROM Account
-	WHERE Vendor = $1
+	DELETE FROM Vendor
+	WHERE ID = $1
 	`, vendorID)
 	if err != nil {
 		log.Error("DeleteVendor: ", err)
@@ -949,32 +987,23 @@ func (db *Database) DeletePayment(paymentID int) (err error) {
 
 // Accounts -------------------------------------------------------------------
 
-// CreateAccount creates an account in the database
-func (db *Database) CreateAccount(account Account) (id int, err error) {
-	// TODO: Validate that User should only be filled if type is user_auth
-	// Check if account.type = UserAuth
-	// if account.Type == "UserAuth" && account.User.String == "" {
-	// 	err = new (Error)
+// CreateSingleAccount creates an account in the database
+func (db *Database) CreateSpecialVendorAccount(vendor Vendor) (vendorID int, err error) {
 
-	// Define a slice of types, which should only exist once
-	existOnceTypes := []string{"Cash", "Orga", "UserAnon", "VivaWallet", "Paypal"}
-
-	// Check if an account of the specified type already exists
-	if slices.Contains(existOnceTypes, account.Type) {
-		var existingCount int
-		err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Account WHERE Type = $1", account.Type).Scan(&existingCount)
-		if err != nil {
-			return 0, err
-		}
-		// If an account of the specified type already exists, return an error
-		if existingCount > 0 {
-			return 0, errors.New("An account of this type, which should exist only once, already exists: " + account.Type)
-		}
+	// Create a new vendor account
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Vendor (Keycloakid, UrlID, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Language, Comment, Telephone, RegistrationDate, VendorSince, OnlineMap, HasSmartphone, HasBankAccount) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING ID", "", "",  vendor.LicenseID,  "",  "",  vendor.Email, time.Now(), false, 0, 0, "", "", "", "", "", "", "", "", "", false, false, false).Scan(&vendorID)
+	if err != nil {
+		log.Errorf("CreateVendor: create vendor %s %+v", vendor.Email, err)
+		return
 	}
 
-	// Insert the new account
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Name, Type) values ($1, $2) RETURNING ID", account.Name, account.Type).Scan(&id)
-	return id, err
+	_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, vendor.LicenseID, vendorID)
+	if err != nil {
+		log.Error("CreateVendor: create vendor account %s %+v", vendor.Email, err)
+		return
+	}
+
+	return vendorID, err
 }
 
 // ListAccounts returns all accounts from the database
@@ -1254,7 +1283,12 @@ type LocationData struct {
 
 // GetVendorLocations returns a list of all longitudes and latitudes given by the vendors table
 func (db *Database) GetVendorLocations() (locationData []LocationData, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT ID, LicenseID, FirstName, Longitude, Latitude from Vendor")
+	rows, err := db.Dbpool.Query(context.Background(), `
+	SELECT vendor.ID, LicenseID, FirstName, Longitude, Latitude 
+	from Vendor 
+	JOIN Account ON Account.Vendor = Vendor.id 
+	WHERE Account.Type = 'Vendor'
+	`)
 	if err != nil {
 		log.Error("GetVendorLocations: ", err)
 		return locationData, err
