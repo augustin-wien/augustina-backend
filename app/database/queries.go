@@ -22,18 +22,25 @@ import (
 func DeferTx(tx pgx.Tx, err error) error {
 	if p := recover(); p != nil {
 		// Rollback the transaction if a panic occurred
-		_ = tx.Rollback(context.Background())
+		err = tx.Rollback(context.Background())
+		if err != nil {
+			log.Error("DeferTx rollback after panic failed: ", err)
+		}
 		// Re-throw the panic
 		panic(p)
 	} else if err != nil {
 		// Rollback the transaction if an error occurred
 		log.Error("deferTx: ", err)
-		_ = tx.Rollback(context.Background())
+		err = tx.Rollback(context.Background())
+		if err != nil {
+			log.Error("DeferTx rollback on error failed: ", err)
+		}
+
 	} else {
 		// Commit the transaction if everything is successful
 		err = tx.Commit(context.Background())
 		if err != nil {
-			log.Error("deferTx: ", err)
+			log.Error("DeferTx commit failed: ", err)
 		}
 	}
 	return err
@@ -184,7 +191,12 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 		log.Error("UpdateVendor: Failed to begin transaction: ", err)
 		return err
 	}
-	defer tx.Rollback(context.Background())
+	defer func() {
+		if err := tx.Rollback(context.Background()); err != nil && err != sql.ErrTxDone {
+			log.Printf("tx.Rollback failed: %v", err)
+		}
+	}()
+	
 
 	// Update the Vendor table
 	_, err = db.Dbpool.Exec(context.Background(), `

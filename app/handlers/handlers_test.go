@@ -532,14 +532,14 @@ func TestPayments(t *testing.T) {
 
 	// Set up a payment account
 	senderVendorID, err := database.Db.CreateVendor(
-		database.Vendor{LicenseID: null.StringFrom("Test sender"), Email: "testSender@account.com",},
+		database.Vendor{LicenseID: null.StringFrom("Test sender"), Email: "testSender@augustina.cc",},
 	)
 	if err != nil {
 		t.Error(err)
 	}
 
 	receiverVendorID, err := database.Db.CreateVendor(
-		database.Vendor{LicenseID: null.StringFrom("Test receiver"), Email: "testReceiver@account.com",},
+		database.Vendor{LicenseID: null.StringFrom("Test receiver"), Email: "testReceiver@augustina.cc",},
 	)
 	if err != nil {
 		t.Error(err)

@@ -97,7 +97,7 @@ func TestAccounts(t *testing.T) {
 	// Create new account with known
 	test_vendor := Vendor{
 		LicenseID: null.StringFrom("UserAuth"),
-		Email: "UserAuth@account.com",
+		Email: "UserAuth@augustina.cc",
 	}
 
 	id, err := Db.CreateSpecialVendorAccount(test_vendor)

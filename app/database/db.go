@@ -188,7 +188,10 @@ func (db *Database) EmptyDatabase() (err error) {
 		log.Error("EmptyDatabase show number of accounts after truncation: ", err)
 	}
 	log.Info("Number of accounts after truncation: ", count)
-	db.CheckRolePermissions()
+	err = db.CheckRolePermissions()
+	if err != nil {
+		log.Error("CheckRolePermissions failed: ", err)
+	}
 	return
 }
 
