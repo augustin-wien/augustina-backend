@@ -1,6 +1,35 @@
 version: "3.8"
 
 services:
+  augustin-backend:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: ./Dockerfile.production
+    image: dkia/augustin-backend
+    volumes:
+      - /dockerstorage/convive/augustin/data/backend/img:/app/img
+      - /dockerstorage/convive/augustin/data/backend/pdf:/app/pdf
+      - /dockerstorage/convive/augustin/data/backend/email_templates:/app/templates
+
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_HOST_TEST: ${DB_HOST_TEST}
+      DB_PORT_TEST: ${DB_PORT_TEST}
+      DEVELOPMENT: ${DEVELOPMENT}
+      FRONTEND_URL: ${FRONTEND_URL}
+    depends_on:
+      - augustin-db
+    links:
+      - augustin-db
+      - keycloak
+    ports:
+      - "7001:3000"
   augustin-frontend:
     build:
       context: ./docker/augustin-frontend
