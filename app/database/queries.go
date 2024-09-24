@@ -5,6 +5,7 @@ import (
 	"augustin/keycloak"
 	"augustin/mailer"
 	"context"
+	"database/sql"	
 	"errors"
 	"strconv"
 	"strings"
@@ -193,7 +194,7 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	}
 	defer func() {
 		if err := tx.Rollback(context.Background()); err != nil && err != sql.ErrTxDone {
-			log.Printf("tx.Rollback failed: %v", err)
+			log.Error("tx.Rollback failed: %v", err)
 		}
 	}()
 	
