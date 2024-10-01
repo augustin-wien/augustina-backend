@@ -148,6 +148,22 @@ func GetRouter() (r *chi.Mux) {
 		r.Get("/{id}/", downloadPDF)
 	})
 
+	// Flour integration
+	r.Route("/api/flour", func(r chi.Router) {
+		r.Use(middlewares.AuthMiddleware)
+		r.Use(middlewares.FlourAuthMiddleware)
+		r.Route("/vendors", func(r chi.Router) {
+			r.Post("/", CreateVendor)
+
+			r.Route("/{id}", func(r chi.Router) {
+				r.Put("/", UpdateVendor)
+				r.Delete("/", DeleteVendor)
+				r.Get("/", GetVendor)
+			})
+		})
+
+	})
+
 	// Swagger documentation
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),

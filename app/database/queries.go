@@ -993,13 +993,13 @@ func (db *Database) CreateSpecialVendorAccount(vendor Vendor) (vendorID int, err
 	// Create a new vendor account
 	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Vendor (Keycloakid, UrlID, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Language, Comment, Telephone, RegistrationDate, VendorSince, OnlineMap, HasSmartphone, HasBankAccount) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING ID", "", "",  vendor.LicenseID,  "",  "",  vendor.Email, time.Now(), false, 0, 0, "", "", "", "", "", "", "", "", "", false, false, false).Scan(&vendorID)
 	if err != nil {
-		log.Errorf("CreateVendor: create vendor %s %+v", vendor.Email, err)
+		log.Errorf("CreateSpecialVendor: create vendor %s %+v", vendor.Email, err)
 		return
 	}
 
 	_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, vendor.LicenseID, vendorID)
 	if err != nil {
-		log.Error("CreateVendor: create vendor account %s %+v", vendor.Email, err)
+		log.Error("CreateSpecialVendor: create vendor account %s %+v", vendor.Email, err)
 		return
 	}
 
