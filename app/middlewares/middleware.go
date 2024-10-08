@@ -36,6 +36,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		r.Header.Del("X-Auth-User-Email")
 		r.Header.Del("X-Auth-Roles-vendor")
 		r.Header.Del("X-Auth-Roles-admin")
+		r.Header.Del("X-Auth-Roles-flour")
 		r.Header.Del("X-Auth-Groups-Vendors")
 		r.Header.Del("X-Auth-Groups-Admins")
 

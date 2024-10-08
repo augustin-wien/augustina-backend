@@ -317,44 +317,13 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update user in keycloak
-	user, err := keycloak.KeycloakClient.GetUserByEmail(oldVendor.Email)
+	keycloakId, err := keycloak.KeycloakClient.UpdateVendor(oldVendor.Email, vendor.Email, vendor.LicenseID.String, vendor.FirstName, vendor.LastName)
 	if err != nil {
-		keycloak_user_id := ""
-		// check if new email already exists in keycloak
-		new_keycloak_user, err := keycloak.KeycloakClient.GetUserByEmail(vendor.Email)
-		if err != nil {
-
-			randomPassword := utils.RandomString(10)
-			keycloakUser, err2 := keycloak.KeycloakClient.CreateUser(vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email, randomPassword)
-			if err != nil {
-				log.Error("UpdateVendor: create keycloak user for "+fmt.Sprint(vendorID)+" failed: ", err2, err)
-				utils.ErrorJSON(w, err, http.StatusBadRequest)
-				return
-			}
-			keycloak_user_id = keycloakUser
-		} else {
-			keycloak_user_id = *new_keycloak_user.ID
-		}
-
-		vendor.KeycloakID = keycloak_user_id
-		err = keycloak.KeycloakClient.AssignGroup(keycloak_user_id, config.Config.KeycloakVendorGroup)
-		if err != nil {
-			log.Error("UpdateVendor: assign keycloak group for "+fmt.Sprint(vendorID)+" failed: ", err)
-
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
-	} else {
-		err = keycloak.KeycloakClient.UpdateUserById(*user.ID, vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.Email)
-		if err != nil {
-			log.Error("UpdateVendor: update keycloak user for "+fmt.Sprint(vendorID)+" failed: ", err)
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
-		vendor.KeycloakID = *user.ID
+		log.Error("UpdateVendor: update user in keycloak for "+fmt.Sprint(vendorID)+" failed: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
-	log.Infof("Updated user in keycloak: %v", vendor)
+	vendor.KeycloakID = keycloakId
 
 	err = database.Db.UpdateVendor(vendorID, vendor)
 	if err != nil {
@@ -402,6 +371,54 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func UpdateVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
+	fmt.Errorf("UpdateVendorByLicenseID")
+	licenseID := chi.URLParam(r, "licenseID")
+	if licenseID == "" {
+		utils.ErrorJSON(w, errors.New("No licenseID provided under /vendors/license/{licenseID}/"), http.StatusBadRequest)
+		return
+	}
+	vendor, err := database.Db.GetVendorByLicenseID(licenseID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	var updatedVendor database.Vendor
+	err = utils.ReadJSON(w, r, &updatedVendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	keycloakId, err := keycloak.KeycloakClient.UpdateVendor(vendor.Email, updatedVendor.Email, vendor.LicenseID.String, updatedVendor.FirstName, updatedVendor.LastName)
+	if err != nil {
+		log.Error("UpdateVendor: update user in keycloak for "+fmt.Sprint(vendor.ID)+" failed: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	vendor.KeycloakID = keycloakId
+	err = database.Db.UpdateVendor(vendor.ID, updatedVendor)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	log.Info(r.Header.Get("X-Auth-User-Name") + " is updating vendor via flour with license id: " + licenseID)
+	respond(w, err, vendor)
+}
+
+func GetVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
+	licenseID := chi.URLParam(r, "licenseID")
+	if licenseID == "" {
+		utils.ErrorJSON(w, errors.New("No licenseID provided under /vendors/license/{licenseID}/"), http.StatusBadRequest)
+		return
+	}
+	vendor, err := database.Db.GetVendorByLicenseID(licenseID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	respond(w, err, vendor)
 }
 
 // Items (that can be sold) ---------------------------------------------------

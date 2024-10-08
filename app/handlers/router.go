@@ -153,15 +153,16 @@ func GetRouter() (r *chi.Mux) {
 		r.Use(middlewares.AuthMiddleware)
 		r.Use(middlewares.FlourAuthMiddleware)
 		r.Route("/vendors", func(r chi.Router) {
+
+			r.Put("/license/{licenseID}/", UpdateVendorByLicenseID)
+			r.Get("/license/{licenseID}/", GetVendorByLicenseID)
+
+			r.Put("/{id}/", UpdateVendor)
+			r.Delete("/{id}/", DeleteVendor)
+			r.Get("/{id}/", GetVendor)
 			r.Post("/", CreateVendor)
 
-			r.Route("/{id}", func(r chi.Router) {
-				r.Put("/", UpdateVendor)
-				r.Delete("/", DeleteVendor)
-				r.Get("/", GetVendor)
-			})
 		})
-
 	})
 
 	// Swagger documentation
