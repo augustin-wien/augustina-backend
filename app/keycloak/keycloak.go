@@ -4,6 +4,7 @@ import (
 	"augustin/config"
 	"augustin/utils"
 	"context"
+	"fmt"
 
 	"github.com/Nerzal/gocloak/v13"
 )
@@ -468,4 +469,40 @@ func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email s
 
 func (k *Keycloak) GetVendorGroup() string {
 	return k.vendorGroup
+}
+
+func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastName string) (string, error) {
+
+	// Update user in keycloak
+	user, err := k.GetUserByEmail(oldEmail)
+	if err != nil {
+		keycloak_user_id := ""
+		// check if new email already exists in keycloak
+		new_keycloak_user, err := k.GetUserByEmail(newEmail)
+		if err != nil {
+
+			randomPassword := utils.RandomString(10)
+			keycloakUser, err2 := k.CreateUser(licenseID, firstName, lastName, newEmail, randomPassword)
+			if err != nil {
+				return "", fmt.Errorf("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v", err2, err)
+			}
+			keycloak_user_id = keycloakUser
+		} else {
+			keycloak_user_id = *new_keycloak_user.ID
+		}
+
+		err = k.AssignGroup(keycloak_user_id, config.Config.KeycloakVendorGroup)
+		if err != nil {
+
+			return "", fmt.Errorf("UpdateVendor: assign keycloak group for "+newEmail+" failed: %v", err)
+		}
+		return keycloak_user_id, nil
+	} else {
+		err = k.UpdateUserById(*user.ID, licenseID, firstName, lastName, newEmail)
+		if err != nil {
+			return "", fmt.Errorf("UpdateVendor: update keycloak user for %s failed: %v", newEmail, fmt.Sprint(err))
+		}
+		return *user.ID, nil
+	}
+
 }

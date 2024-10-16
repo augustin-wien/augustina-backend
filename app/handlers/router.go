@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/swaggo/files" // swagger embed files
 
+	"augustin/config"
 	"augustin/middlewares"
 
 	"github.com/go-chi/chi/v5"
@@ -148,6 +149,26 @@ func GetRouter() (r *chi.Mux) {
 		r.Get("/{id}/", downloadPDF)
 	})
 
+	// Flour integration
+	if config.Config.FlourWebhookURL != "" {
+		log.Info("Flour integration enabled")
+
+		r.Route("/api/flour", func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.FlourAuthMiddleware)
+			r.Route("/vendors", func(r chi.Router) {
+
+				r.Put("/license/{licenseID}/", UpdateVendorByLicenseID)
+				r.Get("/license/{licenseID}/", GetVendorByLicenseID)
+
+				r.Put("/{id}/", UpdateVendor)
+				r.Delete("/{id}/", DeleteVendor)
+				r.Get("/{id}/", GetVendor)
+				r.Post("/", CreateVendor)
+
+			})
+		})
+	}
 	// Swagger documentation
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),

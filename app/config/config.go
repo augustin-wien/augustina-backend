@@ -43,6 +43,7 @@ type config struct {
 	SMTPSenderAddress                 string
 	SMTPSsl                           bool
 	SentryDSN                         string
+	FlourWebhookURL                   string
 }
 
 // Config is the global configuration variable
@@ -95,6 +96,7 @@ func InitConfig() {
 		SMTPSsl:                           (getEnv("SMTP_SSL", "false") == "true"),
 		FrontendURL:                       getEnv("FRONTEND_URL", ""),
 		SentryDSN:                         getEnv("SENTRY_DSN", ""),
+		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),
 	}
 }
 

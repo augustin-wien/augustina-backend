@@ -36,6 +36,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		r.Header.Del("X-Auth-User-Email")
 		r.Header.Del("X-Auth-Roles-vendor")
 		r.Header.Del("X-Auth-Roles-admin")
+		r.Header.Del("X-Auth-Roles-flour")
 		r.Header.Del("X-Auth-Groups-Vendors")
 		r.Header.Del("X-Auth-Groups-Admins")
 
@@ -118,6 +119,31 @@ func AdminAuthMiddleware(next http.Handler) http.Handler {
 		}
 		if r.Header.Get("X-Auth-Roles-admin") == "" {
 			log.Infof("AdminAuthMiddleware: User %v has no admin role", r.Header.Get("X-Auth-User"))
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// FlourAuthMiddleware is a middleware to check if the request is authorized as admin
+func FlourAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// ignore for options request
+		if r.Method == "OPTIONS" {
+			next.ServeHTTP(w, r)
+			return // skip
+		}
+
+		if r.Header.Get("X-Auth-User-Validated") == "false" {
+			log.Info("FlourAuthMiddleware: No validated user", r.Header.Get("X-Auth-User"))
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		if r.Header.Get("X-Auth-Roles-flour") == "" {
+			log.Infof("FlourAuthMiddleware: User %v has no flour role", r.Header.Get("X-Auth-User"))
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
