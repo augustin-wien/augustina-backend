@@ -374,7 +374,6 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
-	fmt.Errorf("UpdateVendorByLicenseID")
 	licenseID := chi.URLParam(r, "licenseID")
 	if licenseID == "" {
 		utils.ErrorJSON(w, errors.New("No licenseID provided under /vendors/license/{licenseID}/"), http.StatusBadRequest)

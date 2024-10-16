@@ -500,7 +500,7 @@ func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastNa
 	} else {
 		err = k.UpdateUserById(*user.ID, licenseID, firstName, lastName, newEmail)
 		if err != nil {
-			return "", fmt.Errorf("UpdateVendor: update keycloak user for " + newEmail + " failed: " + fmt.Sprint(err))
+			return "", fmt.Errorf("UpdateVendor: update keycloak user for %s failed: %v", newEmail, fmt.Sprint(err))
 		}
 		return *user.ID, nil
 	}
