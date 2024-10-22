@@ -22,7 +22,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"augustin/database"
-	"augustin/integrations"
 
 	_ "github.com/swaggo/files"        // swagger embed files
 	_ "github.com/swaggo/http-swagger" // http-swagger middleware
@@ -1220,16 +1219,6 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	// Declare first name from vendor
 	verifyPaymentOrderResponse.FirstName = vendor.FirstName
-
-	if config.Config.FlourWebhookURL != "" && order.Verified {
-		// Send webhook to Flour
-		go func() {
-			err := integrations.SendPaymentToFlour(order.ID, verifyPaymentOrderResponse.TimeStamp, verifyPaymentOrderResponse.PurchasedItems, vendor, verifyPaymentOrderResponse.TotalSum)
-			if err != nil {
-				log.Error("Sending payment to Flour failed: ", err)
-			}
-		}()
-	}
 
 	// Create response
 	err = utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)

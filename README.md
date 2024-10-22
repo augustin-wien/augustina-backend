@@ -1,5 +1,7 @@
 # Augustin Backend
 
+This repository contains the code for the streepaper payment system.
+
 ## Development
 
 Check out the git submodules to load the wordpress, wpcli and parser git checkout mainrepositories:
@@ -372,6 +374,16 @@ To see the 'Payment-Confirmation-Page', simply paste the query of the redirected
   ```
 - If successful, response is: `{"Verification":true}` -> checkout process is successfully finished
 - If unsuccessfil, response is: `{"Verification":false}` -> this step is still unclear, in which circumstances a user can be redirected to the success page but her transaction cannot be verified
+
+### VivaWallet webhooks
+
+When the Verification key is set up, then 
+weebhooks have to be set:
+
+* Transaction Failed -> <url>/api/webhooks/vivawallet/failure/
+* Transaction Price Calculated -> <url>/api/webhooks/vivawallet/price/
+* Transaction Payment Created -> <url>/api/webhooks/vivawallet/success/
+
 
 ## Optional: Error Notifications
 
