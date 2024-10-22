@@ -10,9 +10,12 @@ import (
 
 	"augustin/config"
 	"augustin/database"
+	"augustin/utils"
 
 	"gopkg.in/guregu/null.v4"
 )
+
+var log = utils.GetLogger()
 
 const (
 	maxRetries     = 5               // Maximum number of retries
@@ -50,17 +53,17 @@ func sendJSONToFlourWebhook(payload interface{}) error {
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			fmt.Printf("Request failed: %v\n", err)
+			log.Infof("sendJSONToFlourWebhook: Request failed: %v\n", err)
 		} else {
 			defer resp.Body.Close()
 
 			// Check for 200 OK status
 			if resp.StatusCode == http.StatusOK {
-				fmt.Println("Successfully sent JSON payload")
+				log.Info("sendJSONToFlourWebhook: Successfully sent flour JSON payload")
 				return nil
 			}
 
-			fmt.Printf("Received non-200 response: %d\n", resp.StatusCode)
+			log.Infof("Received non-200 response: %d\n", resp.StatusCode)
 		}
 
 		// Check if we've exceeded the retry limit
@@ -70,7 +73,7 @@ func sendJSONToFlourWebhook(payload interface{}) error {
 
 		// Increment retry count and apply backoff
 		retryCount++
-		fmt.Printf("Retrying in %v... (attempt %d)\n", backoff, retryCount)
+		log.Infof("Retrying in %v... (attempt %d)\n", backoff, retryCount)
 		time.Sleep(backoff)
 
 		// Exponentially increase the backoff time
@@ -93,6 +96,7 @@ type FlourPayloadItem struct {
 }
 
 func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry, vendor database.Vendor, price int) error {
+	log.Info("SendPaymentToFlour: Sending payment to Flour for order ", id)
 	flourItems := make([]FlourPayloadItem, 0)
 	for _, item := range items {
 		flourItems = append(flourItems, FlourPayloadItem{
@@ -113,7 +117,7 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 	// Send the payload to the webhook
 	err := sendJSONToFlourWebhook(payload)
 	if err != nil {
-		fmt.Printf("Failed to send JSON: %v\n", err)
+		log.Infof("Failed to send JSON to flour: %v\n", err)
 	}
 	return err
 }
