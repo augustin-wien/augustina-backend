@@ -292,7 +292,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		return err
 	}
 	// flour
-	if config.Config.FlourWebhookURL != "" && order.Verified {
+	if config.Config.FlourWebhookURL != "" {
 		log.Info("Flour Webhook set, sending webhook for order", order.ID)
 		// Send webhook to Flour
 		go func(id int, timestamp time.Time, items []database.OrderEntry, vendorID int, totalSum int) {
