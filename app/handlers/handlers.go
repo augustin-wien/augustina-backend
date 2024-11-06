@@ -118,11 +118,20 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id"), http.StatusBadRequest)
 		return
 	}
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
 	response := checkLicenseIDResponse{
 		FirstName:       users.FirstName,
 		AccountProofUrl: users.AccountProofUrl,
 	}
+	if settings.UseVendorLicenseIdInShop {
+		response.FirstName = licenseID
+	}
+
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
 		log.Error("CheckVendorsLicenseID: ", err)
@@ -1882,6 +1891,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				fieldsClean[key] = 0.1
 			}
 			log.Infof(value[0], fieldsClean[key])
+		} else if key == "UseVendorLicenseIdInShop" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("WebShopIsClosed is not a boolean")
+				utils.ErrorJSON(w, errors.New("UseVendorLicenseIdInShop is not a boolean"), http.StatusBadRequest)
+				return
+			}
 		} else {
 			fieldsClean[key] = value[0]
 		}
