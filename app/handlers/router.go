@@ -167,7 +167,11 @@ func GetRouter() (r *chi.Mux) {
 				r.Post("/", CreateVendor)
 
 			})
+			r.Route("/payments", func(r chi.Router) {
+				r.Post("/payout/", CreatePaymentPayout)
+			})
 		})
+
 	}
 	// Swagger documentation
 	r.Get("/swagger/*", httpSwagger.Handler(
