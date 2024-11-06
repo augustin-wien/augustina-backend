@@ -175,7 +175,6 @@ func (db *Database) EmptyDatabase() (err error) {
 	}
 	log.Info("Number of accounts before truncation: ", count)
 
-
 	_, err = db.Dbpool.Exec(context.Background(), "SELECT truncate_tables('user')")
 	log.Info("Database emptied")
 	if err != nil {
@@ -204,7 +203,6 @@ func (db *Database) CheckRolePermissions() error {
 		return err
 	}
 	log.Info("Current database user: ", currentUser)
-
 
 	// Check TRUNCATE privilege on the 'Account' table
 	var hasTruncate bool

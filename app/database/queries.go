@@ -5,7 +5,7 @@ import (
 	"augustin/keycloak"
 	"augustin/mailer"
 	"context"
-	"database/sql"	
+	"database/sql"
 	"errors"
 	"strconv"
 	"strings"
@@ -89,7 +89,6 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 
 	return vendors, nil
 }
-
 
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
@@ -197,7 +196,6 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 			log.Error("tx.Rollback failed: %v", err)
 		}
 	}()
-	
 
 	// Update the Vendor table
 	_, err = db.Dbpool.Exec(context.Background(), `
@@ -218,7 +216,6 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 
 	return nil
 }
-
 
 // DeleteVendor deletes a user in the database and the associated account
 func (db *Database) DeleteVendor(vendorID int) (err error) {
@@ -991,7 +988,7 @@ func (db *Database) DeletePayment(paymentID int) (err error) {
 func (db *Database) CreateSpecialVendorAccount(vendor Vendor) (vendorID int, err error) {
 
 	// Create a new vendor account
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Vendor (Keycloakid, UrlID, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Language, Comment, Telephone, RegistrationDate, VendorSince, OnlineMap, HasSmartphone, HasBankAccount) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING ID", "", "",  vendor.LicenseID,  "",  "",  vendor.Email, time.Now(), false, 0, 0, "", "", "", "", "", "", "", "", "", false, false, false).Scan(&vendorID)
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Vendor (Keycloakid, UrlID, LicenseID, FirstName, LastName, Email, LastPayout, IsDisabled, Longitude, Latitude, Address, PLZ, Location, WorkingTime, Language, Comment, Telephone, RegistrationDate, VendorSince, OnlineMap, HasSmartphone, HasBankAccount) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) RETURNING ID", "", "", vendor.LicenseID, "", "", vendor.Email, time.Now(), false, 0, 0, "", "", "", "", "", "", "", "", "", false, false, false).Scan(&vendorID)
 	if err != nil {
 		log.Errorf("CreateSpecialVendor: create vendor %s %+v", vendor.Email, err)
 		return
@@ -1189,7 +1186,7 @@ func (db *Database) InitiateSettings() (err error) {
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
-	SELECT Settings.ID, Color, FontColor, Logo, MainItem, MaxOrderAmount, OrgaCoversTransactionCosts, Name, Price, Description, Image, WebshopIsClosed, VendorNotFoundHelpUrl, MaintainanceModeHelpUrl, VendorEmailPostfix, NewspaperName, QRCodeUrl, QRCodeLogoImgUrl, AGBUrl, MapCenterLat, MapCenterLong from Settings LEFT JOIN Item ON Item.ID = MainItem LIMIT 1
+	SELECT Settings.ID, Color, FontColor, Logo, MainItem, MaxOrderAmount, OrgaCoversTransactionCosts, Name, Price, Description, Image, WebshopIsClosed, VendorNotFoundHelpUrl, MaintainanceModeHelpUrl, VendorEmailPostfix, NewspaperName, QRCodeUrl, QRCodeLogoImgUrl, AGBUrl, MapCenterLat, MapCenterLong, UseVendorLicenseIdInShop from Settings LEFT JOIN Item ON Item.ID = MainItem LIMIT 1
 	`).Scan(&settings.ID, &settings.Color, &settings.FontColor,
 		&settings.Logo, &settings.MainItem, &settings.MaxOrderAmount,
 		&settings.OrgaCoversTransactionCosts, &settings.MainItemName,
@@ -1197,7 +1194,9 @@ func (db *Database) GetSettings() (Settings, error) {
 		&settings.WebshopIsClosed, &settings.VendorNotFoundHelpUrl,
 		&settings.MaintainanceModeHelpUrl, &settings.VendorEmailPostfix,
 		&settings.NewspaperName, &settings.QRCodeUrl, &settings.QRCodeLogoImgUrl,
-		&settings.AGBUrl, &settings.MapCenterLat, &settings.MapCenterLong)
+		&settings.AGBUrl, &settings.MapCenterLat, &settings.MapCenterLong,
+		&settings.UseVendorLicenseIdInShop,
+	)
 	if err != nil {
 		log.Error("GetSettings: ", err)
 	}
@@ -1216,14 +1215,15 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = tx.Exec(context.Background(), `
 	UPDATE Settings
-	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6, WebshopIsClosed = $7, VendorNotFoundHelpUrl = $8, MaintainanceModeHelpUrl = $9, VendorEmailPostfix = $10, NewspaperName = $11, QRCodeUrl = $12, QRCodeLogoImgUrl = $13, AGBUrl = $14, MapCenterLat = $15, MapCenterLong = $16
+	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6, WebshopIsClosed = $7, VendorNotFoundHelpUrl = $8, MaintainanceModeHelpUrl = $9, VendorEmailPostfix = $10, NewspaperName = $11, QRCodeUrl = $12, QRCodeLogoImgUrl = $13, AGBUrl = $14, MapCenterLat = $15, MapCenterLong = $16, UseVendorLicenseIdInShop = $17
 	WHERE ID = 1`,
 		settings.Color, settings.FontColor, settings.Logo,
 		settings.MainItem, settings.MaxOrderAmount,
 		settings.OrgaCoversTransactionCosts, settings.WebshopIsClosed,
 		settings.VendorNotFoundHelpUrl, settings.MaintainanceModeHelpUrl, settings.VendorEmailPostfix,
 		settings.NewspaperName, settings.QRCodeUrl,
-		settings.QRCodeLogoImgUrl, settings.AGBUrl, settings.MapCenterLat, settings.MapCenterLong)
+		settings.QRCodeLogoImgUrl, settings.AGBUrl, settings.MapCenterLat, settings.MapCenterLong,
+		settings.UseVendorLicenseIdInShop)
 	if err != nil {
 		log.Error("db UpdateSettings: ", err)
 	}

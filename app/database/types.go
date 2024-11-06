@@ -137,6 +137,7 @@ type Settings struct {
 	WebshopIsClosed            bool
 	MapCenterLat               float64
 	MapCenterLong              float64
+	UseVendorLicenseIdInShop   bool `db:"usevendorlicenseidinshop"`
 }
 
 // DBSettings is a struct that is used for the dbsettings table
