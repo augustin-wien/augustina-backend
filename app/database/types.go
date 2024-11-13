@@ -121,6 +121,7 @@ type Settings struct {
 	Color                      string
 	FontColor                  string
 	Logo                       string
+	Favicon                    string
 	MainItem                   null.Int `swaggertype:"integer"`
 	MaxOrderAmount             int
 	MainItemName               null.String
@@ -129,7 +130,8 @@ type Settings struct {
 	MainItemImage              null.String
 	MaintainanceModeHelpUrl    string
 	NewspaperName              string
-	QRCodeLogoImgUrl           null.String `db:"qrcodelogourl"`
+	QRCodeLogoImgUrl           string `db:"qrcodelogourl"`
+	QRCodeSettings             string `db:"qrcodesettings"`
 	QRCodeUrl                  string
 	OrgaCoversTransactionCosts bool
 	VendorEmailPostfix         string
