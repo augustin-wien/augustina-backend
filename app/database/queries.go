@@ -1186,7 +1186,7 @@ func (db *Database) InitiateSettings() (err error) {
 func (db *Database) GetSettings() (Settings, error) {
 	var settings Settings
 	err := db.Dbpool.QueryRow(context.Background(), `
-	SELECT Settings.ID, Color, FontColor, Logo, MainItem, MaxOrderAmount, OrgaCoversTransactionCosts, Name, Price, Description, Image, WebshopIsClosed, VendorNotFoundHelpUrl, MaintainanceModeHelpUrl, VendorEmailPostfix, NewspaperName, QRCodeUrl, QRCodeLogoImgUrl, AGBUrl, MapCenterLat, MapCenterLong, UseVendorLicenseIdInShop, Favicon, QrCodeSettings  from Settings LEFT JOIN Item ON Item.ID = MainItem LIMIT 1
+	SELECT Settings.ID, Color, FontColor, Logo, MainItem, MaxOrderAmount, OrgaCoversTransactionCosts, Name, Price, Description, Image, WebshopIsClosed, VendorNotFoundHelpUrl, MaintainanceModeHelpUrl, VendorEmailPostfix, NewspaperName, QRCodeUrl, QRCodeLogoImgUrl, AGBUrl, MapCenterLat, MapCenterLong, UseVendorLicenseIdInShop, Favicon, QrCodeSettings, QRCodeEnableLogo  from Settings LEFT JOIN Item ON Item.ID = MainItem LIMIT 1
 	`).Scan(&settings.ID, &settings.Color, &settings.FontColor,
 		&settings.Logo, &settings.MainItem, &settings.MaxOrderAmount,
 		&settings.OrgaCoversTransactionCosts, &settings.MainItemName,
@@ -1196,7 +1196,7 @@ func (db *Database) GetSettings() (Settings, error) {
 		&settings.NewspaperName, &settings.QRCodeUrl, &settings.QRCodeLogoImgUrl,
 		&settings.AGBUrl, &settings.MapCenterLat, &settings.MapCenterLong,
 		&settings.UseVendorLicenseIdInShop,
-		&settings.Favicon, &settings.QRCodeSettings,
+		&settings.Favicon, &settings.QRCodeSettings, &settings.QRCodeEnableLogo,
 	)
 	if err != nil {
 		log.Error("GetSettings: ", err)
@@ -1216,7 +1216,7 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 
 	_, err = tx.Exec(context.Background(), `
 	UPDATE Settings
-	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6, WebshopIsClosed = $7, VendorNotFoundHelpUrl = $8, MaintainanceModeHelpUrl = $9, VendorEmailPostfix = $10, NewspaperName = $11, QRCodeUrl = $12, QRCodeLogoImgUrl = $13, AGBUrl = $14, MapCenterLat = $15, MapCenterLong = $16, UseVendorLicenseIdInShop = $17, Favicon = $18, QrCodeSettings = $19
+	SET Color = $1, FontColor = $2, Logo = $3, MainItem = $4, MaxOrderAmount = $5, OrgaCoversTransactionCosts = $6, WebshopIsClosed = $7, VendorNotFoundHelpUrl = $8, MaintainanceModeHelpUrl = $9, VendorEmailPostfix = $10, NewspaperName = $11, QRCodeUrl = $12, QRCodeLogoImgUrl = $13, AGBUrl = $14, MapCenterLat = $15, MapCenterLong = $16, UseVendorLicenseIdInShop = $17, Favicon = $18, QrCodeSettings = $19, QRCodeEnableLogo = $20
 	WHERE ID = 1`,
 		settings.Color, settings.FontColor, settings.Logo,
 		settings.MainItem, settings.MaxOrderAmount,
@@ -1225,7 +1225,7 @@ func (db *Database) UpdateSettings(settings Settings) (err error) {
 		settings.NewspaperName, settings.QRCodeUrl,
 		settings.QRCodeLogoImgUrl, settings.AGBUrl, settings.MapCenterLat, settings.MapCenterLong,
 		settings.UseVendorLicenseIdInShop,
-		&settings.Favicon, &settings.QRCodeSettings,
+		&settings.Favicon, &settings.QRCodeSettings, &settings.QRCodeEnableLogo,
 	)
 	if err != nil {
 		log.Error("db UpdateSettings: ", err)

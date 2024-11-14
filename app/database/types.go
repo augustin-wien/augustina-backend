@@ -132,6 +132,7 @@ type Settings struct {
 	NewspaperName              string
 	QRCodeLogoImgUrl           string `db:"qrcodelogourl"`
 	QRCodeSettings             string `db:"qrcodesettings"`
+	QRCodeEnableLogo           bool
 	QRCodeUrl                  string
 	OrgaCoversTransactionCosts bool
 	VendorEmailPostfix         string
