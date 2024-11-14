@@ -532,14 +532,14 @@ func TestPayments(t *testing.T) {
 
 	// Set up a payment account
 	senderVendorID, err := database.Db.CreateVendor(
-		database.Vendor{LicenseID: null.StringFrom("Test sender"), Email: "testSender@augustina.cc",},
+		database.Vendor{LicenseID: null.StringFrom("Test sender"), Email: "testSender@augustina.cc"},
 	)
 	if err != nil {
 		t.Error(err)
 	}
 
 	receiverVendorID, err := database.Db.CreateVendor(
-		database.Vendor{LicenseID: null.StringFrom("Test receiver"), Email: "testReceiver@augustina.cc",},
+		database.Vendor{LicenseID: null.StringFrom("Test receiver"), Email: "testReceiver@augustina.cc"},
 	)
 	if err != nil {
 		t.Error(err)
@@ -816,7 +816,7 @@ func TestSettings(t *testing.T) {
 	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
 	err := json.Unmarshal(res.Body.Bytes(), &settings)
 	utils.CheckError(t, err)
-	require.Equal(t, "img/logo.png", settings.Logo)
+	require.Equal(t, "/img/logo.png", settings.Logo)
 	require.Equal(t, 10, settings.MaxOrderAmount)
 
 	// Check item join
