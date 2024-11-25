@@ -166,6 +166,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	var vendor database.Vendor
 	err := utils.ReadJSON(w, r, &vendor)
 	if err != nil {
+		log.Error("CreateVendor: ReadJSON failed: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -174,6 +175,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	// Create user in keycloak
 	user, err := keycloak.KeycloakClient.GetOrCreateUser(vendor.Email)
 	if err != nil {
+		log.Error("CreateVendor: Create keycloak user failed ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -188,6 +190,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := database.Db.CreateVendor(vendor)
 	if err != nil {
+		log.Error("CreateVendor: Create vendor in db failed: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -308,6 +311,7 @@ func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
+		log.Error("UpdateVendor: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -315,6 +319,7 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	var vendor database.Vendor
 	err = utils.ReadJSON(w, r, &vendor)
 	if err != nil {
+		log.Error("UpdateVendor: ReadJSON failed: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -1518,6 +1523,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	var payoutData createPaymentPayoutRequest
 	err := utils.ReadJSON(w, r, &payoutData)
 	if err != nil {
+		log.Error("CreatePaymentPayout: parse JSON ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -1525,6 +1531,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	// Get vendor
 	vendor, err := database.Db.GetVendorByLicenseID(payoutData.VendorLicenseID)
 	if err != nil {
+		log.Error("CreatePaymentPayout: get vendor ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -1532,6 +1539,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	// Get vendor account
 	vendorAccount, err := database.Db.GetAccountByVendorID(vendor.ID)
 	if err != nil {
+		log.Error("CreatePaymentPayout: get vendor account ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -1539,6 +1547,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	// Get amount of money for payout
 	paymentsToBePaidOut, err := database.Db.ListPaymentsForPayout(payoutData.From, payoutData.To, payoutData.VendorLicenseID)
 	if err != nil {
+		log.Error("CreatePaymentPayout: list payments for payout ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -1561,6 +1570,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 
 	// Check if vendor has enough money
 	if vendorAccount.Balance < amount {
+		log.Error("CreatePaymentPayout: payout amount bigger than vendor account balance")
 		utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
 		return
 	}
@@ -1571,6 +1581,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	// Execute payout
 	paymentID, err := database.Db.CreatePaymentPayout(vendor, vendorAccount.ID, authenticatedUserID, amount, paymentsToBePaidOut)
 	if err != nil {
+		log.Error("CreatePaymentPayout: db", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -1578,8 +1589,9 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	// Return success with paymentID
 	err = utils.WriteJSON(w, http.StatusOK, paymentID)
 	if err != nil {
-		log.Error("CreatePaymentPayout: ", err)
+		log.Error("CreatePaymentPayout: finish:", err)
 	}
+	log.Infof("Payout of %d cents for vendor %s was successful", amount, vendor.LicenseID)
 
 }
 
