@@ -1773,13 +1773,19 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, err error) {
-	log.Info("updateSettingsLogo: entered")
+type Imagetype string
+
+const (
+	ImagetypeLogo    Imagetype = "Logo"
+	ImagetypeFavicon Imagetype = "Favicon"
+	ImagetypeQrCode  Imagetype = "QRCodeLogoImgUrl"
+)
+
+func updateSettingsImg(w http.ResponseWriter, r *http.Request, fileType Imagetype) (path string, err error) {
 
 	// Get file from image field
-	file, header, err := r.FormFile("Logo")
+	file, header, err := r.FormFile(string(fileType))
 	if err != nil {
-		log.Info("No file passed or file is invalid", err)
 		// Do not return error, as not passing a file is ok
 		// Could be improved by differentiating between not passed and invalid file
 		err = nil
@@ -1808,7 +1814,14 @@ func updateSettingsLogo(w http.ResponseWriter, r *http.Request) (path string, er
 	}
 
 	// Save file with name "logo"
-	path = "/img/logo.png"
+	switch fType := fileType; fType {
+	case "Logo":
+		path = "/img/logo.png"
+	case "Favicon":
+		path = "/img/favicon.png"
+	case "QRCodeLogoImgUrl":
+		path = "/img/qrcode.png"
+	}
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Error("updateSettingsLogo: couldn't get wd", err)
@@ -1882,6 +1895,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("WebShopIsClosed is not a boolean"), http.StatusBadRequest)
 				return
 			}
+		} else if key == "QRCodeEnableLogo" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("QRCodeEnableLogo is not a boolean")
+				utils.ErrorJSON(w, errors.New("QRCodeEnableLogo is not a boolean"), http.StatusBadRequest)
+				return
+			}
 		} else if key == "MainItem" {
 			value, err := strconv.Atoi(value[0])
 			if err != nil {
@@ -1890,19 +1910,12 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			fieldsClean[key] = null.NewInt(int64(value), true)
-		} else if key == "QRCodeLogoImgUrl" {
-			if value[0] == "null" {
-				fieldsClean[key] = nil
-			} else {
-				fieldsClean[key] = null.StringFrom(value[0])
-			}
 		} else if key == "MapCenterLat" || key == "MapCenterLong" {
 			if s, err := strconv.ParseFloat(value[0], 64); err == nil {
 				fieldsClean[key] = (s)
 			} else {
 				fieldsClean[key] = 0.1
 			}
-			log.Infof(value[0], fieldsClean[key])
 		} else if key == "UseVendorLicenseIdInShop" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
@@ -1921,17 +1934,37 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
-
-	path, err := updateSettingsLogo(w, r)
+	// update the logo
+	logoPath, err := updateSettingsImg(w, r, ImagetypeLogo)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	if path != "" {
-		log.Info("updateSettings: path is not empty but ", path)
-		// Remove first character of path to have correct URL
-		settings.Logo = path[1:]
+	if logoPath != "" {
+		settings.Logo = logoPath
 		log.Info("updateSettings: settings.Logo is ", settings.Logo)
+	}
+
+	// update the favicon
+	faviconPath, err := updateSettingsImg(w, r, ImagetypeFavicon)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if faviconPath != "" {
+		settings.Favicon = faviconPath
+		log.Info("updateSettings: settings.Favicon is ", settings.Favicon)
+	}
+
+	// update the qrcode logo
+	qrcodePath, err := updateSettingsImg(w, r, ImagetypeQrCode)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	if qrcodePath != "" {
+		settings.QRCodeLogoImgUrl = qrcodePath
+		log.Info("updateSettings: settings.QRCodeLogoImgUrl is ", settings.QRCodeLogoImgUrl)
 	}
 
 	// Save settings to database

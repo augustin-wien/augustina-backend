@@ -12,7 +12,7 @@ func (db *Database) InitiateAccounts() (err error) {
 	for _, account := range []string{"Cash", "Orga", "UserAnon", "VivaWallet", "Paypal"} {
 		_, err = Db.CreateSpecialVendorAccount(Vendor{
 			LicenseID: null.StringFrom(account),
-			Email: account + "@augustina.cc",
+			Email:     account + "@augustina.cc",
 		})
 		if err != nil {
 			log.Error("InitiateAccounts: ", err)
@@ -97,7 +97,7 @@ func (db *Database) UpdateInitialSettings() (err error) {
 		AGBUrl:                     "https://example.com/AGB",
 		MapCenterLat:               48.2083,
 		MapCenterLong:              16.3731,
-		QRCodeLogoImgUrl:           null.StringFrom("/img/logo.png"),
+		QRCodeLogoImgUrl:           "/img/logo.png",
 		VendorNotFoundHelpUrl:      "https://example.com/vendornotfound",
 	}
 
