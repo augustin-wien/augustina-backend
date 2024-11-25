@@ -370,7 +370,7 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 	})
 }
 
-func (k *Keycloak) xGetOrCreateUser(email string) (userID string, err error) {
+func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
