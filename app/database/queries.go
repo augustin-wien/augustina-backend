@@ -101,7 +101,7 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 	}
 
 	// Get vendor balance
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1 and IsDeleted = false", vendor.ID).Scan(&vendor.Balance)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
 	if err != nil {
 		log.Error("GetVendorByLicenseID: couldn't get balance: ", err)
 	}
@@ -119,7 +119,7 @@ func (db *Database) GetVendorByLicenseIDWithoutDisabled(licenseID string) (vendo
 	}
 
 	// Get vendor balance
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1 and IsDeleted = false", vendor.ID).Scan(&vendor.Balance)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
 	if err != nil {
 		log.Error("GetVendorByLicenseID: couldn't get balance: ", err)
 	}
