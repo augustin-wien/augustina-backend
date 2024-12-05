@@ -193,7 +193,11 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	}
 	defer func() {
 		if err := tx.Rollback(context.Background()); err != nil && err != sql.ErrTxDone {
-			log.Error("tx.Rollback failed: %v", err)
+			// ignore error message vtx is closed
+			if !strings.Contains(err.Error(), "tx is closed") {
+				log.Error("UpdateVendor: Failed to rollback transaction ", err)
+			}
+
 		}
 	}()
 
