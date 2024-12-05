@@ -312,6 +312,7 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 	}
 	users, err := k.Client.GetUsers(k.Context, k.clientToken.AccessToken, k.Realm, p)
 	if err != nil {
+		log.Error("Keycloak GetUser: Error getting users ", err)
 		return nil, err
 	}
 	// if length of users is 0, then user does not exist
@@ -373,6 +374,7 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
+		log.Info("GetOrCreateUser: User does not exist we create one", email)
 		// User does not exist
 		password := utils.RandomString(10)
 		user, err := k.CreateUser(email, email, "", email, password)
@@ -481,9 +483,9 @@ func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastNa
 		new_keycloak_user, err := k.GetUserByEmail(newEmail)
 		if err != nil {
 
-			randomPassword := utils.RandomString(10)
-			keycloakUser, err2 := k.CreateUser(licenseID, firstName, lastName, newEmail, randomPassword)
+			keycloakUser, err2 := k.GetOrCreateUser(newEmail)
 			if err != nil {
+				log.Error("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v", err2, err)
 				return "", fmt.Errorf("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v", err2, err)
 			}
 			keycloak_user_id = keycloakUser
