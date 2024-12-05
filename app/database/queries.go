@@ -136,7 +136,7 @@ func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
 	}
 
 	// Get vendor balance
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1 and IsDeleted = false", vendor.ID).Scan(&vendor.Balance)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
 	if err != nil {
 		log.Error("GetVendorByEmail: Couldn't get balance: ", err)
 	}
