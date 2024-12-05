@@ -113,7 +113,7 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := database.Db.GetVendorByLicenseID(licenseID)
+	users, err := database.Db.GetVendorByLicenseIDWithoutDisabled(licenseID)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id"), http.StatusBadRequest)
 		return
@@ -360,12 +360,14 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
+		log.Error("DeleteVendor: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 	log.Info(r.Header.Get("X-Auth-User-Name")+" is deleting vendor with id: ", vendorID)
 	vendor, err := database.Db.GetVendor(vendorID)
 	if err != nil {
+		log.Error("DeleteVendor: GetVendor failed: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -373,7 +375,7 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	// Delete user in keycloak
 	err = keycloak.KeycloakClient.DeleteUser(vendor.Email)
 	if err != nil {
-		log.Error("Deleting user "+vendor.Email+" failed in keycloak failed: ", err)
+		log.Info("DeleteVendor: Deleting user "+vendor.Email+" failed in keycloak failed: ", err)
 		// ignore because not each legacy vendor is in keycloak
 	}
 
