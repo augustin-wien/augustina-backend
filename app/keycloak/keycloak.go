@@ -408,7 +408,7 @@ func (k *Keycloak) SendPasswordResetEmail(email string) error {
 		UserID:      user.ID,
 		Lifespan:    gocloak.IntP(600),
 		Actions:     &[]string{"UPDATE_PASSWORD"},
-		ClientID:    gocloak.StringP("wordpress"),
+		ClientID:    gocloak.StringP("frontend"),
 		RedirectURI: gocloak.StringP(config.Config.OnlinePaperUrl),
 	})
 }
