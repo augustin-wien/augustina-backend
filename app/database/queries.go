@@ -65,10 +65,10 @@ func (db *Database) GetHelloWorld() (string, error) {
 // ListVendors returns all users from the database but not all fields for better overview
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
 	rows, err := db.Dbpool.Query(context.Background(), `
-		SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance 
+		SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance, IsDisabled
 		FROM Vendor 
 		JOIN Account ON Account.vendor = Vendor.id 
-		WHERE Account.Type = 'Vendor' 
+		WHERE Account.Type = 'Vendor' and IsDeleted = false
 		ORDER BY LicenseID ASC
 	`)
 	if err != nil {
@@ -79,7 +79,7 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 
 	for rows.Next() {
 		var vendor Vendor
-		err = rows.Scan(&vendor.ID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.LastPayout, &vendor.Balance)
+		err = rows.Scan(&vendor.ID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.LastPayout, &vendor.Balance, &vendor.IsDisabled)
 		if err != nil {
 			log.Error("ListVendors", err)
 			return vendors, err
@@ -93,7 +93,25 @@ func (db *Database) ListVendors() (vendors []Vendor, err error) {
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
 	// Get vendor data
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap,
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1 and IsDeleted = false", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap,
+		&vendor.HasSmartphone, &vendor.HasBankAccount, &vendor.IsDeleted, &vendor.AccountProofUrl)
+	if err != nil {
+		log.Info("GetVendorByLicenseID: Couldn't get vendor: ", licenseID, err)
+		return vendor, err
+	}
+
+	// Get vendor balance
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
+	if err != nil {
+		log.Error("GetVendorByLicenseID: couldn't get balance: ", err)
+	}
+	return vendor, err
+}
+
+// GetVendorByLicenseID returns the vendor with the given licenseID
+func (db *Database) GetVendorByLicenseIDWithoutDisabled(licenseID string) (vendor Vendor, err error) {
+	// Get vendor data
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE LicenseID = $1 and IsDeleted = false and IsDisabled = false", licenseID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap,
 		&vendor.HasSmartphone, &vendor.HasBankAccount, &vendor.IsDeleted, &vendor.AccountProofUrl)
 	if err != nil {
 		log.Info("GetVendorByLicenseID: Couldn't get vendor: ", licenseID, err)
@@ -111,7 +129,7 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 // GetVendorByEmail returns the vendor with the given licenseID
 func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
 	// Get vendor data
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE Email = $1", mail).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount, &vendor.IsDeleted, &vendor.AccountProofUrl)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE Email = $1 and IsDeleted = false", mail).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount, &vendor.IsDeleted, &vendor.AccountProofUrl)
 	if err != nil {
 		log.Error("GetVendorByEmail: Couldn't get vendor ", mail, err)
 		return vendor, err
@@ -128,7 +146,7 @@ func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
 // GetVendor returns the vendor with the given id
 func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
 	// Get vendor data
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount, &vendor.IsDeleted, &vendor.AccountProofUrl)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1 and IsDeleted = false", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount, &vendor.IsDeleted, &vendor.AccountProofUrl)
 	if err != nil {
 		log.Error("GetVendor: Couldn't get vendor ", vendorID, err)
 		return vendor, err
@@ -136,7 +154,7 @@ func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
 	// Get vendor balance
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
 	if err != nil {
-		log.Error("GetVendor: ", err)
+		log.Error("GetVendor: couldn't get vendor ", err)
 	}
 	return vendor, err
 }
@@ -147,19 +165,19 @@ func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err
 	// Update Account balance by open payments
 	_, err = db.UpdateAccountBalanceByOpenPayments(vendorID)
 	if err != nil {
-		log.Error("GetVendor: ", err)
+		log.Error("GetVendorWithBalanceUpdate: ", err)
 	}
 
 	// Get vendor data
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount, &vendor.IsDeleted, &vendor.AccountProofUrl)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Vendor WHERE ID = $1 and IsDeleted = false", vendorID).Scan(&vendor.ID, &vendor.KeycloakID, &vendor.UrlID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.Email, &vendor.LastPayout, &vendor.IsDisabled, &vendor.Longitude, &vendor.Latitude, &vendor.Address, &vendor.PLZ, &vendor.Location, &vendor.WorkingTime, &vendor.Language, &vendor.Comment, &vendor.Telephone, &vendor.RegistrationDate, &vendor.VendorSince, &vendor.OnlineMap, &vendor.HasSmartphone, &vendor.HasBankAccount, &vendor.IsDeleted, &vendor.AccountProofUrl)
 	if err != nil {
-		log.Error("GetVendor: Couldn't get vendor ", vendorID, err)
+		log.Error("GetVendorWithBalanceUpdate: Couldn't get vendor ", vendorID, err)
 		return vendor, err
 	}
 	// Get vendor balance
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
 	if err != nil {
-		log.Error("GetVendor: ", err)
+		log.Error("GetVendorWithBalanceUpdate: Couldn't get balance ", err)
 	}
 	return vendor, err
 }
@@ -223,16 +241,17 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 
 // DeleteVendor deletes a user in the database and the associated account
 func (db *Database) DeleteVendor(vendorID int) (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	DELETE FROM Account
-	WHERE Vendor = $1
-	`, vendorID)
-	if err != nil {
-		log.Error("DeleteVendor: ", err)
-	}
+	// _, err = db.Dbpool.Exec(context.Background(), `
+	// DELETE FROM Account
+	// WHERE Vendor = $1
+	// `, vendorID)
+	// if err != nil {
+	// 	log.Error("DeleteVendor: ", err)
+	// }
 
 	_, err = db.Dbpool.Exec(context.Background(), `
-	DELETE FROM Vendor
+	UPDATE Vendor
+	SET IsDeleted = True
 	WHERE ID = $1
 	`, vendorID)
 	if err != nil {
@@ -247,7 +266,7 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 // ListItems returns all items from the database
 func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, error) {
 	var items []Item
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item ORDER BY ItemOrder DESC")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item WHERE archived = false ORDER BY ItemOrder DESC")
 	if err != nil {
 		log.Error("ListItems: ", err)
 		return items, err
@@ -278,7 +297,7 @@ func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, 
 
 // GetItemByName returns the item with the given name
 func (db *Database) GetItemByName(name string) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1 and archived = false", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
 	if err != nil {
 		log.Error("GetItemByName: ", err)
 	}
@@ -287,7 +306,7 @@ func (db *Database) GetItemByName(name string) (item Item, err error) {
 
 // GetItem returns the item with the given ID
 func (db *Database) GetItem(id int) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1 and archived = false", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
 	if err != nil {
 		log.Error("GetItem: failed in Getitem() ", err)
 	}
@@ -349,10 +368,11 @@ func (db *Database) UpdateItem(id int, item Item) (err error) {
 	return
 }
 
-// DeleteItem deletes an item in the database
+// DeleteItem archives an item in the database
 func (db *Database) DeleteItem(id int) (err error) {
 	_, err = db.Dbpool.Exec(context.Background(), `
-	DELETE FROM Item
+	UPDATE Item
+	SET Archived = True
 	WHERE ID = $1
 	`, id)
 	if err != nil {

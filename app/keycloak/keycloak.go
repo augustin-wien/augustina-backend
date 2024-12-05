@@ -379,6 +379,7 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 		password := utils.RandomString(10)
 		user, err := k.CreateUser(email, email, "", email, password)
 		if err != nil {
+			log.Errorf("GetOrCreateUser: Error creating keycloak user %s", email)
 			return "", err
 		}
 		log.Info("GetOrCreateUser: Created user ", user)
