@@ -369,6 +369,32 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 		Enabled:       gocloak.BoolP(true),
 	})
 }
+func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
+	k.checkAdminToken()
+	user, err := k.GetUser(email)
+	if err != nil {
+		log.Info("GetOrCreateVendor: User does not exist we create one", email)
+		// User does not exist
+		password := utils.RandomString(10)
+		user, err := k.CreateUser(email, email, "", email, password)
+		if err != nil {
+			log.Errorf("GetOrCreateVendor: Error creating keycloak user %s", email)
+			return "", err
+		}
+		log.Info("GetOrCreateVendor: Created user ", user)
+
+		// send welcome email with password reset link
+		err = k.SendPasswordResetEmailVendor(email)
+		if err != nil {
+			// send password reset email only should soft fail
+			log.Error("GetOrCreateVendor: Error sending password reset email ", err)
+			return user, nil
+		}
+		return user, nil
+
+	}
+	return *user.ID, nil
+}
 
 func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 	k.checkAdminToken()
@@ -398,6 +424,15 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 
 // SendPasswordResetEmail function sends a password reset email to the user
 func (k *Keycloak) SendPasswordResetEmail(email string) error {
+	return k.sendPasswordResetEmail(email, config.Config.OnlinePaperUrl)
+}
+
+// SendPasswordResetEmail function sends a password reset email to the user
+func (k *Keycloak) SendPasswordResetEmailVendor(email string) error {
+	return k.sendPasswordResetEmail(email, config.Config.FrontendURL+"/me")
+}
+
+func (k *Keycloak) sendPasswordResetEmail(email, redirectURI string) error {
 	k.checkAdminToken()
 	user, err := k.GetUserByEmail(email)
 	if err != nil {
@@ -410,7 +445,7 @@ func (k *Keycloak) SendPasswordResetEmail(email string) error {
 		Lifespan:    gocloak.IntP(600),
 		Actions:     &[]string{"UPDATE_PASSWORD"},
 		ClientID:    gocloak.StringP("frontend"),
-		RedirectURI: gocloak.StringP(config.Config.OnlinePaperUrl),
+		RedirectURI: gocloak.StringP(redirectURI),
 	})
 }
 
@@ -485,8 +520,8 @@ func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastNa
 		if err != nil {
 
 			keycloakUser, err2 := k.GetOrCreateUser(newEmail)
-			if err != nil {
-				log.Error("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v", err2, err)
+			if err2 != nil {
+				log.Errorf("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v \n", err2, err)
 				return "", fmt.Errorf("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v", err2, err)
 			}
 			keycloak_user_id = keycloakUser
