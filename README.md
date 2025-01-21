@@ -80,7 +80,7 @@ Note: If the update does not show in your browser, reset cache.
 Open the augustin shell in the container:
 
 ```bash
-docker compose exec augustin bash
+docker compose exec augustin sh
 ```
 
 Run linter within the augustin shell:

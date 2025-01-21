@@ -1,15 +1,16 @@
 package main
 
 import (
-	"augustin/config"
-	"augustin/database"
-	"augustin/handlers"
-	"augustin/keycloak"
-	"augustin/mailer"
-	"augustin/notifications"
-	"augustin/utils"
 	"net/http"
 	"time"
+
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/handlers"
+	"github.com/augustin-wien/augustina-backend/keycloak"
+	"github.com/augustin-wien/augustina-backend/mailer"
+	"github.com/augustin-wien/augustina-backend/notifications"
+	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/getsentry/sentry-go"
 )

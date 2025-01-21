@@ -12,14 +12,17 @@ import (
 func (db *Database) CreateDevData() (err error) {
 	vendorIDs, err := db.createDevVendors()
 	if err != nil {
+		log.Error("Dev data vendor creation failed ", zap.Error(err))
 		return err
 	}
 	_, err = db.createDevItems()
 	if err != nil {
+		log.Error("Dev data item creation failed ", zap.Error(err))
 		return err
 	}
 	err = db.createDevOrdersAndPayments(vendorIDs)
 	if err != nil {
+		log.Error("Dev data order creation failed ", zap.Error(err))
 		return err
 	}
 	return err
@@ -34,8 +37,6 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 		FirstName:  "firstname1",
 		LastName:   "lastname1",
 		Email:      "test_vendor@example.com",
-		Longitude:  16.363449,
-		Latitude:   48.210033,
 	}
 	vendorID, err := db.CreateVendor(vendor)
 	if err != nil {
@@ -50,8 +51,6 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 		FirstName:  "Recep",
 		LastName:   "lastname2",
 		Email:      "test_vendor2@example.com",
-		Longitude:  16.291279,
-		Latitude:   48.250033,
 	}
 	_, err = db.CreateVendor(vendor2)
 	if err != nil {
