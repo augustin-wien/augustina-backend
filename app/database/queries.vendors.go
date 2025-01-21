@@ -202,6 +202,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 		SetOnlinemap(vendor.OnlineMap).
 		SetRegistrationdate(vendor.RegistrationDate).
 		SetTelephone(vendor.Telephone).
+		SetVendorsince(vendor.VendorSince).
 		SetUrlid(vendor.UrlID).
 		Save(ctx)
 	if err != nil {

@@ -58,7 +58,14 @@ func (db *Database) InitEmptyTestDb() (err error) {
 	if err != nil {
 		return err
 	}
+	pdb, err := sql.Open("postgres", db.generatePostgresUrl())
+	if err != nil {
+		log.Fatal(err)
+	}
+	drv := entsql.OpenDB(dialect.Postgres, pdb)
+	client := ent.NewClient(ent.Driver(drv), ent.Debug())
 
+	db.EntClient = client
 	err = initData(db)
 
 	return
