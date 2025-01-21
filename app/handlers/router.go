@@ -6,8 +6,8 @@ import (
 
 	_ "github.com/swaggo/files" // swagger embed files
 
-	"augustin/config"
-	"augustin/middlewares"
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/middlewares"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -77,6 +77,12 @@ func GetRouter() (r *chi.Mux) {
 			r.Use(middlewares.AdminAuthMiddleware)
 			r.Get("/", ListVendors)
 			r.Post("/", CreateVendor)
+			r.Get("/{vendorid}/locations/", ListVendorLocations)
+			r.Post("/{vendorid}/locations/", CreateVendorLocation)
+			r.Delete("/{vendorid}/locations/{id}/", DeleteVendorLocation)
+			r.Get("/{vendorid}/comments/", ListVendorComments)
+			r.Post("/{vendorid}/comments/", CreateVendorComment)
+			r.Delete("/{vendorid}/comments/{id}/", DeleteVendorComment)
 
 			r.Route("/{id}", func(r chi.Router) {
 				r.Put("/", UpdateVendor)

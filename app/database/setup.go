@@ -1,7 +1,7 @@
 package database
 
 import (
-	"augustin/config"
+	"github.com/augustin-wien/augustina-backend/config"
 
 	"go.uber.org/zap"
 	"gopkg.in/guregu/null.v4"

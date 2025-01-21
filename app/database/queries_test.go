@@ -1,13 +1,15 @@
 package database
 
 import (
-	"augustin/config"
-	"augustin/utils"
 	"context"
 	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/ent"
+	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/stretchr/testify/require"
 	"gopkg.in/guregu/null.v4"
@@ -97,7 +99,7 @@ func TestAccounts(t *testing.T) {
 	// Create new account with known
 	test_vendor := Vendor{
 		LicenseID: null.StringFrom("UserAuth"),
-		Email: "UserAuth@augustina.cc",
+		Email:     "UserAuth@augustina.cc",
 	}
 
 	id, err := Db.CreateSpecialVendorAccount(test_vendor)
@@ -121,9 +123,25 @@ func TestVendors(t *testing.T) {
 		LastName:       vendorName,
 		Email:          vendorEmail,
 		LicenseID:      null.StringFrom(licenseId),
-		Longitude:      10,
-		Latitude:       20,
 		HasBankAccount: true,
+		Locations: []*ent.Location{
+			&ent.Location{
+				Name:        "test",
+				Address:     "test",
+				Longitude:   10.0,
+				Latitude:    20.0,
+				Zip:         "1234",
+				WorkingTime: "G",
+			},
+		},
+		Comments: []*ent.Comment{
+			&ent.Comment{
+				Comment:    "test",
+				Warning:    false,
+				CreatedAt:  time.Now(),
+				ResolvedAt: time.Now(),
+			},
+		},
 	}
 	id, err := Db.CreateVendor(vendor)
 	utils.CheckError(t, err)

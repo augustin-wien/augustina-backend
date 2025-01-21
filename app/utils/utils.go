@@ -1,12 +1,13 @@
 package utils
 
 import (
-	"augustin/config"
-	"augustin/notifications"
 	"math/rand"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/notifications"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

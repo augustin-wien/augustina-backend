@@ -1,10 +1,6 @@
 package handlers
 
 import (
-	"augustin/config"
-	"augustin/database"
-	"augustin/keycloak"
-	"augustin/utils"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -15,6 +11,11 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/keycloak"
+	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
@@ -156,7 +157,6 @@ func TestVendors(t *testing.T) {
 	require.Equal(t, "test1234", vendor.FirstName)
 	require.Equal(t, "+43123456789", vendor.Telephone)
 	require.Equal(t, "1/22", vendor.VendorSince)
-	require.Equal(t, "1234", vendor.PLZ)
 	require.Equal(t, vendorEmail, vendor.Email)
 
 	// Update

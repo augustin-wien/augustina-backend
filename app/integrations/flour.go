@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"augustin/config"
-	"augustin/database"
-	"augustin/utils"
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/utils"
 
 	"gopkg.in/guregu/null.v4"
 )
