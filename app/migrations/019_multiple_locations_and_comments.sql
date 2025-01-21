@@ -8,12 +8,12 @@ CREATE TABLE Locations (
     latitude float8 NOT NULL DEFAULT 0.1,
     zip text,
     working_time text,
-    vendor integer REFERENCES Vendor (id) ON DELETE SET NULL
+    vendor_locations integer REFERENCES Vendor (id) ON DELETE SET NULL
 );
 
 
 -- Step 2: Migrate data from Vendor to Locations
-INSERT INTO locations (name, address, longitude, latitude, zip, working_time, vendor)
+INSERT INTO locations (name, address, longitude, latitude, zip, working_time, vendor_locations)
 SELECT 
     vendor.location AS name,
     vendor.address AS address,
@@ -21,7 +21,7 @@ SELECT
     vendor.latitude AS latitude,
     vendor.plz AS zip,
     vendor.workingtime AS working_time,
-    vendor.id AS vendor
+    vendor.id AS vendor_locations
 FROM vendor;
 
 -- Step 3: Drop columns from Vendor
@@ -41,16 +41,16 @@ CREATE TABLE Comments (
     warning boolean NOT NULL DEFAULT FALSE,
     created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     resolved_at timestamptz,
-    vendor integer REFERENCES Vendor (id) ON DELETE SET NULL
+    vendor_comments integer REFERENCES Vendor (id) ON DELETE SET NULL
 );
 
 -- Step 5: Migrate comments from Vendor to Comments
-INSERT INTO Comments (comment, warning, created_at, vendor)
+INSERT INTO Comments (comment, warning, created_at, vendor_comments)
 SELECT 
-    Comment AS comment,
+    vendor.Comment AS comment,
     FALSE AS warning,
     TO_TIMESTAMP(RegistrationDate, 'YYYY-MM-DD') AS created_at,
-    ID AS vendor
+    vendor.id AS vendor_comments
 FROM Vendor;
 
 -- Step 6: Drop comment column from Vendor
@@ -60,6 +60,6 @@ ALTER TABLE vendor DROP COLUMN comment;
 ---- create above / drop below ----
 
 DROP TABLE Locations;
-
+DROP TABLE Comments
 -- Write your migrate down statements here. If this migration is irreversible
 -- Then delete the separator line above.
