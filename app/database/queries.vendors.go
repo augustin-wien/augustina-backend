@@ -269,6 +269,7 @@ func (db *Database) VendorEntIntoVendor(v ent.Vendor) (vendor Vendor) {
 		Email:      v.Email,
 		LastPayout: null.TimeFrom(v.Lastpayout),
 		IsDisabled: v.Isdisabled,
+		Telephone:  v.Telephone,
 	}
 	return vendor
 }
@@ -284,6 +285,7 @@ func (db *Database) VendorIntoVendorEnt(vendor Vendor) (v *ent.Vendor) {
 		Email:      vendor.Email,
 		Lastpayout: vendor.LastPayout.Time,
 		Isdisabled: vendor.IsDisabled,
+		Telephone:  vendor.Telephone,
 	}
 	return v
 }
