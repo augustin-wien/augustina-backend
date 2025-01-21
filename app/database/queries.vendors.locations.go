@@ -63,7 +63,7 @@ func (db *Database) GetVendorLocations() (locationData []LocationData, err error
 	rows, err := db.Dbpool.Query(context.Background(), `
 	SELECT Locations.Longitude, Locations.Latitude, Vendor, Vendor.FirstName, Vendor.LicenseID
 		from Locations
-		Join Vendor ON Vendor.id = Locations.Vendor
+		Join Vendor ON Vendor.id = Locations.vendor_locations
 		where Locations.longitude != 0 and Locations.longitude != 0.1;
 	`)
 	if err != nil {

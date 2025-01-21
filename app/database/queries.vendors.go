@@ -139,12 +139,6 @@ func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
 	if err != nil {
 		log.Error("GetVendor: couldn't get vendor ", err)
 	}
-	vendor, err = db.GetAdditionalVendorData(vendor)
-	if err != nil {
-		log.Error("GetVendorByLicenseID: couldn't get additional vendor data: ", err)
-		return vendor, err
-	}
-
 	return vendor, nil
 }
 
@@ -260,32 +254,52 @@ func (db *Database) GetAdditionalVendorData(vendor Vendor) (Vendor, error) {
 
 func (db *Database) VendorEntIntoVendor(v ent.Vendor) (vendor Vendor) {
 	vendor = Vendor{
-		ID:         v.ID,
-		KeycloakID: v.Keycloakid,
-		UrlID:      v.Urlid,
-		LicenseID:  null.StringFrom(v.Licenseid),
-		FirstName:  v.Firstname,
-		LastName:   v.Lastname,
-		Email:      v.Email,
-		LastPayout: null.TimeFrom(v.Lastpayout),
-		IsDisabled: v.Isdisabled,
-		Telephone:  v.Telephone,
+		ID:               v.ID,
+		AccountProofUrl:  null.StringFrom(v.Accountproofurl),
+		KeycloakID:       v.Keycloakid,
+		UrlID:            v.Urlid,
+		LicenseID:        null.StringFrom(v.Licenseid),
+		FirstName:        v.Firstname,
+		LastName:         v.Lastname,
+		Email:            v.Email,
+		LastPayout:       null.TimeFrom(v.Lastpayout),
+		IsDisabled:       v.Isdisabled,
+		IsDeleted:        v.Isdeleted,
+		Locations:        v.Edges.Locations,
+		Comments:         v.Edges.Comments,
+		Language:         v.Language,
+		Telephone:        v.Telephone,
+		RegistrationDate: v.Registrationdate,
+		VendorSince:      v.Vendorsince,
+		OnlineMap:        v.Onlinemap,
+		HasSmartphone:    v.Hassmartphone,
+		HasBankAccount:   v.Hasbankaccount,
 	}
 	return vendor
 }
 
 func (db *Database) VendorIntoVendorEnt(vendor Vendor) (v *ent.Vendor) {
 	v = &ent.Vendor{
-		ID:         vendor.ID,
-		Keycloakid: vendor.KeycloakID,
-		Urlid:      vendor.UrlID,
-		Licenseid:  vendor.LicenseID.String,
-		Firstname:  vendor.FirstName,
-		Lastname:   vendor.LastName,
-		Email:      vendor.Email,
-		Lastpayout: vendor.LastPayout.Time,
-		Isdisabled: vendor.IsDisabled,
-		Telephone:  vendor.Telephone,
+		ID:              vendor.ID,
+		Accountproofurl: vendor.AccountProofUrl.String,
+		Keycloakid:      vendor.KeycloakID,
+		Urlid:           vendor.UrlID,
+		Licenseid:       vendor.LicenseID.String,
+		Firstname:       vendor.FirstName,
+		Lastname:        vendor.LastName,
+		Email:           vendor.Email,
+		Lastpayout:      vendor.LastPayout.Time,
+		Isdisabled:      vendor.IsDisabled,
+		Isdeleted:       vendor.IsDeleted,
+		// Locations:        vendor.Edges.Locations,
+		// Comments:         vendor.Edges.Comments,
+		Language:         vendor.Language,
+		Telephone:        vendor.Telephone,
+		Registrationdate: vendor.RegistrationDate,
+		Vendorsince:      vendor.VendorSince,
+		Onlinemap:        vendor.OnlineMap,
+		Hassmartphone:    vendor.HasSmartphone,
+		Hasbankaccount:   vendor.HasBankAccount,
 	}
 	return v
 }

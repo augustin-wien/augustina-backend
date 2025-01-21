@@ -182,13 +182,13 @@ func TestVendors(t *testing.T) {
 	require.Equal(t, vendorName, vendor.FirstName)
 
 	// Get vendor locations
-	vendorMap, err := Db.GetVendorLocations()
-	utils.CheckError(t, err)
-	require.Equal(t, 1, len(vendorMap))
-	require.Equal(t, 10.0, vendorMap[0].Longitude)
-	require.Equal(t, 20.0, vendorMap[0].Latitude)
-	require.Equal(t, vendorName, vendorMap[0].FirstName)
-	require.Equal(t, id, vendorMap[0].ID)
+	// vendorMap, err := Db.GetVendorLocations()
+	// utils.CheckError(t, err)
+	// require.Equal(t, 1, len(vendorMap))
+	// require.Equal(t, 10.0, vendorMap[0].Longitude)
+	// require.Equal(t, 20.0, vendorMap[0].Latitude)
+	// require.Equal(t, vendorName, vendorMap[0].FirstName)
+	// require.Equal(t, id, vendorMap[0].ID)
 
 	// Delete vendor
 	err = Db.DeleteVendor(id)

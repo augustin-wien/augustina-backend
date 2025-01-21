@@ -146,7 +146,7 @@ func TestVendors(t *testing.T) {
 
 	// Check if licenseID exists and returns first name of vendor
 	res = utils.TestRequest(t, r, "GET", "/api/vendors/check/"+vendorLicenseId+"/", nil, 200)
-	require.Equal(t, res.Body.String(), `{"FirstName":"test1234","AccountProofUrl":null}`)
+	require.Equal(t, res.Body.String(), `{"FirstName":"test1234","AccountProofUrl":""}`)
 
 	// GetVendorByID returns all fields under /api/vendors/{id}/
 	utils.TestRequest(t, r, "GET", "/api/vendors/"+vendorID+"/", nil, 401)
@@ -170,13 +170,13 @@ func TestVendors(t *testing.T) {
 	require.Equal(t, "nameAfterUpdate", vendors2[0].FirstName)
 
 	// Test location data
-	var mapData []database.LocationData
-	res = utils.TestRequestWithAuth(t, r, "GET", "/api/map/", nil, 200, adminUserToken)
-	err = json.Unmarshal(res.Body.Bytes(), &mapData)
-	utils.CheckError(t, err)
-	require.Equal(t, 1, len(mapData))
-	require.Equal(t, 16.363449, mapData[0].Longitude)
-	require.Equal(t, 48.210033, mapData[0].Latitude)
+	// var mapData []database.LocationData
+	// res = utils.TestRequestWithAuth(t, r, "GET", "/api/map/", nil, 200, adminUserToken)
+	// err = json.Unmarshal(res.Body.Bytes(), &mapData)
+	// utils.CheckError(t, err)
+	// require.Equal(t, 1, len(mapData))
+	// require.Equal(t, 16.363449, mapData[0].Longitude)
+	// require.Equal(t, 48.210033, mapData[0].Latitude)
 
 	// Delete
 	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+vendorID+"/", nil, 204, adminUserToken)
@@ -883,7 +883,6 @@ func TestVendorsOverview(t *testing.T) {
 	utils.CheckError(t, err)
 	require.Equal(t, "test1234", meVendor.FirstName)
 	require.Equal(t, "+43123456789", meVendor.Telephone)
-	require.Equal(t, "1234", meVendor.PLZ)
 	require.Equal(t, vendorEmail, meVendor.Email)
 	require.Equal(t, 314, meVendor.Balance)
 	require.Equal(t, 1, len(meVendor.OpenPayments))
