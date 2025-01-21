@@ -12,14 +12,17 @@ import (
 func (db *Database) CreateDevData() (err error) {
 	vendorIDs, err := db.createDevVendors()
 	if err != nil {
+		log.Error("Dev data vendor creation failed ", zap.Error(err))
 		return err
 	}
 	_, err = db.createDevItems()
 	if err != nil {
+		log.Error("Dev data item creation failed ", zap.Error(err))
 		return err
 	}
 	err = db.createDevOrdersAndPayments(vendorIDs)
 	if err != nil {
+		log.Error("Dev data order creation failed ", zap.Error(err))
 		return err
 	}
 	return err

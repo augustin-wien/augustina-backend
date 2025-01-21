@@ -184,9 +184,8 @@ func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err
 
 // CreateVendor creates a vendor and an associated account in the database
 func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
-	ctx := context.Background()
 	// Create vendor
-	_, err = db.EntClient.Vendor.Create().
+	v, err := db.EntClient.Vendor.Create().
 		SetAccountproofurl(vendor.AccountProofUrl.String).
 		SetEmail(vendor.Email).
 		SetFirstname(vendor.FirstName).
@@ -204,18 +203,21 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 		SetTelephone(vendor.Telephone).
 		SetVendorsince(vendor.VendorSince).
 		SetUrlid(vendor.UrlID).
-		Save(ctx)
+		Save(context.Background())
 	if err != nil {
 		log.Error("CreateVendor: create vendor %s %+v", vendor.Email, err)
 		return
 	}
+	vendorID = v.ID
+	log.Info("CreateVendor: created vendor %v", vendorID)
 
 	// Create vendor account
-	_, err = db.Dbpool.Exec(ctx, "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, "Vendor", vendorID)
+	_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, "Vendor", v.ID)
 	if err != nil {
 		log.Error("CreateVendor: create vendor account %s %+v", vendor.Email, err)
 		return
 	}
+	log.Info("CreateVendor: created vendor %s", vendor.Email)
 
 	return
 }

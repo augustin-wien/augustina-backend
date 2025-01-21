@@ -28,12 +28,6 @@ var Db Database
 
 // InitDb connects to production database and stores it in the global Db variable
 func (db *Database) InitDb() (err error) {
-	err = db.initDb(true, true)
-	if err != nil {
-		return err
-	}
-
-	err = initData(db)
 	// Set up the Ent client with pgx
 	pdb, err := sql.Open("postgres", db.generatePostgresUrl())
 	if err != nil {
@@ -43,6 +37,11 @@ func (db *Database) InitDb() (err error) {
 	client := ent.NewClient(ent.Driver(drv), ent.Debug())
 
 	db.EntClient = client
+	err = db.initDb(true, true)
+	if err != nil {
+		return err
+	}
+	err = initData(db)
 
 	return err
 }

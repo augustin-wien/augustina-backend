@@ -55,6 +55,8 @@ FROM Vendor;
 
 -- Step 6: Drop comment column from Vendor
 
+ALTER TABLE vendor DROP COLUMN comment;
+
 ---- create above / drop below ----
 
 DROP TABLE Locations;
