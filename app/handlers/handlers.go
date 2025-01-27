@@ -171,7 +171,14 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Info(r.Header.Get("X-Auth-User-Name") + " is creating a vendor for" + vendor.Email)
-
+	if vendor.Email == "" {
+		settings, err := database.Db.GetSettings()
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		vendor.Email = "vk+" + vendor.LicenseID.String + settings.VendorEmailPostfix
+	}
 	// Create user in keycloak
 	user, err := keycloak.KeycloakClient.GetOrCreateUser(vendor.Email)
 	if err != nil {
