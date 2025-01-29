@@ -1226,11 +1226,11 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if vendor has enough money
-	if vendorAccount.Balance < amount {
-		log.Error("CreatePaymentPayout: payout amount bigger than vendor account balance")
-		utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
-		return
-	}
+	// if vendorAccount.Balance < amount {
+	// 	log.Error("CreatePaymentPayout: payout amount bigger than vendor account balance")
+	// 	utils.ErrorJSON(w, errors.New("payout amount bigger than vendor account balance"), http.StatusBadRequest)
+	// 	return
+	// }
 
 	// Get authenticated user
 	authenticatedUserID := r.Header.Get("X-Auth-User-Name")

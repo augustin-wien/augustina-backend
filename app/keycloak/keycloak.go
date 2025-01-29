@@ -305,6 +305,9 @@ func (k *Keycloak) UnassignRole(userID string, roleName string) error {
 
 // GetUser function returns the user by username
 func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
+	if username == "" {
+		return nil, fmt.Errorf("GetUser: username is empty")
+	}
 	k.checkAdminToken()
 	exact := true
 	p := gocloak.GetUsersParams{
@@ -329,6 +332,9 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 
 // GetUserByEmail function returns the user by email
 func (k *Keycloak) GetUserByEmail(email string) (*gocloak.User, error) {
+	if email == "" {
+		return nil, fmt.Errorf("GetUserByEmail: email is empty")
+	}
 	k.checkAdminToken()
 	exact := true
 	p := gocloak.GetUsersParams{
@@ -352,6 +358,9 @@ func (k *Keycloak) GetUserByEmail(email string) (*gocloak.User, error) {
 
 // CreateUser function creates a user given by first_name, last_name and email returns the userID
 func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, email string, password string) (userID string, err error) {
+	if email == "" {
+		return "", fmt.Errorf("CreateUser: email is empty")
+	}
 	k.checkAdminToken()
 	credentials := []gocloak.CredentialRepresentation{
 		{
@@ -371,6 +380,9 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 	})
 }
 func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
+	if email == "" {
+		return "", fmt.Errorf("GetOrCreateVendor: email is empty")
+	}
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
@@ -398,6 +410,9 @@ func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
 }
 
 func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
+	if email == "" {
+		return "", fmt.Errorf("GetOrCreateUser: email is empty")
+	}
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
