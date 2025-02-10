@@ -1,11 +1,16 @@
 package database
 
 import (
-	"augustin/config"
-	"augustin/utils"
 	"context"
+	"database/sql"
 
+	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/ent"
+	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 )
 
@@ -15,6 +20,7 @@ var log = utils.GetLogger()
 type Database struct {
 	Dbpool       *pgxpool.Pool
 	IsProduction bool
+	EntClient    *ent.Client
 }
 
 // Db is the global database connection pool that is used by all handlers
@@ -22,11 +28,19 @@ var Db Database
 
 // InitDb connects to production database and stores it in the global Db variable
 func (db *Database) InitDb() (err error) {
+	// Set up the Ent client with pgx
+	pdb, err := sql.Open("postgres", db.generatePostgresUrl())
+	if err != nil {
+		log.Fatal(err)
+	}
+	drv := entsql.OpenDB(dialect.Postgres, pdb)
+	client := ent.NewClient(ent.Driver(drv), ent.Debug())
+
+	db.EntClient = client
 	err = db.initDb(true, true)
 	if err != nil {
 		return err
 	}
-
 	err = initData(db)
 
 	return err
@@ -43,7 +57,14 @@ func (db *Database) InitEmptyTestDb() (err error) {
 	if err != nil {
 		return err
 	}
+	pdb, err := sql.Open("postgres", db.generatePostgresUrl())
+	if err != nil {
+		log.Fatal(err)
+	}
+	drv := entsql.OpenDB(dialect.Postgres, pdb)
+	client := ent.NewClient(ent.Driver(drv), ent.Debug())
 
+	db.EntClient = client
 	err = initData(db)
 
 	return
@@ -110,27 +131,32 @@ func initData(db *Database) (err error) {
 	return
 }
 
+func (db *Database) generatePostgresUrl() string {
+	var extraKey string
+	if !db.IsProduction {
+		extraKey = "_TEST"
+	}
+	url := "postgres://" +
+		utils.GetEnv("DB_USER", "user") +
+		":" +
+		utils.GetEnv("DB_PASS", "password") +
+		"@" +
+		utils.GetEnv("DB_HOST"+extraKey, "localhost") +
+		":" +
+		utils.GetEnv("DB_PORT"+extraKey, "5432") +
+		"/" +
+		utils.GetEnv("DB_NAME", "product_api") +
+		"?sslmode=disable"
+	return url
+}
+
 // initDb initializes the database connection pool and stores it in the global Db variable
 func (db *Database) initDb(isProduction bool, logInfo bool) (err error) {
 
 	// Create connection pool
-	var extraKey string
-	if !isProduction {
-		extraKey = "_TEST"
-	}
+	url := db.generatePostgresUrl()
 	dbpool, err := pgxpool.New(
-		context.Background(),
-		"postgres://"+
-			utils.GetEnv("DB_USER", "user")+
-			":"+
-			utils.GetEnv("DB_PASS", "password")+
-			"@"+
-			utils.GetEnv("DB_HOST"+extraKey, "localhost")+
-			":"+
-			utils.GetEnv("DB_PORT"+extraKey, "5432")+
-			"/"+
-			utils.GetEnv("DB_NAME", "product_api")+
-			"?sslmode=disable",
+		context.Background(), url,
 	)
 	if err != nil {
 		log.Error("Unable to create connection pool", zap.Error(err))

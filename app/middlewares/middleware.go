@@ -1,11 +1,12 @@
 package middlewares
 
 import (
-	"augustin/keycloak"
-	"augustin/utils"
 	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/augustin-wien/augustina-backend/keycloak"
+	"github.com/augustin-wien/augustina-backend/utils"
 )
 
 var log = utils.GetLogger()
@@ -71,6 +72,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		for _, group := range userGroups {
+			log.Debugf("add group %v", *group.Name)
 			r.Header.Add("X-Auth-Groups-"+*group.Name, *group.Name)
 		}
 		next.ServeHTTP(w, r)

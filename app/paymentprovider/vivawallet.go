@@ -1,10 +1,6 @@
 package paymentprovider
 
 import (
-	"augustin/config"
-	"augustin/database"
-	"augustin/integrations"
-	"augustin/utils"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -13,6 +9,11 @@ import (
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/integrations"
+	"github.com/augustin-wien/augustina-backend/utils"
 
 	b64 "encoding/base64"
 	"net/http"
