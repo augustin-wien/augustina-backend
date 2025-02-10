@@ -1419,6 +1419,7 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 	// Create map of items
 	itemsMap := make(map[int]ItemStatistics)
 	for _, item := range items {
+
 		itemsMap[item.ID] = ItemStatistics{
 			ID:          item.ID,
 			Name:        item.Name,
@@ -1434,8 +1435,13 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 		}
 		itemID := int(payment.Item.Int64)
 		if entry, ok := itemsMap[itemID]; ok {
+			// Check if item is a donation
+			if itemID == 2 {
+				entry.SumQuantity += 1
+			} else {
+				entry.SumQuantity += payment.Quantity
+			}
 			entry.SumAmount += payment.Amount
-			entry.SumQuantity += payment.Quantity
 			itemsMap[itemID] = entry
 		} else {
 			utils.ErrorJSON(w, errors.New("item not found"), http.StatusBadRequest)
