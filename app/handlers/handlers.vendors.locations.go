@@ -23,7 +23,7 @@ import (
 // @Security KeycloakAuth
 
 func ListVendorLocations(w http.ResponseWriter, r *http.Request) {
-	vendorID := chi.URLParam(r, "vendorID")
+	vendorID := chi.URLParam(r, "vendorid")
 	if vendorID == "" {
 		utils.ErrorJSON(w, fmt.Errorf("vendorId is required"), http.StatusBadRequest)
 		return
@@ -51,7 +51,7 @@ func ListVendorLocations(w http.ResponseWriter, r *http.Request) {
 // @Security KeycloakAuth
 
 func CreateVendorLocation(w http.ResponseWriter, r *http.Request) {
-	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
 	if err != nil {
 		log.Error("CreateVendorLocation: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -81,7 +81,7 @@ func CreateVendorLocation(w http.ResponseWriter, r *http.Request) {
 // @Security KeycloakAuth
 
 func UpdateVendorLocation(w http.ResponseWriter, r *http.Request) {
-	_, err := strconv.Atoi(chi.URLParam(r, "id"))
+	_, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
 	if err != nil {
 		log.Error("CreateVendorLocation: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -110,7 +110,7 @@ func UpdateVendorLocation(w http.ResponseWriter, r *http.Request) {
 // @Router /api/vendors/locations/{id}/ [delete]
 // @Security KeycloakAuth
 func DeleteVendorLocation(w http.ResponseWriter, r *http.Request) {
-	_, err := strconv.Atoi(chi.URLParam(r, "id"))
+	_, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
 	if err != nil {
 		log.Error("DeleteVendorLocation: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

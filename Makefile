@@ -1,0 +1,16 @@
+# update frontend
+
+update-frontend:
+	@echo "Updating frontend..."
+	@cd docker/augustin-frontend && git pull
+	@echo "Frontend updated."
+
+build-frontend:
+	@echo "Building frontend..."
+	@docker compose -f docker-compose.production.yml build augustin-frontend
+	@echo "Frontend built."
+
+push-frontend:
+	@echo "Push frontend..."
+	@docker compose -f docker-compose.production.yml push augustin-frontend
+	@echo "Frontend built."

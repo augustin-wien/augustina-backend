@@ -79,6 +79,7 @@ func GetRouter() (r *chi.Mux) {
 			r.Post("/", CreateVendor)
 			r.Get("/{vendorid}/locations/", ListVendorLocations)
 			r.Post("/{vendorid}/locations/", CreateVendorLocation)
+			r.Patch("/{vendorid}/locations/{id}/", UpdateVendorLocation)
 			r.Delete("/{vendorid}/locations/{id}/", DeleteVendorLocation)
 			r.Get("/{vendorid}/comments/", ListVendorComments)
 			r.Post("/{vendorid}/comments/", CreateVendorComment)
