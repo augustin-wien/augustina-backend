@@ -23,7 +23,7 @@ import (
 // @Security KeycloakAuth
 
 func ListVendorComments(w http.ResponseWriter, r *http.Request) {
-	vendorID := chi.URLParam(r, "vendorID")
+	vendorID := chi.URLParam(r, "vendorid")
 	if vendorID == "" {
 		utils.ErrorJSON(w, fmt.Errorf("vendorId is required"), http.StatusBadRequest)
 		return
@@ -42,7 +42,7 @@ func ListVendorComments(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateVendorComment(w http.ResponseWriter, r *http.Request) {
-	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
 	if err != nil {
 		log.Error("CreateVendorComment: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -63,12 +63,13 @@ func CreateVendorComment(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateVendorComment(w http.ResponseWriter, r *http.Request) {
-	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
 	if err != nil {
 		log.Error("CreateVendorComment: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	log.Infoln("UpdateVendorComment: for vendor: ", vendorID)
 	var comment ent.Comment
 	err = utils.ReadJSON(w, r, &comment)
 	if err != nil {
@@ -92,13 +93,13 @@ func UpdateVendorComment(w http.ResponseWriter, r *http.Request) {
 // @Router /api/vendors/comments/{id}/ [delete]
 // @Security KeycloakAuth
 func DeleteVendorComment(w http.ResponseWriter, r *http.Request) {
-	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
 	if err != nil {
 		log.Error("DeleteVendorComment: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	commentID, err := strconv.Atoi(chi.URLParam(r, "commentID"))
+	commentID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		log.Error("DeleteVendorComment: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

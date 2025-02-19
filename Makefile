@@ -13,4 +13,14 @@ build-frontend:
 push-frontend:
 	@echo "Push frontend..."
 	@docker compose -f docker-compose.production.yml push augustin-frontend
-	@echo "Frontend built."
+	@echo "Frontend pushed."
+
+build-backend:
+	@echo "Building backend..."
+	@docker compose -f docker-compose.production.yml build augustin-backend
+	@echo "Backend built."
+
+push-backend:
+	@echo "Push backend..."
+	@docker compose -f docker-compose.production.yml push augustin-backend
+	@echo "Backend pushed."

@@ -662,7 +662,6 @@ func timeRequest(t *testing.T, from int, to int, expectedLength int) {
 	err := json.Unmarshal(response.Body.Bytes(), &payments)
 	utils.CheckError(t, err)
 	require.Equal(t, expectedLength, len(payments))
-	return
 }
 
 // TestPaymentPayout tests CRUD operations on payment payouts

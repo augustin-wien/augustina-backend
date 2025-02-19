@@ -125,7 +125,7 @@ func TestVendors(t *testing.T) {
 		LicenseID:      null.StringFrom(licenseId),
 		HasBankAccount: true,
 		Locations: []*ent.Location{
-			&ent.Location{
+			{
 				Name:        "test",
 				Address:     "test",
 				Longitude:   10.0,
@@ -135,7 +135,7 @@ func TestVendors(t *testing.T) {
 			},
 		},
 		Comments: []*ent.Comment{
-			&ent.Comment{
+			{
 				Comment:    "test",
 				Warning:    false,
 				CreatedAt:  time.Now(),

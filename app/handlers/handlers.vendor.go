@@ -37,13 +37,13 @@ type checkLicenseIDResponse struct {
 func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 	licenseID := chi.URLParam(r, "licenseID")
 	if licenseID == "" {
-		utils.ErrorJSON(w, errors.New("No licenseID provided under /vendors/check/{licenseID}/"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("no licenseID provided under /vendors/check/{licenseID}/"), http.StatusBadRequest)
 		return
 	}
 
 	users, err := database.Db.GetVendorByLicenseIDWithoutDisabled(licenseID)
 	if err != nil {
-		utils.ErrorJSON(w, errors.New("Wrong license id. No vendor exists with this id"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("wrong license id. No vendor exists with this id"), http.StatusBadRequest)
 		return
 	}
 	settings, err := database.Db.GetSettings()
@@ -62,7 +62,7 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error("CheckVendorsLicenseID: ", err)
+		log.Error("checkVendorsLicenseID: ", err)
 	}
 }
 
@@ -188,7 +188,7 @@ func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 	vendor, err := database.Db.GetVendorByEmail(vendorEmail)
 	if err != nil {
 		if err.Error() == "no rows in result set" {
-			utils.ErrorJSON(w, fmt.Errorf("User is not a vendor"), http.StatusBadRequest)
+			utils.ErrorJSON(w, fmt.Errorf("user is not a vendor"), http.StatusBadRequest)
 			return
 		}
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -319,7 +319,7 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 func UpdateVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
 	licenseID := chi.URLParam(r, "licenseID")
 	if licenseID == "" {
-		utils.ErrorJSON(w, errors.New("No licenseID provided under /vendors/license/{licenseID}/"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("no licenseID provided under /vendors/license/{licenseID}/"), http.StatusBadRequest)
 		return
 	}
 	vendor, err := database.Db.GetVendorByLicenseID(licenseID)
@@ -352,7 +352,7 @@ func UpdateVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
 func GetVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
 	licenseID := chi.URLParam(r, "licenseID")
 	if licenseID == "" {
-		utils.ErrorJSON(w, errors.New("No licenseID provided under /vendors/license/{licenseID}/"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("no licenseID provided under /vendors/license/{licenseID}/"), http.StatusBadRequest)
 		return
 	}
 	vendor, err := database.Db.GetVendorByLicenseID(licenseID)

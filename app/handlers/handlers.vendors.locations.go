@@ -116,7 +116,7 @@ func DeleteVendorLocation(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	locationID, err := strconv.Atoi(chi.URLParam(r, "locationID"))
+	locationID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		log.Error("DeleteVendorLocation: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

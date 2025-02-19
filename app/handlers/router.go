@@ -38,7 +38,7 @@ func GetRouter() (r *chi.Mux) {
 	// CORS handler configuration
 	corsHandler := cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
@@ -84,6 +84,7 @@ func GetRouter() (r *chi.Mux) {
 			r.Get("/{vendorid}/comments/", ListVendorComments)
 			r.Post("/{vendorid}/comments/", CreateVendorComment)
 			r.Delete("/{vendorid}/comments/{id}/", DeleteVendorComment)
+			r.Patch("/{vendorid}/comments/{id}/", UpdateVendorComment)
 
 			r.Route("/{id}", func(r chi.Router) {
 				r.Put("/", UpdateVendor)

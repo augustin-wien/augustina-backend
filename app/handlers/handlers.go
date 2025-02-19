@@ -389,6 +389,9 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 			fieldsClean[key] = null.StringFrom(value[0])
 		} else if key == "ItemOrder" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				log.Error("updateItemNormal: Parse ItemOrder failed ", err)
+			}
 		} else {
 			fieldsClean[key] = value[0]
 		}
@@ -426,7 +429,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	// Security check to disable updating Item of ID 2 and 3, which are essential for donations and transaction costs
 	if ItemID == 2 || ItemID == 3 {
-		utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to update this item"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("nice try! You are not allowed to update this item"), http.StatusBadRequest)
 		return
 	}
 
@@ -574,20 +577,20 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		// 1. Check: Quantity has to be > 0 for any item except donation
 		if entry.Quantity <= 0 && entry.Item != 2 {
-			utils.ErrorJSON(w, errors.New("Nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
+			utils.ErrorJSON(w, errors.New("nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
 			return
 		}
 
 		// 2. Check: All items have to exist
 		item, err := database.Db.GetItem(entry.Item)
 		if err != nil {
-			utils.ErrorJSON(w, errors.New("Nice try! Item does not exist"), http.StatusBadRequest)
+			utils.ErrorJSON(w, errors.New("nice try! Item does not exist"), http.StatusBadRequest)
 			return
 		}
 
 		// 3. Check: Transaction costs (id == 3) are not allowed to be in entries
 		if entry.Item == 3 {
-			utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
+			utils.ErrorJSON(w, errors.New("nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
 			return
 		}
 
@@ -611,7 +614,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 		// Check if there are duplicate item ids
 		if hasDuplicitValues(uniqueItemIDs) {
-			utils.ErrorJSON(w, errors.New("Nice try! You are not supposed to have duplicate item ids in your order request"), http.StatusBadRequest)
+			utils.ErrorJSON(w, errors.New("nice try! You are not supposed to have duplicate item ids in your order request"), http.StatusBadRequest)
 			return
 		}
 	}
@@ -619,7 +622,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// 6. Check: If item 2 (donation) is ordered without another item
 	if len(requestData.Entries) == 1 && requestData.Entries[0].Item == 2 {
 		// Throw error
-		utils.ErrorJSON(w, errors.New("Nice try! You are not allowed to purchase this item without another item"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("nice try! You are not allowed to purchase this item without another item"), http.StatusBadRequest)
 		return
 	}
 
@@ -731,7 +734,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	// ignore MaxOrderAmount if its 0
 	if settings.MaxOrderAmount != 0 && order.GetTotal() >= settings.MaxOrderAmount {
-		utils.ErrorJSON(w, errors.New("Order amount is too high"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("order amount is too high"), http.StatusBadRequest)
 		return
 	}
 	// Submit order to vivawallet (disabled in tests)
@@ -861,7 +864,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
 	if time.Since(order.Timestamp) > 900*time.Second {
-		utils.ErrorJSON(w, errors.New("Transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
 		return
 	}
 
