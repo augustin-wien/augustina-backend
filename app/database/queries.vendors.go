@@ -190,6 +190,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 		SetTelephone(vendor.Telephone).
 		SetVendorsince(vendor.VendorSince).
 		SetUrlid(vendor.UrlID).
+		SetDebt(vendor.Debt).
 		Save(context.Background())
 	if err != nil {
 		log.Error("CreateVendor: create vendor %s %+v", vendor.Email, err)
