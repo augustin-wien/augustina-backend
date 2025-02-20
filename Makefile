@@ -24,3 +24,8 @@ push-backend:
 	@echo "Push backend..."
 	@docker compose -f docker-compose.production.yml push augustin-backend
 	@echo "Backend pushed."
+
+update-db-schema:
+	@echo "Updating db ent schema..."
+	@cd app && go generate ./ent
+	@echo "Db ent schema updated."

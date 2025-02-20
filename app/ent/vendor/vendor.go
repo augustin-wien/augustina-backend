@@ -46,6 +46,8 @@ const (
 	FieldIsdeleted = "isdeleted"
 	// FieldAccountproofurl holds the string denoting the accountproofurl field in the database.
 	FieldAccountproofurl = "accountproofurl"
+	// FieldDebt holds the string denoting the debt field in the database.
+	FieldDebt = "debt"
 	// EdgeLocations holds the string denoting the locations edge name in mutations.
 	EdgeLocations = "locations"
 	// EdgeComments holds the string denoting the comments edge name in mutations.
@@ -88,6 +90,7 @@ var Columns = []string{
 	FieldHasbankaccount,
 	FieldIsdeleted,
 	FieldAccountproofurl,
+	FieldDebt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -214,6 +217,11 @@ func ByIsdeleted(opts ...sql.OrderTermOption) OrderOption {
 // ByAccountproofurl orders the results by the accountproofurl field.
 func ByAccountproofurl(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAccountproofurl, opts...).ToFunc()
+}
+
+// ByDebt orders the results by the debt field.
+func ByDebt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDebt, opts...).ToFunc()
 }
 
 // ByLocationsCount orders the results by locations count.

@@ -44,6 +44,7 @@ func (Vendor) Fields() []ent.Field {
 		field.Bool("isdeleted").
 			Default(false),
 		field.String("accountproofurl"),
+		field.String("debt"),
 	}
 }
 

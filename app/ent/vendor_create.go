@@ -196,6 +196,12 @@ func (vc *VendorCreate) SetAccountproofurl(s string) *VendorCreate {
 	return vc
 }
 
+// SetDebt sets the "debt" field.
+func (vc *VendorCreate) SetDebt(s string) *VendorCreate {
+	vc.mutation.SetDebt(s)
+	return vc
+}
+
 // SetID sets the "id" field.
 func (vc *VendorCreate) SetID(i int) *VendorCreate {
 	vc.mutation.SetID(i)
@@ -358,6 +364,9 @@ func (vc *VendorCreate) check() error {
 	if _, ok := vc.mutation.Accountproofurl(); !ok {
 		return &ValidationError{Name: "accountproofurl", err: errors.New(`ent: missing required field "Vendor.accountproofurl"`)}
 	}
+	if _, ok := vc.mutation.Debt(); !ok {
+		return &ValidationError{Name: "debt", err: errors.New(`ent: missing required field "Vendor.debt"`)}
+	}
 	if v, ok := vc.mutation.ID(); ok {
 		if err := vendor.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Vendor.id": %w`, err)}
@@ -462,6 +471,10 @@ func (vc *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
 	if value, ok := vc.mutation.Accountproofurl(); ok {
 		_spec.SetField(vendor.FieldAccountproofurl, field.TypeString, value)
 		_node.Accountproofurl = value
+	}
+	if value, ok := vc.mutation.Debt(); ok {
+		_spec.SetField(vendor.FieldDebt, field.TypeString, value)
+		_node.Debt = value
 	}
 	if nodes := vc.mutation.LocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -77,6 +77,7 @@ var (
 		{Name: "hasbankaccount", Type: field.TypeBool, Default: false},
 		{Name: "isdeleted", Type: field.TypeBool, Default: false},
 		{Name: "accountproofurl", Type: field.TypeString},
+		{Name: "debt", Type: field.TypeString},
 	}
 	// VendorTable holds the schema information for the "vendor" table.
 	VendorTable = &schema.Table{

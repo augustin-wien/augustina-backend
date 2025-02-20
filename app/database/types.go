@@ -33,6 +33,7 @@ type Vendor struct {
 	OnlineMap        bool
 	HasSmartphone    bool
 	HasBankAccount   bool
+	Debt             string
 }
 
 // Location is a struct that is used for the location table

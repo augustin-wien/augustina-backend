@@ -49,7 +49,7 @@ INSERT INTO Comments (comment, warning, created_at, vendor_comments)
 SELECT 
     vendor.Comment AS comment,
     FALSE AS warning,
-    TO_TIMESTAMP(RegistrationDate, 'YYYY-MM-DD') AS created_at,
+    TO_TIMESTAMP('2025-02-20', 'YYYY-MM-DD') AS created_at,
     vendor.id AS vendor_comments
 FROM Vendor;
 
@@ -57,9 +57,13 @@ FROM Vendor;
 
 ALTER TABLE vendor DROP COLUMN comment;
 
+-- Step 7: Add column dept to Vendor
+
+ALTER TABLE Vendor ADD COLUMN dept text;
+
 ---- create above / drop below ----
 
 DROP TABLE Locations;
-DROP TABLE Comments
+DROP TABLE Comments;
 -- Write your migrate down statements here. If this migration is irreversible
 -- Then delete the separator line above.

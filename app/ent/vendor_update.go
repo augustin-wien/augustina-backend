@@ -268,6 +268,20 @@ func (vu *VendorUpdate) SetNillableAccountproofurl(s *string) *VendorUpdate {
 	return vu
 }
 
+// SetDebt sets the "debt" field.
+func (vu *VendorUpdate) SetDebt(s string) *VendorUpdate {
+	vu.mutation.SetDebt(s)
+	return vu
+}
+
+// SetNillableDebt sets the "debt" field if the given value is not nil.
+func (vu *VendorUpdate) SetNillableDebt(s *string) *VendorUpdate {
+	if s != nil {
+		vu.SetDebt(*s)
+	}
+	return vu
+}
+
 // AddLocationIDs adds the "locations" edge to the Location entity by IDs.
 func (vu *VendorUpdate) AddLocationIDs(ids ...int) *VendorUpdate {
 	vu.mutation.AddLocationIDs(ids...)
@@ -431,6 +445,9 @@ func (vu *VendorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := vu.mutation.Accountproofurl(); ok {
 		_spec.SetField(vendor.FieldAccountproofurl, field.TypeString, value)
+	}
+	if value, ok := vu.mutation.Debt(); ok {
+		_spec.SetField(vendor.FieldDebt, field.TypeString, value)
 	}
 	if vu.mutation.LocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -780,6 +797,20 @@ func (vuo *VendorUpdateOne) SetNillableAccountproofurl(s *string) *VendorUpdateO
 	return vuo
 }
 
+// SetDebt sets the "debt" field.
+func (vuo *VendorUpdateOne) SetDebt(s string) *VendorUpdateOne {
+	vuo.mutation.SetDebt(s)
+	return vuo
+}
+
+// SetNillableDebt sets the "debt" field if the given value is not nil.
+func (vuo *VendorUpdateOne) SetNillableDebt(s *string) *VendorUpdateOne {
+	if s != nil {
+		vuo.SetDebt(*s)
+	}
+	return vuo
+}
+
 // AddLocationIDs adds the "locations" edge to the Location entity by IDs.
 func (vuo *VendorUpdateOne) AddLocationIDs(ids ...int) *VendorUpdateOne {
 	vuo.mutation.AddLocationIDs(ids...)
@@ -973,6 +1004,9 @@ func (vuo *VendorUpdateOne) sqlSave(ctx context.Context) (_node *Vendor, err err
 	}
 	if value, ok := vuo.mutation.Accountproofurl(); ok {
 		_spec.SetField(vendor.FieldAccountproofurl, field.TypeString, value)
+	}
+	if value, ok := vuo.mutation.Debt(); ok {
+		_spec.SetField(vendor.FieldDebt, field.TypeString, value)
 	}
 	if vuo.mutation.LocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{

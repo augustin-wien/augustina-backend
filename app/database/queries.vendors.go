@@ -274,6 +274,7 @@ func (db *Database) VendorEntIntoVendor(v ent.Vendor) (vendor Vendor) {
 		OnlineMap:        v.Onlinemap,
 		HasSmartphone:    v.Hassmartphone,
 		HasBankAccount:   v.Hasbankaccount,
+		Debt:             v.Debt,
 	}
 	return vendor
 }
@@ -300,6 +301,7 @@ func (db *Database) VendorIntoVendorEnt(vendor Vendor) (v *ent.Vendor) {
 		Onlinemap:        vendor.OnlineMap,
 		Hassmartphone:    vendor.HasSmartphone,
 		Hasbankaccount:   vendor.HasBankAccount,
+		Debt:             vendor.Debt,
 	}
 	return v
 }

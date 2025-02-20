@@ -51,6 +51,8 @@ type Vendor struct {
 	Isdeleted bool `json:"isdeleted,omitempty"`
 	// Accountproofurl holds the value of the "accountproofurl" field.
 	Accountproofurl string `json:"accountproofurl,omitempty"`
+	// Debt holds the value of the "debt" field.
+	Debt string `json:"debt,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VendorQuery when eager-loading is set.
 	Edges        VendorEdges `json:"edges"`
@@ -95,7 +97,7 @@ func (*Vendor) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case vendor.FieldID:
 			values[i] = new(sql.NullInt64)
-		case vendor.FieldKeycloakid, vendor.FieldUrlid, vendor.FieldLicenseid, vendor.FieldFirstname, vendor.FieldLastname, vendor.FieldEmail, vendor.FieldLanguage, vendor.FieldTelephone, vendor.FieldRegistrationdate, vendor.FieldVendorsince, vendor.FieldAccountproofurl:
+		case vendor.FieldKeycloakid, vendor.FieldUrlid, vendor.FieldLicenseid, vendor.FieldFirstname, vendor.FieldLastname, vendor.FieldEmail, vendor.FieldLanguage, vendor.FieldTelephone, vendor.FieldRegistrationdate, vendor.FieldVendorsince, vendor.FieldAccountproofurl, vendor.FieldDebt:
 			values[i] = new(sql.NullString)
 		case vendor.FieldLastpayout:
 			values[i] = new(sql.NullTime)
@@ -222,6 +224,12 @@ func (v *Vendor) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				v.Accountproofurl = value.String
 			}
+		case vendor.FieldDebt:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field debt", values[i])
+			} else if value.Valid {
+				v.Debt = value.String
+			}
 		default:
 			v.selectValues.Set(columns[i], values[i])
 		}
@@ -318,6 +326,9 @@ func (v *Vendor) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("accountproofurl=")
 	builder.WriteString(v.Accountproofurl)
+	builder.WriteString(", ")
+	builder.WriteString("debt=")
+	builder.WriteString(v.Debt)
 	builder.WriteByte(')')
 	return builder.String()
 }

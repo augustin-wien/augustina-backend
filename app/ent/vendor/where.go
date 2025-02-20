@@ -140,6 +140,11 @@ func Accountproofurl(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldAccountproofurl, v))
 }
 
+// Debt applies equality check predicate on the "debt" field. It's identical to DebtEQ.
+func Debt(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldDebt, v))
+}
+
 // KeycloakidEQ applies the EQ predicate on the "keycloakid" field.
 func KeycloakidEQ(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldKeycloakid, v))
@@ -943,6 +948,71 @@ func AccountproofurlEqualFold(v string) predicate.Vendor {
 // AccountproofurlContainsFold applies the ContainsFold predicate on the "accountproofurl" field.
 func AccountproofurlContainsFold(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldContainsFold(FieldAccountproofurl, v))
+}
+
+// DebtEQ applies the EQ predicate on the "debt" field.
+func DebtEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldDebt, v))
+}
+
+// DebtNEQ applies the NEQ predicate on the "debt" field.
+func DebtNEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldDebt, v))
+}
+
+// DebtIn applies the In predicate on the "debt" field.
+func DebtIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldDebt, vs...))
+}
+
+// DebtNotIn applies the NotIn predicate on the "debt" field.
+func DebtNotIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldDebt, vs...))
+}
+
+// DebtGT applies the GT predicate on the "debt" field.
+func DebtGT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldDebt, v))
+}
+
+// DebtGTE applies the GTE predicate on the "debt" field.
+func DebtGTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldDebt, v))
+}
+
+// DebtLT applies the LT predicate on the "debt" field.
+func DebtLT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldDebt, v))
+}
+
+// DebtLTE applies the LTE predicate on the "debt" field.
+func DebtLTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldDebt, v))
+}
+
+// DebtContains applies the Contains predicate on the "debt" field.
+func DebtContains(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContains(FieldDebt, v))
+}
+
+// DebtHasPrefix applies the HasPrefix predicate on the "debt" field.
+func DebtHasPrefix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasPrefix(FieldDebt, v))
+}
+
+// DebtHasSuffix applies the HasSuffix predicate on the "debt" field.
+func DebtHasSuffix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasSuffix(FieldDebt, v))
+}
+
+// DebtEqualFold applies the EqualFold predicate on the "debt" field.
+func DebtEqualFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEqualFold(FieldDebt, v))
+}
+
+// DebtContainsFold applies the ContainsFold predicate on the "debt" field.
+func DebtContainsFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContainsFold(FieldDebt, v))
 }
 
 // HasLocations applies the HasEdge predicate on the "locations" edge.

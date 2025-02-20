@@ -1353,6 +1353,7 @@ type VendorMutation struct {
 	hasbankaccount   *bool
 	isdeleted        *bool
 	accountproofurl  *string
+	debt             *string
 	clearedFields    map[string]struct{}
 	locations        map[int]struct{}
 	removedlocations map[int]struct{}
@@ -2081,6 +2082,42 @@ func (m *VendorMutation) ResetAccountproofurl() {
 	m.accountproofurl = nil
 }
 
+// SetDebt sets the "debt" field.
+func (m *VendorMutation) SetDebt(s string) {
+	m.debt = &s
+}
+
+// Debt returns the value of the "debt" field in the mutation.
+func (m *VendorMutation) Debt() (r string, exists bool) {
+	v := m.debt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDebt returns the old "debt" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldDebt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDebt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDebt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDebt: %w", err)
+	}
+	return oldValue.Debt, nil
+}
+
+// ResetDebt resets all changes to the "debt" field.
+func (m *VendorMutation) ResetDebt() {
+	m.debt = nil
+}
+
 // AddLocationIDs adds the "locations" edge to the Location entity by ids.
 func (m *VendorMutation) AddLocationIDs(ids ...int) {
 	if m.locations == nil {
@@ -2223,7 +2260,7 @@ func (m *VendorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VendorMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.keycloakid != nil {
 		fields = append(fields, vendor.FieldKeycloakid)
 	}
@@ -2275,6 +2312,9 @@ func (m *VendorMutation) Fields() []string {
 	if m.accountproofurl != nil {
 		fields = append(fields, vendor.FieldAccountproofurl)
 	}
+	if m.debt != nil {
+		fields = append(fields, vendor.FieldDebt)
+	}
 	return fields
 }
 
@@ -2317,6 +2357,8 @@ func (m *VendorMutation) Field(name string) (ent.Value, bool) {
 		return m.Isdeleted()
 	case vendor.FieldAccountproofurl:
 		return m.Accountproofurl()
+	case vendor.FieldDebt:
+		return m.Debt()
 	}
 	return nil, false
 }
@@ -2360,6 +2402,8 @@ func (m *VendorMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldIsdeleted(ctx)
 	case vendor.FieldAccountproofurl:
 		return m.OldAccountproofurl(ctx)
+	case vendor.FieldDebt:
+		return m.OldDebt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Vendor field %s", name)
 }
@@ -2488,6 +2532,13 @@ func (m *VendorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAccountproofurl(v)
 		return nil
+	case vendor.FieldDebt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDebt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Vendor field %s", name)
 }
@@ -2587,6 +2638,9 @@ func (m *VendorMutation) ResetField(name string) error {
 		return nil
 	case vendor.FieldAccountproofurl:
 		m.ResetAccountproofurl()
+		return nil
+	case vendor.FieldDebt:
+		m.ResetDebt()
 		return nil
 	}
 	return fmt.Errorf("unknown Vendor field %s", name)
