@@ -296,7 +296,7 @@ func TestItems(t *testing.T) {
 	writer.Close()
 	res = utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/items/2/", body, writer.FormDataContentType(), 400, adminUserToken)
 
-	require.Equal(t, res.Body.String(), `{"error":{"message":"Nice try! You are not allowed to update this item"}}`)
+	require.Equal(t, res.Body.String(), `{"error":{"message":"nice try! You are not allowed to update this item"}}`)
 
 }
 
@@ -357,7 +357,7 @@ func TestOrders(t *testing.T) {
 		  "vendorLicenseID": "` + vendorLicenseId + `"
 	}`
 	resWithoutLicense := utils.TestRequestStr(t, r, "POST", "/api/orders/", request, 400)
-	require.Equal(t, resWithoutLicense.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
+	require.Equal(t, resWithoutLicense.Body.String(), `{"error":{"message":"order amount is too high"}}`)
 
 	itemIDWithLicense, licenseItemID := CreateTestItemWithLicense(t)
 	itemIDWithLicenseInt, _ := strconv.Atoi(itemIDWithLicense)
@@ -387,7 +387,7 @@ func TestOrders(t *testing.T) {
 		  "customerEmail": "` + customerEmail + `"
 	}`
 	res2 := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithEmail, 400)
-	require.Equal(t, res2.Body.String(), `{"error":{"message":"Order amount is too high"}}`)
+	require.Equal(t, res2.Body.String(), `{"error":{"message":"order amount is too high"}}`)
 
 	// Check that order cannot contain duplicate items
 	jsonPost := `{
@@ -405,7 +405,7 @@ func TestOrders(t *testing.T) {
 			  "customerEmail": "` + customerEmail + `"
 		}`
 	res3 := utils.TestRequestStr(t, r, "POST", "/api/orders/", jsonPost, 400)
-	require.Equal(t, res3.Body.String(), `{"error":{"message":"Nice try! You are not supposed to have duplicate item ids in your order request"}}`)
+	require.Equal(t, res3.Body.String(), `{"error":{"message":"nice try! You are not supposed to have duplicate item ids in your order request"}}`)
 
 	// Test order with customer email and order amount not to high
 
