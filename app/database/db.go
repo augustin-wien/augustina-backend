@@ -28,6 +28,8 @@ var Db Database
 
 // InitDb connects to production database and stores it in the global Db variable
 func (db *Database) InitDb() (err error) {
+	db.IsProduction = true
+	log.Info("Initializing production database")
 	// Set up the Ent client with pgx
 	pdb, err := sql.Open("postgres", db.generatePostgresUrl())
 	if err != nil {
