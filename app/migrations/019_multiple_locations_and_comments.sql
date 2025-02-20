@@ -57,9 +57,9 @@ FROM Vendor;
 
 ALTER TABLE vendor DROP COLUMN comment;
 
--- Step 7: Add column dept to Vendor
+-- Step 7: Add column debt to Vendor
 
-ALTER TABLE Vendor ADD COLUMN dept text;
+ALTER TABLE Vendor ADD COLUMN debt text;
 
 ---- create above / drop below ----
 

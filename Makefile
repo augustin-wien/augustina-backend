@@ -6,6 +6,7 @@ update-frontend:
 	@echo "Frontend updated."
 
 build-frontend:
+	@make update-frontend
 	@echo "Building frontend..."
 	@docker compose -f docker-compose.production.yml build augustin-frontend
 	@echo "Frontend built."
@@ -29,3 +30,8 @@ update-db-schema:
 	@echo "Updating db ent schema..."
 	@cd app && go generate ./ent
 	@echo "Db ent schema updated."
+
+build: build-frontend build-backend
+
+push: push-frontend push-backend
+
