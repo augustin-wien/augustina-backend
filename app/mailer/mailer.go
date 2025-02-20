@@ -1,11 +1,12 @@
 package mailer
 
 import (
-	"augustin/config"
-	"augustin/utils"
 	"bytes"
 	"crypto/tls"
 	"errors"
+
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/utils"
 
 	"net/smtp"
 	"text/template"

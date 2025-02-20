@@ -1,10 +1,11 @@
 package keycloak
 
 import (
-	"augustin/config"
-	"augustin/utils"
 	"context"
 	"fmt"
+
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/Nerzal/gocloak/v13"
 )

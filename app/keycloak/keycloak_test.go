@@ -2,14 +2,15 @@
 package keycloak_test
 
 import (
-	"augustin/config"
-	"augustin/database"
-	"augustin/handlers"
-	"augustin/keycloak"
-	"augustin/utils"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/handlers"
+	"github.com/augustin-wien/augustina-backend/keycloak"
+	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/Nerzal/gocloak/v13"
 	log "github.com/sirupsen/logrus"

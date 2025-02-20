@@ -3,6 +3,7 @@ package database
 import (
 	"time"
 
+	"github.com/augustin-wien/augustina-backend/ent"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -23,20 +24,35 @@ type Vendor struct {
 	Balance          int       // This is joined in from the account
 	IsDisabled       bool
 	IsDeleted        bool
-	Longitude        float64 `json:"Longitude,omitempty"`
-	Latitude         float64 `json:"Latitude,omitempty"`
-	Address          string
-	PLZ              string
-	Location         string
-	WorkingTime      string
+	Locations        []*ent.Location
+	Comments         []*ent.Comment
 	Language         string
-	Comment          string
 	Telephone        string
 	RegistrationDate string
 	VendorSince      string
 	OnlineMap        bool
 	HasSmartphone    bool
 	HasBankAccount   bool
+	Debt             string
+}
+
+// Location is a struct that is used for the location table
+type Location struct {
+	ID          int
+	Name        string
+	Address     string
+	Longitude   float64
+	Latitude    float64
+	ZIP         string
+	WorkingTime string
+}
+
+type Comment struct {
+	ID         int
+	Comment    string
+	Warning    bool
+	CreatedAt  time.Time
+	ResolvedAt time.Time
 }
 
 // Account is a struct that is used for the account table
