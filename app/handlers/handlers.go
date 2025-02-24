@@ -891,8 +891,17 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		log.Error("Getting vendor's first name failed: ", err)
 		return
 	}
-	// Declare first name from vendor
-	verifyPaymentOrderResponse.FirstName = vendor.FirstName
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		log.Error("Getting settings failed: ", err)
+		return
+	}
+	if settings.UseVendorLicenseIdInShop {
+		verifyPaymentOrderResponse.FirstName = vendor.LicenseID.String
+	} else {
+		// Declare first name from vendor
+		verifyPaymentOrderResponse.FirstName = vendor.FirstName
+	}
 
 	// Create response
 	err = utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
