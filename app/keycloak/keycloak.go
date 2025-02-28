@@ -310,6 +310,9 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 	}
 	k.checkAdminToken()
 	exact := true
+	// set username to lowercase
+	username = utils.ToLower(username)
+
 	p := gocloak.GetUsersParams{
 		Username: &username,
 		Exact:    &exact,
@@ -337,6 +340,8 @@ func (k *Keycloak) GetUserByEmail(email string) (*gocloak.User, error) {
 	}
 	k.checkAdminToken()
 	exact := true
+	// set email to lowercase
+	email = utils.ToLower(email)
 	p := gocloak.GetUsersParams{
 		Email: &email,
 		Exact: &exact,
@@ -361,6 +366,8 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 	if email == "" {
 		return "", fmt.Errorf("CreateUser: email is empty")
 	}
+	// set email to lowercase
+	email = utils.ToLower(email)
 	k.checkAdminToken()
 	credentials := []gocloak.CredentialRepresentation{
 		{
@@ -383,6 +390,7 @@ func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
 	if email == "" {
 		return "", fmt.Errorf("GetOrCreateVendor: email is empty")
 	}
+	email = utils.ToLower(email)
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
@@ -413,6 +421,7 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 	if email == "" {
 		return "", fmt.Errorf("GetOrCreateUser: email is empty")
 	}
+	email = utils.ToLower(email)
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
@@ -450,6 +459,7 @@ func (k *Keycloak) SendPasswordResetEmailVendor(email string) error {
 
 func (k *Keycloak) sendPasswordResetEmail(email, redirectURI string) error {
 	k.checkAdminToken()
+	email = utils.ToLower(email)
 	user, err := k.GetUserByEmail(email)
 	if err != nil {
 		log.Error("SendPasswordResetEmail: Error getting user by email ", err)
@@ -468,6 +478,7 @@ func (k *Keycloak) sendPasswordResetEmail(email, redirectURI string) error {
 // DeleteUser function deletes a user given by userID
 func (k *Keycloak) DeleteUser(username string) error {
 	k.checkAdminToken()
+	username = utils.ToLower(username)
 	// get user for username
 	user, err := k.GetUser(username)
 	if err != nil {
@@ -478,6 +489,7 @@ func (k *Keycloak) DeleteUser(username string) error {
 
 // UpdateUserPassword function updates a user password given by userID
 func (k *Keycloak) UpdateUserPassword(username string, password string) error {
+	username = utils.ToLower(username)
 	k.checkAdminToken()
 	user, err := k.GetUser(username)
 	if err != nil {
@@ -488,6 +500,9 @@ func (k *Keycloak) UpdateUserPassword(username string, password string) error {
 
 // UpdateUser function updates a user given by userID
 func (k *Keycloak) UpdateUser(username string, firstName string, lastName string, email string) error {
+	username = utils.ToLower(username)
+	email = utils.ToLower(email)
+
 	k.checkAdminToken()
 	user, err := k.GetUser(username)
 	if err != nil {
@@ -503,6 +518,8 @@ func (k *Keycloak) UpdateUser(username string, firstName string, lastName string
 }
 
 func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email string) error {
+	username = utils.ToLower(username)
+	email = utils.ToLower(email)
 	k.checkAdminToken()
 	user, err := k.GetUserByID(userID)
 	if err != nil {
@@ -527,6 +544,8 @@ func (k *Keycloak) GetVendorGroup() string {
 
 func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastName string) (string, error) {
 
+	oldEmail = utils.ToLower(oldEmail)
+	newEmail = utils.ToLower(newEmail)
 	// Update user in keycloak
 	user, err := k.GetUserByEmail(oldEmail)
 	if err != nil {

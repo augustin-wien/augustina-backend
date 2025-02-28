@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
@@ -86,4 +87,8 @@ func FileExists(path string) bool {
 		return false
 	}
 	return true
+}
+
+func ToLower(s string) string {
+	return strings.ToLower(s)
 }

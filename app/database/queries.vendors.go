@@ -6,6 +6,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/ent"
 	entvendor "github.com/augustin-wien/augustina-backend/ent/vendor"
+	"github.com/augustin-wien/augustina-backend/utils"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -86,6 +87,7 @@ func (db *Database) GetVendorByLicenseIDWithoutDisabled(licenseID string) (vendo
 
 // GetVendorByEmail returns the vendor with the given licenseID
 func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
+	mail = utils.ToLower(mail)
 	// Get vendor data
 	ctx := context.Background()
 	// Get vendor data
@@ -171,6 +173,7 @@ func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err
 
 // CreateVendor creates a vendor and an associated account in the database
 func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
+	vendor.Email = utils.ToLower(vendor.Email)
 	// Create vendor
 	v, err := db.EntClient.Vendor.Create().
 		SetAccountproofurl(vendor.AccountProofUrl.String).
@@ -212,7 +215,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 
 // UpdateVendor updates a vendor in the database
 func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
-
+	vendor.Email = utils.ToLower(vendor.Email)
 	ctx := context.Background()
 	v := db.VendorIntoVendorEnt(vendor)
 	_, err = db.EntClient.Vendor.UpdateOneID(id).SetAccountproofurl(v.Accountproofurl).SetEmail(v.Email).SetFirstname(v.Firstname).SetHasbankaccount(v.Hasbankaccount).SetHassmartphone(v.Hassmartphone).SetIsdeleted(v.Isdeleted).SetIsdisabled(v.Isdisabled).SetKeycloakid(v.Keycloakid).SetLanguage(v.Language).SetLastname(v.Lastname).SetLastpayout(v.Lastpayout).SetLicenseid(v.Licenseid).SetOnlinemap(v.Onlinemap).SetRegistrationdate(v.Registrationdate).SetTelephone(v.Telephone).SetUrlid(v.Urlid).SetDebt(v.Debt).Save(ctx)
