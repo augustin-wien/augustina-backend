@@ -8,6 +8,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var version = "1.0.9-66c619e"
+
 type config struct {
 	Version                           string
 	Port                              string
@@ -62,7 +64,7 @@ func InitConfig() {
 		fmt.Println(err)
 	}
 	Config = config{
-		Version:                           "0.0.1",
+		Version:                           version,
 		Port:                              getEnv("PORT", "3000"),
 		CreateDemoData:                    (getEnv("CREATE_DEMO_DATA", "false") == "true"),
 		PaypalFixCosts:                    getEnvFloat("PAYPAL_FIX_COSTS", 0.00),

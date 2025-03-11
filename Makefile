@@ -1,4 +1,4 @@
-# update frontend
+VERSION_FILE=app/config/config.go
 
 update-frontend:
 	@echo "Updating frontend..."
@@ -17,8 +17,9 @@ push-frontend:
 	@echo "Frontend pushed."
 
 build-backend:
+	@make update_version
 	@echo "Building backend..."
-	@docker compose -f docker-compose.production.yml build augustin-backend
+	@export GIT_COMMIT=$(git rev-parse --short HEAD) && docker compose -f docker-compose.production.yml build augustin-backend
 	@echo "Backend built."
 
 push-backend:
@@ -30,6 +31,12 @@ update-db-schema:
 	@echo "Updating db ent schema..."
 	@cd app && go generate ./ent
 	@echo "Db ent schema updated."
+
+
+
+update-version:
+	@echo "Updating version in $(VERSION_FILE)..."
+	@python3 scripts/update_version.py
 
 build: build-frontend build-backend
 
