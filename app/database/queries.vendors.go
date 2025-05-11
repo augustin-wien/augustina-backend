@@ -224,12 +224,20 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 }
 
 // DeleteVendor deletes a user in the database and the associated account
-func (db *Database) DeleteVendor(vendorID int) (err error) {
-
+func (db *Database) DeleteVendor(vendorID int) (err error) { 
+	
 	ctx := context.Background()
+	v, err := db.EntClient.Vendor.Get(ctx, vendorID)
+	if err != nil {
+		log.Error("DeleteVendor get vendor: ", err)
+		return
+	}
+
+    name := utils.RandomString(10)
 	_, err = db.EntClient.Vendor.Update().
 		Where(entvendor.ID(vendorID)).
 		SetIsdeleted(true). // Update the isdeleted field
+		SetLicenseid("del_"+v.Licenseid+"_"+name).
 		Save(ctx)
 	if err != nil {
 		log.Error("DeleteVendor: ", err)
