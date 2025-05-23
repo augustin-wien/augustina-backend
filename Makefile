@@ -36,6 +36,13 @@ update-version:
 	@echo "Updating version in $(VERSION_FILE)..."
 	@python3 scripts/update_version.py
 
+update-docker-containers:
+	@echo "Updating docker containers..."
+	@docker pull alpine:latest
+	@docker pull golang:latest
+	@docker pull node:24
+	@echo "Docker containers updated."
+
 build: build-frontend build-backend
 
 push: push-frontend push-backend
