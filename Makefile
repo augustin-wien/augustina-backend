@@ -17,7 +17,7 @@ push-frontend:
 	@echo "Frontend pushed."
 
 build-backend:
-	@make update_version
+	@make update-version
 	@echo "Building backend..."
 	@export GIT_COMMIT=$(git rev-parse --short HEAD) && docker compose -f docker-compose.production.yml build augustin-backend
 	@echo "Backend built."
@@ -31,8 +31,6 @@ update-db-schema:
 	@echo "Updating db ent schema..."
 	@cd app && go generate ./ent
 	@echo "Db ent schema updated."
-
-
 
 update-version:
 	@echo "Updating version in $(VERSION_FILE)..."
