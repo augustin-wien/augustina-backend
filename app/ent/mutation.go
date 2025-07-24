@@ -12,8 +12,10 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
+	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
+	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
 
@@ -27,7 +29,9 @@ const (
 
 	// Node types.
 	TypeComment  = "Comment"
+	TypeItem     = "Item"
 	TypeLocation = "Location"
+	TypeSettings = "Settings"
 	TypeVendor   = "Vendor"
 )
 
@@ -590,6 +594,1068 @@ func (m *CommentMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Comment edge %s", name)
+}
+
+// ItemMutation represents an operation that mutates the Item nodes in the graph.
+type ItemMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *int
+	_Name               *string
+	_Description        *string
+	_Price              *float64
+	add_Price           *float64
+	_Image              *string
+	_Archived           *bool
+	_IsLicenseItem      *bool
+	_LicenseGroup       *string
+	_IsPDFItem          *bool
+	_PDF                *string
+	_ItemOrder          *int
+	add_ItemOrder       *int
+	_ItemColor          *string
+	_ItemTextColor      *string
+	clearedFields       map[string]struct{}
+	_LicenseItem        *int
+	cleared_LicenseItem bool
+	done                bool
+	oldValue            func(context.Context) (*Item, error)
+	predicates          []predicate.Item
+}
+
+var _ ent.Mutation = (*ItemMutation)(nil)
+
+// itemOption allows management of the mutation configuration using functional options.
+type itemOption func(*ItemMutation)
+
+// newItemMutation creates new mutation for the Item entity.
+func newItemMutation(c config, op Op, opts ...itemOption) *ItemMutation {
+	m := &ItemMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeItem,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withItemID sets the ID field of the mutation.
+func withItemID(id int) itemOption {
+	return func(m *ItemMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Item
+		)
+		m.oldValue = func(ctx context.Context) (*Item, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Item.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withItem sets the old Item of the mutation.
+func withItem(node *Item) itemOption {
+	return func(m *ItemMutation) {
+		m.oldValue = func(context.Context) (*Item, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ItemMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ItemMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Item entities.
+func (m *ItemMutation) SetID(id int) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ItemMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ItemMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Item.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "Name" field.
+func (m *ItemMutation) SetName(s string) {
+	m._Name = &s
+}
+
+// Name returns the value of the "Name" field in the mutation.
+func (m *ItemMutation) Name() (r string, exists bool) {
+	v := m._Name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "Name" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "Name" field.
+func (m *ItemMutation) ResetName() {
+	m._Name = nil
+}
+
+// SetDescription sets the "Description" field.
+func (m *ItemMutation) SetDescription(s string) {
+	m._Description = &s
+}
+
+// Description returns the value of the "Description" field in the mutation.
+func (m *ItemMutation) Description() (r string, exists bool) {
+	v := m._Description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "Description" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "Description" field.
+func (m *ItemMutation) ResetDescription() {
+	m._Description = nil
+}
+
+// SetPrice sets the "Price" field.
+func (m *ItemMutation) SetPrice(f float64) {
+	m._Price = &f
+	m.add_Price = nil
+}
+
+// Price returns the value of the "Price" field in the mutation.
+func (m *ItemMutation) Price() (r float64, exists bool) {
+	v := m._Price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrice returns the old "Price" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldPrice(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrice: %w", err)
+	}
+	return oldValue.Price, nil
+}
+
+// AddPrice adds f to the "Price" field.
+func (m *ItemMutation) AddPrice(f float64) {
+	if m.add_Price != nil {
+		*m.add_Price += f
+	} else {
+		m.add_Price = &f
+	}
+}
+
+// AddedPrice returns the value that was added to the "Price" field in this mutation.
+func (m *ItemMutation) AddedPrice() (r float64, exists bool) {
+	v := m.add_Price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPrice resets all changes to the "Price" field.
+func (m *ItemMutation) ResetPrice() {
+	m._Price = nil
+	m.add_Price = nil
+}
+
+// SetImage sets the "Image" field.
+func (m *ItemMutation) SetImage(s string) {
+	m._Image = &s
+}
+
+// Image returns the value of the "Image" field in the mutation.
+func (m *ItemMutation) Image() (r string, exists bool) {
+	v := m._Image
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImage returns the old "Image" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldImage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImage: %w", err)
+	}
+	return oldValue.Image, nil
+}
+
+// ResetImage resets all changes to the "Image" field.
+func (m *ItemMutation) ResetImage() {
+	m._Image = nil
+}
+
+// SetArchived sets the "Archived" field.
+func (m *ItemMutation) SetArchived(b bool) {
+	m._Archived = &b
+}
+
+// Archived returns the value of the "Archived" field in the mutation.
+func (m *ItemMutation) Archived() (r bool, exists bool) {
+	v := m._Archived
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldArchived returns the old "Archived" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldArchived(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldArchived is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldArchived requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldArchived: %w", err)
+	}
+	return oldValue.Archived, nil
+}
+
+// ResetArchived resets all changes to the "Archived" field.
+func (m *ItemMutation) ResetArchived() {
+	m._Archived = nil
+}
+
+// SetIsLicenseItem sets the "IsLicenseItem" field.
+func (m *ItemMutation) SetIsLicenseItem(b bool) {
+	m._IsLicenseItem = &b
+}
+
+// IsLicenseItem returns the value of the "IsLicenseItem" field in the mutation.
+func (m *ItemMutation) IsLicenseItem() (r bool, exists bool) {
+	v := m._IsLicenseItem
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsLicenseItem returns the old "IsLicenseItem" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldIsLicenseItem(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsLicenseItem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsLicenseItem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsLicenseItem: %w", err)
+	}
+	return oldValue.IsLicenseItem, nil
+}
+
+// ResetIsLicenseItem resets all changes to the "IsLicenseItem" field.
+func (m *ItemMutation) ResetIsLicenseItem() {
+	m._IsLicenseItem = nil
+}
+
+// SetLicenseGroup sets the "LicenseGroup" field.
+func (m *ItemMutation) SetLicenseGroup(s string) {
+	m._LicenseGroup = &s
+}
+
+// LicenseGroup returns the value of the "LicenseGroup" field in the mutation.
+func (m *ItemMutation) LicenseGroup() (r string, exists bool) {
+	v := m._LicenseGroup
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLicenseGroup returns the old "LicenseGroup" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldLicenseGroup(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLicenseGroup is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLicenseGroup requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLicenseGroup: %w", err)
+	}
+	return oldValue.LicenseGroup, nil
+}
+
+// ResetLicenseGroup resets all changes to the "LicenseGroup" field.
+func (m *ItemMutation) ResetLicenseGroup() {
+	m._LicenseGroup = nil
+}
+
+// SetIsPDFItem sets the "IsPDFItem" field.
+func (m *ItemMutation) SetIsPDFItem(b bool) {
+	m._IsPDFItem = &b
+}
+
+// IsPDFItem returns the value of the "IsPDFItem" field in the mutation.
+func (m *ItemMutation) IsPDFItem() (r bool, exists bool) {
+	v := m._IsPDFItem
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPDFItem returns the old "IsPDFItem" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldIsPDFItem(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPDFItem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPDFItem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPDFItem: %w", err)
+	}
+	return oldValue.IsPDFItem, nil
+}
+
+// ResetIsPDFItem resets all changes to the "IsPDFItem" field.
+func (m *ItemMutation) ResetIsPDFItem() {
+	m._IsPDFItem = nil
+}
+
+// SetPDF sets the "PDF" field.
+func (m *ItemMutation) SetPDF(s string) {
+	m._PDF = &s
+}
+
+// PDF returns the value of the "PDF" field in the mutation.
+func (m *ItemMutation) PDF() (r string, exists bool) {
+	v := m._PDF
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPDF returns the old "PDF" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldPDF(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPDF is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPDF requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPDF: %w", err)
+	}
+	return oldValue.PDF, nil
+}
+
+// ResetPDF resets all changes to the "PDF" field.
+func (m *ItemMutation) ResetPDF() {
+	m._PDF = nil
+}
+
+// SetItemOrder sets the "ItemOrder" field.
+func (m *ItemMutation) SetItemOrder(i int) {
+	m._ItemOrder = &i
+	m.add_ItemOrder = nil
+}
+
+// ItemOrder returns the value of the "ItemOrder" field in the mutation.
+func (m *ItemMutation) ItemOrder() (r int, exists bool) {
+	v := m._ItemOrder
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemOrder returns the old "ItemOrder" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldItemOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemOrder: %w", err)
+	}
+	return oldValue.ItemOrder, nil
+}
+
+// AddItemOrder adds i to the "ItemOrder" field.
+func (m *ItemMutation) AddItemOrder(i int) {
+	if m.add_ItemOrder != nil {
+		*m.add_ItemOrder += i
+	} else {
+		m.add_ItemOrder = &i
+	}
+}
+
+// AddedItemOrder returns the value that was added to the "ItemOrder" field in this mutation.
+func (m *ItemMutation) AddedItemOrder() (r int, exists bool) {
+	v := m.add_ItemOrder
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetItemOrder resets all changes to the "ItemOrder" field.
+func (m *ItemMutation) ResetItemOrder() {
+	m._ItemOrder = nil
+	m.add_ItemOrder = nil
+}
+
+// SetItemColor sets the "ItemColor" field.
+func (m *ItemMutation) SetItemColor(s string) {
+	m._ItemColor = &s
+}
+
+// ItemColor returns the value of the "ItemColor" field in the mutation.
+func (m *ItemMutation) ItemColor() (r string, exists bool) {
+	v := m._ItemColor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemColor returns the old "ItemColor" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldItemColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemColor: %w", err)
+	}
+	return oldValue.ItemColor, nil
+}
+
+// ResetItemColor resets all changes to the "ItemColor" field.
+func (m *ItemMutation) ResetItemColor() {
+	m._ItemColor = nil
+}
+
+// SetItemTextColor sets the "ItemTextColor" field.
+func (m *ItemMutation) SetItemTextColor(s string) {
+	m._ItemTextColor = &s
+}
+
+// ItemTextColor returns the value of the "ItemTextColor" field in the mutation.
+func (m *ItemMutation) ItemTextColor() (r string, exists bool) {
+	v := m._ItemTextColor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemTextColor returns the old "ItemTextColor" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldItemTextColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemTextColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemTextColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemTextColor: %w", err)
+	}
+	return oldValue.ItemTextColor, nil
+}
+
+// ResetItemTextColor resets all changes to the "ItemTextColor" field.
+func (m *ItemMutation) ResetItemTextColor() {
+	m._ItemTextColor = nil
+}
+
+// SetLicenseItemID sets the "LicenseItem" edge to the Item entity by id.
+func (m *ItemMutation) SetLicenseItemID(id int) {
+	m._LicenseItem = &id
+}
+
+// ClearLicenseItem clears the "LicenseItem" edge to the Item entity.
+func (m *ItemMutation) ClearLicenseItem() {
+	m.cleared_LicenseItem = true
+}
+
+// LicenseItemCleared reports if the "LicenseItem" edge to the Item entity was cleared.
+func (m *ItemMutation) LicenseItemCleared() bool {
+	return m.cleared_LicenseItem
+}
+
+// LicenseItemID returns the "LicenseItem" edge ID in the mutation.
+func (m *ItemMutation) LicenseItemID() (id int, exists bool) {
+	if m._LicenseItem != nil {
+		return *m._LicenseItem, true
+	}
+	return
+}
+
+// LicenseItemIDs returns the "LicenseItem" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LicenseItemID instead. It exists only for internal usage by the builders.
+func (m *ItemMutation) LicenseItemIDs() (ids []int) {
+	if id := m._LicenseItem; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLicenseItem resets all changes to the "LicenseItem" edge.
+func (m *ItemMutation) ResetLicenseItem() {
+	m._LicenseItem = nil
+	m.cleared_LicenseItem = false
+}
+
+// Where appends a list predicates to the ItemMutation builder.
+func (m *ItemMutation) Where(ps ...predicate.Item) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ItemMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ItemMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Item, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ItemMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ItemMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Item).
+func (m *ItemMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ItemMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m._Name != nil {
+		fields = append(fields, item.FieldName)
+	}
+	if m._Description != nil {
+		fields = append(fields, item.FieldDescription)
+	}
+	if m._Price != nil {
+		fields = append(fields, item.FieldPrice)
+	}
+	if m._Image != nil {
+		fields = append(fields, item.FieldImage)
+	}
+	if m._Archived != nil {
+		fields = append(fields, item.FieldArchived)
+	}
+	if m._IsLicenseItem != nil {
+		fields = append(fields, item.FieldIsLicenseItem)
+	}
+	if m._LicenseGroup != nil {
+		fields = append(fields, item.FieldLicenseGroup)
+	}
+	if m._IsPDFItem != nil {
+		fields = append(fields, item.FieldIsPDFItem)
+	}
+	if m._PDF != nil {
+		fields = append(fields, item.FieldPDF)
+	}
+	if m._ItemOrder != nil {
+		fields = append(fields, item.FieldItemOrder)
+	}
+	if m._ItemColor != nil {
+		fields = append(fields, item.FieldItemColor)
+	}
+	if m._ItemTextColor != nil {
+		fields = append(fields, item.FieldItemTextColor)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ItemMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case item.FieldName:
+		return m.Name()
+	case item.FieldDescription:
+		return m.Description()
+	case item.FieldPrice:
+		return m.Price()
+	case item.FieldImage:
+		return m.Image()
+	case item.FieldArchived:
+		return m.Archived()
+	case item.FieldIsLicenseItem:
+		return m.IsLicenseItem()
+	case item.FieldLicenseGroup:
+		return m.LicenseGroup()
+	case item.FieldIsPDFItem:
+		return m.IsPDFItem()
+	case item.FieldPDF:
+		return m.PDF()
+	case item.FieldItemOrder:
+		return m.ItemOrder()
+	case item.FieldItemColor:
+		return m.ItemColor()
+	case item.FieldItemTextColor:
+		return m.ItemTextColor()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case item.FieldName:
+		return m.OldName(ctx)
+	case item.FieldDescription:
+		return m.OldDescription(ctx)
+	case item.FieldPrice:
+		return m.OldPrice(ctx)
+	case item.FieldImage:
+		return m.OldImage(ctx)
+	case item.FieldArchived:
+		return m.OldArchived(ctx)
+	case item.FieldIsLicenseItem:
+		return m.OldIsLicenseItem(ctx)
+	case item.FieldLicenseGroup:
+		return m.OldLicenseGroup(ctx)
+	case item.FieldIsPDFItem:
+		return m.OldIsPDFItem(ctx)
+	case item.FieldPDF:
+		return m.OldPDF(ctx)
+	case item.FieldItemOrder:
+		return m.OldItemOrder(ctx)
+	case item.FieldItemColor:
+		return m.OldItemColor(ctx)
+	case item.FieldItemTextColor:
+		return m.OldItemTextColor(ctx)
+	}
+	return nil, fmt.Errorf("unknown Item field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ItemMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case item.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case item.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case item.FieldPrice:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrice(v)
+		return nil
+	case item.FieldImage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImage(v)
+		return nil
+	case item.FieldArchived:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetArchived(v)
+		return nil
+	case item.FieldIsLicenseItem:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsLicenseItem(v)
+		return nil
+	case item.FieldLicenseGroup:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLicenseGroup(v)
+		return nil
+	case item.FieldIsPDFItem:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPDFItem(v)
+		return nil
+	case item.FieldPDF:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPDF(v)
+		return nil
+	case item.FieldItemOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemOrder(v)
+		return nil
+	case item.FieldItemColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemColor(v)
+		return nil
+	case item.FieldItemTextColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemTextColor(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Item field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ItemMutation) AddedFields() []string {
+	var fields []string
+	if m.add_Price != nil {
+		fields = append(fields, item.FieldPrice)
+	}
+	if m.add_ItemOrder != nil {
+		fields = append(fields, item.FieldItemOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ItemMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case item.FieldPrice:
+		return m.AddedPrice()
+	case item.FieldItemOrder:
+		return m.AddedItemOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ItemMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case item.FieldPrice:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPrice(v)
+		return nil
+	case item.FieldItemOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddItemOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Item numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ItemMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ItemMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ItemMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Item nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ItemMutation) ResetField(name string) error {
+	switch name {
+	case item.FieldName:
+		m.ResetName()
+		return nil
+	case item.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case item.FieldPrice:
+		m.ResetPrice()
+		return nil
+	case item.FieldImage:
+		m.ResetImage()
+		return nil
+	case item.FieldArchived:
+		m.ResetArchived()
+		return nil
+	case item.FieldIsLicenseItem:
+		m.ResetIsLicenseItem()
+		return nil
+	case item.FieldLicenseGroup:
+		m.ResetLicenseGroup()
+		return nil
+	case item.FieldIsPDFItem:
+		m.ResetIsPDFItem()
+		return nil
+	case item.FieldPDF:
+		m.ResetPDF()
+		return nil
+	case item.FieldItemOrder:
+		m.ResetItemOrder()
+		return nil
+	case item.FieldItemColor:
+		m.ResetItemColor()
+		return nil
+	case item.FieldItemTextColor:
+		m.ResetItemTextColor()
+		return nil
+	}
+	return fmt.Errorf("unknown Item field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ItemMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._LicenseItem != nil {
+		edges = append(edges, item.EdgeLicenseItem)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ItemMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case item.EdgeLicenseItem:
+		if id := m._LicenseItem; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ItemMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ItemMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ItemMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_LicenseItem {
+		edges = append(edges, item.EdgeLicenseItem)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ItemMutation) EdgeCleared(name string) bool {
+	switch name {
+	case item.EdgeLicenseItem:
+		return m.cleared_LicenseItem
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ItemMutation) ClearEdge(name string) error {
+	switch name {
+	case item.EdgeLicenseItem:
+		m.ClearLicenseItem()
+		return nil
+	}
+	return fmt.Errorf("unknown Item unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ItemMutation) ResetEdge(name string) error {
+	switch name {
+	case item.EdgeLicenseItem:
+		m.ResetLicenseItem()
+		return nil
+	}
+	return fmt.Errorf("unknown Item edge %s", name)
 }
 
 // LocationMutation represents an operation that mutates the Location nodes in the graph.
@@ -1328,6 +2394,1533 @@ func (m *LocationMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Location edge %s", name)
+}
+
+// SettingsMutation represents an operation that mutates the Settings nodes in the graph.
+type SettingsMutation struct {
+	config
+	op                          Op
+	typ                         string
+	id                          *int
+	_AGBUrl                     *string
+	_Color                      *string
+	_FontColor                  *string
+	_Logo                       *string
+	_MaxOrderAmount             *int
+	add_MaxOrderAmount          *int
+	_OrgaCoversTransactionCosts *bool
+	_WebshopIsClosed            *bool
+	_VendorNotFoundHelpUrl      *string
+	_MaintainanceModeHelpUrl    *string
+	_VendorEmailPostfix         *string
+	_NewspaperName              *string
+	_QRCodeUrl                  *string
+	_QRCodeLogoImgUrl           *string
+	_MapCenterLat               *float64
+	add_MapCenterLat            *float64
+	_MapCenterLong              *float64
+	add_MapCenterLong           *float64
+	_UseVendorLicenseIdInShop   *bool
+	_Favicon                    *string
+	_QRCodeSettings             *string
+	_QRCodeEnableLogo           *bool
+	_UseTipInsteadOfDonation    *bool
+	clearedFields               map[string]struct{}
+	_MainItem                   *int
+	cleared_MainItem            bool
+	done                        bool
+	oldValue                    func(context.Context) (*Settings, error)
+	predicates                  []predicate.Settings
+}
+
+var _ ent.Mutation = (*SettingsMutation)(nil)
+
+// settingsOption allows management of the mutation configuration using functional options.
+type settingsOption func(*SettingsMutation)
+
+// newSettingsMutation creates new mutation for the Settings entity.
+func newSettingsMutation(c config, op Op, opts ...settingsOption) *SettingsMutation {
+	m := &SettingsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSettings,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSettingsID sets the ID field of the mutation.
+func withSettingsID(id int) settingsOption {
+	return func(m *SettingsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Settings
+		)
+		m.oldValue = func(ctx context.Context) (*Settings, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Settings.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSettings sets the old Settings of the mutation.
+func withSettings(node *Settings) settingsOption {
+	return func(m *SettingsMutation) {
+		m.oldValue = func(context.Context) (*Settings, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SettingsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SettingsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Settings entities.
+func (m *SettingsMutation) SetID(id int) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SettingsMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SettingsMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Settings.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetAGBUrl sets the "AGBUrl" field.
+func (m *SettingsMutation) SetAGBUrl(s string) {
+	m._AGBUrl = &s
+}
+
+// AGBUrl returns the value of the "AGBUrl" field in the mutation.
+func (m *SettingsMutation) AGBUrl() (r string, exists bool) {
+	v := m._AGBUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAGBUrl returns the old "AGBUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldAGBUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAGBUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAGBUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAGBUrl: %w", err)
+	}
+	return oldValue.AGBUrl, nil
+}
+
+// ResetAGBUrl resets all changes to the "AGBUrl" field.
+func (m *SettingsMutation) ResetAGBUrl() {
+	m._AGBUrl = nil
+}
+
+// SetColor sets the "Color" field.
+func (m *SettingsMutation) SetColor(s string) {
+	m._Color = &s
+}
+
+// Color returns the value of the "Color" field in the mutation.
+func (m *SettingsMutation) Color() (r string, exists bool) {
+	v := m._Color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColor returns the old "Color" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColor: %w", err)
+	}
+	return oldValue.Color, nil
+}
+
+// ResetColor resets all changes to the "Color" field.
+func (m *SettingsMutation) ResetColor() {
+	m._Color = nil
+}
+
+// SetFontColor sets the "FontColor" field.
+func (m *SettingsMutation) SetFontColor(s string) {
+	m._FontColor = &s
+}
+
+// FontColor returns the value of the "FontColor" field in the mutation.
+func (m *SettingsMutation) FontColor() (r string, exists bool) {
+	v := m._FontColor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFontColor returns the old "FontColor" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldFontColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFontColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFontColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFontColor: %w", err)
+	}
+	return oldValue.FontColor, nil
+}
+
+// ResetFontColor resets all changes to the "FontColor" field.
+func (m *SettingsMutation) ResetFontColor() {
+	m._FontColor = nil
+}
+
+// SetLogo sets the "Logo" field.
+func (m *SettingsMutation) SetLogo(s string) {
+	m._Logo = &s
+}
+
+// Logo returns the value of the "Logo" field in the mutation.
+func (m *SettingsMutation) Logo() (r string, exists bool) {
+	v := m._Logo
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLogo returns the old "Logo" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldLogo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLogo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLogo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLogo: %w", err)
+	}
+	return oldValue.Logo, nil
+}
+
+// ResetLogo resets all changes to the "Logo" field.
+func (m *SettingsMutation) ResetLogo() {
+	m._Logo = nil
+}
+
+// SetMaxOrderAmount sets the "MaxOrderAmount" field.
+func (m *SettingsMutation) SetMaxOrderAmount(i int) {
+	m._MaxOrderAmount = &i
+	m.add_MaxOrderAmount = nil
+}
+
+// MaxOrderAmount returns the value of the "MaxOrderAmount" field in the mutation.
+func (m *SettingsMutation) MaxOrderAmount() (r int, exists bool) {
+	v := m._MaxOrderAmount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxOrderAmount returns the old "MaxOrderAmount" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldMaxOrderAmount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxOrderAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxOrderAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxOrderAmount: %w", err)
+	}
+	return oldValue.MaxOrderAmount, nil
+}
+
+// AddMaxOrderAmount adds i to the "MaxOrderAmount" field.
+func (m *SettingsMutation) AddMaxOrderAmount(i int) {
+	if m.add_MaxOrderAmount != nil {
+		*m.add_MaxOrderAmount += i
+	} else {
+		m.add_MaxOrderAmount = &i
+	}
+}
+
+// AddedMaxOrderAmount returns the value that was added to the "MaxOrderAmount" field in this mutation.
+func (m *SettingsMutation) AddedMaxOrderAmount() (r int, exists bool) {
+	v := m.add_MaxOrderAmount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxOrderAmount resets all changes to the "MaxOrderAmount" field.
+func (m *SettingsMutation) ResetMaxOrderAmount() {
+	m._MaxOrderAmount = nil
+	m.add_MaxOrderAmount = nil
+}
+
+// SetOrgaCoversTransactionCosts sets the "OrgaCoversTransactionCosts" field.
+func (m *SettingsMutation) SetOrgaCoversTransactionCosts(b bool) {
+	m._OrgaCoversTransactionCosts = &b
+}
+
+// OrgaCoversTransactionCosts returns the value of the "OrgaCoversTransactionCosts" field in the mutation.
+func (m *SettingsMutation) OrgaCoversTransactionCosts() (r bool, exists bool) {
+	v := m._OrgaCoversTransactionCosts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrgaCoversTransactionCosts returns the old "OrgaCoversTransactionCosts" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldOrgaCoversTransactionCosts(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrgaCoversTransactionCosts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrgaCoversTransactionCosts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrgaCoversTransactionCosts: %w", err)
+	}
+	return oldValue.OrgaCoversTransactionCosts, nil
+}
+
+// ResetOrgaCoversTransactionCosts resets all changes to the "OrgaCoversTransactionCosts" field.
+func (m *SettingsMutation) ResetOrgaCoversTransactionCosts() {
+	m._OrgaCoversTransactionCosts = nil
+}
+
+// SetWebshopIsClosed sets the "WebshopIsClosed" field.
+func (m *SettingsMutation) SetWebshopIsClosed(b bool) {
+	m._WebshopIsClosed = &b
+}
+
+// WebshopIsClosed returns the value of the "WebshopIsClosed" field in the mutation.
+func (m *SettingsMutation) WebshopIsClosed() (r bool, exists bool) {
+	v := m._WebshopIsClosed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWebshopIsClosed returns the old "WebshopIsClosed" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldWebshopIsClosed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWebshopIsClosed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWebshopIsClosed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWebshopIsClosed: %w", err)
+	}
+	return oldValue.WebshopIsClosed, nil
+}
+
+// ResetWebshopIsClosed resets all changes to the "WebshopIsClosed" field.
+func (m *SettingsMutation) ResetWebshopIsClosed() {
+	m._WebshopIsClosed = nil
+}
+
+// SetVendorNotFoundHelpUrl sets the "VendorNotFoundHelpUrl" field.
+func (m *SettingsMutation) SetVendorNotFoundHelpUrl(s string) {
+	m._VendorNotFoundHelpUrl = &s
+}
+
+// VendorNotFoundHelpUrl returns the value of the "VendorNotFoundHelpUrl" field in the mutation.
+func (m *SettingsMutation) VendorNotFoundHelpUrl() (r string, exists bool) {
+	v := m._VendorNotFoundHelpUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVendorNotFoundHelpUrl returns the old "VendorNotFoundHelpUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldVendorNotFoundHelpUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVendorNotFoundHelpUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVendorNotFoundHelpUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVendorNotFoundHelpUrl: %w", err)
+	}
+	return oldValue.VendorNotFoundHelpUrl, nil
+}
+
+// ResetVendorNotFoundHelpUrl resets all changes to the "VendorNotFoundHelpUrl" field.
+func (m *SettingsMutation) ResetVendorNotFoundHelpUrl() {
+	m._VendorNotFoundHelpUrl = nil
+}
+
+// SetMaintainanceModeHelpUrl sets the "MaintainanceModeHelpUrl" field.
+func (m *SettingsMutation) SetMaintainanceModeHelpUrl(s string) {
+	m._MaintainanceModeHelpUrl = &s
+}
+
+// MaintainanceModeHelpUrl returns the value of the "MaintainanceModeHelpUrl" field in the mutation.
+func (m *SettingsMutation) MaintainanceModeHelpUrl() (r string, exists bool) {
+	v := m._MaintainanceModeHelpUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaintainanceModeHelpUrl returns the old "MaintainanceModeHelpUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldMaintainanceModeHelpUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaintainanceModeHelpUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaintainanceModeHelpUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaintainanceModeHelpUrl: %w", err)
+	}
+	return oldValue.MaintainanceModeHelpUrl, nil
+}
+
+// ResetMaintainanceModeHelpUrl resets all changes to the "MaintainanceModeHelpUrl" field.
+func (m *SettingsMutation) ResetMaintainanceModeHelpUrl() {
+	m._MaintainanceModeHelpUrl = nil
+}
+
+// SetVendorEmailPostfix sets the "VendorEmailPostfix" field.
+func (m *SettingsMutation) SetVendorEmailPostfix(s string) {
+	m._VendorEmailPostfix = &s
+}
+
+// VendorEmailPostfix returns the value of the "VendorEmailPostfix" field in the mutation.
+func (m *SettingsMutation) VendorEmailPostfix() (r string, exists bool) {
+	v := m._VendorEmailPostfix
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVendorEmailPostfix returns the old "VendorEmailPostfix" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldVendorEmailPostfix(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVendorEmailPostfix is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVendorEmailPostfix requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVendorEmailPostfix: %w", err)
+	}
+	return oldValue.VendorEmailPostfix, nil
+}
+
+// ResetVendorEmailPostfix resets all changes to the "VendorEmailPostfix" field.
+func (m *SettingsMutation) ResetVendorEmailPostfix() {
+	m._VendorEmailPostfix = nil
+}
+
+// SetNewspaperName sets the "NewspaperName" field.
+func (m *SettingsMutation) SetNewspaperName(s string) {
+	m._NewspaperName = &s
+}
+
+// NewspaperName returns the value of the "NewspaperName" field in the mutation.
+func (m *SettingsMutation) NewspaperName() (r string, exists bool) {
+	v := m._NewspaperName
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNewspaperName returns the old "NewspaperName" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldNewspaperName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNewspaperName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNewspaperName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNewspaperName: %w", err)
+	}
+	return oldValue.NewspaperName, nil
+}
+
+// ResetNewspaperName resets all changes to the "NewspaperName" field.
+func (m *SettingsMutation) ResetNewspaperName() {
+	m._NewspaperName = nil
+}
+
+// SetQRCodeUrl sets the "QRCodeUrl" field.
+func (m *SettingsMutation) SetQRCodeUrl(s string) {
+	m._QRCodeUrl = &s
+}
+
+// QRCodeUrl returns the value of the "QRCodeUrl" field in the mutation.
+func (m *SettingsMutation) QRCodeUrl() (r string, exists bool) {
+	v := m._QRCodeUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQRCodeUrl returns the old "QRCodeUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldQRCodeUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQRCodeUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQRCodeUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQRCodeUrl: %w", err)
+	}
+	return oldValue.QRCodeUrl, nil
+}
+
+// ResetQRCodeUrl resets all changes to the "QRCodeUrl" field.
+func (m *SettingsMutation) ResetQRCodeUrl() {
+	m._QRCodeUrl = nil
+}
+
+// SetQRCodeLogoImgUrl sets the "QRCodeLogoImgUrl" field.
+func (m *SettingsMutation) SetQRCodeLogoImgUrl(s string) {
+	m._QRCodeLogoImgUrl = &s
+}
+
+// QRCodeLogoImgUrl returns the value of the "QRCodeLogoImgUrl" field in the mutation.
+func (m *SettingsMutation) QRCodeLogoImgUrl() (r string, exists bool) {
+	v := m._QRCodeLogoImgUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQRCodeLogoImgUrl returns the old "QRCodeLogoImgUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldQRCodeLogoImgUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQRCodeLogoImgUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQRCodeLogoImgUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQRCodeLogoImgUrl: %w", err)
+	}
+	return oldValue.QRCodeLogoImgUrl, nil
+}
+
+// ResetQRCodeLogoImgUrl resets all changes to the "QRCodeLogoImgUrl" field.
+func (m *SettingsMutation) ResetQRCodeLogoImgUrl() {
+	m._QRCodeLogoImgUrl = nil
+}
+
+// SetMapCenterLat sets the "MapCenterLat" field.
+func (m *SettingsMutation) SetMapCenterLat(f float64) {
+	m._MapCenterLat = &f
+	m.add_MapCenterLat = nil
+}
+
+// MapCenterLat returns the value of the "MapCenterLat" field in the mutation.
+func (m *SettingsMutation) MapCenterLat() (r float64, exists bool) {
+	v := m._MapCenterLat
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMapCenterLat returns the old "MapCenterLat" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldMapCenterLat(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMapCenterLat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMapCenterLat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMapCenterLat: %w", err)
+	}
+	return oldValue.MapCenterLat, nil
+}
+
+// AddMapCenterLat adds f to the "MapCenterLat" field.
+func (m *SettingsMutation) AddMapCenterLat(f float64) {
+	if m.add_MapCenterLat != nil {
+		*m.add_MapCenterLat += f
+	} else {
+		m.add_MapCenterLat = &f
+	}
+}
+
+// AddedMapCenterLat returns the value that was added to the "MapCenterLat" field in this mutation.
+func (m *SettingsMutation) AddedMapCenterLat() (r float64, exists bool) {
+	v := m.add_MapCenterLat
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMapCenterLat resets all changes to the "MapCenterLat" field.
+func (m *SettingsMutation) ResetMapCenterLat() {
+	m._MapCenterLat = nil
+	m.add_MapCenterLat = nil
+}
+
+// SetMapCenterLong sets the "MapCenterLong" field.
+func (m *SettingsMutation) SetMapCenterLong(f float64) {
+	m._MapCenterLong = &f
+	m.add_MapCenterLong = nil
+}
+
+// MapCenterLong returns the value of the "MapCenterLong" field in the mutation.
+func (m *SettingsMutation) MapCenterLong() (r float64, exists bool) {
+	v := m._MapCenterLong
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMapCenterLong returns the old "MapCenterLong" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldMapCenterLong(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMapCenterLong is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMapCenterLong requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMapCenterLong: %w", err)
+	}
+	return oldValue.MapCenterLong, nil
+}
+
+// AddMapCenterLong adds f to the "MapCenterLong" field.
+func (m *SettingsMutation) AddMapCenterLong(f float64) {
+	if m.add_MapCenterLong != nil {
+		*m.add_MapCenterLong += f
+	} else {
+		m.add_MapCenterLong = &f
+	}
+}
+
+// AddedMapCenterLong returns the value that was added to the "MapCenterLong" field in this mutation.
+func (m *SettingsMutation) AddedMapCenterLong() (r float64, exists bool) {
+	v := m.add_MapCenterLong
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMapCenterLong resets all changes to the "MapCenterLong" field.
+func (m *SettingsMutation) ResetMapCenterLong() {
+	m._MapCenterLong = nil
+	m.add_MapCenterLong = nil
+}
+
+// SetUseVendorLicenseIdInShop sets the "UseVendorLicenseIdInShop" field.
+func (m *SettingsMutation) SetUseVendorLicenseIdInShop(b bool) {
+	m._UseVendorLicenseIdInShop = &b
+}
+
+// UseVendorLicenseIdInShop returns the value of the "UseVendorLicenseIdInShop" field in the mutation.
+func (m *SettingsMutation) UseVendorLicenseIdInShop() (r bool, exists bool) {
+	v := m._UseVendorLicenseIdInShop
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUseVendorLicenseIdInShop returns the old "UseVendorLicenseIdInShop" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldUseVendorLicenseIdInShop(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUseVendorLicenseIdInShop is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUseVendorLicenseIdInShop requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUseVendorLicenseIdInShop: %w", err)
+	}
+	return oldValue.UseVendorLicenseIdInShop, nil
+}
+
+// ResetUseVendorLicenseIdInShop resets all changes to the "UseVendorLicenseIdInShop" field.
+func (m *SettingsMutation) ResetUseVendorLicenseIdInShop() {
+	m._UseVendorLicenseIdInShop = nil
+}
+
+// SetFavicon sets the "Favicon" field.
+func (m *SettingsMutation) SetFavicon(s string) {
+	m._Favicon = &s
+}
+
+// Favicon returns the value of the "Favicon" field in the mutation.
+func (m *SettingsMutation) Favicon() (r string, exists bool) {
+	v := m._Favicon
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFavicon returns the old "Favicon" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldFavicon(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFavicon is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFavicon requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFavicon: %w", err)
+	}
+	return oldValue.Favicon, nil
+}
+
+// ResetFavicon resets all changes to the "Favicon" field.
+func (m *SettingsMutation) ResetFavicon() {
+	m._Favicon = nil
+}
+
+// SetQRCodeSettings sets the "QRCodeSettings" field.
+func (m *SettingsMutation) SetQRCodeSettings(s string) {
+	m._QRCodeSettings = &s
+}
+
+// QRCodeSettings returns the value of the "QRCodeSettings" field in the mutation.
+func (m *SettingsMutation) QRCodeSettings() (r string, exists bool) {
+	v := m._QRCodeSettings
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQRCodeSettings returns the old "QRCodeSettings" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldQRCodeSettings(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQRCodeSettings is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQRCodeSettings requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQRCodeSettings: %w", err)
+	}
+	return oldValue.QRCodeSettings, nil
+}
+
+// ResetQRCodeSettings resets all changes to the "QRCodeSettings" field.
+func (m *SettingsMutation) ResetQRCodeSettings() {
+	m._QRCodeSettings = nil
+}
+
+// SetQRCodeEnableLogo sets the "QRCodeEnableLogo" field.
+func (m *SettingsMutation) SetQRCodeEnableLogo(b bool) {
+	m._QRCodeEnableLogo = &b
+}
+
+// QRCodeEnableLogo returns the value of the "QRCodeEnableLogo" field in the mutation.
+func (m *SettingsMutation) QRCodeEnableLogo() (r bool, exists bool) {
+	v := m._QRCodeEnableLogo
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQRCodeEnableLogo returns the old "QRCodeEnableLogo" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldQRCodeEnableLogo(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQRCodeEnableLogo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQRCodeEnableLogo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQRCodeEnableLogo: %w", err)
+	}
+	return oldValue.QRCodeEnableLogo, nil
+}
+
+// ResetQRCodeEnableLogo resets all changes to the "QRCodeEnableLogo" field.
+func (m *SettingsMutation) ResetQRCodeEnableLogo() {
+	m._QRCodeEnableLogo = nil
+}
+
+// SetUseTipInsteadOfDonation sets the "UseTipInsteadOfDonation" field.
+func (m *SettingsMutation) SetUseTipInsteadOfDonation(b bool) {
+	m._UseTipInsteadOfDonation = &b
+}
+
+// UseTipInsteadOfDonation returns the value of the "UseTipInsteadOfDonation" field in the mutation.
+func (m *SettingsMutation) UseTipInsteadOfDonation() (r bool, exists bool) {
+	v := m._UseTipInsteadOfDonation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUseTipInsteadOfDonation returns the old "UseTipInsteadOfDonation" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldUseTipInsteadOfDonation(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUseTipInsteadOfDonation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUseTipInsteadOfDonation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUseTipInsteadOfDonation: %w", err)
+	}
+	return oldValue.UseTipInsteadOfDonation, nil
+}
+
+// ResetUseTipInsteadOfDonation resets all changes to the "UseTipInsteadOfDonation" field.
+func (m *SettingsMutation) ResetUseTipInsteadOfDonation() {
+	m._UseTipInsteadOfDonation = nil
+}
+
+// SetMainItemID sets the "MainItem" edge to the Item entity by id.
+func (m *SettingsMutation) SetMainItemID(id int) {
+	m._MainItem = &id
+}
+
+// ClearMainItem clears the "MainItem" edge to the Item entity.
+func (m *SettingsMutation) ClearMainItem() {
+	m.cleared_MainItem = true
+}
+
+// MainItemCleared reports if the "MainItem" edge to the Item entity was cleared.
+func (m *SettingsMutation) MainItemCleared() bool {
+	return m.cleared_MainItem
+}
+
+// MainItemID returns the "MainItem" edge ID in the mutation.
+func (m *SettingsMutation) MainItemID() (id int, exists bool) {
+	if m._MainItem != nil {
+		return *m._MainItem, true
+	}
+	return
+}
+
+// MainItemIDs returns the "MainItem" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MainItemID instead. It exists only for internal usage by the builders.
+func (m *SettingsMutation) MainItemIDs() (ids []int) {
+	if id := m._MainItem; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMainItem resets all changes to the "MainItem" edge.
+func (m *SettingsMutation) ResetMainItem() {
+	m._MainItem = nil
+	m.cleared_MainItem = false
+}
+
+// Where appends a list predicates to the SettingsMutation builder.
+func (m *SettingsMutation) Where(ps ...predicate.Settings) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SettingsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SettingsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Settings, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SettingsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SettingsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Settings).
+func (m *SettingsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SettingsMutation) Fields() []string {
+	fields := make([]string, 0, 20)
+	if m._AGBUrl != nil {
+		fields = append(fields, settings.FieldAGBUrl)
+	}
+	if m._Color != nil {
+		fields = append(fields, settings.FieldColor)
+	}
+	if m._FontColor != nil {
+		fields = append(fields, settings.FieldFontColor)
+	}
+	if m._Logo != nil {
+		fields = append(fields, settings.FieldLogo)
+	}
+	if m._MaxOrderAmount != nil {
+		fields = append(fields, settings.FieldMaxOrderAmount)
+	}
+	if m._OrgaCoversTransactionCosts != nil {
+		fields = append(fields, settings.FieldOrgaCoversTransactionCosts)
+	}
+	if m._WebshopIsClosed != nil {
+		fields = append(fields, settings.FieldWebshopIsClosed)
+	}
+	if m._VendorNotFoundHelpUrl != nil {
+		fields = append(fields, settings.FieldVendorNotFoundHelpUrl)
+	}
+	if m._MaintainanceModeHelpUrl != nil {
+		fields = append(fields, settings.FieldMaintainanceModeHelpUrl)
+	}
+	if m._VendorEmailPostfix != nil {
+		fields = append(fields, settings.FieldVendorEmailPostfix)
+	}
+	if m._NewspaperName != nil {
+		fields = append(fields, settings.FieldNewspaperName)
+	}
+	if m._QRCodeUrl != nil {
+		fields = append(fields, settings.FieldQRCodeUrl)
+	}
+	if m._QRCodeLogoImgUrl != nil {
+		fields = append(fields, settings.FieldQRCodeLogoImgUrl)
+	}
+	if m._MapCenterLat != nil {
+		fields = append(fields, settings.FieldMapCenterLat)
+	}
+	if m._MapCenterLong != nil {
+		fields = append(fields, settings.FieldMapCenterLong)
+	}
+	if m._UseVendorLicenseIdInShop != nil {
+		fields = append(fields, settings.FieldUseVendorLicenseIdInShop)
+	}
+	if m._Favicon != nil {
+		fields = append(fields, settings.FieldFavicon)
+	}
+	if m._QRCodeSettings != nil {
+		fields = append(fields, settings.FieldQRCodeSettings)
+	}
+	if m._QRCodeEnableLogo != nil {
+		fields = append(fields, settings.FieldQRCodeEnableLogo)
+	}
+	if m._UseTipInsteadOfDonation != nil {
+		fields = append(fields, settings.FieldUseTipInsteadOfDonation)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case settings.FieldAGBUrl:
+		return m.AGBUrl()
+	case settings.FieldColor:
+		return m.Color()
+	case settings.FieldFontColor:
+		return m.FontColor()
+	case settings.FieldLogo:
+		return m.Logo()
+	case settings.FieldMaxOrderAmount:
+		return m.MaxOrderAmount()
+	case settings.FieldOrgaCoversTransactionCosts:
+		return m.OrgaCoversTransactionCosts()
+	case settings.FieldWebshopIsClosed:
+		return m.WebshopIsClosed()
+	case settings.FieldVendorNotFoundHelpUrl:
+		return m.VendorNotFoundHelpUrl()
+	case settings.FieldMaintainanceModeHelpUrl:
+		return m.MaintainanceModeHelpUrl()
+	case settings.FieldVendorEmailPostfix:
+		return m.VendorEmailPostfix()
+	case settings.FieldNewspaperName:
+		return m.NewspaperName()
+	case settings.FieldQRCodeUrl:
+		return m.QRCodeUrl()
+	case settings.FieldQRCodeLogoImgUrl:
+		return m.QRCodeLogoImgUrl()
+	case settings.FieldMapCenterLat:
+		return m.MapCenterLat()
+	case settings.FieldMapCenterLong:
+		return m.MapCenterLong()
+	case settings.FieldUseVendorLicenseIdInShop:
+		return m.UseVendorLicenseIdInShop()
+	case settings.FieldFavicon:
+		return m.Favicon()
+	case settings.FieldQRCodeSettings:
+		return m.QRCodeSettings()
+	case settings.FieldQRCodeEnableLogo:
+		return m.QRCodeEnableLogo()
+	case settings.FieldUseTipInsteadOfDonation:
+		return m.UseTipInsteadOfDonation()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case settings.FieldAGBUrl:
+		return m.OldAGBUrl(ctx)
+	case settings.FieldColor:
+		return m.OldColor(ctx)
+	case settings.FieldFontColor:
+		return m.OldFontColor(ctx)
+	case settings.FieldLogo:
+		return m.OldLogo(ctx)
+	case settings.FieldMaxOrderAmount:
+		return m.OldMaxOrderAmount(ctx)
+	case settings.FieldOrgaCoversTransactionCosts:
+		return m.OldOrgaCoversTransactionCosts(ctx)
+	case settings.FieldWebshopIsClosed:
+		return m.OldWebshopIsClosed(ctx)
+	case settings.FieldVendorNotFoundHelpUrl:
+		return m.OldVendorNotFoundHelpUrl(ctx)
+	case settings.FieldMaintainanceModeHelpUrl:
+		return m.OldMaintainanceModeHelpUrl(ctx)
+	case settings.FieldVendorEmailPostfix:
+		return m.OldVendorEmailPostfix(ctx)
+	case settings.FieldNewspaperName:
+		return m.OldNewspaperName(ctx)
+	case settings.FieldQRCodeUrl:
+		return m.OldQRCodeUrl(ctx)
+	case settings.FieldQRCodeLogoImgUrl:
+		return m.OldQRCodeLogoImgUrl(ctx)
+	case settings.FieldMapCenterLat:
+		return m.OldMapCenterLat(ctx)
+	case settings.FieldMapCenterLong:
+		return m.OldMapCenterLong(ctx)
+	case settings.FieldUseVendorLicenseIdInShop:
+		return m.OldUseVendorLicenseIdInShop(ctx)
+	case settings.FieldFavicon:
+		return m.OldFavicon(ctx)
+	case settings.FieldQRCodeSettings:
+		return m.OldQRCodeSettings(ctx)
+	case settings.FieldQRCodeEnableLogo:
+		return m.OldQRCodeEnableLogo(ctx)
+	case settings.FieldUseTipInsteadOfDonation:
+		return m.OldUseTipInsteadOfDonation(ctx)
+	}
+	return nil, fmt.Errorf("unknown Settings field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SettingsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case settings.FieldAGBUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAGBUrl(v)
+		return nil
+	case settings.FieldColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColor(v)
+		return nil
+	case settings.FieldFontColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFontColor(v)
+		return nil
+	case settings.FieldLogo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLogo(v)
+		return nil
+	case settings.FieldMaxOrderAmount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxOrderAmount(v)
+		return nil
+	case settings.FieldOrgaCoversTransactionCosts:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrgaCoversTransactionCosts(v)
+		return nil
+	case settings.FieldWebshopIsClosed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWebshopIsClosed(v)
+		return nil
+	case settings.FieldVendorNotFoundHelpUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVendorNotFoundHelpUrl(v)
+		return nil
+	case settings.FieldMaintainanceModeHelpUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaintainanceModeHelpUrl(v)
+		return nil
+	case settings.FieldVendorEmailPostfix:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVendorEmailPostfix(v)
+		return nil
+	case settings.FieldNewspaperName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNewspaperName(v)
+		return nil
+	case settings.FieldQRCodeUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQRCodeUrl(v)
+		return nil
+	case settings.FieldQRCodeLogoImgUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQRCodeLogoImgUrl(v)
+		return nil
+	case settings.FieldMapCenterLat:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMapCenterLat(v)
+		return nil
+	case settings.FieldMapCenterLong:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMapCenterLong(v)
+		return nil
+	case settings.FieldUseVendorLicenseIdInShop:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUseVendorLicenseIdInShop(v)
+		return nil
+	case settings.FieldFavicon:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFavicon(v)
+		return nil
+	case settings.FieldQRCodeSettings:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQRCodeSettings(v)
+		return nil
+	case settings.FieldQRCodeEnableLogo:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQRCodeEnableLogo(v)
+		return nil
+	case settings.FieldUseTipInsteadOfDonation:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUseTipInsteadOfDonation(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Settings field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SettingsMutation) AddedFields() []string {
+	var fields []string
+	if m.add_MaxOrderAmount != nil {
+		fields = append(fields, settings.FieldMaxOrderAmount)
+	}
+	if m.add_MapCenterLat != nil {
+		fields = append(fields, settings.FieldMapCenterLat)
+	}
+	if m.add_MapCenterLong != nil {
+		fields = append(fields, settings.FieldMapCenterLong)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SettingsMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case settings.FieldMaxOrderAmount:
+		return m.AddedMaxOrderAmount()
+	case settings.FieldMapCenterLat:
+		return m.AddedMapCenterLat()
+	case settings.FieldMapCenterLong:
+		return m.AddedMapCenterLong()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SettingsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case settings.FieldMaxOrderAmount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxOrderAmount(v)
+		return nil
+	case settings.FieldMapCenterLat:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMapCenterLat(v)
+		return nil
+	case settings.FieldMapCenterLong:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMapCenterLong(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Settings numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SettingsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SettingsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SettingsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Settings nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SettingsMutation) ResetField(name string) error {
+	switch name {
+	case settings.FieldAGBUrl:
+		m.ResetAGBUrl()
+		return nil
+	case settings.FieldColor:
+		m.ResetColor()
+		return nil
+	case settings.FieldFontColor:
+		m.ResetFontColor()
+		return nil
+	case settings.FieldLogo:
+		m.ResetLogo()
+		return nil
+	case settings.FieldMaxOrderAmount:
+		m.ResetMaxOrderAmount()
+		return nil
+	case settings.FieldOrgaCoversTransactionCosts:
+		m.ResetOrgaCoversTransactionCosts()
+		return nil
+	case settings.FieldWebshopIsClosed:
+		m.ResetWebshopIsClosed()
+		return nil
+	case settings.FieldVendorNotFoundHelpUrl:
+		m.ResetVendorNotFoundHelpUrl()
+		return nil
+	case settings.FieldMaintainanceModeHelpUrl:
+		m.ResetMaintainanceModeHelpUrl()
+		return nil
+	case settings.FieldVendorEmailPostfix:
+		m.ResetVendorEmailPostfix()
+		return nil
+	case settings.FieldNewspaperName:
+		m.ResetNewspaperName()
+		return nil
+	case settings.FieldQRCodeUrl:
+		m.ResetQRCodeUrl()
+		return nil
+	case settings.FieldQRCodeLogoImgUrl:
+		m.ResetQRCodeLogoImgUrl()
+		return nil
+	case settings.FieldMapCenterLat:
+		m.ResetMapCenterLat()
+		return nil
+	case settings.FieldMapCenterLong:
+		m.ResetMapCenterLong()
+		return nil
+	case settings.FieldUseVendorLicenseIdInShop:
+		m.ResetUseVendorLicenseIdInShop()
+		return nil
+	case settings.FieldFavicon:
+		m.ResetFavicon()
+		return nil
+	case settings.FieldQRCodeSettings:
+		m.ResetQRCodeSettings()
+		return nil
+	case settings.FieldQRCodeEnableLogo:
+		m.ResetQRCodeEnableLogo()
+		return nil
+	case settings.FieldUseTipInsteadOfDonation:
+		m.ResetUseTipInsteadOfDonation()
+		return nil
+	}
+	return fmt.Errorf("unknown Settings field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SettingsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._MainItem != nil {
+		edges = append(edges, settings.EdgeMainItem)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SettingsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case settings.EdgeMainItem:
+		if id := m._MainItem; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SettingsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SettingsMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SettingsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_MainItem {
+		edges = append(edges, settings.EdgeMainItem)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SettingsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case settings.EdgeMainItem:
+		return m.cleared_MainItem
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SettingsMutation) ClearEdge(name string) error {
+	switch name {
+	case settings.EdgeMainItem:
+		m.ClearMainItem()
+		return nil
+	}
+	return fmt.Errorf("unknown Settings unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SettingsMutation) ResetEdge(name string) error {
+	switch name {
+	case settings.EdgeMainItem:
+		m.ResetMainItem()
+		return nil
+	}
+	return fmt.Errorf("unknown Settings edge %s", name)
 }
 
 // VendorMutation represents an operation that mutates the Vendor nodes in the graph.

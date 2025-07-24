@@ -14,6 +14,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/utils"
 
@@ -310,7 +311,7 @@ func setMaxOrderAmount(t *testing.T, amount int) {
 
 	// Check if maxOrderAmount is set
 	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
-	var settings database.Settings
+	var settings *ent.Settings
 	err := json.Unmarshal(res.Body.Bytes(), &settings)
 	utils.CheckError(t, err)
 	require.Equal(t, amount, settings.MaxOrderAmount)
@@ -811,7 +812,7 @@ func TestSettings(t *testing.T) {
 	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200, adminUserToken)
 
 	// Read
-	var settings database.Settings
+	var settings *ent.Settings
 	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
 	err := json.Unmarshal(res.Body.Bytes(), &settings)
 	utils.CheckError(t, err)
@@ -819,8 +820,8 @@ func TestSettings(t *testing.T) {
 	require.Equal(t, 10, settings.MaxOrderAmount)
 
 	// Check item join
-	require.Equal(t, "Test main item", settings.MainItemName.String)
-	require.Equal(t, int64(314), settings.MainItemPrice.Int64)
+	require.Equal(t, "Test main item", settings.Edges.MainItem.Name)
+	require.Equal(t, int64(314), settings.Edges.MainItem.Price)
 
 	// Check file
 	dir, err := os.Getwd()

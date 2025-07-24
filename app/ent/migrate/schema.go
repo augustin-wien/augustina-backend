@@ -32,6 +32,37 @@ var (
 			},
 		},
 	}
+	// ItemColumns holds the columns for the "item" table.
+	ItemColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "price", Type: field.TypeFloat64},
+		{Name: "image", Type: field.TypeString},
+		{Name: "archived", Type: field.TypeBool, Default: false},
+		{Name: "islicenseitem", Type: field.TypeBool, Default: false},
+		{Name: "licensegroup", Type: field.TypeString, Default: "default"},
+		{Name: "ispdfitem", Type: field.TypeBool, Default: false},
+		{Name: "pdf", Type: field.TypeString, Default: ""},
+		{Name: "itemorder", Type: field.TypeInt, Default: 0},
+		{Name: "itemcolor", Type: field.TypeString, Default: "#FFFFFF"},
+		{Name: "itemtextcolor", Type: field.TypeString, Default: "#000000"},
+		{Name: "licenseitem", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// ItemTable holds the schema information for the "item" table.
+	ItemTable = &schema.Table{
+		Name:       "item",
+		Columns:    ItemColumns,
+		PrimaryKey: []*schema.Column{ItemColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "item_item_LicenseItem",
+				Columns:    []*schema.Column{ItemColumns[13]},
+				RefColumns: []*schema.Column{ItemColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// LocationsColumns holds the columns for the "locations" table.
 	LocationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -53,6 +84,45 @@ var (
 				Symbol:     "locations_vendor_locations",
 				Columns:    []*schema.Column{LocationsColumns[7]},
 				RefColumns: []*schema.Column{VendorColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// SettingsColumns holds the columns for the "settings" table.
+	SettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "agburl", Type: field.TypeString, Default: "https://augustina.cc/agb"},
+		{Name: "color", Type: field.TypeString, Default: "#000000"},
+		{Name: "fontcolor", Type: field.TypeString, Default: "#FFFFFF"},
+		{Name: "logo", Type: field.TypeString, Default: "https://augustina.cc/logo.png"},
+		{Name: "maxorderamount", Type: field.TypeInt, Default: 10000},
+		{Name: "orgacoverstransactioncosts", Type: field.TypeBool, Default: true},
+		{Name: "webshopisclosed", Type: field.TypeBool, Default: false},
+		{Name: "vendornotfoundhelpurl", Type: field.TypeString, Default: "https://augustina.cc/help/vendor-not-found"},
+		{Name: "maintainancemodehelpurl", Type: field.TypeString, Default: "https://augustina.cc/help/maintenance-mode"},
+		{Name: "vendoremailpostfix", Type: field.TypeString, Default: "@augustina.cc"},
+		{Name: "newspapername", Type: field.TypeString, Default: "Augustina"},
+		{Name: "qrcodeurl", Type: field.TypeString, Default: "https://augustina.cc/qrcode"},
+		{Name: "qrcodelogoimgurl", Type: field.TypeString, Default: "https://augustina.cc/qrcode/logo.png"},
+		{Name: "mapcenterlat", Type: field.TypeFloat64, Default: 48.2082},
+		{Name: "mapcenterlong", Type: field.TypeFloat64, Default: 16.3738},
+		{Name: "usevendorlicenseidinshop", Type: field.TypeBool, Default: false},
+		{Name: "favicon", Type: field.TypeString, Default: "https://augustina.cc/favicon.ico"},
+		{Name: "qrcodesettings", Type: field.TypeString, Default: "{\"dotsOptions\":{\"color\":\"#000\",\"type\":\"dots\"},\"backgroundOptions\":{\"color\":\"#fff\"},\"imageOptions\":{\"hideBackgroundDots\":false,\"imageSize\":0.5,\"crossOrigin\":\"anonymous\",\"margin\":0},\"cornerSquareOptions\":{\"type\":\"dot\",\"color\":\"#000\"},\"cornersDotOptions\":{\"type\":\"dot\",\"color\":\"#000\"},\"qrCodeOptions\":{\"typeNumber\":0,\"mode\":\"Byte\",\"errorCorrectionLevel\":\"H\"}}"},
+		{Name: "qrcodeenablelogo", Type: field.TypeBool, Default: false},
+		{Name: "usetipinsteadofdonation", Type: field.TypeBool, Default: false},
+		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
+	}
+	// SettingsTable holds the schema information for the "settings" table.
+	SettingsTable = &schema.Table{
+		Name:       "settings",
+		Columns:    SettingsColumns,
+		PrimaryKey: []*schema.Column{SettingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "settings_item_MainItem",
+				Columns:    []*schema.Column{SettingsColumns[21]},
+				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -88,14 +158,21 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CommentsTable,
+		ItemTable,
 		LocationsTable,
+		SettingsTable,
 		VendorTable,
 	}
 )
 
 func init() {
 	CommentsTable.ForeignKeys[0].RefTable = VendorTable
+	ItemTable.ForeignKeys[0].RefTable = ItemTable
+	ItemTable.Annotation = &entsql.Annotation{
+		Table: "item",
+	}
 	LocationsTable.ForeignKeys[0].RefTable = VendorTable
+	SettingsTable.ForeignKeys[0].RefTable = ItemTable
 	VendorTable.Annotation = &entsql.Annotation{
 		Table: "vendor",
 	}

@@ -3,8 +3,10 @@
 package ent
 
 import (
+	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/schema"
+	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
 
@@ -12,6 +14,60 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	itemFields := schema.Item{}.Fields()
+	_ = itemFields
+	// itemDescName is the schema descriptor for Name field.
+	itemDescName := itemFields[1].Descriptor()
+	// item.NameValidator is a validator for the "Name" field. It is called by the builders before save.
+	item.NameValidator = itemDescName.Validators[0].(func(string) error)
+	// itemDescDescription is the schema descriptor for Description field.
+	itemDescDescription := itemFields[2].Descriptor()
+	// item.DescriptionValidator is a validator for the "Description" field. It is called by the builders before save.
+	item.DescriptionValidator = itemDescDescription.Validators[0].(func(string) error)
+	// itemDescPrice is the schema descriptor for Price field.
+	itemDescPrice := itemFields[3].Descriptor()
+	// item.PriceValidator is a validator for the "Price" field. It is called by the builders before save.
+	item.PriceValidator = itemDescPrice.Validators[0].(func(float64) error)
+	// itemDescImage is the schema descriptor for Image field.
+	itemDescImage := itemFields[4].Descriptor()
+	// item.ImageValidator is a validator for the "Image" field. It is called by the builders before save.
+	item.ImageValidator = itemDescImage.Validators[0].(func(string) error)
+	// itemDescArchived is the schema descriptor for Archived field.
+	itemDescArchived := itemFields[5].Descriptor()
+	// item.DefaultArchived holds the default value on creation for the Archived field.
+	item.DefaultArchived = itemDescArchived.Default.(bool)
+	// itemDescIsLicenseItem is the schema descriptor for IsLicenseItem field.
+	itemDescIsLicenseItem := itemFields[6].Descriptor()
+	// item.DefaultIsLicenseItem holds the default value on creation for the IsLicenseItem field.
+	item.DefaultIsLicenseItem = itemDescIsLicenseItem.Default.(bool)
+	// itemDescLicenseGroup is the schema descriptor for LicenseGroup field.
+	itemDescLicenseGroup := itemFields[7].Descriptor()
+	// item.DefaultLicenseGroup holds the default value on creation for the LicenseGroup field.
+	item.DefaultLicenseGroup = itemDescLicenseGroup.Default.(string)
+	// itemDescIsPDFItem is the schema descriptor for IsPDFItem field.
+	itemDescIsPDFItem := itemFields[8].Descriptor()
+	// item.DefaultIsPDFItem holds the default value on creation for the IsPDFItem field.
+	item.DefaultIsPDFItem = itemDescIsPDFItem.Default.(bool)
+	// itemDescPDF is the schema descriptor for PDF field.
+	itemDescPDF := itemFields[9].Descriptor()
+	// item.DefaultPDF holds the default value on creation for the PDF field.
+	item.DefaultPDF = itemDescPDF.Default.(string)
+	// itemDescItemOrder is the schema descriptor for ItemOrder field.
+	itemDescItemOrder := itemFields[10].Descriptor()
+	// item.DefaultItemOrder holds the default value on creation for the ItemOrder field.
+	item.DefaultItemOrder = itemDescItemOrder.Default.(int)
+	// itemDescItemColor is the schema descriptor for ItemColor field.
+	itemDescItemColor := itemFields[11].Descriptor()
+	// item.DefaultItemColor holds the default value on creation for the ItemColor field.
+	item.DefaultItemColor = itemDescItemColor.Default.(string)
+	// itemDescItemTextColor is the schema descriptor for ItemTextColor field.
+	itemDescItemTextColor := itemFields[12].Descriptor()
+	// item.DefaultItemTextColor holds the default value on creation for the ItemTextColor field.
+	item.DefaultItemTextColor = itemDescItemTextColor.Default.(string)
+	// itemDescID is the schema descriptor for id field.
+	itemDescID := itemFields[0].Descriptor()
+	// item.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	item.IDValidator = itemDescID.Validators[0].(func(int) error)
 	locationFields := schema.Location{}.Fields()
 	_ = locationFields
 	// locationDescLongitude is the schema descriptor for longitude field.
@@ -26,6 +82,92 @@ func init() {
 	locationDescID := locationFields[0].Descriptor()
 	// location.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	location.IDValidator = locationDescID.Validators[0].(func(int) error)
+	settingsFields := schema.Settings{}.Fields()
+	_ = settingsFields
+	// settingsDescAGBUrl is the schema descriptor for AGBUrl field.
+	settingsDescAGBUrl := settingsFields[1].Descriptor()
+	// settings.DefaultAGBUrl holds the default value on creation for the AGBUrl field.
+	settings.DefaultAGBUrl = settingsDescAGBUrl.Default.(string)
+	// settingsDescColor is the schema descriptor for Color field.
+	settingsDescColor := settingsFields[2].Descriptor()
+	// settings.DefaultColor holds the default value on creation for the Color field.
+	settings.DefaultColor = settingsDescColor.Default.(string)
+	// settingsDescFontColor is the schema descriptor for FontColor field.
+	settingsDescFontColor := settingsFields[3].Descriptor()
+	// settings.DefaultFontColor holds the default value on creation for the FontColor field.
+	settings.DefaultFontColor = settingsDescFontColor.Default.(string)
+	// settingsDescLogo is the schema descriptor for Logo field.
+	settingsDescLogo := settingsFields[4].Descriptor()
+	// settings.DefaultLogo holds the default value on creation for the Logo field.
+	settings.DefaultLogo = settingsDescLogo.Default.(string)
+	// settingsDescMaxOrderAmount is the schema descriptor for MaxOrderAmount field.
+	settingsDescMaxOrderAmount := settingsFields[5].Descriptor()
+	// settings.DefaultMaxOrderAmount holds the default value on creation for the MaxOrderAmount field.
+	settings.DefaultMaxOrderAmount = settingsDescMaxOrderAmount.Default.(int)
+	// settingsDescOrgaCoversTransactionCosts is the schema descriptor for OrgaCoversTransactionCosts field.
+	settingsDescOrgaCoversTransactionCosts := settingsFields[6].Descriptor()
+	// settings.DefaultOrgaCoversTransactionCosts holds the default value on creation for the OrgaCoversTransactionCosts field.
+	settings.DefaultOrgaCoversTransactionCosts = settingsDescOrgaCoversTransactionCosts.Default.(bool)
+	// settingsDescWebshopIsClosed is the schema descriptor for WebshopIsClosed field.
+	settingsDescWebshopIsClosed := settingsFields[7].Descriptor()
+	// settings.DefaultWebshopIsClosed holds the default value on creation for the WebshopIsClosed field.
+	settings.DefaultWebshopIsClosed = settingsDescWebshopIsClosed.Default.(bool)
+	// settingsDescVendorNotFoundHelpUrl is the schema descriptor for VendorNotFoundHelpUrl field.
+	settingsDescVendorNotFoundHelpUrl := settingsFields[8].Descriptor()
+	// settings.DefaultVendorNotFoundHelpUrl holds the default value on creation for the VendorNotFoundHelpUrl field.
+	settings.DefaultVendorNotFoundHelpUrl = settingsDescVendorNotFoundHelpUrl.Default.(string)
+	// settingsDescMaintainanceModeHelpUrl is the schema descriptor for MaintainanceModeHelpUrl field.
+	settingsDescMaintainanceModeHelpUrl := settingsFields[9].Descriptor()
+	// settings.DefaultMaintainanceModeHelpUrl holds the default value on creation for the MaintainanceModeHelpUrl field.
+	settings.DefaultMaintainanceModeHelpUrl = settingsDescMaintainanceModeHelpUrl.Default.(string)
+	// settingsDescVendorEmailPostfix is the schema descriptor for VendorEmailPostfix field.
+	settingsDescVendorEmailPostfix := settingsFields[10].Descriptor()
+	// settings.DefaultVendorEmailPostfix holds the default value on creation for the VendorEmailPostfix field.
+	settings.DefaultVendorEmailPostfix = settingsDescVendorEmailPostfix.Default.(string)
+	// settingsDescNewspaperName is the schema descriptor for NewspaperName field.
+	settingsDescNewspaperName := settingsFields[11].Descriptor()
+	// settings.DefaultNewspaperName holds the default value on creation for the NewspaperName field.
+	settings.DefaultNewspaperName = settingsDescNewspaperName.Default.(string)
+	// settingsDescQRCodeUrl is the schema descriptor for QRCodeUrl field.
+	settingsDescQRCodeUrl := settingsFields[12].Descriptor()
+	// settings.DefaultQRCodeUrl holds the default value on creation for the QRCodeUrl field.
+	settings.DefaultQRCodeUrl = settingsDescQRCodeUrl.Default.(string)
+	// settingsDescQRCodeLogoImgUrl is the schema descriptor for QRCodeLogoImgUrl field.
+	settingsDescQRCodeLogoImgUrl := settingsFields[13].Descriptor()
+	// settings.DefaultQRCodeLogoImgUrl holds the default value on creation for the QRCodeLogoImgUrl field.
+	settings.DefaultQRCodeLogoImgUrl = settingsDescQRCodeLogoImgUrl.Default.(string)
+	// settingsDescMapCenterLat is the schema descriptor for MapCenterLat field.
+	settingsDescMapCenterLat := settingsFields[14].Descriptor()
+	// settings.DefaultMapCenterLat holds the default value on creation for the MapCenterLat field.
+	settings.DefaultMapCenterLat = settingsDescMapCenterLat.Default.(float64)
+	// settingsDescMapCenterLong is the schema descriptor for MapCenterLong field.
+	settingsDescMapCenterLong := settingsFields[15].Descriptor()
+	// settings.DefaultMapCenterLong holds the default value on creation for the MapCenterLong field.
+	settings.DefaultMapCenterLong = settingsDescMapCenterLong.Default.(float64)
+	// settingsDescUseVendorLicenseIdInShop is the schema descriptor for UseVendorLicenseIdInShop field.
+	settingsDescUseVendorLicenseIdInShop := settingsFields[16].Descriptor()
+	// settings.DefaultUseVendorLicenseIdInShop holds the default value on creation for the UseVendorLicenseIdInShop field.
+	settings.DefaultUseVendorLicenseIdInShop = settingsDescUseVendorLicenseIdInShop.Default.(bool)
+	// settingsDescFavicon is the schema descriptor for Favicon field.
+	settingsDescFavicon := settingsFields[17].Descriptor()
+	// settings.DefaultFavicon holds the default value on creation for the Favicon field.
+	settings.DefaultFavicon = settingsDescFavicon.Default.(string)
+	// settingsDescQRCodeSettings is the schema descriptor for QRCodeSettings field.
+	settingsDescQRCodeSettings := settingsFields[18].Descriptor()
+	// settings.DefaultQRCodeSettings holds the default value on creation for the QRCodeSettings field.
+	settings.DefaultQRCodeSettings = settingsDescQRCodeSettings.Default.(string)
+	// settingsDescQRCodeEnableLogo is the schema descriptor for QRCodeEnableLogo field.
+	settingsDescQRCodeEnableLogo := settingsFields[19].Descriptor()
+	// settings.DefaultQRCodeEnableLogo holds the default value on creation for the QRCodeEnableLogo field.
+	settings.DefaultQRCodeEnableLogo = settingsDescQRCodeEnableLogo.Default.(bool)
+	// settingsDescUseTipInsteadOfDonation is the schema descriptor for UseTipInsteadOfDonation field.
+	settingsDescUseTipInsteadOfDonation := settingsFields[20].Descriptor()
+	// settings.DefaultUseTipInsteadOfDonation holds the default value on creation for the UseTipInsteadOfDonation field.
+	settings.DefaultUseTipInsteadOfDonation = settingsDescUseTipInsteadOfDonation.Default.(bool)
+	// settingsDescID is the schema descriptor for id field.
+	settingsDescID := settingsFields[0].Descriptor()
+	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	settings.IDValidator = settingsDescID.Validators[0].(func(int) error)
 	vendorFields := schema.Vendor{}.Fields()
 	_ = vendorFields
 	// vendorDescLicenseid is the schema descriptor for licenseid field.

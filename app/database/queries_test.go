@@ -67,11 +67,13 @@ func Test_GetHelloWorld(t *testing.T) {
 
 func Test_UpdateSettings(t *testing.T) {
 	// Define settings
-	err := Db.UpdateSettings(Settings{
-		Color: "red",
-		Logo:  "/img/Augustin-Logo-Rechteck.jpg",
-	},
-	)
+	settings, err := Db.GetSettings()
+	if err != nil {
+		t.Errorf("GetSettings failed: %v\n", err)
+	}
+	settings.Color = "red"
+	settings.Logo = "/img/Augustin-Logo-Rechteck.jpg"
+	err = Db.UpdateSettings(settings)
 
 	if err != nil {
 		t.Errorf("UpdateSettings failed: %v\n", err)

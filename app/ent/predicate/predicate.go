@@ -9,8 +9,14 @@ import (
 // Comment is the predicate function for comment builders.
 type Comment func(*sql.Selector)
 
+// Item is the predicate function for item builders.
+type Item func(*sql.Selector)
+
 // Location is the predicate function for location builders.
 type Location func(*sql.Selector)
+
+// Settings is the predicate function for settings builders.
+type Settings func(*sql.Selector)
 
 // Vendor is the predicate function for vendor builders.
 type Vendor func(*sql.Selector)
