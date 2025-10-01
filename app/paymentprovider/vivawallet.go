@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/augustin-wien/augustina-backend/ent"
+
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/integrations"
@@ -522,7 +524,7 @@ func CreateTransactionCostEntries(order database.Order, transactionCosts int, pa
 		return err
 	}
 
-	var settings database.Settings
+	var settings *ent.Settings
 	settings, err = database.Db.GetSettings()
 	if err != nil {
 		log.Error("Getting settings failed: ", err)

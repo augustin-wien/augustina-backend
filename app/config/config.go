@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var version = "1.0.11-764557f"
+var version = "1.0.15-ab33bfe"
 
 type config struct {
 	Version                           string
@@ -46,6 +46,7 @@ type config struct {
 	SMTPSsl                           bool
 	SentryDSN                         string
 	FlourWebhookURL                   string
+	DEBUG_payments                    bool // For debugging purposes, not used in production
 }
 
 // Config is the global configuration variable
@@ -99,6 +100,7 @@ func InitConfig() {
 		FrontendURL:                       getEnv("FRONTEND_URL", ""),
 		SentryDSN:                         getEnv("SENTRY_DSN", ""),
 		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),
+		DEBUG_payments:                    (getEnv("DEBUG_payments", "false") == "true"),
 	}
 }
 

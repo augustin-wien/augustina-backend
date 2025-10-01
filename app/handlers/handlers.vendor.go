@@ -194,6 +194,11 @@ func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	vendor, err = database.Db.GetVendorWithBalanceUpdate(vendor.ID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 
 	// Get open payments of vendor from database
 	minDate := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)

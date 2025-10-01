@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/ent"
 
 	"go.uber.org/zap"
 	"gopkg.in/guregu/null.v4"
@@ -82,11 +83,13 @@ func (db *Database) InitiateItems() (err error) {
 
 // UpdateInitialSettings creates test settings for the application
 func (db *Database) UpdateInitialSettings() (err error) {
-	settings := Settings{
-		Color:                      "#F45793",
-		FontColor:                  "#FFFFFF",
-		Logo:                       "img/logo.png",
-		MainItem:                   null.IntFrom(1),
+	settings := ent.Settings{
+		Color:     "#F45793",
+		FontColor: "#FFFFFF",
+		Logo:      "img/logo.png",
+		Edges: ent.SettingsEdges{MainItem: &ent.Item{
+			ID: 1,
+		}},
 		MaxOrderAmount:             5000,
 		OrgaCoversTransactionCosts: true,
 		VendorEmailPostfix:         "@example.com",
@@ -101,7 +104,7 @@ func (db *Database) UpdateInitialSettings() (err error) {
 		VendorNotFoundHelpUrl:      "https://example.com/vendornotfound",
 	}
 
-	err = db.UpdateSettings(settings)
+	err = db.UpdateSettings(&settings)
 	if err != nil {
 		log.Error("InitiateSettings creation failed ", zap.Error(err))
 	}

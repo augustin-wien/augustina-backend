@@ -14,8 +14,12 @@ type Tx struct {
 	config
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
+	// Item is the client for interacting with the Item builders.
+	Item *ItemClient
 	// Location is the client for interacting with the Location builders.
 	Location *LocationClient
+	// Settings is the client for interacting with the Settings builders.
+	Settings *SettingsClient
 	// Vendor is the client for interacting with the Vendor builders.
 	Vendor *VendorClient
 
@@ -150,7 +154,9 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Comment = NewCommentClient(tx.config)
+	tx.Item = NewItemClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
+	tx.Settings = NewSettingsClient(tx.config)
 	tx.Vendor = NewVendorClient(tx.config)
 }
 

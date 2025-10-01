@@ -92,3 +92,9 @@ func FileExists(path string) bool {
 func ToLower(s string) string {
 	return strings.ToLower(s)
 }
+
+func GenerateRandomNumber() int {
+	// Generate a random number between 100000 and 999999
+	rand.Seed(time.Now().UnixNano())
+	return rand.Intn(900000) + 100000
+}

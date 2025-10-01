@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -643,7 +644,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	order.Vendor = vendor.ID
 
-	var settings database.Settings
+	var settings *ent.Settings
 	if settings, err = database.Db.GetSettings(); err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -746,11 +747,16 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
-		OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order, requestData.VendorLicenseID)
-		if err != nil {
-			log.Errorf("Creating payment order failed for %+v with order id %+v failed", requestData.VendorLicenseID, order.ID, err)
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
+		if config.Config.DEBUG_payments {
+			log.Info("DEBUG_payments is enabled, skipping payment order creation")
+			OrderCode = utils.GenerateRandomNumber() // Set OrderCode to a random number for testing purposes
+		} else {
+			OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order, requestData.VendorLicenseID)
+			if err != nil {
+				log.Errorf("Creating payment order failed for %+v with order id %+v failed", requestData.VendorLicenseID, order.ID, err)
+				utils.ErrorJSON(w, err, http.StatusBadRequest)
+				return
+			}
 		}
 	}
 
@@ -771,7 +777,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Create response
 	checkoutURL := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
-
+	if config.Config.DEBUG_payments {
+		log.Info("DEBUG_payments is enabled, using test URL")
+		checkoutURL = "http://localhost:5173/success?t=" + strconv.Itoa(OrderCode) + "&s=" + strconv.Itoa(OrderCode) + "&lang=en-GB&eventId=0&eci=1"
+	}
 	// Add color code to URL
 	if settings.Color == "" {
 		log.Info("Color code is not set")
@@ -845,7 +854,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if database.Db.IsProduction && !config.Config.Development {
+	if database.Db.IsProduction && !config.Config.Development && !config.Config.DEBUG_payments {
 		// Verify transaction
 		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
 		if err != nil {
@@ -938,6 +947,20 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 	minDateRaw := r.URL.Query().Get("from")
 	maxDateRaw := r.URL.Query().Get("to")
 	vendor := r.URL.Query().Get("vendor")
+	var vendorObj database.Vendor
+	// check if vendor exists
+	if vendor != "" {
+		v, err := database.Db.GetVendorByLicenseID(vendor)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		vendorObj, err = database.Db.GetVendorWithBalanceUpdate(v.ID)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
 	var minDate, maxDate time.Time
 	if minDateRaw != "" {
 		minDate, err = time.Parse(time.RFC3339, minDateRaw)
@@ -952,7 +975,15 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	payments, err := database.Db.ListPaymentsForPayout(minDate, maxDate, vendor)
-	respond(w, err, payments)
+	type paymentsResponse struct {
+		Payments []database.Payment `json:"payments"`
+		Balance  int                `json:"balance"`
+	}
+	response := paymentsResponse{
+		Payments: payments,
+		Balance:  vendorObj.Balance,
+	}
+	respond(w, err, response)
 }
 
 // ListPayments godoc
@@ -1414,7 +1445,7 @@ type KeycloakSettings struct {
 	URL   string
 }
 type ExtendedSettings struct {
-	database.Settings
+	Settings *ent.Settings
 	Keycloak KeycloakSettings
 }
 
@@ -1442,7 +1473,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 			URL:   config.Config.KeycloakHostname,
 		},
 	}
-	err = utils.WriteJSON(w, http.StatusOK, exSettings)
+	err = utils.WriteJSON(w, http.StatusOK, &exSettings)
 	if err != nil {
 		log.Error("getSettings: ", err)
 	}
@@ -1545,7 +1576,12 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Handle normal fields
-	var settings database.Settings
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		log.Error("updateSettings: get settings: ", err)
+		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+		return
+	}
 	fields := mForm.Value               // Values are stored in []string
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
@@ -1584,7 +1620,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("MainItem is not an integer"), http.StatusBadRequest)
 				return
 			}
-			fieldsClean[key] = null.NewInt(int64(value), true)
+			fieldsClean[key] = int(value)
 		} else if key == "MapCenterLat" || key == "MapCenterLong" {
 			if s, err := strconv.ParseFloat(value[0], 64); err == nil {
 				fieldsClean[key] = (s)
@@ -1598,6 +1634,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("UseVendorLicenseIdInShop is not a boolean"), http.StatusBadRequest)
 				return
 			}
+		} else if key == "UseTipInsteadOfDonation" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("UseTipInsteadOfDonation is not a boolean")
+				utils.ErrorJSON(w, errors.New("UseTipInsteadOfDonation is not a boolean"), http.StatusBadRequest)
+				return
+			}
 		} else {
 			fieldsClean[key] = value[0]
 		}
@@ -1609,6 +1652,17 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
+	log.Debug("updateSettings: settings are ", settings)
+	// Update main item
+	var mainItem ent.Item
+	if mainItemID, ok := fieldsClean["MainItem"].(int); ok {
+		mainItem.ID = mainItemID
+	} else {
+		mainItem.ID = 1 // set default value
+		log.Warn("updateSettings: MainItem not set, using default value 1")
+
+	}
+	settings.Edges.MainItem = &mainItem
 	// update the logo
 	logoPath, err := updateSettingsImg(w, r, ImagetypeLogo)
 	if err != nil {

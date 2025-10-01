@@ -13,7 +13,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
+	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
 
@@ -76,7 +78,9 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			comment.Table:  comment.ValidColumn,
+			item.Table:     item.ValidColumn,
 			location.Table: location.ValidColumn,
+			settings.Table: settings.ValidColumn,
 			vendor.Table:   vendor.ValidColumn,
 		})
 	})
