@@ -45,6 +45,7 @@ func sendJSONToFlourWebhook(payload interface{}) error {
 		// Create a new HTTP request
 		req, err := http.NewRequest("POST", flourwebhookEndpoint, bytes.NewBuffer(jsonData))
 		if err != nil {
+			log.Errorf("sendJSONToFlourWebhook: Failed to create request: %v\n", err)
 			return fmt.Errorf("failed to create request: %v", err)
 		}
 		req.Header.Set("Content-Type", "application/json")
@@ -53,17 +54,17 @@ func sendJSONToFlourWebhook(payload interface{}) error {
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			log.Infof("sendJSONToFlourWebhook: Request failed: %v\n", err)
+			log.Errorf("sendJSONToFlourWebhook: Request failed: %v\n", err)
 		} else {
 			defer resp.Body.Close()
 
 			// Check for 200 OK status
-			if resp.StatusCode == http.StatusOK {
+			if resp.StatusCode == http.StatusOK || resp.StatusCode == 201 {
 				log.Info("sendJSONToFlourWebhook: Successfully sent flour JSON payload")
 				return nil
 			}
 
-			log.Infof("Received non-200 response: %d\n", resp.StatusCode)
+			log.Infof("sendJSONToFlourWebhook: Received non-200 response: %d\n", resp.StatusCode)
 		}
 
 		// Check if we've exceeded the retry limit
@@ -117,7 +118,7 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 	// Send the payload to the webhook
 	err := sendJSONToFlourWebhook(payload)
 	if err != nil {
-		log.Infof("Failed to send JSON to flour: %v\n", err)
+		log.Errorf("Failed to send JSON to flour: %v\n", err)
 	}
 	return err
 }
