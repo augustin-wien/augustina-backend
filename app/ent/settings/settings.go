@@ -52,6 +52,8 @@ const (
 	FieldQRCodeEnableLogo = "qrcodeenablelogo"
 	// FieldUseTipInsteadOfDonation holds the string denoting the usetipinsteadofdonation field in the database.
 	FieldUseTipInsteadOfDonation = "usetipinsteadofdonation"
+	// FieldShopLanding holds the string denoting the shoplanding field in the database.
+	FieldShopLanding = "shoplanding"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -88,6 +90,7 @@ var Columns = []string{
 	FieldQRCodeSettings,
 	FieldQRCodeEnableLogo,
 	FieldUseTipInsteadOfDonation,
+	FieldShopLanding,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -152,6 +155,8 @@ var (
 	DefaultQRCodeEnableLogo bool
 	// DefaultUseTipInsteadOfDonation holds the default value on creation for the "UseTipInsteadOfDonation" field.
 	DefaultUseTipInsteadOfDonation bool
+	// DefaultShopLanding holds the default value on creation for the "ShopLanding" field.
+	DefaultShopLanding bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -262,6 +267,11 @@ func ByQRCodeEnableLogo(opts ...sql.OrderTermOption) OrderOption {
 // ByUseTipInsteadOfDonation orders the results by the UseTipInsteadOfDonation field.
 func ByUseTipInsteadOfDonation(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUseTipInsteadOfDonation, opts...).ToFunc()
+}
+
+// ByShopLanding orders the results by the ShopLanding field.
+func ByShopLanding(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShopLanding, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

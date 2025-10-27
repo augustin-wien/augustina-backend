@@ -329,6 +329,20 @@ func (su *SettingsUpdate) SetNillableUseTipInsteadOfDonation(b *bool) *SettingsU
 	return su
 }
 
+// SetShopLanding sets the "ShopLanding" field.
+func (su *SettingsUpdate) SetShopLanding(b bool) *SettingsUpdate {
+	su.mutation.SetShopLanding(b)
+	return su
+}
+
+// SetNillableShopLanding sets the "ShopLanding" field if the given value is not nil.
+func (su *SettingsUpdate) SetNillableShopLanding(b *bool) *SettingsUpdate {
+	if b != nil {
+		su.SetShopLanding(*b)
+	}
+	return su
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (su *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	su.mutation.SetMainItemID(id)
@@ -463,6 +477,9 @@ func (su *SettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := su.mutation.UseTipInsteadOfDonation(); ok {
 		_spec.SetField(settings.FieldUseTipInsteadOfDonation, field.TypeBool, value)
+	}
+	if value, ok := su.mutation.ShopLanding(); ok {
+		_spec.SetField(settings.FieldShopLanding, field.TypeBool, value)
 	}
 	if su.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -814,6 +831,20 @@ func (suo *SettingsUpdateOne) SetNillableUseTipInsteadOfDonation(b *bool) *Setti
 	return suo
 }
 
+// SetShopLanding sets the "ShopLanding" field.
+func (suo *SettingsUpdateOne) SetShopLanding(b bool) *SettingsUpdateOne {
+	suo.mutation.SetShopLanding(b)
+	return suo
+}
+
+// SetNillableShopLanding sets the "ShopLanding" field if the given value is not nil.
+func (suo *SettingsUpdateOne) SetNillableShopLanding(b *bool) *SettingsUpdateOne {
+	if b != nil {
+		suo.SetShopLanding(*b)
+	}
+	return suo
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (suo *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	suo.mutation.SetMainItemID(id)
@@ -978,6 +1009,9 @@ func (suo *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err
 	}
 	if value, ok := suo.mutation.UseTipInsteadOfDonation(); ok {
 		_spec.SetField(settings.FieldUseTipInsteadOfDonation, field.TypeBool, value)
+	}
+	if value, ok := suo.mutation.ShopLanding(); ok {
+		_spec.SetField(settings.FieldShopLanding, field.TypeBool, value)
 	}
 	if suo.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

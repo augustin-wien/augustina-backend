@@ -2425,6 +2425,7 @@ type SettingsMutation struct {
 	_QRCodeSettings             *string
 	_QRCodeEnableLogo           *bool
 	_UseTipInsteadOfDonation    *bool
+	_ShopLanding                *bool
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -3317,6 +3318,42 @@ func (m *SettingsMutation) ResetUseTipInsteadOfDonation() {
 	m._UseTipInsteadOfDonation = nil
 }
 
+// SetShopLanding sets the "ShopLanding" field.
+func (m *SettingsMutation) SetShopLanding(b bool) {
+	m._ShopLanding = &b
+}
+
+// ShopLanding returns the value of the "ShopLanding" field in the mutation.
+func (m *SettingsMutation) ShopLanding() (r bool, exists bool) {
+	v := m._ShopLanding
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShopLanding returns the old "ShopLanding" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldShopLanding(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShopLanding is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShopLanding requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShopLanding: %w", err)
+	}
+	return oldValue.ShopLanding, nil
+}
+
+// ResetShopLanding resets all changes to the "ShopLanding" field.
+func (m *SettingsMutation) ResetShopLanding() {
+	m._ShopLanding = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -3390,7 +3427,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -3451,6 +3488,9 @@ func (m *SettingsMutation) Fields() []string {
 	if m._UseTipInsteadOfDonation != nil {
 		fields = append(fields, settings.FieldUseTipInsteadOfDonation)
 	}
+	if m._ShopLanding != nil {
+		fields = append(fields, settings.FieldShopLanding)
+	}
 	return fields
 }
 
@@ -3499,6 +3539,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.QRCodeEnableLogo()
 	case settings.FieldUseTipInsteadOfDonation:
 		return m.UseTipInsteadOfDonation()
+	case settings.FieldShopLanding:
+		return m.ShopLanding()
 	}
 	return nil, false
 }
@@ -3548,6 +3590,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldQRCodeEnableLogo(ctx)
 	case settings.FieldUseTipInsteadOfDonation:
 		return m.OldUseTipInsteadOfDonation(ctx)
+	case settings.FieldShopLanding:
+		return m.OldShopLanding(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -3697,6 +3741,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUseTipInsteadOfDonation(v)
 		return nil
+	case settings.FieldShopLanding:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShopLanding(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -3844,6 +3895,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldUseTipInsteadOfDonation:
 		m.ResetUseTipInsteadOfDonation()
+		return nil
+	case settings.FieldShopLanding:
+		m.ResetShopLanding()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

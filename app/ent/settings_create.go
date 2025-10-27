@@ -300,6 +300,20 @@ func (sc *SettingsCreate) SetNillableUseTipInsteadOfDonation(b *bool) *SettingsC
 	return sc
 }
 
+// SetShopLanding sets the "ShopLanding" field.
+func (sc *SettingsCreate) SetShopLanding(b bool) *SettingsCreate {
+	sc.mutation.SetShopLanding(b)
+	return sc
+}
+
+// SetNillableShopLanding sets the "ShopLanding" field if the given value is not nil.
+func (sc *SettingsCreate) SetNillableShopLanding(b *bool) *SettingsCreate {
+	if b != nil {
+		sc.SetShopLanding(*b)
+	}
+	return sc
+}
+
 // SetID sets the "id" field.
 func (sc *SettingsCreate) SetID(i int) *SettingsCreate {
 	sc.mutation.SetID(i)
@@ -440,6 +454,10 @@ func (sc *SettingsCreate) defaults() {
 		v := settings.DefaultUseTipInsteadOfDonation
 		sc.mutation.SetUseTipInsteadOfDonation(v)
 	}
+	if _, ok := sc.mutation.ShopLanding(); !ok {
+		v := settings.DefaultShopLanding
+		sc.mutation.SetShopLanding(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -503,6 +521,9 @@ func (sc *SettingsCreate) check() error {
 	}
 	if _, ok := sc.mutation.UseTipInsteadOfDonation(); !ok {
 		return &ValidationError{Name: "UseTipInsteadOfDonation", err: errors.New(`ent: missing required field "Settings.UseTipInsteadOfDonation"`)}
+	}
+	if _, ok := sc.mutation.ShopLanding(); !ok {
+		return &ValidationError{Name: "ShopLanding", err: errors.New(`ent: missing required field "Settings.ShopLanding"`)}
 	}
 	if v, ok := sc.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -620,6 +641,10 @@ func (sc *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.UseTipInsteadOfDonation(); ok {
 		_spec.SetField(settings.FieldUseTipInsteadOfDonation, field.TypeBool, value)
 		_node.UseTipInsteadOfDonation = value
+	}
+	if value, ok := sc.mutation.ShopLanding(); ok {
+		_spec.SetField(settings.FieldShopLanding, field.TypeBool, value)
+		_node.ShopLanding = value
 	}
 	if nodes := sc.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

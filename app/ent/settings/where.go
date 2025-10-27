@@ -153,6 +153,11 @@ func UseTipInsteadOfDonation(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldUseTipInsteadOfDonation, v))
 }
 
+// ShopLanding applies equality check predicate on the "ShopLanding" field. It's identical to ShopLandingEQ.
+func ShopLanding(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldShopLanding, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1101,6 +1106,16 @@ func UseTipInsteadOfDonationEQ(v bool) predicate.Settings {
 // UseTipInsteadOfDonationNEQ applies the NEQ predicate on the "UseTipInsteadOfDonation" field.
 func UseTipInsteadOfDonationNEQ(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldNEQ(FieldUseTipInsteadOfDonation, v))
+}
+
+// ShopLandingEQ applies the EQ predicate on the "ShopLanding" field.
+func ShopLandingEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldShopLanding, v))
+}
+
+// ShopLandingNEQ applies the NEQ predicate on the "ShopLanding" field.
+func ShopLandingNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldShopLanding, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

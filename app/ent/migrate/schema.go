@@ -111,6 +111,7 @@ var (
 		{Name: "qrcodesettings", Type: field.TypeString, Default: "{\"dotsOptions\":{\"color\":\"#000\",\"type\":\"dots\"},\"backgroundOptions\":{\"color\":\"#fff\"},\"imageOptions\":{\"hideBackgroundDots\":false,\"imageSize\":0.5,\"crossOrigin\":\"anonymous\",\"margin\":0},\"cornerSquareOptions\":{\"type\":\"dot\",\"color\":\"#000\"},\"cornersDotOptions\":{\"type\":\"dot\",\"color\":\"#000\"},\"qrCodeOptions\":{\"typeNumber\":0,\"mode\":\"Byte\",\"errorCorrectionLevel\":\"H\"}}"},
 		{Name: "qrcodeenablelogo", Type: field.TypeBool, Default: false},
 		{Name: "usetipinsteadofdonation", Type: field.TypeBool, Default: false},
+		{Name: "shoplanding", Type: field.TypeBool, Default: false},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -121,7 +122,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[21]},
+				Columns:    []*schema.Column{SettingsColumns[22]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

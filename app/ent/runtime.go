@@ -164,6 +164,10 @@ func init() {
 	settingsDescUseTipInsteadOfDonation := settingsFields[20].Descriptor()
 	// settings.DefaultUseTipInsteadOfDonation holds the default value on creation for the UseTipInsteadOfDonation field.
 	settings.DefaultUseTipInsteadOfDonation = settingsDescUseTipInsteadOfDonation.Default.(bool)
+	// settingsDescShopLanding is the schema descriptor for ShopLanding field.
+	settingsDescShopLanding := settingsFields[21].Descriptor()
+	// settings.DefaultShopLanding holds the default value on creation for the ShopLanding field.
+	settings.DefaultShopLanding = settingsDescShopLanding.Default.(bool)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

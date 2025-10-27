@@ -72,7 +72,10 @@ func (Settings) Fields() []ent.Field {
 			Default(false),
 		field.Bool("UseTipInsteadOfDonation").
 			StorageKey("usetipinsteadofdonation").
-			Default(false), // New field for using tip instead of donation
+			Default(false),
+		field.Bool("ShopLanding").
+			StorageKey("shoplanding").
+			Default(false),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`
