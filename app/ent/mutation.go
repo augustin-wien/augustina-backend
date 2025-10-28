@@ -2426,6 +2426,7 @@ type SettingsMutation struct {
 	_QRCodeEnableLogo           *bool
 	_UseTipInsteadOfDonation    *bool
 	_ShopLanding                *bool
+	_DigitalItemsUrl            *string
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -3354,6 +3355,42 @@ func (m *SettingsMutation) ResetShopLanding() {
 	m._ShopLanding = nil
 }
 
+// SetDigitalItemsUrl sets the "DigitalItemsUrl" field.
+func (m *SettingsMutation) SetDigitalItemsUrl(s string) {
+	m._DigitalItemsUrl = &s
+}
+
+// DigitalItemsUrl returns the value of the "DigitalItemsUrl" field in the mutation.
+func (m *SettingsMutation) DigitalItemsUrl() (r string, exists bool) {
+	v := m._DigitalItemsUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDigitalItemsUrl returns the old "DigitalItemsUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldDigitalItemsUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDigitalItemsUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDigitalItemsUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDigitalItemsUrl: %w", err)
+	}
+	return oldValue.DigitalItemsUrl, nil
+}
+
+// ResetDigitalItemsUrl resets all changes to the "DigitalItemsUrl" field.
+func (m *SettingsMutation) ResetDigitalItemsUrl() {
+	m._DigitalItemsUrl = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -3427,7 +3464,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 22)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -3491,6 +3528,9 @@ func (m *SettingsMutation) Fields() []string {
 	if m._ShopLanding != nil {
 		fields = append(fields, settings.FieldShopLanding)
 	}
+	if m._DigitalItemsUrl != nil {
+		fields = append(fields, settings.FieldDigitalItemsUrl)
+	}
 	return fields
 }
 
@@ -3541,6 +3581,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.UseTipInsteadOfDonation()
 	case settings.FieldShopLanding:
 		return m.ShopLanding()
+	case settings.FieldDigitalItemsUrl:
+		return m.DigitalItemsUrl()
 	}
 	return nil, false
 }
@@ -3592,6 +3634,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldUseTipInsteadOfDonation(ctx)
 	case settings.FieldShopLanding:
 		return m.OldShopLanding(ctx)
+	case settings.FieldDigitalItemsUrl:
+		return m.OldDigitalItemsUrl(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -3748,6 +3792,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetShopLanding(v)
 		return nil
+	case settings.FieldDigitalItemsUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDigitalItemsUrl(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -3898,6 +3949,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldShopLanding:
 		m.ResetShopLanding()
+		return nil
+	case settings.FieldDigitalItemsUrl:
+		m.ResetDigitalItemsUrl()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

@@ -112,6 +112,7 @@ var (
 		{Name: "qrcodeenablelogo", Type: field.TypeBool, Default: false},
 		{Name: "usetipinsteadofdonation", Type: field.TypeBool, Default: false},
 		{Name: "shoplanding", Type: field.TypeBool, Default: false},
+		{Name: "digitalitemsurl", Type: field.TypeString, Default: "https://augustina.cc/digital-items"},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -122,7 +123,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[22]},
+				Columns:    []*schema.Column{SettingsColumns[23]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

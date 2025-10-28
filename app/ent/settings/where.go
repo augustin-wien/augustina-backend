@@ -158,6 +158,11 @@ func ShopLanding(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldShopLanding, v))
 }
 
+// DigitalItemsUrl applies equality check predicate on the "DigitalItemsUrl" field. It's identical to DigitalItemsUrlEQ.
+func DigitalItemsUrl(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldDigitalItemsUrl, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1116,6 +1121,71 @@ func ShopLandingEQ(v bool) predicate.Settings {
 // ShopLandingNEQ applies the NEQ predicate on the "ShopLanding" field.
 func ShopLandingNEQ(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldNEQ(FieldShopLanding, v))
+}
+
+// DigitalItemsUrlEQ applies the EQ predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlNEQ applies the NEQ predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlIn applies the In predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldDigitalItemsUrl, vs...))
+}
+
+// DigitalItemsUrlNotIn applies the NotIn predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldDigitalItemsUrl, vs...))
+}
+
+// DigitalItemsUrlGT applies the GT predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlGTE applies the GTE predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlLT applies the LT predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlLTE applies the LTE predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlContains applies the Contains predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlHasPrefix applies the HasPrefix predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlHasSuffix applies the HasSuffix predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlEqualFold applies the EqualFold predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldDigitalItemsUrl, v))
+}
+
+// DigitalItemsUrlContainsFold applies the ContainsFold predicate on the "DigitalItemsUrl" field.
+func DigitalItemsUrlContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldDigitalItemsUrl, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

@@ -343,6 +343,20 @@ func (su *SettingsUpdate) SetNillableShopLanding(b *bool) *SettingsUpdate {
 	return su
 }
 
+// SetDigitalItemsUrl sets the "DigitalItemsUrl" field.
+func (su *SettingsUpdate) SetDigitalItemsUrl(s string) *SettingsUpdate {
+	su.mutation.SetDigitalItemsUrl(s)
+	return su
+}
+
+// SetNillableDigitalItemsUrl sets the "DigitalItemsUrl" field if the given value is not nil.
+func (su *SettingsUpdate) SetNillableDigitalItemsUrl(s *string) *SettingsUpdate {
+	if s != nil {
+		su.SetDigitalItemsUrl(*s)
+	}
+	return su
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (su *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	su.mutation.SetMainItemID(id)
@@ -480,6 +494,9 @@ func (su *SettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := su.mutation.ShopLanding(); ok {
 		_spec.SetField(settings.FieldShopLanding, field.TypeBool, value)
+	}
+	if value, ok := su.mutation.DigitalItemsUrl(); ok {
+		_spec.SetField(settings.FieldDigitalItemsUrl, field.TypeString, value)
 	}
 	if su.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -845,6 +862,20 @@ func (suo *SettingsUpdateOne) SetNillableShopLanding(b *bool) *SettingsUpdateOne
 	return suo
 }
 
+// SetDigitalItemsUrl sets the "DigitalItemsUrl" field.
+func (suo *SettingsUpdateOne) SetDigitalItemsUrl(s string) *SettingsUpdateOne {
+	suo.mutation.SetDigitalItemsUrl(s)
+	return suo
+}
+
+// SetNillableDigitalItemsUrl sets the "DigitalItemsUrl" field if the given value is not nil.
+func (suo *SettingsUpdateOne) SetNillableDigitalItemsUrl(s *string) *SettingsUpdateOne {
+	if s != nil {
+		suo.SetDigitalItemsUrl(*s)
+	}
+	return suo
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (suo *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	suo.mutation.SetMainItemID(id)
@@ -1012,6 +1043,9 @@ func (suo *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err
 	}
 	if value, ok := suo.mutation.ShopLanding(); ok {
 		_spec.SetField(settings.FieldShopLanding, field.TypeBool, value)
+	}
+	if value, ok := suo.mutation.DigitalItemsUrl(); ok {
+		_spec.SetField(settings.FieldDigitalItemsUrl, field.TypeString, value)
 	}
 	if suo.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
