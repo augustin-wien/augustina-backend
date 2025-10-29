@@ -80,6 +80,8 @@ jobs:
         echo "Run migrations ..."
         ls -lah
         # Run the migrations
+        ./scripts/env_test.sh
+        echo "Checking for empty values in migration config ..."
         grep -nE '=[[:space:]]*$|=[[:space:]]*""[[:space:]]*$|:[[:space:]]*$' ./tern_test.conf || true
         tern migrate --config ./tern_test.conf
         echo "Migrations applied."
