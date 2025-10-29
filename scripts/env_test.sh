@@ -3,7 +3,7 @@ set -e
 
 # .env laden
 set -o allexport
-source .env
+source ./app/.env
 set +o allexport
 
 # Beispiel: Variablen nutzen

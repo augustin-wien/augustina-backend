@@ -70,6 +70,7 @@ jobs:
         echo "Running tests ..."
         echo "copying env file ..."
         cp .env.example ./app/.env
+        ./scripts/env_test.sh
         cd app
         cd migrations
 
@@ -80,7 +81,6 @@ jobs:
         echo "Run migrations ..."
         ls -lah
         # Run the migrations
-        ./scripts/env_test.sh
         echo "Checking for empty values in migration config ..."
         grep -nE '=[[:space:]]*$|=[[:space:]]*""[[:space:]]*$|:[[:space:]]*$' ./tern_test.conf || true
         tern migrate --config ./tern_test.conf
