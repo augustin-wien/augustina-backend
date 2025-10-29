@@ -119,7 +119,7 @@ func AdminAuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		if r.Header.Get("X-Auth-Roles-admin") == "" {
+		if r.Header.Get("X-Auth-Roles-admin") == "" && r.Header.Get("X-Auth-Roles-backoffice") == "" {
 			log.Infof("AdminAuthMiddleware: User %v has no admin role", r.Header.Get("X-Auth-User"))
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return

@@ -57,6 +57,10 @@ type Settings struct {
 	QRCodeEnableLogo bool `json:"QRCodeEnableLogo"`
 	// UseTipInsteadOfDonation holds the value of the "UseTipInsteadOfDonation" field.
 	UseTipInsteadOfDonation bool `json:"UseTipInsteadOfDonation"`
+	// ShopLanding holds the value of the "ShopLanding" field.
+	ShopLanding bool `json:"ShopLanding"`
+	// DigitalItemsUrl holds the value of the "DigitalItemsUrl" field.
+	DigitalItemsUrl string `json:"DigitalItemsUrl"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -89,13 +93,13 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
 		case settings.FieldID, settings.FieldMaxOrderAmount:
 			values[i] = new(sql.NullInt64)
-		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings:
+		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl:
 			values[i] = new(sql.NullString)
 		case settings.ForeignKeys[0]: // mainitem
 			values[i] = new(sql.NullInt64)
@@ -240,6 +244,18 @@ func (s *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.UseTipInsteadOfDonation = value.Bool
 			}
+		case settings.FieldShopLanding:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field ShopLanding", values[i])
+			} else if value.Valid {
+				s.ShopLanding = value.Bool
+			}
+		case settings.FieldDigitalItemsUrl:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field DigitalItemsUrl", values[i])
+			} else if value.Valid {
+				s.DigitalItemsUrl = value.String
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -347,6 +363,12 @@ func (s *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("UseTipInsteadOfDonation=")
 	builder.WriteString(fmt.Sprintf("%v", s.UseTipInsteadOfDonation))
+	builder.WriteString(", ")
+	builder.WriteString("ShopLanding=")
+	builder.WriteString(fmt.Sprintf("%v", s.ShopLanding))
+	builder.WriteString(", ")
+	builder.WriteString("DigitalItemsUrl=")
+	builder.WriteString(s.DigitalItemsUrl)
 	builder.WriteByte(')')
 	return builder.String()
 }

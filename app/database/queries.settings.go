@@ -63,6 +63,8 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetQRCodeSettings(settings.QRCodeSettings).
 		SetQRCodeEnableLogo(settings.QRCodeEnableLogo).
 		SetUseTipInsteadOfDonation(settings.UseTipInsteadOfDonation).
+		SetShopLanding(settings.ShopLanding).
+		SetDigitalItemsUrl(settings.DigitalItemsUrl).
 		Save(context.Background())
 	if err != nil {
 		log.Error("UpdateSettings: ", err)

@@ -62,11 +62,15 @@ func TestMain(m *testing.M) {
 	adminUser, err = keycloak.KeycloakClient.CreateUser("testadmin", "testadmin", "testadmin", adminUserEmail, "password")
 	if err != nil {
 		log.Errorf("TestMain: Create user failed testadmin: %v \n", err)
+		panic(err)
 	}
-	err = keycloak.KeycloakClient.AssignRole(adminUser, "admin")
+	log.Infof("TestMain: Created admin user %s \n", adminUserEmail)
+	err = keycloak.KeycloakClient.AssignRole(adminUser, "backoffice")
 	if err != nil {
-		log.Errorf("TestMain: Assign role failed: %v \n", err)
+		log.Errorf("TestMain: Assign backoffice role to user %s failed: %v \n", adminUser, err)
+		panic(err)
 	}
+	log.Infof("TestMain: Assigned backoffice role to user %s \n", adminUserEmail)
 	adminUserToken, err = keycloak.KeycloakClient.GetUserToken(adminUserEmail, "password")
 	if err != nil {
 		log.Errorf("TestMain: Login failed: %v \n", err)

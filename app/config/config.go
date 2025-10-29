@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var version = "1.0.16-ccf19ea"
+var version = "1.0.18-5dfc527"
 
 type config struct {
 	Version                           string
@@ -102,6 +102,18 @@ func InitConfig() {
 		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),
 		DEBUG_payments:                    (getEnv("DEBUG_payments", "false") == "true"),
 	}
+}
+
+// Validate checks required configuration values and returns an error if any
+// required value is missing or malformed.
+func (c config) Validate() error {
+	if c.Port == "" {
+		return fmt.Errorf("PORT must be set")
+	}
+	if c.FrontendURL == "" {
+		return fmt.Errorf("FRONTEND_URL must be set")
+	}
+	return nil
 }
 
 // Local copy of utils.GetEnv to avoid circular dependency

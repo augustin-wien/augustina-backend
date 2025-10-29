@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
 	"strconv"
 	"strings"
 
@@ -329,30 +328,30 @@ func CreatePaypalTransactionCosts(paymentSuccessful TransactionSuccessRequest, o
 	// Check TransactionTypeId here: https://developer.vivawallet.com/integration-reference/response-codes/#transactiontypeid-parameter
 	if paymentSuccessful.EventData.TransactionTypeID == config.Config.VivaWalletTransactionTypeIDPaypal {
 
-		// Check if PaypalPercentageCosts and PaypalFixCosts are set
-		if config.Config.PaypalPercentageCosts == 0 {
-			return errors.New("Env variable PaypalPercentageCosts is not set")
-		}
+		// // Check if PaypalPercentageCosts and PaypalFixCosts are set
+		// if config.Config.PaypalPercentageCosts == 0 {
+		// 	return errors.New("Env variable PaypalPercentageCosts is not set")
+		// }
 
-		if config.Config.PaypalFixCosts == 0 {
-			return errors.New("Env variable PaypalFixCosts is not set")
-		}
+		// if config.Config.PaypalFixCosts == 0 {
+		// 	return errors.New("Env variable PaypalFixCosts is not set")
+		// }
 
-		// Convert percentage to multiply it with total sum i.e. 0.05 for 5% transaction costs
-		convertedPercentageCosts := (config.Config.PaypalPercentageCosts) / 100
+		// // Convert percentage to multiply it with total sum i.e. 0.05 for 5% transaction costs
+		// convertedPercentageCosts := (config.Config.PaypalPercentageCosts) / 100
 
-		// Calculate transaction costs i.e. 0.034 * 100ct + 35 = 38.4ct
-		paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
+		// // Calculate transaction costs i.e. 0.034 * 100ct + 35 = 38.4ct
+		// paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
 
-		// Given after research that aypal rounds down on 3.4 ct to 3 ct we use math.Round
-		paypalAmount = math.Round(paypalAmount)
+		// // Given after research that Paypal rounds down on 3.4 ct to 3 ct we use math.Round
+		// paypalAmount = math.Round(paypalAmount)
 
-		// Create order entries for transaction costs
-		// WARNING: int() always rounds down in case you stop using math.Round
-		err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
-		if err != nil {
-			return err
-		}
+		// // Create order entries for transaction costs
+		// // WARNING: int() always rounds down in case you stop using math.Round
+		// err = CreateTransactionCostEntries(order, int(paypalAmount), "Paypal")
+		// if err != nil {
+		// 	return err
+		// }
 	}
 
 	return

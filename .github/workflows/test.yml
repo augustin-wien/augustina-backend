@@ -67,20 +67,25 @@ jobs:
 
     - name: Test
       run: |
+        echo "Running tests ..."
+        echo "copying env file ..."
         cp .env.example ./app/.env
-        ls -lah
+        ./scripts/env_test.sh
         cd app
         cd migrations
 
         # Remove the migration file to be excluded
         rm 011_trigger_add_prevent_dropping_and_deleting.sql 
-
         # Create a dummy table for migration 11 so the following migrations can run
         echo "CREATE TABLE Dummy (ID SERIAL PRIMARY KEY);" > 011_sample_dummy_table.sql
-
+        echo "Run migrations ..."
+        ls -lah
         # Run the migrations
+        echo "Checking for empty values in migration config ..."
+        grep -nE '=[[:space:]]*$|=[[:space:]]*""[[:space:]]*$|:[[:space:]]*$' ./tern_test.conf || true
         tern migrate --config ./tern_test.conf
-
+        echo "Migrations applied."
+        echo "Running tests ..."
         # Run the tests
         cd .. 
         go test ./... -p 1 -v -cover
