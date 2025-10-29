@@ -79,7 +79,7 @@ func updateSettingsImg(w http.ResponseWriter, r *http.Request, fileType Imagetyp
 	// Debugging
 	name := strings.Split(header.Filename, ".")
 	if len(name) < 2 {
-		log.Error("updateSettingsLogo: file name to short", err)
+		log.Error("updateSettingsLogo: file name too short", err)
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
 	}
@@ -207,7 +207,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		} else if key == "UseVendorLicenseIdInShop" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
-				log.Error("WebShopIsClosed is not a boolean")
+				log.Error("UseVendorLicenseIdInShop is not a boolean")
 				utils.ErrorJSON(w, errors.New("UseVendorLicenseIdInShop is not a boolean"), http.StatusBadRequest)
 				return
 			}
