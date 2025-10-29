@@ -104,6 +104,18 @@ func InitConfig() {
 	}
 }
 
+// Validate checks required configuration values and returns an error if any
+// required value is missing or malformed.
+func (c config) Validate() error {
+	if c.Port == "" {
+		return fmt.Errorf("PORT must be set")
+	}
+	if c.FrontendURL == "" {
+		return fmt.Errorf("FRONTEND_URL must be set")
+	}
+	return nil
+}
+
 // Local copy of utils.GetEnv to avoid circular dependency
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {

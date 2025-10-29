@@ -196,7 +196,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 		SetDebt(vendor.Debt).
 		Save(context.Background())
 	if err != nil {
-		log.Error("CreateVendor: create vendor %s %+v", vendor.Email, err)
+		log.Errorf("CreateVendor: create vendor %s %+v", vendor.Email, err)
 		return
 	}
 	vendorID = v.ID
@@ -205,10 +205,10 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 	// Create vendor account
 	_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, "Vendor", v.ID)
 	if err != nil {
-		log.Error("CreateVendor: create vendor account %s %+v", vendor.Email, err)
+		log.Errorf("CreateVendor: create vendor account %s %+v", vendor.Email, err)
 		return
 	}
-	log.Info("CreateVendor: created vendor %s", vendor.Email)
+	log.Infof("CreateVendor: created vendor %s", vendor.Email)
 
 	return
 }
@@ -224,8 +224,8 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 }
 
 // DeleteVendor deletes a user in the database and the associated account
-func (db *Database) DeleteVendor(vendorID int) (err error) { 
-	
+func (db *Database) DeleteVendor(vendorID int) (err error) {
+
 	ctx := context.Background()
 	v, err := db.EntClient.Vendor.Get(ctx, vendorID)
 	if err != nil {
@@ -233,11 +233,11 @@ func (db *Database) DeleteVendor(vendorID int) (err error) {
 		return
 	}
 
-    name := utils.RandomString(10)
+	name := utils.RandomString(10)
 	_, err = db.EntClient.Vendor.Update().
 		Where(entvendor.ID(vendorID)).
 		SetIsdeleted(true). // Update the isdeleted field
-		SetLicenseid("del_"+v.Licenseid+"_"+name).
+		SetLicenseid("del_" + v.Licenseid + "_" + name).
 		Save(ctx)
 	if err != nil {
 		log.Error("DeleteVendor: ", err)

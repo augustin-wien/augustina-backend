@@ -198,6 +198,7 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Assigning role %s to user %s\n", roleName, userID)
 	return k.Client.AddRealmRoleToUser(k.Context, k.clientToken.AccessToken, k.Realm, userID, []gocloak.Role{*role})
 }
 

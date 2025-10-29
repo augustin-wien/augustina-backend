@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"os"
+	"time"
 
 	_ "github.com/swaggo/files" // swagger embed files
 
@@ -20,12 +20,14 @@ import (
 func GetRouter() (r *chi.Mux) {
 	r = chi.NewRouter()
 	// Mount all Middleware here
+	// Add request IDs and logging middleware
+	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 
-	// Check that FRONTEND_URL environment variable is set
-	frontendURL := os.Getenv("FRONTEND_URL")
+	// Check that FRONTEND_URL is configured
+	frontendURL := config.Config.FrontendURL
 	if frontendURL == "" {
-		log.Fatal("FRONTEND_URL environment variable is not set")
+		log.Fatal("FRONTEND_URL is not set in config")
 	}
 
 	// Define allowed origins
@@ -52,7 +54,7 @@ func GetRouter() (r *chi.Mux) {
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.Timeout(60 * 1000000000)) // 60 seconds
+	r.Use(middleware.Timeout(60 * time.Second)) // 60 seconds
 		r.Use(middlewares.AuthMiddleware)
 		r.Get("/api/auth/hello/", HelloWorldAuth)
 	})
