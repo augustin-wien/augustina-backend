@@ -343,7 +343,7 @@ func CreatePaypalTransactionCosts(paymentSuccessful TransactionSuccessRequest, o
 		// // Calculate transaction costs i.e. 0.034 * 100ct + 35 = 38.4ct
 		// paypalAmount := convertedPercentageCosts*float64(order.GetTotal()) + config.Config.PaypalFixCosts
 
-		// // Given after research that aypal rounds down on 3.4 ct to 3 ct we use math.Round
+		// // Given after research that Paypal rounds down on 3.4 ct to 3 ct we use math.Round
 		// paypalAmount = math.Round(paypalAmount)
 
 		// // Create order entries for transaction costs
