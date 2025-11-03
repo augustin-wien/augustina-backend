@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+
 	"strconv"
 	"strings"
 	"time"
@@ -408,14 +409,13 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
 func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID int) (err error) {
-
+	log.Info("VerifyOrderAndCreatePayments: Verifying order ", orderID)
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())
 	if err != nil {
 		log.Error("VerifyOrderAndCreatePayments: Opening DBPool failed", err)
 		return err
 	}
-
 	defer func() { err = DeferTx(tx, err) }()
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
@@ -433,12 +433,15 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		log.Error("VerifyOrderAndCreatePayments: get order by id", orderID, err)
 		return err
 	}
+
 	if order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
+
 		for _, entry := range order.Entries {
 			item, err := db.GetItemTx(tx, entry.Item)
 			if err != nil {
 				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", orderID, err)
 			}
+
 			if item.LicenseItem.Valid {
 
 				if !item.IsPDFItem {
@@ -448,14 +451,17 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					if err != nil {
 						log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", orderID, err)
 					}
+
 					// add customer to customer group
 					err = keycloak.KeycloakClient.AssignGroup(customer, "customer")
 					if err != nil {
 						log.Error("VerifyOrderAndCreatePayments: failed to assign customer to group: ", orderID, err)
 					}
+
 					err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(customer, item.LicenseGroup.String)
 					if err != nil {
 						log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", orderID, err)
+
 					}
 					// Send email with link to the license Item
 					templateData := struct {
@@ -463,15 +469,20 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					}{
 						URL: config.Config.OnlinePaperUrl,
 					}
+
 					receivers := []string{order.CustomerEmail.String}
 					mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "digitalLicenceItemTemplate.html", templateData)
 					if err != nil {
 						log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 					}
-					success, err := mail.SendEmail()
-					if err != nil || !success {
-						log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
-					}
+					go func() {
+						success, err := mail.SendEmail()
+						if err != nil || !success {
+
+							log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+						}
+					}()
+
 				} else {
 					// Generate download link and send it to the
 					if !item.PDF.Valid {
@@ -494,7 +505,6 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							log.Error("VerifyOrderAndCreatePayments: failed to create pdf download: ", orderID, err)
 						}
 					}
-
 					if !pdfDownload.EmailSent {
 						url := config.Config.FrontendURL + "/pdf/" + pdfDownload.LinkID
 						templateData := struct {
@@ -525,6 +535,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 			}
 		}
 	}
+	log.Info("VerifyOrderAndCreatePayments: Creating payments for order ", orderID)
 	// Create payments
 	for _, entry := range order.Entries {
 		_, err = createPaymentForOrderEntryTx(tx, orderID, entry, false)

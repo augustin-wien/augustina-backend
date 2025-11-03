@@ -395,7 +395,7 @@ func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
-		log.Info("GetOrCreateVendor: User does not exist we create one", email)
+		log.Info("GetOrCreateVendor: User does not exist we create one ", email)
 		// User does not exist
 		password := utils.RandomString(10)
 		user, err := k.CreateUser(email, email, "", email, password)
@@ -426,7 +426,7 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
-		log.Info("GetOrCreateUser: User does not exist we create one", email)
+		log.Info("GetOrCreateUser: User does not exist we create one ", email)
 		// User does not exist
 		password := utils.RandomString(10)
 		user, err := k.CreateUser(email, email, "", email, password)

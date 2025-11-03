@@ -853,7 +853,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-
+	log.Infof("VerifyPaymentOrder: Verifying order with OrderCode %s and TransactionID %s", OrderCode, TransactionID)
 	if database.Db.IsProduction && !config.Config.Development && !config.Config.DEBUG_payments {
 		// Verify transaction
 		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
@@ -865,6 +865,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	if config.Config.Development {
 		// Verify transaction
+		log.Infof("VerifyPaymentOrder: Verifying transaction in development mode for TransactionID %s", TransactionID)
 		err = database.Db.VerifyOrderAndCreatePayments(order.ID, 0)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
