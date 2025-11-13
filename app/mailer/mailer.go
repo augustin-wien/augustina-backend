@@ -58,7 +58,15 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 
 	addr := config.Config.SMTPServer + ":" + config.Config.SMTPPort
 
-	if !config.Config.SMTPSsl {
+	// Decide whether to use STARTTLS or implicit TLS.
+	useStartTLS := !config.Config.SMTPSsl
+	if config.Config.SMTPSsl && config.Config.SMTPPort == "587" {
+		// explicit override: SMTPSsl set but port indicates STARTTLS (Office365)
+		useStartTLS = true
+		log.Infoln("SMTPSsl=true with port 587 detected — using STARTTLS (Office365) instead of implicit TLS")
+	}
+
+	if useStartTLS {
 		// Try to use STARTTLS if the server supports it (Office365 requires STARTTLS on port 587)
 		log.Info("Sending (STARTTLS) email to ", r.to, " with subject ", r.subject)
 		c, err := smtp.Dial(addr)
@@ -71,7 +79,8 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 		// Upgrade to TLS if supported
 		if ok, _ := c.Extension("STARTTLS"); ok {
 			tlsconfig := &tls.Config{
-				ServerName: config.Config.SMTPServer,
+				ServerName:         config.Config.SMTPServer,
+				InsecureSkipVerify: config.Config.SMTPInsecureSkipVerify,
 			}
 			if err = c.StartTLS(tlsconfig); err != nil {
 				log.Error("SendEmail: STARTTLS failed", err)
@@ -80,6 +89,10 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 		}
 
 		// Auth
+		// Log server advertised AUTH mechanisms (helpful for diagnosing unsupported auth errors)
+		if ok, mech := c.Extension("AUTH"); ok {
+			log.Infof("SMTP server advertised AUTH mechanisms: %s", mech)
+		}
 		if auth != nil {
 			if err = c.Auth(auth); err != nil {
 				log.Error("SendEmail: auth failed", err)
@@ -122,10 +135,11 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 		return true, nil
 	}
 
-	// SMTPSsl == true -> connect with TLS from the start (port 465)
-	log.Info("Sending SSL email to ", r.to, " with subject ", r.subject)
+	// Implicit TLS path (SMTPS, typically port 465)
+	log.Info("Sending SSL (implicit TLS) email to ", r.to, " with subject ", r.subject)
 	tlsconfig := &tls.Config{
-		ServerName: config.Config.SMTPServer,
+		ServerName:         config.Config.SMTPServer,
+		InsecureSkipVerify: config.Config.SMTPInsecureSkipVerify,
 	}
 	conn, err := tls.Dial("tcp", addr, tlsconfig)
 	if err != nil {
@@ -138,6 +152,11 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 		return false, err
 	}
 	defer c.Close()
+
+	// Log server advertised AUTH mechanisms (helpful for diagnosing unsupported auth errors)
+	if ok, mech := c.Extension("AUTH"); ok {
+		log.Infof("SMTP server advertised AUTH mechanisms: %s", mech)
+	}
 
 	if auth != nil {
 		if err = c.Auth(auth); err != nil {
