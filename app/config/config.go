@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var version = "1.0.18-5dfc527"
+var version = "1.0.19-d8b6521"
 
 type config struct {
 	Version                           string
@@ -44,6 +44,7 @@ type config struct {
 	SMTPPassword                      string
 	SMTPSenderAddress                 string
 	SMTPSsl                           bool
+	SMTPInsecureSkipVerify            bool
 	SentryDSN                         string
 	FlourWebhookURL                   string
 	DEBUG_payments                    bool // For debugging purposes, not used in production
@@ -92,6 +93,7 @@ func InitConfig() error {
 		SMTPPassword:                      getEnv("SMTP_PASSWORD", ""),
 		SMTPSenderAddress:                 getEnv("SMTP_SENDER_ADDRESS", ""),
 		SMTPSsl:                           (getEnv("SMTP_SSL", "false") == "true"),
+		SMTPInsecureSkipVerify:            (getEnv("SMTP_INSECURE_SKIP_VERIFY", "false") == "true"),
 		FrontendURL:                       getEnv("FRONTEND_URL", ""),
 		SentryDSN:                         getEnv("SENTRY_DSN", ""),
 		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),

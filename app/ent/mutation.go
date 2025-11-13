@@ -14,6 +14,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/pdf"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
@@ -31,6 +32,7 @@ const (
 	TypeComment  = "Comment"
 	TypeItem     = "Item"
 	TypeLocation = "Location"
+	TypePDF      = "PDF"
 	TypeSettings = "Settings"
 	TypeVendor   = "Vendor"
 )
@@ -608,10 +610,10 @@ type ItemMutation struct {
 	add_Price           *float64
 	_Image              *string
 	_Archived           *bool
+	_Disabled           *bool
 	_IsLicenseItem      *bool
 	_LicenseGroup       *string
 	_IsPDFItem          *bool
-	_PDF                *string
 	_ItemOrder          *int
 	add_ItemOrder       *int
 	_ItemColor          *string
@@ -619,6 +621,8 @@ type ItemMutation struct {
 	clearedFields       map[string]struct{}
 	_LicenseItem        *int
 	cleared_LicenseItem bool
+	_PDF                *int
+	cleared_PDF         bool
 	done                bool
 	oldValue            func(context.Context) (*Item, error)
 	predicates          []predicate.Item
@@ -928,6 +932,42 @@ func (m *ItemMutation) ResetArchived() {
 	m._Archived = nil
 }
 
+// SetDisabled sets the "Disabled" field.
+func (m *ItemMutation) SetDisabled(b bool) {
+	m._Disabled = &b
+}
+
+// Disabled returns the value of the "Disabled" field in the mutation.
+func (m *ItemMutation) Disabled() (r bool, exists bool) {
+	v := m._Disabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisabled returns the old "Disabled" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldDisabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisabled: %w", err)
+	}
+	return oldValue.Disabled, nil
+}
+
+// ResetDisabled resets all changes to the "Disabled" field.
+func (m *ItemMutation) ResetDisabled() {
+	m._Disabled = nil
+}
+
 // SetIsLicenseItem sets the "IsLicenseItem" field.
 func (m *ItemMutation) SetIsLicenseItem(b bool) {
 	m._IsLicenseItem = &b
@@ -1034,42 +1074,6 @@ func (m *ItemMutation) OldIsPDFItem(ctx context.Context) (v bool, err error) {
 // ResetIsPDFItem resets all changes to the "IsPDFItem" field.
 func (m *ItemMutation) ResetIsPDFItem() {
 	m._IsPDFItem = nil
-}
-
-// SetPDF sets the "PDF" field.
-func (m *ItemMutation) SetPDF(s string) {
-	m._PDF = &s
-}
-
-// PDF returns the value of the "PDF" field in the mutation.
-func (m *ItemMutation) PDF() (r string, exists bool) {
-	v := m._PDF
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPDF returns the old "PDF" field's value of the Item entity.
-// If the Item object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ItemMutation) OldPDF(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPDF is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPDF requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPDF: %w", err)
-	}
-	return oldValue.PDF, nil
-}
-
-// ResetPDF resets all changes to the "PDF" field.
-func (m *ItemMutation) ResetPDF() {
-	m._PDF = nil
 }
 
 // SetItemOrder sets the "ItemOrder" field.
@@ -1239,6 +1243,45 @@ func (m *ItemMutation) ResetLicenseItem() {
 	m.cleared_LicenseItem = false
 }
 
+// SetPDFID sets the "PDF" edge to the PDF entity by id.
+func (m *ItemMutation) SetPDFID(id int) {
+	m._PDF = &id
+}
+
+// ClearPDF clears the "PDF" edge to the PDF entity.
+func (m *ItemMutation) ClearPDF() {
+	m.cleared_PDF = true
+}
+
+// PDFCleared reports if the "PDF" edge to the PDF entity was cleared.
+func (m *ItemMutation) PDFCleared() bool {
+	return m.cleared_PDF
+}
+
+// PDFID returns the "PDF" edge ID in the mutation.
+func (m *ItemMutation) PDFID() (id int, exists bool) {
+	if m._PDF != nil {
+		return *m._PDF, true
+	}
+	return
+}
+
+// PDFIDs returns the "PDF" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PDFID instead. It exists only for internal usage by the builders.
+func (m *ItemMutation) PDFIDs() (ids []int) {
+	if id := m._PDF; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPDF resets all changes to the "PDF" edge.
+func (m *ItemMutation) ResetPDF() {
+	m._PDF = nil
+	m.cleared_PDF = false
+}
+
 // Where appends a list predicates to the ItemMutation builder.
 func (m *ItemMutation) Where(ps ...predicate.Item) {
 	m.predicates = append(m.predicates, ps...)
@@ -1289,6 +1332,9 @@ func (m *ItemMutation) Fields() []string {
 	if m._Archived != nil {
 		fields = append(fields, item.FieldArchived)
 	}
+	if m._Disabled != nil {
+		fields = append(fields, item.FieldDisabled)
+	}
 	if m._IsLicenseItem != nil {
 		fields = append(fields, item.FieldIsLicenseItem)
 	}
@@ -1297,9 +1343,6 @@ func (m *ItemMutation) Fields() []string {
 	}
 	if m._IsPDFItem != nil {
 		fields = append(fields, item.FieldIsPDFItem)
-	}
-	if m._PDF != nil {
-		fields = append(fields, item.FieldPDF)
 	}
 	if m._ItemOrder != nil {
 		fields = append(fields, item.FieldItemOrder)
@@ -1328,14 +1371,14 @@ func (m *ItemMutation) Field(name string) (ent.Value, bool) {
 		return m.Image()
 	case item.FieldArchived:
 		return m.Archived()
+	case item.FieldDisabled:
+		return m.Disabled()
 	case item.FieldIsLicenseItem:
 		return m.IsLicenseItem()
 	case item.FieldLicenseGroup:
 		return m.LicenseGroup()
 	case item.FieldIsPDFItem:
 		return m.IsPDFItem()
-	case item.FieldPDF:
-		return m.PDF()
 	case item.FieldItemOrder:
 		return m.ItemOrder()
 	case item.FieldItemColor:
@@ -1361,14 +1404,14 @@ func (m *ItemMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldImage(ctx)
 	case item.FieldArchived:
 		return m.OldArchived(ctx)
+	case item.FieldDisabled:
+		return m.OldDisabled(ctx)
 	case item.FieldIsLicenseItem:
 		return m.OldIsLicenseItem(ctx)
 	case item.FieldLicenseGroup:
 		return m.OldLicenseGroup(ctx)
 	case item.FieldIsPDFItem:
 		return m.OldIsPDFItem(ctx)
-	case item.FieldPDF:
-		return m.OldPDF(ctx)
 	case item.FieldItemOrder:
 		return m.OldItemOrder(ctx)
 	case item.FieldItemColor:
@@ -1419,6 +1462,13 @@ func (m *ItemMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetArchived(v)
 		return nil
+	case item.FieldDisabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisabled(v)
+		return nil
 	case item.FieldIsLicenseItem:
 		v, ok := value.(bool)
 		if !ok {
@@ -1439,13 +1489,6 @@ func (m *ItemMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsPDFItem(v)
-		return nil
-	case item.FieldPDF:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPDF(v)
 		return nil
 	case item.FieldItemOrder:
 		v, ok := value.(int)
@@ -1559,6 +1602,9 @@ func (m *ItemMutation) ResetField(name string) error {
 	case item.FieldArchived:
 		m.ResetArchived()
 		return nil
+	case item.FieldDisabled:
+		m.ResetDisabled()
+		return nil
 	case item.FieldIsLicenseItem:
 		m.ResetIsLicenseItem()
 		return nil
@@ -1567,9 +1613,6 @@ func (m *ItemMutation) ResetField(name string) error {
 		return nil
 	case item.FieldIsPDFItem:
 		m.ResetIsPDFItem()
-		return nil
-	case item.FieldPDF:
-		m.ResetPDF()
 		return nil
 	case item.FieldItemOrder:
 		m.ResetItemOrder()
@@ -1586,9 +1629,12 @@ func (m *ItemMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m._LicenseItem != nil {
 		edges = append(edges, item.EdgeLicenseItem)
+	}
+	if m._PDF != nil {
+		edges = append(edges, item.EdgePDF)
 	}
 	return edges
 }
@@ -1601,13 +1647,17 @@ func (m *ItemMutation) AddedIDs(name string) []ent.Value {
 		if id := m._LicenseItem; id != nil {
 			return []ent.Value{*id}
 		}
+	case item.EdgePDF:
+		if id := m._PDF; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -1619,9 +1669,12 @@ func (m *ItemMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleared_LicenseItem {
 		edges = append(edges, item.EdgeLicenseItem)
+	}
+	if m.cleared_PDF {
+		edges = append(edges, item.EdgePDF)
 	}
 	return edges
 }
@@ -1632,6 +1685,8 @@ func (m *ItemMutation) EdgeCleared(name string) bool {
 	switch name {
 	case item.EdgeLicenseItem:
 		return m.cleared_LicenseItem
+	case item.EdgePDF:
+		return m.cleared_PDF
 	}
 	return false
 }
@@ -1643,6 +1698,9 @@ func (m *ItemMutation) ClearEdge(name string) error {
 	case item.EdgeLicenseItem:
 		m.ClearLicenseItem()
 		return nil
+	case item.EdgePDF:
+		m.ClearPDF()
+		return nil
 	}
 	return fmt.Errorf("unknown Item unique edge %s", name)
 }
@@ -1653,6 +1711,9 @@ func (m *ItemMutation) ResetEdge(name string) error {
 	switch name {
 	case item.EdgeLicenseItem:
 		m.ResetLicenseItem()
+		return nil
+	case item.EdgePDF:
+		m.ResetPDF()
 		return nil
 	}
 	return fmt.Errorf("unknown Item edge %s", name)
@@ -2394,6 +2455,392 @@ func (m *LocationMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Location edge %s", name)
+}
+
+// PDFMutation represents an operation that mutates the PDF nodes in the graph.
+type PDFMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	_path         *string
+	timestamp     *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*PDF, error)
+	predicates    []predicate.PDF
+}
+
+var _ ent.Mutation = (*PDFMutation)(nil)
+
+// pdfOption allows management of the mutation configuration using functional options.
+type pdfOption func(*PDFMutation)
+
+// newPDFMutation creates new mutation for the PDF entity.
+func newPDFMutation(c config, op Op, opts ...pdfOption) *PDFMutation {
+	m := &PDFMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePDF,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPDFID sets the ID field of the mutation.
+func withPDFID(id int) pdfOption {
+	return func(m *PDFMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PDF
+		)
+		m.oldValue = func(ctx context.Context) (*PDF, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PDF.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPDF sets the old PDF of the mutation.
+func withPDF(node *PDF) pdfOption {
+	return func(m *PDFMutation) {
+		m.oldValue = func(context.Context) (*PDF, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PDFMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PDFMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PDF entities.
+func (m *PDFMutation) SetID(id int) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PDFMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PDFMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PDF.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPath sets the "path" field.
+func (m *PDFMutation) SetPath(s string) {
+	m._path = &s
+}
+
+// Path returns the value of the "path" field in the mutation.
+func (m *PDFMutation) Path() (r string, exists bool) {
+	v := m._path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPath returns the old "path" field's value of the PDF entity.
+// If the PDF object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PDFMutation) OldPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPath: %w", err)
+	}
+	return oldValue.Path, nil
+}
+
+// ResetPath resets all changes to the "path" field.
+func (m *PDFMutation) ResetPath() {
+	m._path = nil
+}
+
+// SetTimestamp sets the "timestamp" field.
+func (m *PDFMutation) SetTimestamp(s string) {
+	m.timestamp = &s
+}
+
+// Timestamp returns the value of the "timestamp" field in the mutation.
+func (m *PDFMutation) Timestamp() (r string, exists bool) {
+	v := m.timestamp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimestamp returns the old "timestamp" field's value of the PDF entity.
+// If the PDF object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PDFMutation) OldTimestamp(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimestamp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimestamp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimestamp: %w", err)
+	}
+	return oldValue.Timestamp, nil
+}
+
+// ResetTimestamp resets all changes to the "timestamp" field.
+func (m *PDFMutation) ResetTimestamp() {
+	m.timestamp = nil
+}
+
+// Where appends a list predicates to the PDFMutation builder.
+func (m *PDFMutation) Where(ps ...predicate.PDF) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PDFMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PDFMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PDF, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PDFMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PDFMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PDF).
+func (m *PDFMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PDFMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m._path != nil {
+		fields = append(fields, pdf.FieldPath)
+	}
+	if m.timestamp != nil {
+		fields = append(fields, pdf.FieldTimestamp)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PDFMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case pdf.FieldPath:
+		return m.Path()
+	case pdf.FieldTimestamp:
+		return m.Timestamp()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PDFMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case pdf.FieldPath:
+		return m.OldPath(ctx)
+	case pdf.FieldTimestamp:
+		return m.OldTimestamp(ctx)
+	}
+	return nil, fmt.Errorf("unknown PDF field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PDFMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case pdf.FieldPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPath(v)
+		return nil
+	case pdf.FieldTimestamp:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimestamp(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PDF field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PDFMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PDFMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PDFMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PDF numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PDFMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PDFMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PDFMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PDF nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PDFMutation) ResetField(name string) error {
+	switch name {
+	case pdf.FieldPath:
+		m.ResetPath()
+		return nil
+	case pdf.FieldTimestamp:
+		m.ResetTimestamp()
+		return nil
+	}
+	return fmt.Errorf("unknown PDF field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PDFMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PDFMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PDFMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PDFMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PDFMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PDFMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PDFMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PDF unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PDFMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PDF edge %s", name)
 }
 
 // SettingsMutation represents an operation that mutates the Settings nodes in the graph.

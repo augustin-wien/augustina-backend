@@ -40,14 +40,15 @@ var (
 		{Name: "price", Type: field.TypeFloat64},
 		{Name: "image", Type: field.TypeString},
 		{Name: "archived", Type: field.TypeBool, Default: false},
+		{Name: "disabled", Type: field.TypeBool, Default: false},
 		{Name: "islicenseitem", Type: field.TypeBool, Default: false},
 		{Name: "licensegroup", Type: field.TypeString, Default: "default"},
 		{Name: "ispdfitem", Type: field.TypeBool, Default: false},
-		{Name: "pdf", Type: field.TypeString, Default: ""},
 		{Name: "itemorder", Type: field.TypeInt, Default: 0},
 		{Name: "itemcolor", Type: field.TypeString, Default: "#FFFFFF"},
 		{Name: "itemtextcolor", Type: field.TypeString, Default: "#000000"},
 		{Name: "licenseitem", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "pdf", Type: field.TypeInt, Nullable: true},
 	}
 	// ItemTable holds the schema information for the "item" table.
 	ItemTable = &schema.Table{
@@ -59,6 +60,12 @@ var (
 				Symbol:     "item_item_LicenseItem",
 				Columns:    []*schema.Column{ItemColumns[13]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "item_pdf_PDF",
+				Columns:    []*schema.Column{ItemColumns[14]},
+				RefColumns: []*schema.Column{PdfColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -87,6 +94,18 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// PdfColumns holds the columns for the "pdf" table.
+	PdfColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "path", Type: field.TypeString},
+		{Name: "timestamp", Type: field.TypeString},
+	}
+	// PdfTable holds the schema information for the "pdf" table.
+	PdfTable = &schema.Table{
+		Name:       "pdf",
+		Columns:    PdfColumns,
+		PrimaryKey: []*schema.Column{PdfColumns[0]},
 	}
 	// SettingsColumns holds the columns for the "settings" table.
 	SettingsColumns = []*schema.Column{
@@ -162,6 +181,7 @@ var (
 		CommentsTable,
 		ItemTable,
 		LocationsTable,
+		PdfTable,
 		SettingsTable,
 		VendorTable,
 	}
@@ -170,10 +190,14 @@ var (
 func init() {
 	CommentsTable.ForeignKeys[0].RefTable = VendorTable
 	ItemTable.ForeignKeys[0].RefTable = ItemTable
+	ItemTable.ForeignKeys[1].RefTable = PdfTable
 	ItemTable.Annotation = &entsql.Annotation{
 		Table: "item",
 	}
 	LocationsTable.ForeignKeys[0].RefTable = VendorTable
+	PdfTable.Annotation = &entsql.Annotation{
+		Table: "pdf",
+	}
 	SettingsTable.ForeignKeys[0].RefTable = ItemTable
 	VendorTable.Annotation = &entsql.Annotation{
 		Table: "vendor",

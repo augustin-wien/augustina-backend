@@ -22,14 +22,14 @@ const (
 	FieldImage = "image"
 	// FieldArchived holds the string denoting the archived field in the database.
 	FieldArchived = "archived"
+	// FieldDisabled holds the string denoting the disabled field in the database.
+	FieldDisabled = "disabled"
 	// FieldIsLicenseItem holds the string denoting the islicenseitem field in the database.
 	FieldIsLicenseItem = "islicenseitem"
 	// FieldLicenseGroup holds the string denoting the licensegroup field in the database.
 	FieldLicenseGroup = "licensegroup"
 	// FieldIsPDFItem holds the string denoting the ispdfitem field in the database.
 	FieldIsPDFItem = "ispdfitem"
-	// FieldPDF holds the string denoting the pdf field in the database.
-	FieldPDF = "pdf"
 	// FieldItemOrder holds the string denoting the itemorder field in the database.
 	FieldItemOrder = "itemorder"
 	// FieldItemColor holds the string denoting the itemcolor field in the database.
@@ -38,12 +38,21 @@ const (
 	FieldItemTextColor = "itemtextcolor"
 	// EdgeLicenseItem holds the string denoting the licenseitem edge name in mutations.
 	EdgeLicenseItem = "LicenseItem"
+	// EdgePDF holds the string denoting the pdf edge name in mutations.
+	EdgePDF = "PDF"
 	// Table holds the table name of the item in the database.
 	Table = "item"
 	// LicenseItemTable is the table that holds the LicenseItem relation/edge.
 	LicenseItemTable = "item"
 	// LicenseItemColumn is the table column denoting the LicenseItem relation/edge.
 	LicenseItemColumn = "licenseitem"
+	// PDFTable is the table that holds the PDF relation/edge.
+	PDFTable = "item"
+	// PDFInverseTable is the table name for the PDF entity.
+	// It exists in this package in order to avoid circular dependency with the "pdf" package.
+	PDFInverseTable = "pdf"
+	// PDFColumn is the table column denoting the PDF relation/edge.
+	PDFColumn = "pdf"
 )
 
 // Columns holds all SQL columns for item fields.
@@ -54,10 +63,10 @@ var Columns = []string{
 	FieldPrice,
 	FieldImage,
 	FieldArchived,
+	FieldDisabled,
 	FieldIsLicenseItem,
 	FieldLicenseGroup,
 	FieldIsPDFItem,
-	FieldPDF,
 	FieldItemOrder,
 	FieldItemColor,
 	FieldItemTextColor,
@@ -67,6 +76,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"licenseitem",
+	"pdf",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -95,14 +105,14 @@ var (
 	ImageValidator func(string) error
 	// DefaultArchived holds the default value on creation for the "Archived" field.
 	DefaultArchived bool
+	// DefaultDisabled holds the default value on creation for the "Disabled" field.
+	DefaultDisabled bool
 	// DefaultIsLicenseItem holds the default value on creation for the "IsLicenseItem" field.
 	DefaultIsLicenseItem bool
 	// DefaultLicenseGroup holds the default value on creation for the "LicenseGroup" field.
 	DefaultLicenseGroup string
 	// DefaultIsPDFItem holds the default value on creation for the "IsPDFItem" field.
 	DefaultIsPDFItem bool
-	// DefaultPDF holds the default value on creation for the "PDF" field.
-	DefaultPDF string
 	// DefaultItemOrder holds the default value on creation for the "ItemOrder" field.
 	DefaultItemOrder int
 	// DefaultItemColor holds the default value on creation for the "ItemColor" field.
@@ -146,6 +156,11 @@ func ByArchived(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldArchived, opts...).ToFunc()
 }
 
+// ByDisabled orders the results by the Disabled field.
+func ByDisabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDisabled, opts...).ToFunc()
+}
+
 // ByIsLicenseItem orders the results by the IsLicenseItem field.
 func ByIsLicenseItem(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsLicenseItem, opts...).ToFunc()
@@ -159,11 +174,6 @@ func ByLicenseGroup(opts ...sql.OrderTermOption) OrderOption {
 // ByIsPDFItem orders the results by the IsPDFItem field.
 func ByIsPDFItem(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsPDFItem, opts...).ToFunc()
-}
-
-// ByPDF orders the results by the PDF field.
-func ByPDF(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPDF, opts...).ToFunc()
 }
 
 // ByItemOrder orders the results by the ItemOrder field.
@@ -187,10 +197,24 @@ func ByLicenseItemField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLicenseItemStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByPDFField orders the results by PDF field.
+func ByPDFField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPDFStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newLicenseItemStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, LicenseItemTable, LicenseItemColumn),
+	)
+}
+func newPDFStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PDFInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, PDFTable, PDFColumn),
 	)
 }

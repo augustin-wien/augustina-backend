@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/augustin-wien/augustina-backend/ent/item"
+	"github.com/augustin-wien/augustina-backend/ent/pdf"
 )
 
 // ItemCreate is the builder for creating a Item entity.
@@ -57,6 +58,20 @@ func (ic *ItemCreate) SetNillableArchived(b *bool) *ItemCreate {
 	return ic
 }
 
+// SetDisabled sets the "Disabled" field.
+func (ic *ItemCreate) SetDisabled(b bool) *ItemCreate {
+	ic.mutation.SetDisabled(b)
+	return ic
+}
+
+// SetNillableDisabled sets the "Disabled" field if the given value is not nil.
+func (ic *ItemCreate) SetNillableDisabled(b *bool) *ItemCreate {
+	if b != nil {
+		ic.SetDisabled(*b)
+	}
+	return ic
+}
+
 // SetIsLicenseItem sets the "IsLicenseItem" field.
 func (ic *ItemCreate) SetIsLicenseItem(b bool) *ItemCreate {
 	ic.mutation.SetIsLicenseItem(b)
@@ -95,20 +110,6 @@ func (ic *ItemCreate) SetIsPDFItem(b bool) *ItemCreate {
 func (ic *ItemCreate) SetNillableIsPDFItem(b *bool) *ItemCreate {
 	if b != nil {
 		ic.SetIsPDFItem(*b)
-	}
-	return ic
-}
-
-// SetPDF sets the "PDF" field.
-func (ic *ItemCreate) SetPDF(s string) *ItemCreate {
-	ic.mutation.SetPDF(s)
-	return ic
-}
-
-// SetNillablePDF sets the "PDF" field if the given value is not nil.
-func (ic *ItemCreate) SetNillablePDF(s *string) *ItemCreate {
-	if s != nil {
-		ic.SetPDF(*s)
 	}
 	return ic
 }
@@ -180,6 +181,25 @@ func (ic *ItemCreate) SetLicenseItem(i *Item) *ItemCreate {
 	return ic.SetLicenseItemID(i.ID)
 }
 
+// SetPDFID sets the "PDF" edge to the PDF entity by ID.
+func (ic *ItemCreate) SetPDFID(id int) *ItemCreate {
+	ic.mutation.SetPDFID(id)
+	return ic
+}
+
+// SetNillablePDFID sets the "PDF" edge to the PDF entity by ID if the given value is not nil.
+func (ic *ItemCreate) SetNillablePDFID(id *int) *ItemCreate {
+	if id != nil {
+		ic = ic.SetPDFID(*id)
+	}
+	return ic
+}
+
+// SetPDF sets the "PDF" edge to the PDF entity.
+func (ic *ItemCreate) SetPDF(p *PDF) *ItemCreate {
+	return ic.SetPDFID(p.ID)
+}
+
 // Mutation returns the ItemMutation object of the builder.
 func (ic *ItemCreate) Mutation() *ItemMutation {
 	return ic.mutation
@@ -219,6 +239,10 @@ func (ic *ItemCreate) defaults() {
 		v := item.DefaultArchived
 		ic.mutation.SetArchived(v)
 	}
+	if _, ok := ic.mutation.Disabled(); !ok {
+		v := item.DefaultDisabled
+		ic.mutation.SetDisabled(v)
+	}
 	if _, ok := ic.mutation.IsLicenseItem(); !ok {
 		v := item.DefaultIsLicenseItem
 		ic.mutation.SetIsLicenseItem(v)
@@ -230,10 +254,6 @@ func (ic *ItemCreate) defaults() {
 	if _, ok := ic.mutation.IsPDFItem(); !ok {
 		v := item.DefaultIsPDFItem
 		ic.mutation.SetIsPDFItem(v)
-	}
-	if _, ok := ic.mutation.PDF(); !ok {
-		v := item.DefaultPDF
-		ic.mutation.SetPDF(v)
 	}
 	if _, ok := ic.mutation.ItemOrder(); !ok {
 		v := item.DefaultItemOrder
@@ -286,6 +306,9 @@ func (ic *ItemCreate) check() error {
 	if _, ok := ic.mutation.Archived(); !ok {
 		return &ValidationError{Name: "Archived", err: errors.New(`ent: missing required field "Item.Archived"`)}
 	}
+	if _, ok := ic.mutation.Disabled(); !ok {
+		return &ValidationError{Name: "Disabled", err: errors.New(`ent: missing required field "Item.Disabled"`)}
+	}
 	if _, ok := ic.mutation.IsLicenseItem(); !ok {
 		return &ValidationError{Name: "IsLicenseItem", err: errors.New(`ent: missing required field "Item.IsLicenseItem"`)}
 	}
@@ -294,9 +317,6 @@ func (ic *ItemCreate) check() error {
 	}
 	if _, ok := ic.mutation.IsPDFItem(); !ok {
 		return &ValidationError{Name: "IsPDFItem", err: errors.New(`ent: missing required field "Item.IsPDFItem"`)}
-	}
-	if _, ok := ic.mutation.PDF(); !ok {
-		return &ValidationError{Name: "PDF", err: errors.New(`ent: missing required field "Item.PDF"`)}
 	}
 	if _, ok := ic.mutation.ItemOrder(); !ok {
 		return &ValidationError{Name: "ItemOrder", err: errors.New(`ent: missing required field "Item.ItemOrder"`)}
@@ -364,6 +384,10 @@ func (ic *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
 		_spec.SetField(item.FieldArchived, field.TypeBool, value)
 		_node.Archived = value
 	}
+	if value, ok := ic.mutation.Disabled(); ok {
+		_spec.SetField(item.FieldDisabled, field.TypeBool, value)
+		_node.Disabled = value
+	}
 	if value, ok := ic.mutation.IsLicenseItem(); ok {
 		_spec.SetField(item.FieldIsLicenseItem, field.TypeBool, value)
 		_node.IsLicenseItem = value
@@ -375,10 +399,6 @@ func (ic *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
 	if value, ok := ic.mutation.IsPDFItem(); ok {
 		_spec.SetField(item.FieldIsPDFItem, field.TypeBool, value)
 		_node.IsPDFItem = value
-	}
-	if value, ok := ic.mutation.PDF(); ok {
-		_spec.SetField(item.FieldPDF, field.TypeString, value)
-		_node.PDF = value
 	}
 	if value, ok := ic.mutation.ItemOrder(); ok {
 		_spec.SetField(item.FieldItemOrder, field.TypeInt, value)
@@ -407,6 +427,23 @@ func (ic *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.licenseitem = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ic.mutation.PDFIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   item.PDFTable,
+			Columns: []string{item.PDFColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pdf.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.pdf = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

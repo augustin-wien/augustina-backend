@@ -18,6 +18,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/pdf"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
@@ -33,6 +34,8 @@ type Client struct {
 	Item *ItemClient
 	// Location is the client for interacting with the Location builders.
 	Location *LocationClient
+	// PDF is the client for interacting with the PDF builders.
+	PDF *PDFClient
 	// Settings is the client for interacting with the Settings builders.
 	Settings *SettingsClient
 	// Vendor is the client for interacting with the Vendor builders.
@@ -51,6 +54,7 @@ func (c *Client) init() {
 	c.Comment = NewCommentClient(c.config)
 	c.Item = NewItemClient(c.config)
 	c.Location = NewLocationClient(c.config)
+	c.PDF = NewPDFClient(c.config)
 	c.Settings = NewSettingsClient(c.config)
 	c.Vendor = NewVendorClient(c.config)
 }
@@ -148,6 +152,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Comment:  NewCommentClient(cfg),
 		Item:     NewItemClient(cfg),
 		Location: NewLocationClient(cfg),
+		PDF:      NewPDFClient(cfg),
 		Settings: NewSettingsClient(cfg),
 		Vendor:   NewVendorClient(cfg),
 	}, nil
@@ -172,6 +177,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Comment:  NewCommentClient(cfg),
 		Item:     NewItemClient(cfg),
 		Location: NewLocationClient(cfg),
+		PDF:      NewPDFClient(cfg),
 		Settings: NewSettingsClient(cfg),
 		Vendor:   NewVendorClient(cfg),
 	}, nil
@@ -202,21 +208,21 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Comment.Use(hooks...)
-	c.Item.Use(hooks...)
-	c.Location.Use(hooks...)
-	c.Settings.Use(hooks...)
-	c.Vendor.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Comment, c.Item, c.Location, c.PDF, c.Settings, c.Vendor,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Comment.Intercept(interceptors...)
-	c.Item.Intercept(interceptors...)
-	c.Location.Intercept(interceptors...)
-	c.Settings.Intercept(interceptors...)
-	c.Vendor.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Comment, c.Item, c.Location, c.PDF, c.Settings, c.Vendor,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -228,6 +234,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Item.mutate(ctx, m)
 	case *LocationMutation:
 		return c.Location.mutate(ctx, m)
+	case *PDFMutation:
+		return c.PDF.mutate(ctx, m)
 	case *SettingsMutation:
 		return c.Settings.mutate(ctx, m)
 	case *VendorMutation:
@@ -510,6 +518,22 @@ func (c *ItemClient) QueryLicenseItem(i *Item) *ItemQuery {
 	return query
 }
 
+// QueryPDF queries the PDF edge of a Item.
+func (c *ItemClient) QueryPDF(i *Item) *PDFQuery {
+	query := (&PDFClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(item.Table, item.FieldID, id),
+			sqlgraph.To(pdf.Table, pdf.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, item.PDFTable, item.PDFColumn),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ItemClient) Hooks() []Hook {
 	return c.hooks.Item
@@ -681,6 +705,139 @@ func (c *LocationClient) mutate(ctx context.Context, m *LocationMutation) (Value
 		return (&LocationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Location mutation op: %q", m.Op())
+	}
+}
+
+// PDFClient is a client for the PDF schema.
+type PDFClient struct {
+	config
+}
+
+// NewPDFClient returns a client for the PDF from the given config.
+func NewPDFClient(c config) *PDFClient {
+	return &PDFClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pdf.Hooks(f(g(h())))`.
+func (c *PDFClient) Use(hooks ...Hook) {
+	c.hooks.PDF = append(c.hooks.PDF, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pdf.Intercept(f(g(h())))`.
+func (c *PDFClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PDF = append(c.inters.PDF, interceptors...)
+}
+
+// Create returns a builder for creating a PDF entity.
+func (c *PDFClient) Create() *PDFCreate {
+	mutation := newPDFMutation(c.config, OpCreate)
+	return &PDFCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PDF entities.
+func (c *PDFClient) CreateBulk(builders ...*PDFCreate) *PDFCreateBulk {
+	return &PDFCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PDFClient) MapCreateBulk(slice any, setFunc func(*PDFCreate, int)) *PDFCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PDFCreateBulk{err: fmt.Errorf("calling to PDFClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PDFCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PDFCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PDF.
+func (c *PDFClient) Update() *PDFUpdate {
+	mutation := newPDFMutation(c.config, OpUpdate)
+	return &PDFUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PDFClient) UpdateOne(pd *PDF) *PDFUpdateOne {
+	mutation := newPDFMutation(c.config, OpUpdateOne, withPDF(pd))
+	return &PDFUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PDFClient) UpdateOneID(id int) *PDFUpdateOne {
+	mutation := newPDFMutation(c.config, OpUpdateOne, withPDFID(id))
+	return &PDFUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PDF.
+func (c *PDFClient) Delete() *PDFDelete {
+	mutation := newPDFMutation(c.config, OpDelete)
+	return &PDFDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PDFClient) DeleteOne(pd *PDF) *PDFDeleteOne {
+	return c.DeleteOneID(pd.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PDFClient) DeleteOneID(id int) *PDFDeleteOne {
+	builder := c.Delete().Where(pdf.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PDFDeleteOne{builder}
+}
+
+// Query returns a query builder for PDF.
+func (c *PDFClient) Query() *PDFQuery {
+	return &PDFQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePDF},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PDF entity by its id.
+func (c *PDFClient) Get(ctx context.Context, id int) (*PDF, error) {
+	return c.Query().Where(pdf.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PDFClient) GetX(ctx context.Context, id int) *PDF {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PDFClient) Hooks() []Hook {
+	return c.hooks.PDF
+}
+
+// Interceptors returns the client interceptors.
+func (c *PDFClient) Interceptors() []Interceptor {
+	return c.inters.PDF
+}
+
+func (c *PDFClient) mutate(ctx context.Context, m *PDFMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PDFCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PDFUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PDFUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PDFDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PDF mutation op: %q", m.Op())
 	}
 }
 
@@ -1001,9 +1158,9 @@ func (c *VendorClient) mutate(ctx context.Context, m *VendorMutation) (Value, er
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Comment, Item, Location, Settings, Vendor []ent.Hook
+		Comment, Item, Location, PDF, Settings, Vendor []ent.Hook
 	}
 	inters struct {
-		Comment, Item, Location, Settings, Vendor []ent.Interceptor
+		Comment, Item, Location, PDF, Settings, Vendor []ent.Interceptor
 	}
 )

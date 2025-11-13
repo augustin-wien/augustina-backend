@@ -18,6 +18,8 @@ type Tx struct {
 	Item *ItemClient
 	// Location is the client for interacting with the Location builders.
 	Location *LocationClient
+	// PDF is the client for interacting with the PDF builders.
+	PDF *PDFClient
 	// Settings is the client for interacting with the Settings builders.
 	Settings *SettingsClient
 	// Vendor is the client for interacting with the Vendor builders.
@@ -156,6 +158,7 @@ func (tx *Tx) init() {
 	tx.Comment = NewCommentClient(tx.config)
 	tx.Item = NewItemClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
+	tx.PDF = NewPDFClient(tx.config)
 	tx.Settings = NewSettingsClient(tx.config)
 	tx.Vendor = NewVendorClient(tx.config)
 }

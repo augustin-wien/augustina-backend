@@ -69,6 +69,7 @@ type Account struct {
 type Item struct {
 	ID            int
 	Archived      bool
+	Disabled      bool
 	ItemColor     null.String // Color of the item in the webshop
 	ItemTextColor null.String // Text color of the item in the webshop
 	Description   string

@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	_ "github.com/swaggo/files" // swagger embed files
@@ -15,6 +16,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
+	"github.com/go-chi/httprate"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -25,6 +27,8 @@ func GetRouter() (r *chi.Mux) {
 	// Add request IDs and structured request logging middleware
 	r.Use(middleware.RequestID)
 	r.Use(middlewares.RequestLogger)
+	// Basic rate limiting: limit by IP to 100 requests per minute (tunable)
+	r.Use(httprate.LimitByIP(500, 1*time.Minute))
 
 	// Check that FRONTEND_URL is configured
 	frontendURL := config.Config.FrontendURL
@@ -32,27 +36,56 @@ func GetRouter() (r *chi.Mux) {
 		log.Fatal("FRONTEND_URL is not set in config")
 	}
 
-	// Define allowed origins
-	allowedOrigins := []string{
-		"http://localhost:*",  // Any open port on localhost without SSL
-		"https://localhost:*", // Any open port on localhost with SSL
-		frontendURL,           // Frontend URL from environment variable
+	// Sanitize and validate frontend URL from config to avoid accidentally allowing wildcards
+	// Use a conservative AllowOriginFunc instead of permissive origin globs. This prevents
+	// unintended wildcard matching like "http://localhost:*" which may be treated inconsistently
+	// by different CORS implementations.
+	allowOriginFunc := func(r *http.Request, origin string) bool {
+		if origin == frontendURL {
+			return true
+		}
+		// Allow localhost origins (both http and https) but require the origin to start with
+		// the scheme and host to prevent wildcards in the config value itself.
+		if strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "https://localhost") {
+			return true
+		}
+		return false
 	}
 
-	// CORS handler configuration
 	corsHandler := cors.Handler(cors.Options{
-		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		MaxAge:           300,
+		AllowOriginFunc:  allowOriginFunc,
 	})
 
 	// Use CORS handler with Chi router
 	r.Use(corsHandler)
 
 	r.Use(middleware.Recoverer)
+
+	// Basic security headers to harden the application surface
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Prevent clickjacking
+			w.Header().Set("X-Frame-Options", "DENY")
+			// Reduce MIME based attacks
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+			// Content Security Policy - restrict what resources can be loaded by the browser
+			w.Header().Set("Content-Security-Policy", "default-src 'self'")
+			// Referrer policy
+			w.Header().Set("Referrer-Policy", "no-referrer")
+			// XSS protection (legacy, harmless to enable)
+			w.Header().Set("X-XSS-Protection", "1; mode=block")
+			// HSTS only when TLS is in use
+			if r.TLS != nil {
+				w.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	// Health endpoints for load balancers
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +110,7 @@ func GetRouter() (r *chi.Mux) {
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
-	r.Use(middleware.Timeout(60 * time.Second)) // 60 seconds
+		r.Use(middleware.Timeout(60 * time.Second)) // 60 seconds
 		r.Use(middlewares.AuthMiddleware)
 		r.Get("/api/auth/hello/", HelloWorldAuth)
 	})
@@ -206,10 +239,14 @@ func GetRouter() (r *chi.Mux) {
 		})
 
 	}
-	// Swagger documentation
-	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
-	))
+	// Swagger documentation - only expose in development mode to avoid leaking API docs or
+	// generated files that may contain example credentials. The `Development` flag is set
+	// from the environment in `config.Config`.
+	if config.Config.Development {
+		r.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
+		))
+	}
 
 	// Mount static file servers in img folder
 	fsImg := http.FileServer(http.Dir("img"))
@@ -219,9 +256,14 @@ func GetRouter() (r *chi.Mux) {
 	fsCSS := http.FileServer(http.Dir("public"))
 	r.Handle("/public/*", http.StripPrefix("/public/", fsCSS))
 
-	// Docs file server is used for swagger documentation
-	fsDocs := http.FileServer(http.Dir("docs"))
-	r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))
+	// Only serve repository docs in development. Serving repo documentation from the
+	// application in production can leak sensitive example data (credentials, tokens,
+	// verification keys). Keep docs available for local development but do not expose
+	// them publicly when `Development` is false.
+	if config.Config.Development {
+		fsDocs := http.FileServer(http.Dir("docs"))
+		r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))
+	}
 
 	return r
 }

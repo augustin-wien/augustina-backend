@@ -99,7 +99,7 @@ func HelloWorldAuth(w http.ResponseWriter, r *http.Request) {
 //		@Success		200	{array}	database.Item
 //		@Router			/items/ [get]
 func ListItems(w http.ResponseWriter, r *http.Request) {
-	items, err := database.Db.ListItems(true, true)
+	items, err := database.Db.ListItemsShop()
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -139,7 +139,7 @@ func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	items, err := database.Db.ListItems(skipHiddenItems, skipLicenses)
+	items, err := database.Db.ListItemsWithDisabled(skipHiddenItems, skipLicenses)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -263,6 +263,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 }
 
 func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err error) {
+	log.Info("handleItemPDF: handling PDF upload")
 	pdfId = -1
 	// Check if a digit is sent instead of pdf
 	// contentType := r.Header.Get("Content-Type")
@@ -358,6 +359,13 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse Archived failed ", err)
+				return
+			}
+
+		} else if key == "Disabled" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("updateItemNormal: Parse Disabled failed ", err)
 				return
 			}
 		} else if key == "LicenseItem" {
@@ -1093,7 +1101,7 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get items
-	items, err := database.Db.ListItems(false, false)
+	items, err := database.Db.ListItemsWithDisabled(false, false)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

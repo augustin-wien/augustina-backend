@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/augustin-wien/augustina-backend/ent/item"
+	"github.com/augustin-wien/augustina-backend/ent/pdf"
 )
 
 // Item is the model entity for the Item schema.
@@ -26,14 +27,14 @@ type Item struct {
 	Image string `json:"Image"`
 	// Archived holds the value of the "Archived" field.
 	Archived bool `json:"Archived"`
+	// Disabled holds the value of the "Disabled" field.
+	Disabled bool `json:"Disabled"`
 	// IsLicenseItem holds the value of the "IsLicenseItem" field.
 	IsLicenseItem bool `json:"IsLicenseItem"`
 	// LicenseGroup holds the value of the "LicenseGroup" field.
 	LicenseGroup string `json:"LicenseGroup"`
 	// IsPDFItem holds the value of the "IsPDFItem" field.
 	IsPDFItem bool `json:"IsPDFItem"`
-	// PDF holds the value of the "PDF" field.
-	PDF string `json:"PDF"`
 	// ItemOrder holds the value of the "ItemOrder" field.
 	ItemOrder int `json:"ItemOrder"`
 	// ItemColor holds the value of the "ItemColor" field.
@@ -44,6 +45,7 @@ type Item struct {
 	// The values are being populated by the ItemQuery when eager-loading is set.
 	Edges        ItemEdges `json:"edges"`
 	licenseitem  *int
+	pdf          *int
 	selectValues sql.SelectValues
 }
 
@@ -51,9 +53,11 @@ type Item struct {
 type ItemEdges struct {
 	// LicenseItem holds the value of the LicenseItem edge.
 	LicenseItem *Item `json:"LicenseItem,omitempty"`
+	// PDF holds the value of the PDF edge.
+	PDF *PDF `json:"PDF,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // LicenseItemOrErr returns the LicenseItem value or an error if the edge
@@ -67,20 +71,33 @@ func (e ItemEdges) LicenseItemOrErr() (*Item, error) {
 	return nil, &NotLoadedError{edge: "LicenseItem"}
 }
 
+// PDFOrErr returns the PDF value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ItemEdges) PDFOrErr() (*PDF, error) {
+	if e.PDF != nil {
+		return e.PDF, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: pdf.Label}
+	}
+	return nil, &NotLoadedError{edge: "PDF"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Item) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case item.FieldArchived, item.FieldIsLicenseItem, item.FieldIsPDFItem:
+		case item.FieldArchived, item.FieldDisabled, item.FieldIsLicenseItem, item.FieldIsPDFItem:
 			values[i] = new(sql.NullBool)
 		case item.FieldPrice:
 			values[i] = new(sql.NullFloat64)
 		case item.FieldID, item.FieldItemOrder:
 			values[i] = new(sql.NullInt64)
-		case item.FieldName, item.FieldDescription, item.FieldImage, item.FieldLicenseGroup, item.FieldPDF, item.FieldItemColor, item.FieldItemTextColor:
+		case item.FieldName, item.FieldDescription, item.FieldImage, item.FieldLicenseGroup, item.FieldItemColor, item.FieldItemTextColor:
 			values[i] = new(sql.NullString)
 		case item.ForeignKeys[0]: // licenseitem
+			values[i] = new(sql.NullInt64)
+		case item.ForeignKeys[1]: // pdf
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -133,6 +150,12 @@ func (i *Item) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				i.Archived = value.Bool
 			}
+		case item.FieldDisabled:
+			if value, ok := values[j].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field Disabled", values[j])
+			} else if value.Valid {
+				i.Disabled = value.Bool
+			}
 		case item.FieldIsLicenseItem:
 			if value, ok := values[j].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field IsLicenseItem", values[j])
@@ -150,12 +173,6 @@ func (i *Item) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field IsPDFItem", values[j])
 			} else if value.Valid {
 				i.IsPDFItem = value.Bool
-			}
-		case item.FieldPDF:
-			if value, ok := values[j].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field PDF", values[j])
-			} else if value.Valid {
-				i.PDF = value.String
 			}
 		case item.FieldItemOrder:
 			if value, ok := values[j].(*sql.NullInt64); !ok {
@@ -182,6 +199,13 @@ func (i *Item) assignValues(columns []string, values []any) error {
 				i.licenseitem = new(int)
 				*i.licenseitem = int(value.Int64)
 			}
+		case item.ForeignKeys[1]:
+			if value, ok := values[j].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field pdf", value)
+			} else if value.Valid {
+				i.pdf = new(int)
+				*i.pdf = int(value.Int64)
+			}
 		default:
 			i.selectValues.Set(columns[j], values[j])
 		}
@@ -198,6 +222,11 @@ func (i *Item) Value(name string) (ent.Value, error) {
 // QueryLicenseItem queries the "LicenseItem" edge of the Item entity.
 func (i *Item) QueryLicenseItem() *ItemQuery {
 	return NewItemClient(i.config).QueryLicenseItem(i)
+}
+
+// QueryPDF queries the "PDF" edge of the Item entity.
+func (i *Item) QueryPDF() *PDFQuery {
+	return NewItemClient(i.config).QueryPDF(i)
 }
 
 // Update returns a builder for updating this Item.
@@ -238,6 +267,9 @@ func (i *Item) String() string {
 	builder.WriteString("Archived=")
 	builder.WriteString(fmt.Sprintf("%v", i.Archived))
 	builder.WriteString(", ")
+	builder.WriteString("Disabled=")
+	builder.WriteString(fmt.Sprintf("%v", i.Disabled))
+	builder.WriteString(", ")
 	builder.WriteString("IsLicenseItem=")
 	builder.WriteString(fmt.Sprintf("%v", i.IsLicenseItem))
 	builder.WriteString(", ")
@@ -246,9 +278,6 @@ func (i *Item) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("IsPDFItem=")
 	builder.WriteString(fmt.Sprintf("%v", i.IsPDFItem))
-	builder.WriteString(", ")
-	builder.WriteString("PDF=")
-	builder.WriteString(i.PDF)
 	builder.WriteString(", ")
 	builder.WriteString("ItemOrder=")
 	builder.WriteString(fmt.Sprintf("%v", i.ItemOrder))

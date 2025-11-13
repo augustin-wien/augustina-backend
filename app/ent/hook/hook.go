@@ -45,6 +45,18 @@ func (f LocationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LocationMutation", m)
 }
 
+// The PDFFunc type is an adapter to allow the use of ordinary
+// function as PDF mutator.
+type PDFFunc func(context.Context, *ent.PDFMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PDFFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PDFMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PDFMutation", m)
+}
+
 // The SettingsFunc type is an adapter to allow the use of ordinary
 // function as Settings mutator.
 type SettingsFunc func(context.Context, *ent.SettingsMutation) (ent.Value, error)
