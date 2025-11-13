@@ -23,9 +23,9 @@ jobs:
       postgres_main:
         image: postgres:16
         env:
-          POSTGRES_USER: ${{ env.DB_USER }}
-          POSTGRES_PASSWORD: ${{ env.DB_PASS }}
-          POSTGRES_DB: ${{ env.DB_NAME }}
+          POSTGRES_USER: "user"
+          POSTGRES_PASSWORD: "password"
+          POSTGRES_DB: "djtesting"
         ports:
         - 5432:5432
         # wait until postgres is ready
@@ -41,7 +41,12 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: set env
-      run: cp .env.example .env # && touch
+      run: |
+        cp .env.example .env || true
+        # Copy env for docker-compose if present so services pick up same values
+        if [ -d docker ]; then
+          cp .env.example docker/.env || true
+        fi
       # /home/runner/work/augustin-backend/augustin-backend/docker/.env.parser
 
     - name: Build keycloak image
@@ -52,6 +57,19 @@ jobs:
       with:
         go-version: "1.22"
         cache-dependency-path: app/go.sum
+    
+    - name: Wait for Postgres to be reachable
+      run: |
+        echo "Waiting for Postgres on localhost:5432..."
+        for i in {1..30}; do
+          if nc -z localhost 5432; then
+            echo "Postgres is reachable"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Postgres did not become reachable" 1>&2
+        exit 1
 
     - name: Build
       run: go install github.com/jackc/tern/v2@latest && cd app && go build -o ../build/

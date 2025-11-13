@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,13 +23,14 @@ var log = utils.GetLogger()
 
 func main() {
 	// Initialize config
-	config.InitConfig()
+	if err := config.InitConfig(); err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
 	conf := config.Config
 
 	// Validate critical config and fail fast if missing
 	if err := conf.Validate(); err != nil {
-		fmt.Println("Configuration validation failed:", err)
-		os.Exit(1)
+		log.Fatalf("configuration validation failed: %v", err)
 	}
 
 	sentryEnabled := conf.SentryDSN != ""

@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	_ "github.com/swaggo/files" // swagger embed files
 
 	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/middlewares"
 
 	"github.com/go-chi/chi/v5"
@@ -20,9 +22,9 @@ import (
 func GetRouter() (r *chi.Mux) {
 	r = chi.NewRouter()
 	// Mount all Middleware here
-	// Add request IDs and logging middleware
+	// Add request IDs and structured request logging middleware
 	r.Use(middleware.RequestID)
-	r.Use(middleware.Logger)
+	r.Use(middlewares.RequestLogger)
 
 	// Check that FRONTEND_URL is configured
 	frontendURL := config.Config.FrontendURL
@@ -51,6 +53,27 @@ func GetRouter() (r *chi.Mux) {
 	r.Use(corsHandler)
 
 	r.Use(middleware.Recoverer)
+
+	// Health endpoints for load balancers
+	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+	r.Get("/readyz", func(w http.ResponseWriter, r *http.Request) {
+		// Check DB readiness
+		if database.Db.Dbpool == nil {
+			http.Error(w, "not ready", http.StatusServiceUnavailable)
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+		if err := database.Db.Dbpool.Ping(ctx); err != nil {
+			http.Error(w, "not ready", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
