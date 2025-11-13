@@ -60,125 +60,9 @@ func (db *Database) GetHelloWorld() (string, error) {
 	return greeting, err
 }
 
-// Items ----------------------------------------------------------------------
-
-// ListItems returns all items from the database
-func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool) ([]Item, error) {
-	var items []Item
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT * FROM Item WHERE archived = false ORDER BY ItemOrder DESC")
-	if err != nil {
-		log.Error("ListItems: ", err)
-		return items, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var item Item
-		err = rows.Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
-		if err != nil {
-			log.Error("ListItems: ", err)
-			return items, err
-		}
-
-		// Hardcode check: Do not add default items with their config names TransactionCostsName and DonationName
-		if skipHiddenItems && (item.Name == config.Config.TransactionCostsName || item.Name == config.Config.DonationName) {
-			continue
-		}
-
-		if skipLicenses && item.IsLicenseItem {
-			continue
-		}
-
-		items = append(items, item)
-
-	}
-	return items, nil
-}
-
-// GetItemByName returns the item with the given name
-func (db *Database) GetItemByName(name string) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE Name = $1 and archived = false", name).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
-	if err != nil {
-		log.Error("GetItemByName: ", err)
-	}
-	return
-}
-
-// GetItem returns the item with the given ID
-func (db *Database) GetItem(id int) (item Item, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1 and archived = false", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
-	if err != nil {
-		log.Error("GetItem: failed in Getitem() ", err)
-	}
-	return
-}
-
-// GetItemTx returns the item with the given ID
-func (db *Database) GetItemTx(tx pgx.Tx, id int) (item Item, err error) {
-	err = tx.QueryRow(context.Background(), "SELECT * FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
-	if err != nil {
-		log.Error("GetItem: failed in GetItemTx() ", err)
-	}
-	return
-}
-
-// CreateItem creates an item in the database
-func (db *Database) CreateItem(item Item) (id int, err error) {
-	tx, err := db.Dbpool.Begin(context.Background())
-	if err != nil {
-		log.Error("VerifyOrderAndCreatePayments: Opening DBPool failed", err)
-		return 0, err
-	}
-
-	defer func() { err = DeferTx(tx, err) }()
-	// Check if the item name already exists
-	var count int
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT COUNT(*) FROM Item WHERE Name = $1", item.Name).Scan(&count)
-	if err != nil {
-		log.Error("CreateItem: failed to select item ", err)
-		return 0, err
-	}
-	if count > 0 {
-		return 0, errors.New("Item with the same name already exists. Update it or delete it first")
-	}
-
-	// Insert the new item
-	err = db.Dbpool.QueryRow(context.Background(), `
-	INSERT INTO Item
-	(Name, Description, Price, Image, LicenseItem, Archived, IsLicenseItem, LicenseGroup, IsPDFItem, PDF)
-	values ($1, $2, $3, '', $4, $5, $6, $7, $8, NULL)
-	RETURNING ID
-	`, item.Name, item.Description, item.Price, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup, item.IsPDFItem).Scan(&id)
-	if err != nil {
-		log.Error("CreateItem: failed to insert item ", err)
-	}
-	return id, err
-}
-
-// UpdateItem updates an item in the database
-func (db *Database) UpdateItem(id int, item Item) (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	UPDATE Item
-	SET Name = $2, Description = $3, Price = $4, Image = $5, LicenseItem = $6, Archived = $7, IsLicenseItem = $8, LicenseGroup = $9, IsPDFItem = $10, PDF = $11, ItemOrder = $12, ItemColor = $13, ItemTextColor = $14
-	WHERE ID = $1
-	`, id, item.Name, item.Description, item.Price, item.Image, item.LicenseItem, item.Archived, item.IsLicenseItem, item.LicenseGroup, item.IsPDFItem, item.PDF, item.ItemOrder, item.ItemColor, item.ItemTextColor)
-	if err != nil {
-		log.Error("DB UpdateItem: ", err)
-	}
-	return
-}
-
-// DeleteItem archives an item in the database
-func (db *Database) DeleteItem(id int) (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	UPDATE Item
-	SET Archived = True
-	WHERE ID = $1
-	`, id)
-	if err != nil {
-		log.Error("DeleteItem: ", err)
-	}
-	return
-}
+// NOTE: Item-related queries were moved to queries.items.go so the whole
+// feature can be toggled. See that file for implementations which check
+// config.Config.ItemsEnabled.
 
 // Orders ---------------------------------------------------------------------
 
@@ -358,12 +242,16 @@ func (db *Database) DeleteOrder(id int) (err error) {
 // createOrderEntryTx adds an entry to an order in an transaction
 func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, error) {
 
-	// Get current item price
+	// Get current item price and disabled flag
 	var item Item
-	err := tx.QueryRow(context.Background(), "SELECT Price FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price)
+	err := tx.QueryRow(context.Background(), "SELECT Price, Disabled FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price, &item.Disabled)
 	if err != nil {
 		log.Error("createOrderEntryTx: query row", err)
 		return entry, err
+	}
+	if item.Disabled {
+		log.Debug("createOrderEntryTx: item is disabled", zap.Int("item_id", entry.Item))
+		return entry, errors.New("item is disabled")
 	}
 	entry.Price = item.Price
 

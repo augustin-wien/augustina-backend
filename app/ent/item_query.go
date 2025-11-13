@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/augustin-wien/augustina-backend/ent/item"
+	"github.com/augustin-wien/augustina-backend/ent/pdf"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
 )
 
@@ -23,6 +24,7 @@ type ItemQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.Item
 	withLicenseItem *ItemQuery
+	withPDF         *PDFQuery
 	withFKs         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -75,6 +77,28 @@ func (iq *ItemQuery) QueryLicenseItem() *ItemQuery {
 			sqlgraph.From(item.Table, item.FieldID, selector),
 			sqlgraph.To(item.Table, item.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, item.LicenseItemTable, item.LicenseItemColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPDF chains the current query on the "PDF" edge.
+func (iq *ItemQuery) QueryPDF() *PDFQuery {
+	query := (&PDFClient{config: iq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := iq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(item.Table, item.FieldID, selector),
+			sqlgraph.To(pdf.Table, pdf.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, item.PDFTable, item.PDFColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
 		return fromU, nil
@@ -275,6 +299,7 @@ func (iq *ItemQuery) Clone() *ItemQuery {
 		inters:          append([]Interceptor{}, iq.inters...),
 		predicates:      append([]predicate.Item{}, iq.predicates...),
 		withLicenseItem: iq.withLicenseItem.Clone(),
+		withPDF:         iq.withPDF.Clone(),
 		// clone intermediate query.
 		sql:  iq.sql.Clone(),
 		path: iq.path,
@@ -289,6 +314,17 @@ func (iq *ItemQuery) WithLicenseItem(opts ...func(*ItemQuery)) *ItemQuery {
 		opt(query)
 	}
 	iq.withLicenseItem = query
+	return iq
+}
+
+// WithPDF tells the query-builder to eager-load the nodes that are connected to
+// the "PDF" edge. The optional arguments are used to configure the query builder of the edge.
+func (iq *ItemQuery) WithPDF(opts ...func(*PDFQuery)) *ItemQuery {
+	query := (&PDFClient{config: iq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	iq.withPDF = query
 	return iq
 }
 
@@ -371,11 +407,12 @@ func (iq *ItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Item, e
 		nodes       = []*Item{}
 		withFKs     = iq.withFKs
 		_spec       = iq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			iq.withLicenseItem != nil,
+			iq.withPDF != nil,
 		}
 	)
-	if iq.withLicenseItem != nil {
+	if iq.withLicenseItem != nil || iq.withPDF != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -402,6 +439,12 @@ func (iq *ItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Item, e
 	if query := iq.withLicenseItem; query != nil {
 		if err := iq.loadLicenseItem(ctx, query, nodes, nil,
 			func(n *Item, e *Item) { n.Edges.LicenseItem = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := iq.withPDF; query != nil {
+		if err := iq.loadPDF(ctx, query, nodes, nil,
+			func(n *Item, e *PDF) { n.Edges.PDF = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -433,6 +476,38 @@ func (iq *ItemQuery) loadLicenseItem(ctx context.Context, query *ItemQuery, node
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "licenseitem" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (iq *ItemQuery) loadPDF(ctx context.Context, query *PDFQuery, nodes []*Item, init func(*Item), assign func(*Item, *PDF)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Item)
+	for i := range nodes {
+		if nodes[i].pdf == nil {
+			continue
+		}
+		fk := *nodes[i].pdf
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(pdf.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "pdf" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

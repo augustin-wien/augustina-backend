@@ -149,7 +149,7 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 		return
 	}
 
-	items, err := db.ListItems(false, false)
+	items, err := db.ListItems(false, false, false)
 	if err != nil {
 		return
 	}

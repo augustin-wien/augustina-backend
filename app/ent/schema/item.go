@@ -28,6 +28,9 @@ func (Item) Fields() []ent.Field {
 			NotEmpty(),
 		field.Bool("Archived").
 			Default(false),
+		field.Bool("Disabled").
+			StorageKey("disabled").
+			Default(false),
 		field.Bool("IsLicenseItem").
 			StorageKey("islicenseitem").
 			Default(false),
@@ -37,8 +40,6 @@ func (Item) Fields() []ent.Field {
 		field.Bool("IsPDFItem").
 			StorageKey("ispdfitem").
 			Default(false),
-		field.String("PDF").
-			Default(""),
 		field.Int("ItemOrder").
 			StorageKey("itemorder").
 			Default(0),
@@ -58,7 +59,8 @@ func (Item) Fields() []ent.Field {
 // Edges of the Item.
 func (Item) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("LicenseItem", Item.Type).StorageKey(edge.Column("licenseitem")).Unique(),
+		edge.To("LicenseItem", Item.Type).Unique().StorageKey(edge.Column("licenseitem")),
+		edge.To("PDF", PDF.Type).Unique().StorageKey(edge.Column("pdf")),
 	}
 }
 

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/augustin-wien/augustina-backend/ent/item"
+	"github.com/augustin-wien/augustina-backend/ent/pdf"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
 )
 
@@ -104,6 +105,20 @@ func (iu *ItemUpdate) SetNillableArchived(b *bool) *ItemUpdate {
 	return iu
 }
 
+// SetDisabled sets the "Disabled" field.
+func (iu *ItemUpdate) SetDisabled(b bool) *ItemUpdate {
+	iu.mutation.SetDisabled(b)
+	return iu
+}
+
+// SetNillableDisabled sets the "Disabled" field if the given value is not nil.
+func (iu *ItemUpdate) SetNillableDisabled(b *bool) *ItemUpdate {
+	if b != nil {
+		iu.SetDisabled(*b)
+	}
+	return iu
+}
+
 // SetIsLicenseItem sets the "IsLicenseItem" field.
 func (iu *ItemUpdate) SetIsLicenseItem(b bool) *ItemUpdate {
 	iu.mutation.SetIsLicenseItem(b)
@@ -142,20 +157,6 @@ func (iu *ItemUpdate) SetIsPDFItem(b bool) *ItemUpdate {
 func (iu *ItemUpdate) SetNillableIsPDFItem(b *bool) *ItemUpdate {
 	if b != nil {
 		iu.SetIsPDFItem(*b)
-	}
-	return iu
-}
-
-// SetPDF sets the "PDF" field.
-func (iu *ItemUpdate) SetPDF(s string) *ItemUpdate {
-	iu.mutation.SetPDF(s)
-	return iu
-}
-
-// SetNillablePDF sets the "PDF" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillablePDF(s *string) *ItemUpdate {
-	if s != nil {
-		iu.SetPDF(*s)
 	}
 	return iu
 }
@@ -228,6 +229,25 @@ func (iu *ItemUpdate) SetLicenseItem(i *Item) *ItemUpdate {
 	return iu.SetLicenseItemID(i.ID)
 }
 
+// SetPDFID sets the "PDF" edge to the PDF entity by ID.
+func (iu *ItemUpdate) SetPDFID(id int) *ItemUpdate {
+	iu.mutation.SetPDFID(id)
+	return iu
+}
+
+// SetNillablePDFID sets the "PDF" edge to the PDF entity by ID if the given value is not nil.
+func (iu *ItemUpdate) SetNillablePDFID(id *int) *ItemUpdate {
+	if id != nil {
+		iu = iu.SetPDFID(*id)
+	}
+	return iu
+}
+
+// SetPDF sets the "PDF" edge to the PDF entity.
+func (iu *ItemUpdate) SetPDF(p *PDF) *ItemUpdate {
+	return iu.SetPDFID(p.ID)
+}
+
 // Mutation returns the ItemMutation object of the builder.
 func (iu *ItemUpdate) Mutation() *ItemMutation {
 	return iu.mutation
@@ -236,6 +256,12 @@ func (iu *ItemUpdate) Mutation() *ItemMutation {
 // ClearLicenseItem clears the "LicenseItem" edge to the Item entity.
 func (iu *ItemUpdate) ClearLicenseItem() *ItemUpdate {
 	iu.mutation.ClearLicenseItem()
+	return iu
+}
+
+// ClearPDF clears the "PDF" edge to the PDF entity.
+func (iu *ItemUpdate) ClearPDF() *ItemUpdate {
+	iu.mutation.ClearPDF()
 	return iu
 }
 
@@ -321,6 +347,9 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := iu.mutation.Archived(); ok {
 		_spec.SetField(item.FieldArchived, field.TypeBool, value)
 	}
+	if value, ok := iu.mutation.Disabled(); ok {
+		_spec.SetField(item.FieldDisabled, field.TypeBool, value)
+	}
 	if value, ok := iu.mutation.IsLicenseItem(); ok {
 		_spec.SetField(item.FieldIsLicenseItem, field.TypeBool, value)
 	}
@@ -329,9 +358,6 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := iu.mutation.IsPDFItem(); ok {
 		_spec.SetField(item.FieldIsPDFItem, field.TypeBool, value)
-	}
-	if value, ok := iu.mutation.PDF(); ok {
-		_spec.SetField(item.FieldPDF, field.TypeString, value)
 	}
 	if value, ok := iu.mutation.ItemOrder(); ok {
 		_spec.SetField(item.FieldItemOrder, field.TypeInt, value)
@@ -367,6 +393,35 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(item.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iu.mutation.PDFCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   item.PDFTable,
+			Columns: []string{item.PDFColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pdf.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.PDFIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   item.PDFTable,
+			Columns: []string{item.PDFColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pdf.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -471,6 +526,20 @@ func (iuo *ItemUpdateOne) SetNillableArchived(b *bool) *ItemUpdateOne {
 	return iuo
 }
 
+// SetDisabled sets the "Disabled" field.
+func (iuo *ItemUpdateOne) SetDisabled(b bool) *ItemUpdateOne {
+	iuo.mutation.SetDisabled(b)
+	return iuo
+}
+
+// SetNillableDisabled sets the "Disabled" field if the given value is not nil.
+func (iuo *ItemUpdateOne) SetNillableDisabled(b *bool) *ItemUpdateOne {
+	if b != nil {
+		iuo.SetDisabled(*b)
+	}
+	return iuo
+}
+
 // SetIsLicenseItem sets the "IsLicenseItem" field.
 func (iuo *ItemUpdateOne) SetIsLicenseItem(b bool) *ItemUpdateOne {
 	iuo.mutation.SetIsLicenseItem(b)
@@ -509,20 +578,6 @@ func (iuo *ItemUpdateOne) SetIsPDFItem(b bool) *ItemUpdateOne {
 func (iuo *ItemUpdateOne) SetNillableIsPDFItem(b *bool) *ItemUpdateOne {
 	if b != nil {
 		iuo.SetIsPDFItem(*b)
-	}
-	return iuo
-}
-
-// SetPDF sets the "PDF" field.
-func (iuo *ItemUpdateOne) SetPDF(s string) *ItemUpdateOne {
-	iuo.mutation.SetPDF(s)
-	return iuo
-}
-
-// SetNillablePDF sets the "PDF" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillablePDF(s *string) *ItemUpdateOne {
-	if s != nil {
-		iuo.SetPDF(*s)
 	}
 	return iuo
 }
@@ -595,6 +650,25 @@ func (iuo *ItemUpdateOne) SetLicenseItem(i *Item) *ItemUpdateOne {
 	return iuo.SetLicenseItemID(i.ID)
 }
 
+// SetPDFID sets the "PDF" edge to the PDF entity by ID.
+func (iuo *ItemUpdateOne) SetPDFID(id int) *ItemUpdateOne {
+	iuo.mutation.SetPDFID(id)
+	return iuo
+}
+
+// SetNillablePDFID sets the "PDF" edge to the PDF entity by ID if the given value is not nil.
+func (iuo *ItemUpdateOne) SetNillablePDFID(id *int) *ItemUpdateOne {
+	if id != nil {
+		iuo = iuo.SetPDFID(*id)
+	}
+	return iuo
+}
+
+// SetPDF sets the "PDF" edge to the PDF entity.
+func (iuo *ItemUpdateOne) SetPDF(p *PDF) *ItemUpdateOne {
+	return iuo.SetPDFID(p.ID)
+}
+
 // Mutation returns the ItemMutation object of the builder.
 func (iuo *ItemUpdateOne) Mutation() *ItemMutation {
 	return iuo.mutation
@@ -603,6 +677,12 @@ func (iuo *ItemUpdateOne) Mutation() *ItemMutation {
 // ClearLicenseItem clears the "LicenseItem" edge to the Item entity.
 func (iuo *ItemUpdateOne) ClearLicenseItem() *ItemUpdateOne {
 	iuo.mutation.ClearLicenseItem()
+	return iuo
+}
+
+// ClearPDF clears the "PDF" edge to the PDF entity.
+func (iuo *ItemUpdateOne) ClearPDF() *ItemUpdateOne {
+	iuo.mutation.ClearPDF()
 	return iuo
 }
 
@@ -718,6 +798,9 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 	if value, ok := iuo.mutation.Archived(); ok {
 		_spec.SetField(item.FieldArchived, field.TypeBool, value)
 	}
+	if value, ok := iuo.mutation.Disabled(); ok {
+		_spec.SetField(item.FieldDisabled, field.TypeBool, value)
+	}
 	if value, ok := iuo.mutation.IsLicenseItem(); ok {
 		_spec.SetField(item.FieldIsLicenseItem, field.TypeBool, value)
 	}
@@ -726,9 +809,6 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 	}
 	if value, ok := iuo.mutation.IsPDFItem(); ok {
 		_spec.SetField(item.FieldIsPDFItem, field.TypeBool, value)
-	}
-	if value, ok := iuo.mutation.PDF(); ok {
-		_spec.SetField(item.FieldPDF, field.TypeString, value)
 	}
 	if value, ok := iuo.mutation.ItemOrder(); ok {
 		_spec.SetField(item.FieldItemOrder, field.TypeInt, value)
@@ -764,6 +844,35 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(item.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iuo.mutation.PDFCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   item.PDFTable,
+			Columns: []string{item.PDFColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pdf.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.PDFIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   item.PDFTable,
+			Columns: []string{item.PDFColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(pdf.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

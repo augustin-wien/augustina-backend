@@ -78,6 +78,11 @@ func Archived(v bool) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldArchived, v))
 }
 
+// Disabled applies equality check predicate on the "Disabled" field. It's identical to DisabledEQ.
+func Disabled(v bool) predicate.Item {
+	return predicate.Item(sql.FieldEQ(FieldDisabled, v))
+}
+
 // IsLicenseItem applies equality check predicate on the "IsLicenseItem" field. It's identical to IsLicenseItemEQ.
 func IsLicenseItem(v bool) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldIsLicenseItem, v))
@@ -91,11 +96,6 @@ func LicenseGroup(v string) predicate.Item {
 // IsPDFItem applies equality check predicate on the "IsPDFItem" field. It's identical to IsPDFItemEQ.
 func IsPDFItem(v bool) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldIsPDFItem, v))
-}
-
-// PDF applies equality check predicate on the "PDF" field. It's identical to PDFEQ.
-func PDF(v string) predicate.Item {
-	return predicate.Item(sql.FieldEQ(FieldPDF, v))
 }
 
 // ItemOrder applies equality check predicate on the "ItemOrder" field. It's identical to ItemOrderEQ.
@@ -358,6 +358,16 @@ func ArchivedNEQ(v bool) predicate.Item {
 	return predicate.Item(sql.FieldNEQ(FieldArchived, v))
 }
 
+// DisabledEQ applies the EQ predicate on the "Disabled" field.
+func DisabledEQ(v bool) predicate.Item {
+	return predicate.Item(sql.FieldEQ(FieldDisabled, v))
+}
+
+// DisabledNEQ applies the NEQ predicate on the "Disabled" field.
+func DisabledNEQ(v bool) predicate.Item {
+	return predicate.Item(sql.FieldNEQ(FieldDisabled, v))
+}
+
 // IsLicenseItemEQ applies the EQ predicate on the "IsLicenseItem" field.
 func IsLicenseItemEQ(v bool) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldIsLicenseItem, v))
@@ -441,71 +451,6 @@ func IsPDFItemEQ(v bool) predicate.Item {
 // IsPDFItemNEQ applies the NEQ predicate on the "IsPDFItem" field.
 func IsPDFItemNEQ(v bool) predicate.Item {
 	return predicate.Item(sql.FieldNEQ(FieldIsPDFItem, v))
-}
-
-// PDFEQ applies the EQ predicate on the "PDF" field.
-func PDFEQ(v string) predicate.Item {
-	return predicate.Item(sql.FieldEQ(FieldPDF, v))
-}
-
-// PDFNEQ applies the NEQ predicate on the "PDF" field.
-func PDFNEQ(v string) predicate.Item {
-	return predicate.Item(sql.FieldNEQ(FieldPDF, v))
-}
-
-// PDFIn applies the In predicate on the "PDF" field.
-func PDFIn(vs ...string) predicate.Item {
-	return predicate.Item(sql.FieldIn(FieldPDF, vs...))
-}
-
-// PDFNotIn applies the NotIn predicate on the "PDF" field.
-func PDFNotIn(vs ...string) predicate.Item {
-	return predicate.Item(sql.FieldNotIn(FieldPDF, vs...))
-}
-
-// PDFGT applies the GT predicate on the "PDF" field.
-func PDFGT(v string) predicate.Item {
-	return predicate.Item(sql.FieldGT(FieldPDF, v))
-}
-
-// PDFGTE applies the GTE predicate on the "PDF" field.
-func PDFGTE(v string) predicate.Item {
-	return predicate.Item(sql.FieldGTE(FieldPDF, v))
-}
-
-// PDFLT applies the LT predicate on the "PDF" field.
-func PDFLT(v string) predicate.Item {
-	return predicate.Item(sql.FieldLT(FieldPDF, v))
-}
-
-// PDFLTE applies the LTE predicate on the "PDF" field.
-func PDFLTE(v string) predicate.Item {
-	return predicate.Item(sql.FieldLTE(FieldPDF, v))
-}
-
-// PDFContains applies the Contains predicate on the "PDF" field.
-func PDFContains(v string) predicate.Item {
-	return predicate.Item(sql.FieldContains(FieldPDF, v))
-}
-
-// PDFHasPrefix applies the HasPrefix predicate on the "PDF" field.
-func PDFHasPrefix(v string) predicate.Item {
-	return predicate.Item(sql.FieldHasPrefix(FieldPDF, v))
-}
-
-// PDFHasSuffix applies the HasSuffix predicate on the "PDF" field.
-func PDFHasSuffix(v string) predicate.Item {
-	return predicate.Item(sql.FieldHasSuffix(FieldPDF, v))
-}
-
-// PDFEqualFold applies the EqualFold predicate on the "PDF" field.
-func PDFEqualFold(v string) predicate.Item {
-	return predicate.Item(sql.FieldEqualFold(FieldPDF, v))
-}
-
-// PDFContainsFold applies the ContainsFold predicate on the "PDF" field.
-func PDFContainsFold(v string) predicate.Item {
-	return predicate.Item(sql.FieldContainsFold(FieldPDF, v))
 }
 
 // ItemOrderEQ applies the EQ predicate on the "ItemOrder" field.
@@ -693,6 +638,29 @@ func HasLicenseItem() predicate.Item {
 func HasLicenseItemWith(preds ...predicate.Item) predicate.Item {
 	return predicate.Item(func(s *sql.Selector) {
 		step := newLicenseItemStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPDF applies the HasEdge predicate on the "PDF" edge.
+func HasPDF() predicate.Item {
+	return predicate.Item(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, PDFTable, PDFColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPDFWith applies the HasEdge predicate on the "PDF" edge with a given conditions (other predicates).
+func HasPDFWith(preds ...predicate.PDF) predicate.Item {
+	return predicate.Item(func(s *sql.Selector) {
+		step := newPDFStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

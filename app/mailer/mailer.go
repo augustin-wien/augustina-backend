@@ -22,6 +22,7 @@ func Init() {
 	if !config.Config.SMTPSsl {
 		host = config.Config.SMTPServer
 	}
+
 	auth = smtp.PlainAuth("", config.Config.SMTPUsername, config.Config.SMTPPassword, host)
 }
 

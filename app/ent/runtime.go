@@ -5,6 +5,7 @@ package ent
 import (
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/pdf"
 	"github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
@@ -36,22 +37,22 @@ func init() {
 	itemDescArchived := itemFields[5].Descriptor()
 	// item.DefaultArchived holds the default value on creation for the Archived field.
 	item.DefaultArchived = itemDescArchived.Default.(bool)
+	// itemDescDisabled is the schema descriptor for Disabled field.
+	itemDescDisabled := itemFields[6].Descriptor()
+	// item.DefaultDisabled holds the default value on creation for the Disabled field.
+	item.DefaultDisabled = itemDescDisabled.Default.(bool)
 	// itemDescIsLicenseItem is the schema descriptor for IsLicenseItem field.
-	itemDescIsLicenseItem := itemFields[6].Descriptor()
+	itemDescIsLicenseItem := itemFields[7].Descriptor()
 	// item.DefaultIsLicenseItem holds the default value on creation for the IsLicenseItem field.
 	item.DefaultIsLicenseItem = itemDescIsLicenseItem.Default.(bool)
 	// itemDescLicenseGroup is the schema descriptor for LicenseGroup field.
-	itemDescLicenseGroup := itemFields[7].Descriptor()
+	itemDescLicenseGroup := itemFields[8].Descriptor()
 	// item.DefaultLicenseGroup holds the default value on creation for the LicenseGroup field.
 	item.DefaultLicenseGroup = itemDescLicenseGroup.Default.(string)
 	// itemDescIsPDFItem is the schema descriptor for IsPDFItem field.
-	itemDescIsPDFItem := itemFields[8].Descriptor()
+	itemDescIsPDFItem := itemFields[9].Descriptor()
 	// item.DefaultIsPDFItem holds the default value on creation for the IsPDFItem field.
 	item.DefaultIsPDFItem = itemDescIsPDFItem.Default.(bool)
-	// itemDescPDF is the schema descriptor for PDF field.
-	itemDescPDF := itemFields[9].Descriptor()
-	// item.DefaultPDF holds the default value on creation for the PDF field.
-	item.DefaultPDF = itemDescPDF.Default.(string)
 	// itemDescItemOrder is the schema descriptor for ItemOrder field.
 	itemDescItemOrder := itemFields[10].Descriptor()
 	// item.DefaultItemOrder holds the default value on creation for the ItemOrder field.
@@ -82,6 +83,12 @@ func init() {
 	locationDescID := locationFields[0].Descriptor()
 	// location.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	location.IDValidator = locationDescID.Validators[0].(func(int) error)
+	pdfFields := schema.PDF{}.Fields()
+	_ = pdfFields
+	// pdfDescID is the schema descriptor for id field.
+	pdfDescID := pdfFields[0].Descriptor()
+	// pdf.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	pdf.IDValidator = pdfDescID.Validators[0].(func(int) error)
 	settingsFields := schema.Settings{}.Fields()
 	_ = settingsFields
 	// settingsDescAGBUrl is the schema descriptor for AGBUrl field.
