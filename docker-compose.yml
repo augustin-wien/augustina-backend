@@ -121,8 +121,12 @@ services:
       KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_HOST}
       ROOT_LOGLEVEL: ALL
       KEYCLOAK_LOGLEVEL: DEBUG
-      KC_HOSTNAME_URL: ${KEYCLOAK_HOST}
-      KC_HOSTNAME_ADMIN_URL: ${KEYCLOAK_HOST}
+      KC_HOSTNAME: ${KEYCLOAK_HOST}
+      KC_PROXY_HEADERS: xforwarded
+      KC_FRONTEND_URL: ${KEYCLOAK_HOST}
+      KC_HOSTNAME_STRICT_BACKCHANNEL: true
+      KC_PROXY: edge
+      KC_HTTP_ENABLED: true
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/realms/master"]
       interval: 5s
