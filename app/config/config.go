@@ -52,18 +52,13 @@ type config struct {
 // Config is the global configuration variable
 var Config config
 
-func InitConfig() {
+func InitConfig() error {
 	pwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return err
 	}
-	err = godotenv.Load(pwd + "/.env")
+	_ = godotenv.Load(pwd + "/.env")
 
-	if err != nil {
-		// ignore error
-		fmt.Println(err)
-	}
 	Config = config{
 		Version:                           version,
 		Port:                              getEnv("PORT", "3000"),
@@ -102,6 +97,7 @@ func InitConfig() {
 		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),
 		DEBUG_payments:                    (getEnv("DEBUG_payments", "false") == "true"),
 	}
+	return nil
 }
 
 // Validate checks required configuration values and returns an error if any
