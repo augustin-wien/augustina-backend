@@ -47,3 +47,16 @@ build: build-frontend build-backend
 
 push: push-frontend push-backend
 
+.PHONY: ci-local
+ci-local:
+	@command -v act >/dev/null 2>&1 || { echo "Please install 'act' (https://github.com/nektos/act)"; exit 1; }
+	@echo "Running GitHub Actions job 'Gotest' locally with act..."
+	@# If .env exists, pass it to act so services get the same environment
+	@if [ -f ".env" ]; then \
+		ENVFILE="--env-file .env"; \
+	else \
+		ENVFILE=""; \
+	fi; \
+	# Use a known act runner image for ubuntu-latest; adjust if needed
+	act -j Gotest $$ENVFILE -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:full-22.04
+
