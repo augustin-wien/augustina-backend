@@ -4,7 +4,19 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
+
+// TestParseTemplateFromString parses a simple template string
+func TestParseTemplateFromString(t *testing.T) {
+	r := NewRequest([]string{"test@example.com"}, "subj", "")
+	tmpl := "Hello {{.Name}}, welcome!"
+	data := map[string]string{"Name": "Alice"}
+	err := r.ParseTemplateFromString(tmpl, data)
+	require.NoError(t, err)
+	require.Contains(t, r.body, "Alice")
+}
 
 func TestParseTemplate_Success(t *testing.T) {
 	dir := "./templates"

@@ -95,6 +95,21 @@ var (
 			},
 		},
 	}
+	// MailTemplatesColumns holds the columns for the "mail_templates" table.
+	MailTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "subject", Type: field.TypeString},
+		{Name: "body", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// MailTemplatesTable holds the schema information for the "mail_templates" table.
+	MailTemplatesTable = &schema.Table{
+		Name:       "mail_templates",
+		Columns:    MailTemplatesColumns,
+		PrimaryKey: []*schema.Column{MailTemplatesColumns[0]},
+	}
 	// PdfColumns holds the columns for the "pdf" table.
 	PdfColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -181,6 +196,7 @@ var (
 		CommentsTable,
 		ItemTable,
 		LocationsTable,
+		MailTemplatesTable,
 		PdfTable,
 		SettingsTable,
 		VendorTable,
