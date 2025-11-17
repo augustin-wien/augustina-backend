@@ -3,7 +3,6 @@ package mailer
 import (
 	"bytes"
 	"crypto/tls"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/smtp"
@@ -53,11 +52,11 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 	// Server will prompt for username then password. We ignore the actual prompt content and return base64 values.
 	if a.step == 0 {
 		a.step++
-		return []byte(base64.StdEncoding.EncodeToString([]byte(a.username))), nil
+		return []byte(a.username), nil
 	}
 	if a.step == 1 {
 		a.step++
-		return []byte(base64.StdEncoding.EncodeToString([]byte(a.password))), nil
+		return []byte(a.password), nil
 	}
 	return nil, nil
 }

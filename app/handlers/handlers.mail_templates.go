@@ -122,6 +122,12 @@ func SendMailTemplateTest(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("invalid request: 'to' must contain at least one recipient"), http.StatusBadRequest)
 		return
 	}
+	if req.Data == nil {
+		req.Data = map[string]interface{}{
+			"URL":   "http://example.com",
+			"EMAIL": req.To[0],
+		}
+	}
 
 	mailReq, err := database.Db.BuildEmailRequestFromTemplate(name, req.To, req.Data)
 	if err != nil {
