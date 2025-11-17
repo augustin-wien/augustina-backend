@@ -215,6 +215,19 @@ func GetRouter() (r *chi.Mux) {
 		r.Get("/{id}/", downloadPDF)
 	})
 
+	// Mail templates management
+	r.Route("/api/mail-templates", func(r chi.Router) {
+		r.Use(middlewares.AuthMiddleware)
+		r.Use(middlewares.AdminAuthMiddleware)
+		r.Get("/", ListMailTemplates)
+		r.Get("/{name}/", GetMailTemplate)
+		r.Group(func(r chi.Router) {
+			r.Post("/", CreateOrUpdateMailTemplate)
+			r.Post("/{name}/send/", SendMailTemplateTest)
+			r.Delete("/{name}/", DeleteMailTemplate)
+		})
+	})
+
 	// Flour integration
 	if config.Config.FlourWebhookURL != "" {
 		log.Info("Flour integration enabled")

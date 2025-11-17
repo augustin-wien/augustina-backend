@@ -18,6 +18,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/mailtemplate"
 	"github.com/augustin-wien/augustina-backend/ent/pdf"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
@@ -34,6 +35,8 @@ type Client struct {
 	Item *ItemClient
 	// Location is the client for interacting with the Location builders.
 	Location *LocationClient
+	// MailTemplate is the client for interacting with the MailTemplate builders.
+	MailTemplate *MailTemplateClient
 	// PDF is the client for interacting with the PDF builders.
 	PDF *PDFClient
 	// Settings is the client for interacting with the Settings builders.
@@ -54,6 +57,7 @@ func (c *Client) init() {
 	c.Comment = NewCommentClient(c.config)
 	c.Item = NewItemClient(c.config)
 	c.Location = NewLocationClient(c.config)
+	c.MailTemplate = NewMailTemplateClient(c.config)
 	c.PDF = NewPDFClient(c.config)
 	c.Settings = NewSettingsClient(c.config)
 	c.Vendor = NewVendorClient(c.config)
@@ -147,14 +151,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:      ctx,
-		config:   cfg,
-		Comment:  NewCommentClient(cfg),
-		Item:     NewItemClient(cfg),
-		Location: NewLocationClient(cfg),
-		PDF:      NewPDFClient(cfg),
-		Settings: NewSettingsClient(cfg),
-		Vendor:   NewVendorClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Comment:      NewCommentClient(cfg),
+		Item:         NewItemClient(cfg),
+		Location:     NewLocationClient(cfg),
+		MailTemplate: NewMailTemplateClient(cfg),
+		PDF:          NewPDFClient(cfg),
+		Settings:     NewSettingsClient(cfg),
+		Vendor:       NewVendorClient(cfg),
 	}, nil
 }
 
@@ -172,14 +177,15 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:      ctx,
-		config:   cfg,
-		Comment:  NewCommentClient(cfg),
-		Item:     NewItemClient(cfg),
-		Location: NewLocationClient(cfg),
-		PDF:      NewPDFClient(cfg),
-		Settings: NewSettingsClient(cfg),
-		Vendor:   NewVendorClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Comment:      NewCommentClient(cfg),
+		Item:         NewItemClient(cfg),
+		Location:     NewLocationClient(cfg),
+		MailTemplate: NewMailTemplateClient(cfg),
+		PDF:          NewPDFClient(cfg),
+		Settings:     NewSettingsClient(cfg),
+		Vendor:       NewVendorClient(cfg),
 	}, nil
 }
 
@@ -209,7 +215,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Comment, c.Item, c.Location, c.PDF, c.Settings, c.Vendor,
+		c.Comment, c.Item, c.Location, c.MailTemplate, c.PDF, c.Settings, c.Vendor,
 	} {
 		n.Use(hooks...)
 	}
@@ -219,7 +225,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Comment, c.Item, c.Location, c.PDF, c.Settings, c.Vendor,
+		c.Comment, c.Item, c.Location, c.MailTemplate, c.PDF, c.Settings, c.Vendor,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -234,6 +240,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Item.mutate(ctx, m)
 	case *LocationMutation:
 		return c.Location.mutate(ctx, m)
+	case *MailTemplateMutation:
+		return c.MailTemplate.mutate(ctx, m)
 	case *PDFMutation:
 		return c.PDF.mutate(ctx, m)
 	case *SettingsMutation:
@@ -708,6 +716,139 @@ func (c *LocationClient) mutate(ctx context.Context, m *LocationMutation) (Value
 	}
 }
 
+// MailTemplateClient is a client for the MailTemplate schema.
+type MailTemplateClient struct {
+	config
+}
+
+// NewMailTemplateClient returns a client for the MailTemplate from the given config.
+func NewMailTemplateClient(c config) *MailTemplateClient {
+	return &MailTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `mailtemplate.Hooks(f(g(h())))`.
+func (c *MailTemplateClient) Use(hooks ...Hook) {
+	c.hooks.MailTemplate = append(c.hooks.MailTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `mailtemplate.Intercept(f(g(h())))`.
+func (c *MailTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MailTemplate = append(c.inters.MailTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a MailTemplate entity.
+func (c *MailTemplateClient) Create() *MailTemplateCreate {
+	mutation := newMailTemplateMutation(c.config, OpCreate)
+	return &MailTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MailTemplate entities.
+func (c *MailTemplateClient) CreateBulk(builders ...*MailTemplateCreate) *MailTemplateCreateBulk {
+	return &MailTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MailTemplateClient) MapCreateBulk(slice any, setFunc func(*MailTemplateCreate, int)) *MailTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MailTemplateCreateBulk{err: fmt.Errorf("calling to MailTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MailTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MailTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MailTemplate.
+func (c *MailTemplateClient) Update() *MailTemplateUpdate {
+	mutation := newMailTemplateMutation(c.config, OpUpdate)
+	return &MailTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MailTemplateClient) UpdateOne(mt *MailTemplate) *MailTemplateUpdateOne {
+	mutation := newMailTemplateMutation(c.config, OpUpdateOne, withMailTemplate(mt))
+	return &MailTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MailTemplateClient) UpdateOneID(id int) *MailTemplateUpdateOne {
+	mutation := newMailTemplateMutation(c.config, OpUpdateOne, withMailTemplateID(id))
+	return &MailTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MailTemplate.
+func (c *MailTemplateClient) Delete() *MailTemplateDelete {
+	mutation := newMailTemplateMutation(c.config, OpDelete)
+	return &MailTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MailTemplateClient) DeleteOne(mt *MailTemplate) *MailTemplateDeleteOne {
+	return c.DeleteOneID(mt.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MailTemplateClient) DeleteOneID(id int) *MailTemplateDeleteOne {
+	builder := c.Delete().Where(mailtemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MailTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for MailTemplate.
+func (c *MailTemplateClient) Query() *MailTemplateQuery {
+	return &MailTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMailTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MailTemplate entity by its id.
+func (c *MailTemplateClient) Get(ctx context.Context, id int) (*MailTemplate, error) {
+	return c.Query().Where(mailtemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MailTemplateClient) GetX(ctx context.Context, id int) *MailTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MailTemplateClient) Hooks() []Hook {
+	return c.hooks.MailTemplate
+}
+
+// Interceptors returns the client interceptors.
+func (c *MailTemplateClient) Interceptors() []Interceptor {
+	return c.inters.MailTemplate
+}
+
+func (c *MailTemplateClient) mutate(ctx context.Context, m *MailTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MailTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MailTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MailTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MailTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MailTemplate mutation op: %q", m.Op())
+	}
+}
+
 // PDFClient is a client for the PDF schema.
 type PDFClient struct {
 	config
@@ -1158,9 +1299,9 @@ func (c *VendorClient) mutate(ctx context.Context, m *VendorMutation) (Value, er
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Comment, Item, Location, PDF, Settings, Vendor []ent.Hook
+		Comment, Item, Location, MailTemplate, PDF, Settings, Vendor []ent.Hook
 	}
 	inters struct {
-		Comment, Item, Location, PDF, Settings, Vendor []ent.Interceptor
+		Comment, Item, Location, MailTemplate, PDF, Settings, Vendor []ent.Interceptor
 	}
 )

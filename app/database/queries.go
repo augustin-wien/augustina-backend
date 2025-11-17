@@ -10,7 +10,6 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/keycloak"
-	"github.com/augustin-wien/augustina-backend/mailer"
 
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
@@ -353,16 +352,19 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					}
 					// Send email with link to the license Item
 					templateData := struct {
-						URL string
+						URL   string
+						EMAIL string
 					}{
-						URL: config.Config.OnlinePaperUrl,
+						URL:   config.Config.OnlinePaperUrl,
+						EMAIL: order.CustomerEmail.String,
 					}
 
 					receivers := []string{order.CustomerEmail.String}
-					mail, err := mailer.NewRequestFromTemplate(receivers, "A new newspaper has been purchased", "digitalLicenceItemTemplate.html", templateData)
+					mail, err := db.BuildEmailRequestFromTemplate("digitalLicenceItemTemplate.html", receivers, templateData)
 					if err != nil {
 						log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 					}
+					// use subject from DB template (do not override)
 					go func() {
 						success, err := mail.SendEmail()
 						if err != nil || !success {
@@ -396,19 +398,25 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					if !pdfDownload.EmailSent {
 						url := config.Config.FrontendURL + "/pdf/" + pdfDownload.LinkID
 						templateData := struct {
-							URL string
+							URL   string
+							EMAIL string
 						}{
-							URL: url,
+							URL:   url,
+							EMAIL: order.CustomerEmail.String,
 						}
 						receivers := []string{order.CustomerEmail.String}
-						mail, err := mailer.NewRequestFromTemplate(receivers, "Deine Zeitung ist bereit zum Download", "PDFLicenceItemTemplate.html", templateData)
+						mail, err := db.BuildEmailRequestFromTemplate("PDFLicenceItemTemplate.html", receivers, templateData)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 						}
-						success, err := mail.SendEmail()
-						if err != nil || !success {
-							log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
-						}
+						// use subject from DB template (do not override)
+						go func() {
+							success, err := mail.SendEmail()
+							if err != nil || !success {
+								log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+							}
+						}()
+
 						pdfDownload.EmailSent = true
 						pdfDownload.OrderID = null.IntFrom(int64(orderID))
 						pdfDownload.ItemID = null.IntFrom(int64(item.ID))

@@ -86,6 +86,21 @@ func NewRequest(to []string, subject, body string) *EmailRequest {
 	}
 }
 
+// SetSubject sets the email subject (exported helper for other packages)
+func (r *EmailRequest) SetSubject(s string) {
+	r.subject = s
+}
+
+// Subject returns the email subject
+func (r *EmailRequest) Subject() string {
+	return r.subject
+}
+
+// Body returns the email body (HTML)
+func (r *EmailRequest) Body() string {
+	return r.body
+}
+
 func (r *EmailRequest) SendEmail() (bool, error) {
 
 	// Build proper multipart/alternative message with required headers
@@ -328,6 +343,23 @@ func (r *EmailRequest) ParseTemplate(templateFileName string, data interface{}) 
 	}
 
 	t, err := template.ParseFiles("./templates/" + templateFileName)
+	if err != nil {
+		return err
+	}
+	buf := new(bytes.Buffer)
+	if err = t.Execute(buf, data); err != nil {
+		return err
+	}
+	r.body = buf.String()
+	return nil
+}
+
+// ParseTemplateFromString parses a template from the provided string content
+func (r *EmailRequest) ParseTemplateFromString(templateContent string, data interface{}) error {
+	if templateContent == "" {
+		return errors.New("template content is empty")
+	}
+	t, err := template.New("mail").Parse(templateContent)
 	if err != nil {
 		return err
 	}
