@@ -161,8 +161,12 @@ func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 	b.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
 	b.WriteString("\r\n")
 	qp := quotedprintable.NewWriter(&b)
-	_, _ = qp.Write([]byte(plain))
-	_ = qp.Close()
+	if _, err := qp.Write([]byte(plain)); err != nil {
+		return nil, "", fmt.Errorf("failed to encode plain text: %w", err)
+	}
+	if err := qp.Close(); err != nil {
+		return nil, "", fmt.Errorf("failed to close plain text encoder: %w", err)
+	}
 	b.WriteString("\r\n")
 
 	// html part
@@ -171,8 +175,12 @@ func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 	b.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
 	b.WriteString("\r\n")
 	qp2 := quotedprintable.NewWriter(&b)
-	_, _ = qp2.Write([]byte(r.body))
-	_ = qp2.Close()
+	if _, err := qp2.Write([]byte(r.body)); err != nil {
+		return nil, "", fmt.Errorf("failed to encode HTML body: %w", err)
+	}
+	if err := qp2.Close(); err != nil {
+		return nil, "", fmt.Errorf("failed to close HTML body encoder: %w", err)
+	}
 	b.WriteString("\r\n")
 
 	// end
