@@ -25,6 +25,7 @@ require (
 require (
 	entgo.io/ent v0.14.4
 	github.com/getsentry/sentry-go v0.33.0
+	github.com/go-chi/httprate v0.15.0
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/perimeterx/marshmallow v1.1.5
@@ -52,7 +53,6 @@ require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-chi/httprate v0.15.0 // indirect
 	github.com/go-openapi/inflect v0.21.2 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
