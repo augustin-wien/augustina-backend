@@ -101,6 +101,20 @@ jobs:
         # Run the migrations
         echo "Checking for empty values in migration config ..."
         grep -nE '=[[:space:]]*$|=[[:space:]]*""[[:space:]]*$|:[[:space:]]*$' ./tern_test.conf || true
+        echo "Applying migrations ..."
+        # preload env variables for tern from app/.env so tern's handlebars
+        # {{ env "..." }} helpers can pick them up in the migration config.
+        # we copied .env.example to ./app/.env above, so from this working
+        # directory (app/migrations) the file is at ../.env
+        if [ -f ../.env ]; then
+          # export all variables defined in ../.env into the environment
+          # `set -a` marks variables for export; `.` sources the file
+          set -a
+          . ../.env
+          set +a
+        else
+          echo "Warning: ../.env not found — tern may not receive DB env vars"
+        fi
         tern migrate --config ./tern_test.conf
         echo "Migrations applied."
         echo "Running tests ..."
