@@ -3,8 +3,10 @@ package mailer
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"mime/quotedprintable"
 	"net/smtp"
 	"regexp"
 	"strings"
@@ -18,6 +20,17 @@ import (
 var log = utils.GetLogger()
 
 var auth smtp.Auth
+
+// encodeRFC2047 encodes a header value (Subject) if it contains non-ASCII
+// characters using the 'encoded-word' syntax from RFC 2047 (base64, UTF-8).
+func encodeRFC2047(s string) string {
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 128 {
+			return "=?UTF-8?B?" + base64.StdEncoding.EncodeToString([]byte(s)) + "?="
+		}
+	}
+	return s
+}
 
 func Init() {
 	log.Infoln("Initializing mailer")
@@ -100,13 +113,13 @@ func (r *EmailRequest) Body() string {
 	return r.body
 }
 
-func (r *EmailRequest) SendEmail() (bool, error) {
-
-	// Build proper multipart/alternative message with required headers
+// BuildMessage builds the raw email message bytes (multipart/alternative)
+// and returns the message and the boundary used. This is separated so tests
+// can inspect the generated message without sending it.
+func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 	from := config.Config.SMTPSenderAddress
 	toHeader := strings.Join(r.to, ", ")
 	dateHeader := time.Now().UTC().Format(time.RFC1123Z)
-	// Message-ID must be globally unique — include timestamp and host
 	domain := config.Config.SMTPServer
 	if parts := strings.Split(from, "@"); len(parts) == 2 {
 		domain = parts[1]
@@ -122,10 +135,20 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 
 	boundary := fmt.Sprintf("Boundary_%d", time.Now().UnixNano())
 	var b bytes.Buffer
+
 	// headers
-	b.WriteString(fmt.Sprintf("From: %s\r\n", from))
+	encodedSubject := encodeRFC2047(r.subject)
+	// Build From header with optional display name
+	fromName := config.Config.SMTPSenderName
+	var fromHeader string
+	if strings.TrimSpace(fromName) != "" {
+		fromHeader = fmt.Sprintf("%s <%s>", encodeRFC2047(fromName), from)
+	} else {
+		fromHeader = from
+	}
+	b.WriteString(fmt.Sprintf("From: %s\r\n", fromHeader))
 	b.WriteString(fmt.Sprintf("To: %s\r\n", toHeader))
-	b.WriteString(fmt.Sprintf("Subject: %s\r\n", r.subject))
+	b.WriteString(fmt.Sprintf("Subject: %s\r\n", encodedSubject))
 	b.WriteString(fmt.Sprintf("Date: %s\r\n", dateHeader))
 	b.WriteString(fmt.Sprintf("Message-ID: %s\r\n", msgID))
 	b.WriteString("MIME-Version: 1.0\r\n")
@@ -135,23 +158,35 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 	// plain part
 	b.WriteString(fmt.Sprintf("--%s\r\n", boundary))
 	b.WriteString("Content-Type: text/plain; charset=\"UTF-8\"\r\n")
-	b.WriteString("Content-Transfer-Encoding: 7bit\r\n")
+	b.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
 	b.WriteString("\r\n")
-	b.WriteString(plain)
+	qp := quotedprintable.NewWriter(&b)
+	_, _ = qp.Write([]byte(plain))
+	_ = qp.Close()
 	b.WriteString("\r\n")
 
 	// html part
 	b.WriteString(fmt.Sprintf("--%s\r\n", boundary))
 	b.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
-	b.WriteString("Content-Transfer-Encoding: 7bit\r\n")
+	b.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
 	b.WriteString("\r\n")
-	b.WriteString(r.body)
+	qp2 := quotedprintable.NewWriter(&b)
+	_, _ = qp2.Write([]byte(r.body))
+	_ = qp2.Close()
 	b.WriteString("\r\n")
 
 	// end
 	b.WriteString(fmt.Sprintf("--%s--\r\n", boundary))
 
-	msg := b.Bytes()
+	return b.Bytes(), boundary, nil
+}
+
+func (r *EmailRequest) SendEmail() (bool, error) {
+	// Build the message bytes
+	msg, _, err := r.BuildMessage()
+	if err != nil {
+		return false, err
+	}
 
 	addr := config.Config.SMTPServer + ":" + config.Config.SMTPPort
 
