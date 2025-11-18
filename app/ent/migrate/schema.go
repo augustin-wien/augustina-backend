@@ -78,7 +78,6 @@ var (
 		{Name: "longitude", Type: field.TypeFloat64, Default: 0.1},
 		{Name: "latitude", Type: field.TypeFloat64, Default: 0.1},
 		{Name: "zip", Type: field.TypeString},
-		{Name: "working_time", Type: field.TypeString},
 		{Name: "vendor_locations", Type: field.TypeInt, Nullable: true},
 	}
 	// LocationsTable holds the schema information for the "locations" table.
@@ -89,7 +88,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "locations_vendor_locations",
-				Columns:    []*schema.Column{LocationsColumns[7]},
+				Columns:    []*schema.Column{LocationsColumns[6]},
 				RefColumns: []*schema.Column{VendorColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -191,6 +190,29 @@ var (
 		Columns:    VendorColumns,
 		PrimaryKey: []*schema.Column{VendorColumns[0]},
 	}
+	// WorkingTimesColumns holds the columns for the "working_times" table.
+	WorkingTimesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "day", Type: field.TypeEnum, Enums: []string{"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "weekdays", "weekend"}},
+		{Name: "open_time", Type: field.TypeString, Nullable: true},
+		{Name: "close_time", Type: field.TypeString, Nullable: true},
+		{Name: "closed", Type: field.TypeBool, Default: false},
+		{Name: "location_working_times", Type: field.TypeInt},
+	}
+	// WorkingTimesTable holds the schema information for the "working_times" table.
+	WorkingTimesTable = &schema.Table{
+		Name:       "working_times",
+		Columns:    WorkingTimesColumns,
+		PrimaryKey: []*schema.Column{WorkingTimesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "working_times_locations_working_times",
+				Columns:    []*schema.Column{WorkingTimesColumns[5]},
+				RefColumns: []*schema.Column{LocationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CommentsTable,
@@ -200,6 +222,7 @@ var (
 		PdfTable,
 		SettingsTable,
 		VendorTable,
+		WorkingTimesTable,
 	}
 )
 
@@ -218,4 +241,5 @@ func init() {
 	VendorTable.Annotation = &entsql.Annotation{
 		Table: "vendor",
 	}
+	WorkingTimesTable.ForeignKeys[0].RefTable = LocationsTable
 }

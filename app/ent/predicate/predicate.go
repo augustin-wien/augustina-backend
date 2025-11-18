@@ -26,3 +26,6 @@ type Settings func(*sql.Selector)
 
 // Vendor is the predicate function for vendor builders.
 type Vendor func(*sql.Selector)
+
+// WorkingTime is the predicate function for workingtime builders.
+type WorkingTime func(*sql.Selector)

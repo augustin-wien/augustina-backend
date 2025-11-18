@@ -19,6 +19,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
+	"github.com/augustin-wien/augustina-backend/ent/workingtime"
 )
 
 const (
@@ -37,6 +38,7 @@ const (
 	TypePDF          = "PDF"
 	TypeSettings     = "Settings"
 	TypeVendor       = "Vendor"
+	TypeWorkingTime  = "WorkingTime"
 )
 
 // CommentMutation represents an operation that mutates the Comment nodes in the graph.
@@ -1724,23 +1726,25 @@ func (m *ItemMutation) ResetEdge(name string) error {
 // LocationMutation represents an operation that mutates the Location nodes in the graph.
 type LocationMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	name          *string
-	address       *string
-	longitude     *float64
-	addlongitude  *float64
-	latitude      *float64
-	addlatitude   *float64
-	zip           *string
-	working_time  *string
-	clearedFields map[string]struct{}
-	vendor        *int
-	clearedvendor bool
-	done          bool
-	oldValue      func(context.Context) (*Location, error)
-	predicates    []predicate.Location
+	op                   Op
+	typ                  string
+	id                   *int
+	name                 *string
+	address              *string
+	longitude            *float64
+	addlongitude         *float64
+	latitude             *float64
+	addlatitude          *float64
+	zip                  *string
+	clearedFields        map[string]struct{}
+	vendor               *int
+	clearedvendor        bool
+	working_times        map[int]struct{}
+	removedworking_times map[int]struct{}
+	clearedworking_times bool
+	done                 bool
+	oldValue             func(context.Context) (*Location, error)
+	predicates           []predicate.Location
 }
 
 var _ ent.Mutation = (*LocationMutation)(nil)
@@ -2067,42 +2071,6 @@ func (m *LocationMutation) ResetZip() {
 	m.zip = nil
 }
 
-// SetWorkingTime sets the "working_time" field.
-func (m *LocationMutation) SetWorkingTime(s string) {
-	m.working_time = &s
-}
-
-// WorkingTime returns the value of the "working_time" field in the mutation.
-func (m *LocationMutation) WorkingTime() (r string, exists bool) {
-	v := m.working_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldWorkingTime returns the old "working_time" field's value of the Location entity.
-// If the Location object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LocationMutation) OldWorkingTime(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWorkingTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWorkingTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWorkingTime: %w", err)
-	}
-	return oldValue.WorkingTime, nil
-}
-
-// ResetWorkingTime resets all changes to the "working_time" field.
-func (m *LocationMutation) ResetWorkingTime() {
-	m.working_time = nil
-}
-
 // SetVendorID sets the "vendor" edge to the Vendor entity by id.
 func (m *LocationMutation) SetVendorID(id int) {
 	m.vendor = &id
@@ -2142,6 +2110,60 @@ func (m *LocationMutation) ResetVendor() {
 	m.clearedvendor = false
 }
 
+// AddWorkingTimeIDs adds the "working_times" edge to the WorkingTime entity by ids.
+func (m *LocationMutation) AddWorkingTimeIDs(ids ...int) {
+	if m.working_times == nil {
+		m.working_times = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.working_times[ids[i]] = struct{}{}
+	}
+}
+
+// ClearWorkingTimes clears the "working_times" edge to the WorkingTime entity.
+func (m *LocationMutation) ClearWorkingTimes() {
+	m.clearedworking_times = true
+}
+
+// WorkingTimesCleared reports if the "working_times" edge to the WorkingTime entity was cleared.
+func (m *LocationMutation) WorkingTimesCleared() bool {
+	return m.clearedworking_times
+}
+
+// RemoveWorkingTimeIDs removes the "working_times" edge to the WorkingTime entity by IDs.
+func (m *LocationMutation) RemoveWorkingTimeIDs(ids ...int) {
+	if m.removedworking_times == nil {
+		m.removedworking_times = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.working_times, ids[i])
+		m.removedworking_times[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWorkingTimes returns the removed IDs of the "working_times" edge to the WorkingTime entity.
+func (m *LocationMutation) RemovedWorkingTimesIDs() (ids []int) {
+	for id := range m.removedworking_times {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WorkingTimesIDs returns the "working_times" edge IDs in the mutation.
+func (m *LocationMutation) WorkingTimesIDs() (ids []int) {
+	for id := range m.working_times {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWorkingTimes resets all changes to the "working_times" edge.
+func (m *LocationMutation) ResetWorkingTimes() {
+	m.working_times = nil
+	m.clearedworking_times = false
+	m.removedworking_times = nil
+}
+
 // Where appends a list predicates to the LocationMutation builder.
 func (m *LocationMutation) Where(ps ...predicate.Location) {
 	m.predicates = append(m.predicates, ps...)
@@ -2176,7 +2198,7 @@ func (m *LocationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LocationMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, location.FieldName)
 	}
@@ -2191,9 +2213,6 @@ func (m *LocationMutation) Fields() []string {
 	}
 	if m.zip != nil {
 		fields = append(fields, location.FieldZip)
-	}
-	if m.working_time != nil {
-		fields = append(fields, location.FieldWorkingTime)
 	}
 	return fields
 }
@@ -2213,8 +2232,6 @@ func (m *LocationMutation) Field(name string) (ent.Value, bool) {
 		return m.Latitude()
 	case location.FieldZip:
 		return m.Zip()
-	case location.FieldWorkingTime:
-		return m.WorkingTime()
 	}
 	return nil, false
 }
@@ -2234,8 +2251,6 @@ func (m *LocationMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldLatitude(ctx)
 	case location.FieldZip:
 		return m.OldZip(ctx)
-	case location.FieldWorkingTime:
-		return m.OldWorkingTime(ctx)
 	}
 	return nil, fmt.Errorf("unknown Location field %s", name)
 }
@@ -2279,13 +2294,6 @@ func (m *LocationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetZip(v)
-		return nil
-	case location.FieldWorkingTime:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetWorkingTime(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Location field %s", name)
@@ -2378,18 +2386,18 @@ func (m *LocationMutation) ResetField(name string) error {
 	case location.FieldZip:
 		m.ResetZip()
 		return nil
-	case location.FieldWorkingTime:
-		m.ResetWorkingTime()
-		return nil
 	}
 	return fmt.Errorf("unknown Location field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LocationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.vendor != nil {
 		edges = append(edges, location.EdgeVendor)
+	}
+	if m.working_times != nil {
+		edges = append(edges, location.EdgeWorkingTimes)
 	}
 	return edges
 }
@@ -2402,27 +2410,47 @@ func (m *LocationMutation) AddedIDs(name string) []ent.Value {
 		if id := m.vendor; id != nil {
 			return []ent.Value{*id}
 		}
+	case location.EdgeWorkingTimes:
+		ids := make([]ent.Value, 0, len(m.working_times))
+		for id := range m.working_times {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LocationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedworking_times != nil {
+		edges = append(edges, location.EdgeWorkingTimes)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *LocationMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case location.EdgeWorkingTimes:
+		ids := make([]ent.Value, 0, len(m.removedworking_times))
+		for id := range m.removedworking_times {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LocationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedvendor {
 		edges = append(edges, location.EdgeVendor)
+	}
+	if m.clearedworking_times {
+		edges = append(edges, location.EdgeWorkingTimes)
 	}
 	return edges
 }
@@ -2433,6 +2461,8 @@ func (m *LocationMutation) EdgeCleared(name string) bool {
 	switch name {
 	case location.EdgeVendor:
 		return m.clearedvendor
+	case location.EdgeWorkingTimes:
+		return m.clearedworking_times
 	}
 	return false
 }
@@ -2454,6 +2484,9 @@ func (m *LocationMutation) ResetEdge(name string) error {
 	switch name {
 	case location.EdgeVendor:
 		m.ResetVendor()
+		return nil
+	case location.EdgeWorkingTimes:
+		m.ResetWorkingTimes()
 		return nil
 	}
 	return fmt.Errorf("unknown Location edge %s", name)
@@ -6452,4 +6485,606 @@ func (m *VendorMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Vendor edge %s", name)
+}
+
+// WorkingTimeMutation represents an operation that mutates the WorkingTime nodes in the graph.
+type WorkingTimeMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	day             *workingtime.Day
+	open_time       *string
+	close_time      *string
+	closed          *bool
+	clearedFields   map[string]struct{}
+	location        *int
+	clearedlocation bool
+	done            bool
+	oldValue        func(context.Context) (*WorkingTime, error)
+	predicates      []predicate.WorkingTime
+}
+
+var _ ent.Mutation = (*WorkingTimeMutation)(nil)
+
+// workingtimeOption allows management of the mutation configuration using functional options.
+type workingtimeOption func(*WorkingTimeMutation)
+
+// newWorkingTimeMutation creates new mutation for the WorkingTime entity.
+func newWorkingTimeMutation(c config, op Op, opts ...workingtimeOption) *WorkingTimeMutation {
+	m := &WorkingTimeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeWorkingTime,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withWorkingTimeID sets the ID field of the mutation.
+func withWorkingTimeID(id int) workingtimeOption {
+	return func(m *WorkingTimeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *WorkingTime
+		)
+		m.oldValue = func(ctx context.Context) (*WorkingTime, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().WorkingTime.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withWorkingTime sets the old WorkingTime of the mutation.
+func withWorkingTime(node *WorkingTime) workingtimeOption {
+	return func(m *WorkingTimeMutation) {
+		m.oldValue = func(context.Context) (*WorkingTime, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m WorkingTimeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m WorkingTimeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of WorkingTime entities.
+func (m *WorkingTimeMutation) SetID(id int) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *WorkingTimeMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *WorkingTimeMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().WorkingTime.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetDay sets the "day" field.
+func (m *WorkingTimeMutation) SetDay(w workingtime.Day) {
+	m.day = &w
+}
+
+// Day returns the value of the "day" field in the mutation.
+func (m *WorkingTimeMutation) Day() (r workingtime.Day, exists bool) {
+	v := m.day
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDay returns the old "day" field's value of the WorkingTime entity.
+// If the WorkingTime object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkingTimeMutation) OldDay(ctx context.Context) (v workingtime.Day, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDay is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDay requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDay: %w", err)
+	}
+	return oldValue.Day, nil
+}
+
+// ResetDay resets all changes to the "day" field.
+func (m *WorkingTimeMutation) ResetDay() {
+	m.day = nil
+}
+
+// SetOpenTime sets the "open_time" field.
+func (m *WorkingTimeMutation) SetOpenTime(s string) {
+	m.open_time = &s
+}
+
+// OpenTime returns the value of the "open_time" field in the mutation.
+func (m *WorkingTimeMutation) OpenTime() (r string, exists bool) {
+	v := m.open_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOpenTime returns the old "open_time" field's value of the WorkingTime entity.
+// If the WorkingTime object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkingTimeMutation) OldOpenTime(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOpenTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOpenTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOpenTime: %w", err)
+	}
+	return oldValue.OpenTime, nil
+}
+
+// ClearOpenTime clears the value of the "open_time" field.
+func (m *WorkingTimeMutation) ClearOpenTime() {
+	m.open_time = nil
+	m.clearedFields[workingtime.FieldOpenTime] = struct{}{}
+}
+
+// OpenTimeCleared returns if the "open_time" field was cleared in this mutation.
+func (m *WorkingTimeMutation) OpenTimeCleared() bool {
+	_, ok := m.clearedFields[workingtime.FieldOpenTime]
+	return ok
+}
+
+// ResetOpenTime resets all changes to the "open_time" field.
+func (m *WorkingTimeMutation) ResetOpenTime() {
+	m.open_time = nil
+	delete(m.clearedFields, workingtime.FieldOpenTime)
+}
+
+// SetCloseTime sets the "close_time" field.
+func (m *WorkingTimeMutation) SetCloseTime(s string) {
+	m.close_time = &s
+}
+
+// CloseTime returns the value of the "close_time" field in the mutation.
+func (m *WorkingTimeMutation) CloseTime() (r string, exists bool) {
+	v := m.close_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCloseTime returns the old "close_time" field's value of the WorkingTime entity.
+// If the WorkingTime object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkingTimeMutation) OldCloseTime(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCloseTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCloseTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCloseTime: %w", err)
+	}
+	return oldValue.CloseTime, nil
+}
+
+// ClearCloseTime clears the value of the "close_time" field.
+func (m *WorkingTimeMutation) ClearCloseTime() {
+	m.close_time = nil
+	m.clearedFields[workingtime.FieldCloseTime] = struct{}{}
+}
+
+// CloseTimeCleared returns if the "close_time" field was cleared in this mutation.
+func (m *WorkingTimeMutation) CloseTimeCleared() bool {
+	_, ok := m.clearedFields[workingtime.FieldCloseTime]
+	return ok
+}
+
+// ResetCloseTime resets all changes to the "close_time" field.
+func (m *WorkingTimeMutation) ResetCloseTime() {
+	m.close_time = nil
+	delete(m.clearedFields, workingtime.FieldCloseTime)
+}
+
+// SetClosed sets the "closed" field.
+func (m *WorkingTimeMutation) SetClosed(b bool) {
+	m.closed = &b
+}
+
+// Closed returns the value of the "closed" field in the mutation.
+func (m *WorkingTimeMutation) Closed() (r bool, exists bool) {
+	v := m.closed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosed returns the old "closed" field's value of the WorkingTime entity.
+// If the WorkingTime object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WorkingTimeMutation) OldClosed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosed: %w", err)
+	}
+	return oldValue.Closed, nil
+}
+
+// ResetClosed resets all changes to the "closed" field.
+func (m *WorkingTimeMutation) ResetClosed() {
+	m.closed = nil
+}
+
+// SetLocationID sets the "location" edge to the Location entity by id.
+func (m *WorkingTimeMutation) SetLocationID(id int) {
+	m.location = &id
+}
+
+// ClearLocation clears the "location" edge to the Location entity.
+func (m *WorkingTimeMutation) ClearLocation() {
+	m.clearedlocation = true
+}
+
+// LocationCleared reports if the "location" edge to the Location entity was cleared.
+func (m *WorkingTimeMutation) LocationCleared() bool {
+	return m.clearedlocation
+}
+
+// LocationID returns the "location" edge ID in the mutation.
+func (m *WorkingTimeMutation) LocationID() (id int, exists bool) {
+	if m.location != nil {
+		return *m.location, true
+	}
+	return
+}
+
+// LocationIDs returns the "location" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LocationID instead. It exists only for internal usage by the builders.
+func (m *WorkingTimeMutation) LocationIDs() (ids []int) {
+	if id := m.location; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocation resets all changes to the "location" edge.
+func (m *WorkingTimeMutation) ResetLocation() {
+	m.location = nil
+	m.clearedlocation = false
+}
+
+// Where appends a list predicates to the WorkingTimeMutation builder.
+func (m *WorkingTimeMutation) Where(ps ...predicate.WorkingTime) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the WorkingTimeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WorkingTimeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.WorkingTime, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *WorkingTimeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WorkingTimeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (WorkingTime).
+func (m *WorkingTimeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *WorkingTimeMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.day != nil {
+		fields = append(fields, workingtime.FieldDay)
+	}
+	if m.open_time != nil {
+		fields = append(fields, workingtime.FieldOpenTime)
+	}
+	if m.close_time != nil {
+		fields = append(fields, workingtime.FieldCloseTime)
+	}
+	if m.closed != nil {
+		fields = append(fields, workingtime.FieldClosed)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *WorkingTimeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case workingtime.FieldDay:
+		return m.Day()
+	case workingtime.FieldOpenTime:
+		return m.OpenTime()
+	case workingtime.FieldCloseTime:
+		return m.CloseTime()
+	case workingtime.FieldClosed:
+		return m.Closed()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *WorkingTimeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case workingtime.FieldDay:
+		return m.OldDay(ctx)
+	case workingtime.FieldOpenTime:
+		return m.OldOpenTime(ctx)
+	case workingtime.FieldCloseTime:
+		return m.OldCloseTime(ctx)
+	case workingtime.FieldClosed:
+		return m.OldClosed(ctx)
+	}
+	return nil, fmt.Errorf("unknown WorkingTime field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WorkingTimeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case workingtime.FieldDay:
+		v, ok := value.(workingtime.Day)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDay(v)
+		return nil
+	case workingtime.FieldOpenTime:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOpenTime(v)
+		return nil
+	case workingtime.FieldCloseTime:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCloseTime(v)
+		return nil
+	case workingtime.FieldClosed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosed(v)
+		return nil
+	}
+	return fmt.Errorf("unknown WorkingTime field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *WorkingTimeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *WorkingTimeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WorkingTimeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown WorkingTime numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *WorkingTimeMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(workingtime.FieldOpenTime) {
+		fields = append(fields, workingtime.FieldOpenTime)
+	}
+	if m.FieldCleared(workingtime.FieldCloseTime) {
+		fields = append(fields, workingtime.FieldCloseTime)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *WorkingTimeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *WorkingTimeMutation) ClearField(name string) error {
+	switch name {
+	case workingtime.FieldOpenTime:
+		m.ClearOpenTime()
+		return nil
+	case workingtime.FieldCloseTime:
+		m.ClearCloseTime()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkingTime nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *WorkingTimeMutation) ResetField(name string) error {
+	switch name {
+	case workingtime.FieldDay:
+		m.ResetDay()
+		return nil
+	case workingtime.FieldOpenTime:
+		m.ResetOpenTime()
+		return nil
+	case workingtime.FieldCloseTime:
+		m.ResetCloseTime()
+		return nil
+	case workingtime.FieldClosed:
+		m.ResetClosed()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkingTime field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *WorkingTimeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.location != nil {
+		edges = append(edges, workingtime.EdgeLocation)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *WorkingTimeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case workingtime.EdgeLocation:
+		if id := m.location; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *WorkingTimeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *WorkingTimeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *WorkingTimeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedlocation {
+		edges = append(edges, workingtime.EdgeLocation)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *WorkingTimeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case workingtime.EdgeLocation:
+		return m.clearedlocation
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *WorkingTimeMutation) ClearEdge(name string) error {
+	switch name {
+	case workingtime.EdgeLocation:
+		m.ClearLocation()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkingTime unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *WorkingTimeMutation) ResetEdge(name string) error {
+	switch name {
+	case workingtime.EdgeLocation:
+		m.ResetLocation()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkingTime edge %s", name)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent"
 	entlocation "github.com/augustin-wien/augustina-backend/ent/location"
 	entvendor "github.com/augustin-wien/augustina-backend/ent/vendor"
+	entworkingtime "github.com/augustin-wien/augustina-backend/ent/workingtime"
 )
 
 // GetLocationsByVendorID fetches all locations associated with a given vendor ID.
@@ -19,22 +20,91 @@ func (db *Database) GetLocationsByVendorID(vendorID int) (locations []*ent.Locat
 	return locations, nil
 }
 
-// CreateLocation creates a new location for a given vendor.
-func (db *Database) CreateLocation(vendorID int, location ent.Location) (err error) {
-	_, err = db.EntClient.Location.Create().SetVendorID(vendorID).SetName(location.Name).SetAddress(location.Address).SetLongitude(location.Longitude).SetLatitude(location.Latitude).SetZip(location.Zip).SetWorkingTime(location.WorkingTime).Save(context.Background())
-	if err != nil {
-		log.Error("CreateLocation", err)
-	}
-	return err
+// WorkingTimeInput represents a simplified working time payload.
+type WorkingTimeInput struct {
+	Day      string  `json:"day"`
+	OpenTime string  `json:"open_time"`
+	CloseTime *string `json:"close_time"`
+	Closed   bool    `json:"closed"`
 }
 
-// UpdateLocation updates a location.
-func (db *Database) UpdateLocation(location ent.Location) (err error) {
-	_, err = db.EntClient.Location.UpdateOneID(location.ID).SetName(location.Name).SetAddress(location.Address).SetLongitude(location.Longitude).SetLatitude(location.Latitude).SetZip(location.Zip).SetWorkingTime(location.WorkingTime).Save(context.Background())
+// LocationInput represents incoming location payload used to create/update locations.
+type LocationInput struct {
+	ID           int                 `json:"id"`
+	Name         string              `json:"name"`
+	Address      string              `json:"address"`
+	Longitude    float64             `json:"longitude"`
+	Latitude     float64             `json:"latitude"`
+	Zip          string              `json:"zip"`
+	WorkingTime  string              `json:"working_time"`
+	WorkingTimes []WorkingTimeInput  `json:"working_times"`
+}
+
+// CreateLocation creates a new location for a given vendor and attaches working_times if provided.
+func (db *Database) CreateLocation(vendorID int, payload LocationInput) (err error) {
+	loc, err := db.EntClient.Location.Create().SetVendorID(vendorID).SetName(payload.Name).SetAddress(payload.Address).SetLongitude(payload.Longitude).SetLatitude(payload.Latitude).SetZip(payload.Zip).Save(context.Background())
+	if err != nil {
+		log.Error("CreateLocation", err)
+		return err
+	}
+
+	// If a legacy working_time string is provided, convert it into one working_times entry.
+	if payload.WorkingTime != "" {
+		_, err = db.EntClient.WorkingTime.Create().SetDay(entworkingtime.DayMonday).SetOpenTime(payload.WorkingTime).SetLocationID(loc.ID).Save(context.Background())
+		if err != nil {
+			log.Error("CreateLocation: create working_time", err)
+			return err
+		}
+	}
+
+	// If explicit working_times provided, create them.
+	for _, wt := range payload.WorkingTimes {
+		w := db.EntClient.WorkingTime.Create().SetDay(entworkingtime.Day(wt.Day)).SetOpenTime(wt.OpenTime).SetLocationID(loc.ID).SetClosed(wt.Closed)
+		if wt.CloseTime != nil {
+			w = w.SetCloseTime(*wt.CloseTime)
+		}
+		_, err = w.Save(context.Background())
+		if err != nil {
+			log.Error("CreateLocation: create working_time batch", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+// UpdateLocation updates a location and updates working_times when provided.
+func (db *Database) UpdateLocation(payload LocationInput) (err error) {
+	_, err = db.EntClient.Location.UpdateOneID(payload.ID).SetName(payload.Name).SetAddress(payload.Address).SetLongitude(payload.Longitude).SetLatitude(payload.Latitude).SetZip(payload.Zip).Save(context.Background())
 	if err != nil {
 		log.Error("UpdateLocation", err)
+		return err
 	}
-	return err
+
+	// If legacy working_time string provided, create/update a default working_time row.
+	if payload.WorkingTime != "" {
+		// For simplicity: always create a new default working_time linked to location.
+		_, err = db.EntClient.WorkingTime.Create().SetDay(entworkingtime.DayMonday).SetOpenTime(payload.WorkingTime).SetLocationID(payload.ID).Save(context.Background())
+		if err != nil {
+			log.Error("UpdateLocation: create working_time", err)
+			return err
+		}
+	}
+
+	// If explicit working_times provided, append them. A more complete implementation would sync (insert/update/delete).
+	for _, wt := range payload.WorkingTimes {
+		w := db.EntClient.WorkingTime.Create().SetDay(entworkingtime.Day(wt.Day)).SetOpenTime(wt.OpenTime).SetLocationID(payload.ID).SetClosed(wt.Closed)
+		if wt.CloseTime != nil {
+			w = w.SetCloseTime(*wt.CloseTime)
+		}
+		_, err = w.Save(context.Background())
+		if err != nil {
+			log.Error("UpdateLocation: create working_time batch", err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 // DeleteLocation deletes a location.

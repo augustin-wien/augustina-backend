@@ -23,7 +23,7 @@ func (Location) Fields() []ent.Field {
 		field.Float("latitude").
 			Default(0.1),
 		field.String("zip"),
-		field.String("working_time"),
+		// Working times moved to `WorkingTime` schema to allow per-day schedules.
 	}
 }
 
@@ -33,5 +33,6 @@ func (Location) Edges() []ent.Edge {
 		edge.From("vendor", Vendor.Type).
 			Ref("locations").
 			Unique(), // Ensures each Location is associated with only one Vendor
+		edge.To("working_times", WorkingTime.Type),
 	}
 }

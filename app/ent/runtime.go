@@ -9,6 +9,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
+	"github.com/augustin-wien/augustina-backend/ent/workingtime"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -225,4 +226,14 @@ func init() {
 	vendorDescID := vendorFields[0].Descriptor()
 	// vendor.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	vendor.IDValidator = vendorDescID.Validators[0].(func(int) error)
+	workingtimeFields := schema.WorkingTime{}.Fields()
+	_ = workingtimeFields
+	// workingtimeDescClosed is the schema descriptor for closed field.
+	workingtimeDescClosed := workingtimeFields[4].Descriptor()
+	// workingtime.DefaultClosed holds the default value on creation for the closed field.
+	workingtime.DefaultClosed = workingtimeDescClosed.Default.(bool)
+	// workingtimeDescID is the schema descriptor for id field.
+	workingtimeDescID := workingtimeFields[0].Descriptor()
+	// workingtime.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	workingtime.IDValidator = workingtimeDescID.Validators[0].(func(int) error)
 }

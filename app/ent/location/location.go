@@ -22,10 +22,10 @@ const (
 	FieldLatitude = "latitude"
 	// FieldZip holds the string denoting the zip field in the database.
 	FieldZip = "zip"
-	// FieldWorkingTime holds the string denoting the working_time field in the database.
-	FieldWorkingTime = "working_time"
 	// EdgeVendor holds the string denoting the vendor edge name in mutations.
 	EdgeVendor = "vendor"
+	// EdgeWorkingTimes holds the string denoting the working_times edge name in mutations.
+	EdgeWorkingTimes = "working_times"
 	// Table holds the table name of the location in the database.
 	Table = "locations"
 	// VendorTable is the table that holds the vendor relation/edge.
@@ -35,6 +35,13 @@ const (
 	VendorInverseTable = "vendor"
 	// VendorColumn is the table column denoting the vendor relation/edge.
 	VendorColumn = "vendor_locations"
+	// WorkingTimesTable is the table that holds the working_times relation/edge.
+	WorkingTimesTable = "working_times"
+	// WorkingTimesInverseTable is the table name for the WorkingTime entity.
+	// It exists in this package in order to avoid circular dependency with the "workingtime" package.
+	WorkingTimesInverseTable = "working_times"
+	// WorkingTimesColumn is the table column denoting the working_times relation/edge.
+	WorkingTimesColumn = "location_working_times"
 )
 
 // Columns holds all SQL columns for location fields.
@@ -45,7 +52,6 @@ var Columns = []string{
 	FieldLongitude,
 	FieldLatitude,
 	FieldZip,
-	FieldWorkingTime,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "locations"
@@ -111,15 +117,24 @@ func ByZip(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldZip, opts...).ToFunc()
 }
 
-// ByWorkingTime orders the results by the working_time field.
-func ByWorkingTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldWorkingTime, opts...).ToFunc()
-}
-
 // ByVendorField orders the results by vendor field.
 func ByVendorField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newVendorStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByWorkingTimesCount orders the results by working_times count.
+func ByWorkingTimesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWorkingTimesStep(), opts...)
+	}
+}
+
+// ByWorkingTimes orders the results by working_times terms.
+func ByWorkingTimes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorkingTimesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newVendorStep() *sqlgraph.Step {
@@ -127,5 +142,12 @@ func newVendorStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(VendorInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, VendorTable, VendorColumn),
+	)
+}
+func newWorkingTimesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorkingTimesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, WorkingTimesTable, WorkingTimesColumn),
 	)
 }

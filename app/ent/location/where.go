@@ -78,11 +78,6 @@ func Zip(v string) predicate.Location {
 	return predicate.Location(sql.FieldEQ(FieldZip, v))
 }
 
-// WorkingTime applies equality check predicate on the "working_time" field. It's identical to WorkingTimeEQ.
-func WorkingTime(v string) predicate.Location {
-	return predicate.Location(sql.FieldEQ(FieldWorkingTime, v))
-}
-
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Location {
 	return predicate.Location(sql.FieldEQ(FieldName, v))
@@ -358,71 +353,6 @@ func ZipContainsFold(v string) predicate.Location {
 	return predicate.Location(sql.FieldContainsFold(FieldZip, v))
 }
 
-// WorkingTimeEQ applies the EQ predicate on the "working_time" field.
-func WorkingTimeEQ(v string) predicate.Location {
-	return predicate.Location(sql.FieldEQ(FieldWorkingTime, v))
-}
-
-// WorkingTimeNEQ applies the NEQ predicate on the "working_time" field.
-func WorkingTimeNEQ(v string) predicate.Location {
-	return predicate.Location(sql.FieldNEQ(FieldWorkingTime, v))
-}
-
-// WorkingTimeIn applies the In predicate on the "working_time" field.
-func WorkingTimeIn(vs ...string) predicate.Location {
-	return predicate.Location(sql.FieldIn(FieldWorkingTime, vs...))
-}
-
-// WorkingTimeNotIn applies the NotIn predicate on the "working_time" field.
-func WorkingTimeNotIn(vs ...string) predicate.Location {
-	return predicate.Location(sql.FieldNotIn(FieldWorkingTime, vs...))
-}
-
-// WorkingTimeGT applies the GT predicate on the "working_time" field.
-func WorkingTimeGT(v string) predicate.Location {
-	return predicate.Location(sql.FieldGT(FieldWorkingTime, v))
-}
-
-// WorkingTimeGTE applies the GTE predicate on the "working_time" field.
-func WorkingTimeGTE(v string) predicate.Location {
-	return predicate.Location(sql.FieldGTE(FieldWorkingTime, v))
-}
-
-// WorkingTimeLT applies the LT predicate on the "working_time" field.
-func WorkingTimeLT(v string) predicate.Location {
-	return predicate.Location(sql.FieldLT(FieldWorkingTime, v))
-}
-
-// WorkingTimeLTE applies the LTE predicate on the "working_time" field.
-func WorkingTimeLTE(v string) predicate.Location {
-	return predicate.Location(sql.FieldLTE(FieldWorkingTime, v))
-}
-
-// WorkingTimeContains applies the Contains predicate on the "working_time" field.
-func WorkingTimeContains(v string) predicate.Location {
-	return predicate.Location(sql.FieldContains(FieldWorkingTime, v))
-}
-
-// WorkingTimeHasPrefix applies the HasPrefix predicate on the "working_time" field.
-func WorkingTimeHasPrefix(v string) predicate.Location {
-	return predicate.Location(sql.FieldHasPrefix(FieldWorkingTime, v))
-}
-
-// WorkingTimeHasSuffix applies the HasSuffix predicate on the "working_time" field.
-func WorkingTimeHasSuffix(v string) predicate.Location {
-	return predicate.Location(sql.FieldHasSuffix(FieldWorkingTime, v))
-}
-
-// WorkingTimeEqualFold applies the EqualFold predicate on the "working_time" field.
-func WorkingTimeEqualFold(v string) predicate.Location {
-	return predicate.Location(sql.FieldEqualFold(FieldWorkingTime, v))
-}
-
-// WorkingTimeContainsFold applies the ContainsFold predicate on the "working_time" field.
-func WorkingTimeContainsFold(v string) predicate.Location {
-	return predicate.Location(sql.FieldContainsFold(FieldWorkingTime, v))
-}
-
 // HasVendor applies the HasEdge predicate on the "vendor" edge.
 func HasVendor() predicate.Location {
 	return predicate.Location(func(s *sql.Selector) {
@@ -438,6 +368,29 @@ func HasVendor() predicate.Location {
 func HasVendorWith(preds ...predicate.Vendor) predicate.Location {
 	return predicate.Location(func(s *sql.Selector) {
 		step := newVendorStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasWorkingTimes applies the HasEdge predicate on the "working_times" edge.
+func HasWorkingTimes() predicate.Location {
+	return predicate.Location(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, WorkingTimesTable, WorkingTimesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkingTimesWith applies the HasEdge predicate on the "working_times" edge with a given conditions (other predicates).
+func HasWorkingTimesWith(preds ...predicate.WorkingTime) predicate.Location {
+	return predicate.Location(func(s *sql.Selector) {
+		step := newWorkingTimesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

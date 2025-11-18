@@ -27,8 +27,6 @@ type Location struct {
 	Latitude float64 `json:"latitude,omitempty"`
 	// Zip holds the value of the "zip" field.
 	Zip string `json:"zip,omitempty"`
-	// WorkingTime holds the value of the "working_time" field.
-	WorkingTime string `json:"working_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LocationQuery when eager-loading is set.
 	Edges            LocationEdges `json:"edges"`
@@ -40,9 +38,11 @@ type Location struct {
 type LocationEdges struct {
 	// Vendor holds the value of the vendor edge.
 	Vendor *Vendor `json:"vendor,omitempty"`
+	// WorkingTimes holds the value of the working_times edge.
+	WorkingTimes []*WorkingTime `json:"working_times,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // VendorOrErr returns the Vendor value or an error if the edge
@@ -56,6 +56,15 @@ func (e LocationEdges) VendorOrErr() (*Vendor, error) {
 	return nil, &NotLoadedError{edge: "vendor"}
 }
 
+// WorkingTimesOrErr returns the WorkingTimes value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) WorkingTimesOrErr() ([]*WorkingTime, error) {
+	if e.loadedTypes[1] {
+		return e.WorkingTimes, nil
+	}
+	return nil, &NotLoadedError{edge: "working_times"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Location) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -65,7 +74,7 @@ func (*Location) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case location.FieldID:
 			values[i] = new(sql.NullInt64)
-		case location.FieldName, location.FieldAddress, location.FieldZip, location.FieldWorkingTime:
+		case location.FieldName, location.FieldAddress, location.FieldZip:
 			values[i] = new(sql.NullString)
 		case location.ForeignKeys[0]: // vendor_locations
 			values[i] = new(sql.NullInt64)
@@ -120,12 +129,6 @@ func (l *Location) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				l.Zip = value.String
 			}
-		case location.FieldWorkingTime:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field working_time", values[i])
-			} else if value.Valid {
-				l.WorkingTime = value.String
-			}
 		case location.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field vendor_locations", value)
@@ -149,6 +152,11 @@ func (l *Location) Value(name string) (ent.Value, error) {
 // QueryVendor queries the "vendor" edge of the Location entity.
 func (l *Location) QueryVendor() *VendorQuery {
 	return NewLocationClient(l.config).QueryVendor(l)
+}
+
+// QueryWorkingTimes queries the "working_times" edge of the Location entity.
+func (l *Location) QueryWorkingTimes() *WorkingTimeQuery {
+	return NewLocationClient(l.config).QueryWorkingTimes(l)
 }
 
 // Update returns a builder for updating this Location.
@@ -188,9 +196,6 @@ func (l *Location) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("zip=")
 	builder.WriteString(l.Zip)
-	builder.WriteString(", ")
-	builder.WriteString("working_time=")
-	builder.WriteString(l.WorkingTime)
 	builder.WriteByte(')')
 	return builder.String()
 }

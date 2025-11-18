@@ -19,6 +19,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/pdf"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
+	"github.com/augustin-wien/augustina-backend/ent/workingtime"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -86,6 +87,7 @@ func checkColumn(table, column string) error {
 			pdf.Table:          pdf.ValidColumn,
 			settings.Table:     settings.ValidColumn,
 			vendor.Table:       vendor.ValidColumn,
+			workingtime.Table:  workingtime.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

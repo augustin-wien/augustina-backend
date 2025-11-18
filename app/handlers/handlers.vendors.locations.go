@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/augustin-wien/augustina-backend/database"
-	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -57,7 +56,7 @@ func CreateVendorLocation(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	var location ent.Location
+	var location database.LocationInput
 	err = utils.ReadJSON(w, r, &location)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -87,7 +86,7 @@ func UpdateVendorLocation(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	var location ent.Location
+	var location database.LocationInput
 	err = utils.ReadJSON(w, r, &location)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

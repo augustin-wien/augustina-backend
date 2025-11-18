@@ -26,6 +26,8 @@ type Tx struct {
 	Settings *SettingsClient
 	// Vendor is the client for interacting with the Vendor builders.
 	Vendor *VendorClient
+	// WorkingTime is the client for interacting with the WorkingTime builders.
+	WorkingTime *WorkingTimeClient
 
 	// lazily loaded.
 	client     *Client
@@ -164,6 +166,7 @@ func (tx *Tx) init() {
 	tx.PDF = NewPDFClient(tx.config)
 	tx.Settings = NewSettingsClient(tx.config)
 	tx.Vendor = NewVendorClient(tx.config)
+	tx.WorkingTime = NewWorkingTimeClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

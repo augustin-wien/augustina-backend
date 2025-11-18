@@ -34,6 +34,7 @@ func (db *Database) InitiateItems() (err error) {
 		IsLicenseItem: false,
 		IsPDFItem:     false,
 		LicenseGroup:  null.NewString("analog_edition", true),
+		Image:         "/123",
 	}
 
 	if config.Config.DonationName == "" {
@@ -45,6 +46,7 @@ func (db *Database) InitiateItems() (err error) {
 		Description: "Spende pro Einkauf",
 		Price:       1,
 		Archived:    false,
+		Image:       "/123",
 	}
 	if config.Config.TransactionCostsName == "" {
 		log.Error("TransactionCostsName is not set")
@@ -56,6 +58,7 @@ func (db *Database) InitiateItems() (err error) {
 		Description: "Transaktionskosten der Zahlungsanbieter",
 		Price:       1,
 		Archived:    false,
+		Image:       "/123",
 	}
 
 	// Create newspaper

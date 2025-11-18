@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
+	"github.com/augustin-wien/augustina-backend/ent/workingtime"
 )
 
 // LocationCreate is the builder for creating a Location entity.
@@ -66,12 +67,6 @@ func (lc *LocationCreate) SetZip(s string) *LocationCreate {
 	return lc
 }
 
-// SetWorkingTime sets the "working_time" field.
-func (lc *LocationCreate) SetWorkingTime(s string) *LocationCreate {
-	lc.mutation.SetWorkingTime(s)
-	return lc
-}
-
 // SetID sets the "id" field.
 func (lc *LocationCreate) SetID(i int) *LocationCreate {
 	lc.mutation.SetID(i)
@@ -95,6 +90,21 @@ func (lc *LocationCreate) SetNillableVendorID(id *int) *LocationCreate {
 // SetVendor sets the "vendor" edge to the Vendor entity.
 func (lc *LocationCreate) SetVendor(v *Vendor) *LocationCreate {
 	return lc.SetVendorID(v.ID)
+}
+
+// AddWorkingTimeIDs adds the "working_times" edge to the WorkingTime entity by IDs.
+func (lc *LocationCreate) AddWorkingTimeIDs(ids ...int) *LocationCreate {
+	lc.mutation.AddWorkingTimeIDs(ids...)
+	return lc
+}
+
+// AddWorkingTimes adds the "working_times" edges to the WorkingTime entity.
+func (lc *LocationCreate) AddWorkingTimes(w ...*WorkingTime) *LocationCreate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return lc.AddWorkingTimeIDs(ids...)
 }
 
 // Mutation returns the LocationMutation object of the builder.
@@ -159,9 +169,6 @@ func (lc *LocationCreate) check() error {
 	if _, ok := lc.mutation.Zip(); !ok {
 		return &ValidationError{Name: "zip", err: errors.New(`ent: missing required field "Location.zip"`)}
 	}
-	if _, ok := lc.mutation.WorkingTime(); !ok {
-		return &ValidationError{Name: "working_time", err: errors.New(`ent: missing required field "Location.working_time"`)}
-	}
 	if v, ok := lc.mutation.ID(); ok {
 		if err := location.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Location.id": %w`, err)}
@@ -219,10 +226,6 @@ func (lc *LocationCreate) createSpec() (*Location, *sqlgraph.CreateSpec) {
 		_spec.SetField(location.FieldZip, field.TypeString, value)
 		_node.Zip = value
 	}
-	if value, ok := lc.mutation.WorkingTime(); ok {
-		_spec.SetField(location.FieldWorkingTime, field.TypeString, value)
-		_node.WorkingTime = value
-	}
 	if nodes := lc.mutation.VendorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -238,6 +241,22 @@ func (lc *LocationCreate) createSpec() (*Location, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.vendor_locations = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := lc.mutation.WorkingTimesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.WorkingTimesTable,
+			Columns: []string{location.WorkingTimesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workingtime.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

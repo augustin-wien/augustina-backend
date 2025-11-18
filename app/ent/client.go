@@ -22,6 +22,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/pdf"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
+	"github.com/augustin-wien/augustina-backend/ent/workingtime"
 )
 
 // Client is the client that holds all ent builders.
@@ -43,6 +44,8 @@ type Client struct {
 	Settings *SettingsClient
 	// Vendor is the client for interacting with the Vendor builders.
 	Vendor *VendorClient
+	// WorkingTime is the client for interacting with the WorkingTime builders.
+	WorkingTime *WorkingTimeClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -61,6 +64,7 @@ func (c *Client) init() {
 	c.PDF = NewPDFClient(c.config)
 	c.Settings = NewSettingsClient(c.config)
 	c.Vendor = NewVendorClient(c.config)
+	c.WorkingTime = NewWorkingTimeClient(c.config)
 }
 
 type (
@@ -160,6 +164,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PDF:          NewPDFClient(cfg),
 		Settings:     NewSettingsClient(cfg),
 		Vendor:       NewVendorClient(cfg),
+		WorkingTime:  NewWorkingTimeClient(cfg),
 	}, nil
 }
 
@@ -186,6 +191,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PDF:          NewPDFClient(cfg),
 		Settings:     NewSettingsClient(cfg),
 		Vendor:       NewVendorClient(cfg),
+		WorkingTime:  NewWorkingTimeClient(cfg),
 	}, nil
 }
 
@@ -216,6 +222,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Comment, c.Item, c.Location, c.MailTemplate, c.PDF, c.Settings, c.Vendor,
+		c.WorkingTime,
 	} {
 		n.Use(hooks...)
 	}
@@ -226,6 +233,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Comment, c.Item, c.Location, c.MailTemplate, c.PDF, c.Settings, c.Vendor,
+		c.WorkingTime,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -248,6 +256,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Settings.mutate(ctx, m)
 	case *VendorMutation:
 		return c.Vendor.mutate(ctx, m)
+	case *WorkingTimeMutation:
+		return c.WorkingTime.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -684,6 +694,22 @@ func (c *LocationClient) QueryVendor(l *Location) *VendorQuery {
 			sqlgraph.From(location.Table, location.FieldID, id),
 			sqlgraph.To(vendor.Table, vendor.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, location.VendorTable, location.VendorColumn),
+		)
+		fromV = sqlgraph.Neighbors(l.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkingTimes queries the working_times edge of a Location.
+func (c *LocationClient) QueryWorkingTimes(l *Location) *WorkingTimeQuery {
+	query := (&WorkingTimeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := l.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, id),
+			sqlgraph.To(workingtime.Table, workingtime.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.WorkingTimesTable, location.WorkingTimesColumn),
 		)
 		fromV = sqlgraph.Neighbors(l.driver.Dialect(), step)
 		return fromV, nil
@@ -1296,12 +1322,163 @@ func (c *VendorClient) mutate(ctx context.Context, m *VendorMutation) (Value, er
 	}
 }
 
+// WorkingTimeClient is a client for the WorkingTime schema.
+type WorkingTimeClient struct {
+	config
+}
+
+// NewWorkingTimeClient returns a client for the WorkingTime from the given config.
+func NewWorkingTimeClient(c config) *WorkingTimeClient {
+	return &WorkingTimeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `workingtime.Hooks(f(g(h())))`.
+func (c *WorkingTimeClient) Use(hooks ...Hook) {
+	c.hooks.WorkingTime = append(c.hooks.WorkingTime, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `workingtime.Intercept(f(g(h())))`.
+func (c *WorkingTimeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WorkingTime = append(c.inters.WorkingTime, interceptors...)
+}
+
+// Create returns a builder for creating a WorkingTime entity.
+func (c *WorkingTimeClient) Create() *WorkingTimeCreate {
+	mutation := newWorkingTimeMutation(c.config, OpCreate)
+	return &WorkingTimeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of WorkingTime entities.
+func (c *WorkingTimeClient) CreateBulk(builders ...*WorkingTimeCreate) *WorkingTimeCreateBulk {
+	return &WorkingTimeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WorkingTimeClient) MapCreateBulk(slice any, setFunc func(*WorkingTimeCreate, int)) *WorkingTimeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WorkingTimeCreateBulk{err: fmt.Errorf("calling to WorkingTimeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WorkingTimeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &WorkingTimeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for WorkingTime.
+func (c *WorkingTimeClient) Update() *WorkingTimeUpdate {
+	mutation := newWorkingTimeMutation(c.config, OpUpdate)
+	return &WorkingTimeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorkingTimeClient) UpdateOne(wt *WorkingTime) *WorkingTimeUpdateOne {
+	mutation := newWorkingTimeMutation(c.config, OpUpdateOne, withWorkingTime(wt))
+	return &WorkingTimeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorkingTimeClient) UpdateOneID(id int) *WorkingTimeUpdateOne {
+	mutation := newWorkingTimeMutation(c.config, OpUpdateOne, withWorkingTimeID(id))
+	return &WorkingTimeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for WorkingTime.
+func (c *WorkingTimeClient) Delete() *WorkingTimeDelete {
+	mutation := newWorkingTimeMutation(c.config, OpDelete)
+	return &WorkingTimeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WorkingTimeClient) DeleteOne(wt *WorkingTime) *WorkingTimeDeleteOne {
+	return c.DeleteOneID(wt.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WorkingTimeClient) DeleteOneID(id int) *WorkingTimeDeleteOne {
+	builder := c.Delete().Where(workingtime.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorkingTimeDeleteOne{builder}
+}
+
+// Query returns a query builder for WorkingTime.
+func (c *WorkingTimeClient) Query() *WorkingTimeQuery {
+	return &WorkingTimeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorkingTime},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a WorkingTime entity by its id.
+func (c *WorkingTimeClient) Get(ctx context.Context, id int) (*WorkingTime, error) {
+	return c.Query().Where(workingtime.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorkingTimeClient) GetX(ctx context.Context, id int) *WorkingTime {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLocation queries the location edge of a WorkingTime.
+func (c *WorkingTimeClient) QueryLocation(wt *WorkingTime) *LocationQuery {
+	query := (&LocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := wt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workingtime.Table, workingtime.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, workingtime.LocationTable, workingtime.LocationColumn),
+		)
+		fromV = sqlgraph.Neighbors(wt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *WorkingTimeClient) Hooks() []Hook {
+	return c.hooks.WorkingTime
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorkingTimeClient) Interceptors() []Interceptor {
+	return c.inters.WorkingTime
+}
+
+func (c *WorkingTimeClient) mutate(ctx context.Context, m *WorkingTimeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorkingTimeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorkingTimeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorkingTimeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorkingTimeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown WorkingTime mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Comment, Item, Location, MailTemplate, PDF, Settings, Vendor []ent.Hook
+		Comment, Item, Location, MailTemplate, PDF, Settings, Vendor,
+		WorkingTime []ent.Hook
 	}
 	inters struct {
-		Comment, Item, Location, MailTemplate, PDF, Settings, Vendor []ent.Interceptor
+		Comment, Item, Location, MailTemplate, PDF, Settings, Vendor,
+		WorkingTime []ent.Interceptor
 	}
 )

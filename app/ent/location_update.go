@@ -13,6 +13,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
+	"github.com/augustin-wien/augustina-backend/ent/workingtime"
 )
 
 // LocationUpdate is the builder for updating Location entities.
@@ -112,20 +113,6 @@ func (lu *LocationUpdate) SetNillableZip(s *string) *LocationUpdate {
 	return lu
 }
 
-// SetWorkingTime sets the "working_time" field.
-func (lu *LocationUpdate) SetWorkingTime(s string) *LocationUpdate {
-	lu.mutation.SetWorkingTime(s)
-	return lu
-}
-
-// SetNillableWorkingTime sets the "working_time" field if the given value is not nil.
-func (lu *LocationUpdate) SetNillableWorkingTime(s *string) *LocationUpdate {
-	if s != nil {
-		lu.SetWorkingTime(*s)
-	}
-	return lu
-}
-
 // SetVendorID sets the "vendor" edge to the Vendor entity by ID.
 func (lu *LocationUpdate) SetVendorID(id int) *LocationUpdate {
 	lu.mutation.SetVendorID(id)
@@ -145,6 +132,21 @@ func (lu *LocationUpdate) SetVendor(v *Vendor) *LocationUpdate {
 	return lu.SetVendorID(v.ID)
 }
 
+// AddWorkingTimeIDs adds the "working_times" edge to the WorkingTime entity by IDs.
+func (lu *LocationUpdate) AddWorkingTimeIDs(ids ...int) *LocationUpdate {
+	lu.mutation.AddWorkingTimeIDs(ids...)
+	return lu
+}
+
+// AddWorkingTimes adds the "working_times" edges to the WorkingTime entity.
+func (lu *LocationUpdate) AddWorkingTimes(w ...*WorkingTime) *LocationUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return lu.AddWorkingTimeIDs(ids...)
+}
+
 // Mutation returns the LocationMutation object of the builder.
 func (lu *LocationUpdate) Mutation() *LocationMutation {
 	return lu.mutation
@@ -154,6 +156,27 @@ func (lu *LocationUpdate) Mutation() *LocationMutation {
 func (lu *LocationUpdate) ClearVendor() *LocationUpdate {
 	lu.mutation.ClearVendor()
 	return lu
+}
+
+// ClearWorkingTimes clears all "working_times" edges to the WorkingTime entity.
+func (lu *LocationUpdate) ClearWorkingTimes() *LocationUpdate {
+	lu.mutation.ClearWorkingTimes()
+	return lu
+}
+
+// RemoveWorkingTimeIDs removes the "working_times" edge to WorkingTime entities by IDs.
+func (lu *LocationUpdate) RemoveWorkingTimeIDs(ids ...int) *LocationUpdate {
+	lu.mutation.RemoveWorkingTimeIDs(ids...)
+	return lu
+}
+
+// RemoveWorkingTimes removes "working_times" edges to WorkingTime entities.
+func (lu *LocationUpdate) RemoveWorkingTimes(w ...*WorkingTime) *LocationUpdate {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return lu.RemoveWorkingTimeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -213,9 +236,6 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := lu.mutation.Zip(); ok {
 		_spec.SetField(location.FieldZip, field.TypeString, value)
 	}
-	if value, ok := lu.mutation.WorkingTime(); ok {
-		_spec.SetField(location.FieldWorkingTime, field.TypeString, value)
-	}
 	if lu.mutation.VendorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -238,6 +258,51 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(vendor.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if lu.mutation.WorkingTimesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.WorkingTimesTable,
+			Columns: []string{location.WorkingTimesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workingtime.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lu.mutation.RemovedWorkingTimesIDs(); len(nodes) > 0 && !lu.mutation.WorkingTimesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.WorkingTimesTable,
+			Columns: []string{location.WorkingTimesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workingtime.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lu.mutation.WorkingTimesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.WorkingTimesTable,
+			Columns: []string{location.WorkingTimesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workingtime.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -349,20 +414,6 @@ func (luo *LocationUpdateOne) SetNillableZip(s *string) *LocationUpdateOne {
 	return luo
 }
 
-// SetWorkingTime sets the "working_time" field.
-func (luo *LocationUpdateOne) SetWorkingTime(s string) *LocationUpdateOne {
-	luo.mutation.SetWorkingTime(s)
-	return luo
-}
-
-// SetNillableWorkingTime sets the "working_time" field if the given value is not nil.
-func (luo *LocationUpdateOne) SetNillableWorkingTime(s *string) *LocationUpdateOne {
-	if s != nil {
-		luo.SetWorkingTime(*s)
-	}
-	return luo
-}
-
 // SetVendorID sets the "vendor" edge to the Vendor entity by ID.
 func (luo *LocationUpdateOne) SetVendorID(id int) *LocationUpdateOne {
 	luo.mutation.SetVendorID(id)
@@ -382,6 +433,21 @@ func (luo *LocationUpdateOne) SetVendor(v *Vendor) *LocationUpdateOne {
 	return luo.SetVendorID(v.ID)
 }
 
+// AddWorkingTimeIDs adds the "working_times" edge to the WorkingTime entity by IDs.
+func (luo *LocationUpdateOne) AddWorkingTimeIDs(ids ...int) *LocationUpdateOne {
+	luo.mutation.AddWorkingTimeIDs(ids...)
+	return luo
+}
+
+// AddWorkingTimes adds the "working_times" edges to the WorkingTime entity.
+func (luo *LocationUpdateOne) AddWorkingTimes(w ...*WorkingTime) *LocationUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return luo.AddWorkingTimeIDs(ids...)
+}
+
 // Mutation returns the LocationMutation object of the builder.
 func (luo *LocationUpdateOne) Mutation() *LocationMutation {
 	return luo.mutation
@@ -391,6 +457,27 @@ func (luo *LocationUpdateOne) Mutation() *LocationMutation {
 func (luo *LocationUpdateOne) ClearVendor() *LocationUpdateOne {
 	luo.mutation.ClearVendor()
 	return luo
+}
+
+// ClearWorkingTimes clears all "working_times" edges to the WorkingTime entity.
+func (luo *LocationUpdateOne) ClearWorkingTimes() *LocationUpdateOne {
+	luo.mutation.ClearWorkingTimes()
+	return luo
+}
+
+// RemoveWorkingTimeIDs removes the "working_times" edge to WorkingTime entities by IDs.
+func (luo *LocationUpdateOne) RemoveWorkingTimeIDs(ids ...int) *LocationUpdateOne {
+	luo.mutation.RemoveWorkingTimeIDs(ids...)
+	return luo
+}
+
+// RemoveWorkingTimes removes "working_times" edges to WorkingTime entities.
+func (luo *LocationUpdateOne) RemoveWorkingTimes(w ...*WorkingTime) *LocationUpdateOne {
+	ids := make([]int, len(w))
+	for i := range w {
+		ids[i] = w[i].ID
+	}
+	return luo.RemoveWorkingTimeIDs(ids...)
 }
 
 // Where appends a list predicates to the LocationUpdate builder.
@@ -480,9 +567,6 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err
 	if value, ok := luo.mutation.Zip(); ok {
 		_spec.SetField(location.FieldZip, field.TypeString, value)
 	}
-	if value, ok := luo.mutation.WorkingTime(); ok {
-		_spec.SetField(location.FieldWorkingTime, field.TypeString, value)
-	}
 	if luo.mutation.VendorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -505,6 +589,51 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(vendor.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if luo.mutation.WorkingTimesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.WorkingTimesTable,
+			Columns: []string{location.WorkingTimesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workingtime.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luo.mutation.RemovedWorkingTimesIDs(); len(nodes) > 0 && !luo.mutation.WorkingTimesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.WorkingTimesTable,
+			Columns: []string{location.WorkingTimesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workingtime.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := luo.mutation.WorkingTimesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.WorkingTimesTable,
+			Columns: []string{location.WorkingTimesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(workingtime.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

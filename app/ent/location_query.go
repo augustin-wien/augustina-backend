@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -14,17 +15,19 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
+	"github.com/augustin-wien/augustina-backend/ent/workingtime"
 )
 
 // LocationQuery is the builder for querying Location entities.
 type LocationQuery struct {
 	config
-	ctx        *QueryContext
-	order      []location.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Location
-	withVendor *VendorQuery
-	withFKs    bool
+	ctx              *QueryContext
+	order            []location.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Location
+	withVendor       *VendorQuery
+	withWorkingTimes *WorkingTimeQuery
+	withFKs          bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +79,28 @@ func (lq *LocationQuery) QueryVendor() *VendorQuery {
 			sqlgraph.From(location.Table, location.FieldID, selector),
 			sqlgraph.To(vendor.Table, vendor.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, location.VendorTable, location.VendorColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkingTimes chains the current query on the "working_times" edge.
+func (lq *LocationQuery) QueryWorkingTimes() *WorkingTimeQuery {
+	query := (&WorkingTimeClient{config: lq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, selector),
+			sqlgraph.To(workingtime.Table, workingtime.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.WorkingTimesTable, location.WorkingTimesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +295,13 @@ func (lq *LocationQuery) Clone() *LocationQuery {
 		return nil
 	}
 	return &LocationQuery{
-		config:     lq.config,
-		ctx:        lq.ctx.Clone(),
-		order:      append([]location.OrderOption{}, lq.order...),
-		inters:     append([]Interceptor{}, lq.inters...),
-		predicates: append([]predicate.Location{}, lq.predicates...),
-		withVendor: lq.withVendor.Clone(),
+		config:           lq.config,
+		ctx:              lq.ctx.Clone(),
+		order:            append([]location.OrderOption{}, lq.order...),
+		inters:           append([]Interceptor{}, lq.inters...),
+		predicates:       append([]predicate.Location{}, lq.predicates...),
+		withVendor:       lq.withVendor.Clone(),
+		withWorkingTimes: lq.withWorkingTimes.Clone(),
 		// clone intermediate query.
 		sql:  lq.sql.Clone(),
 		path: lq.path,
@@ -290,6 +316,17 @@ func (lq *LocationQuery) WithVendor(opts ...func(*VendorQuery)) *LocationQuery {
 		opt(query)
 	}
 	lq.withVendor = query
+	return lq
+}
+
+// WithWorkingTimes tells the query-builder to eager-load the nodes that are connected to
+// the "working_times" edge. The optional arguments are used to configure the query builder of the edge.
+func (lq *LocationQuery) WithWorkingTimes(opts ...func(*WorkingTimeQuery)) *LocationQuery {
+	query := (&WorkingTimeClient{config: lq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lq.withWorkingTimes = query
 	return lq
 }
 
@@ -372,8 +409,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Loc
 		nodes       = []*Location{}
 		withFKs     = lq.withFKs
 		_spec       = lq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			lq.withVendor != nil,
+			lq.withWorkingTimes != nil,
 		}
 	)
 	if lq.withVendor != nil {
@@ -403,6 +441,13 @@ func (lq *LocationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Loc
 	if query := lq.withVendor; query != nil {
 		if err := lq.loadVendor(ctx, query, nodes, nil,
 			func(n *Location, e *Vendor) { n.Edges.Vendor = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := lq.withWorkingTimes; query != nil {
+		if err := lq.loadWorkingTimes(ctx, query, nodes,
+			func(n *Location) { n.Edges.WorkingTimes = []*WorkingTime{} },
+			func(n *Location, e *WorkingTime) { n.Edges.WorkingTimes = append(n.Edges.WorkingTimes, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -438,6 +483,37 @@ func (lq *LocationQuery) loadVendor(ctx context.Context, query *VendorQuery, nod
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (lq *LocationQuery) loadWorkingTimes(ctx context.Context, query *WorkingTimeQuery, nodes []*Location, init func(*Location), assign func(*Location, *WorkingTime)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Location)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.WorkingTime(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(location.WorkingTimesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.location_working_times
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "location_working_times" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "location_working_times" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
