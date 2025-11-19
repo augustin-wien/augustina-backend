@@ -92,3 +92,10 @@ func (db *Database) BuildEmailRequestFromTemplate(name string, to []string, data
 	}
 	return r, nil
 }
+
+// BuildEmailRequestFromTemplate is a package-level function variable that by default
+// forwards to the method on the global Db. Tests can override this variable to
+// provide a stubbed implementation.
+var BuildEmailRequestFromTemplate = func(name string, to []string, data interface{}) (*mailer.EmailRequest, error) {
+	return Db.BuildEmailRequestFromTemplate(name, to, data)
+}

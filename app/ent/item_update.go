@@ -309,11 +309,6 @@ func (iu *ItemUpdate) check() error {
 			return &ValidationError{Name: "Price", err: fmt.Errorf(`ent: validator failed for field "Item.Price": %w`, err)}
 		}
 	}
-	if v, ok := iu.mutation.Image(); ok {
-		if err := item.ImageValidator(v); err != nil {
-			return &ValidationError{Name: "Image", err: fmt.Errorf(`ent: validator failed for field "Item.Image": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -741,11 +736,6 @@ func (iuo *ItemUpdateOne) check() error {
 	if v, ok := iuo.mutation.Price(); ok {
 		if err := item.PriceValidator(v); err != nil {
 			return &ValidationError{Name: "Price", err: fmt.Errorf(`ent: validator failed for field "Item.Price": %w`, err)}
-		}
-	}
-	if v, ok := iuo.mutation.Image(); ok {
-		if err := item.ImageValidator(v); err != nil {
-			return &ValidationError{Name: "Image", err: fmt.Errorf(`ent: validator failed for field "Item.Image": %w`, err)}
 		}
 	}
 	return nil

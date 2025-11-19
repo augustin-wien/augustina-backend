@@ -298,11 +298,6 @@ func (ic *ItemCreate) check() error {
 	if _, ok := ic.mutation.Image(); !ok {
 		return &ValidationError{Name: "Image", err: errors.New(`ent: missing required field "Item.Image"`)}
 	}
-	if v, ok := ic.mutation.Image(); ok {
-		if err := item.ImageValidator(v); err != nil {
-			return &ValidationError{Name: "Image", err: fmt.Errorf(`ent: validator failed for field "Item.Image": %w`, err)}
-		}
-	}
 	if _, ok := ic.mutation.Archived(); !ok {
 		return &ValidationError{Name: "Archived", err: errors.New(`ent: missing required field "Item.Archived"`)}
 	}

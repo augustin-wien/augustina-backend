@@ -101,8 +101,6 @@ var (
 	DescriptionValidator func(string) error
 	// PriceValidator is a validator for the "Price" field. It is called by the builders before save.
 	PriceValidator func(float64) error
-	// ImageValidator is a validator for the "Image" field. It is called by the builders before save.
-	ImageValidator func(string) error
 	// DefaultArchived holds the default value on creation for the "Archived" field.
 	DefaultArchived bool
 	// DefaultDisabled holds the default value on creation for the "Disabled" field.

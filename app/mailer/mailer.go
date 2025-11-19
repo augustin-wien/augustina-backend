@@ -21,6 +21,12 @@ var log = utils.GetLogger()
 
 var auth smtp.Auth
 
+// Send is a package-level function that forwards to EmailRequest.SendEmail.
+// Tests can override this to avoid network calls.
+var Send = func(r *EmailRequest) (bool, error) {
+	return r.SendEmail()
+}
+
 // encodeRFC2047 encodes a header value (Subject) if it contains non-ASCII
 // characters using the 'encoded-word' syntax from RFC 2047 (base64, UTF-8).
 func encodeRFC2047(s string) string {
@@ -401,6 +407,58 @@ func (r *EmailRequest) ParseTemplateFromString(templateContent string, data inte
 	if templateContent == "" {
 		return errors.New("template content is empty")
 	}
+	// Normalize/augment data so templates can use either uppercase or
+	// lowercase keys (URL/url and EMAIL/email). If data is nil, create a
+	// default map with both forms populated.
+	if data == nil {
+		var email string
+		if len(r.to) > 0 {
+			email = r.to[0]
+		}
+		data = map[string]interface{}{
+			"URL":   config.Config.OnlinePaperUrl,
+			"url":   config.Config.OnlinePaperUrl,
+			"EMAIL": email,
+			"email": email,
+		}
+	} else {
+		// If caller passed a map, ensure both key casings exist.
+		if m, ok := data.(map[string]interface{}); ok {
+			// URL/url
+			if v, exists := m["URL"]; exists {
+				if _, ok := m["url"]; !ok {
+					m["url"] = v
+				}
+			} else if v, exists := m["url"]; exists {
+				if _, ok := m["URL"]; !ok {
+					m["URL"] = v
+				}
+			} else {
+				// neither set; fill from config
+				m["URL"] = config.Config.OnlinePaperUrl
+				m["url"] = config.Config.OnlinePaperUrl
+			}
+			// EMAIL/email
+			if v, exists := m["EMAIL"]; exists {
+				if _, ok := m["email"]; !ok {
+					m["email"] = v
+				}
+			} else if v, exists := m["email"]; exists {
+				if _, ok := m["EMAIL"]; !ok {
+					m["EMAIL"] = v
+				}
+			} else {
+				var email string
+				if len(r.to) > 0 {
+					email = r.to[0]
+				}
+				m["EMAIL"] = email
+				m["email"] = email
+			}
+			data = m
+		}
+	}
+
 	t, err := template.New("mail").Parse(templateContent)
 	if err != nil {
 		return err

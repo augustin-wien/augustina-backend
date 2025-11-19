@@ -29,10 +29,6 @@ func init() {
 	itemDescPrice := itemFields[3].Descriptor()
 	// item.PriceValidator is a validator for the "Price" field. It is called by the builders before save.
 	item.PriceValidator = itemDescPrice.Validators[0].(func(float64) error)
-	// itemDescImage is the schema descriptor for Image field.
-	itemDescImage := itemFields[4].Descriptor()
-	// item.ImageValidator is a validator for the "Image" field. It is called by the builders before save.
-	item.ImageValidator = itemDescImage.Validators[0].(func(string) error)
 	// itemDescArchived is the schema descriptor for Archived field.
 	itemDescArchived := itemFields[5].Descriptor()
 	// item.DefaultArchived holds the default value on creation for the Archived field.
