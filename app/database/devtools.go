@@ -69,6 +69,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Price:         50,
 		Archived:      false,
 		IsLicenseItem: true,
+		Image:         "123",
 	}
 
 	digitalNewspaperLicenseID, err := db.CreateItem(digitalNewspaperLicense)
@@ -84,6 +85,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		LicenseItem:  null.NewInt(int64(digitalNewspaperLicenseID), true),
 		Archived:     false,
 		LicenseGroup: null.NewString("testedition", true),
+		Image:        "123",
 	}
 
 	calendar := Item{
@@ -91,6 +93,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Description: "Kalender für das Jahr 2024",
 		Price:       800,
 		Archived:    false,
+		Image:       "123",
 	}
 
 	// Create newspaper

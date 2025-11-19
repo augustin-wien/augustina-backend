@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/augustin-wien/augustina-backend/config"
 	"go.uber.org/zap"
 )
 
@@ -104,8 +105,10 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 		return err
 	}
 
-	// Print the JSON to the log
-	log.Info(zap.String("JSON of data at ReadJSON", string(jsonData)))
+	// Print the JSON to the log only in development mode
+	if config.Config.Development {
+		log.Info(zap.String("JSON of data at ReadJSON", string(jsonData)))
+	}
 
 	// Unmarshal the JSON back into the provided data structure
 	if err := json.Unmarshal(jsonData, data); err != nil {

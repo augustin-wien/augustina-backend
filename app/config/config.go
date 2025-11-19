@@ -43,6 +43,7 @@ type config struct {
 	SMTPUsername                      string
 	SMTPPassword                      string
 	SMTPSenderAddress                 string
+	SMTPSenderName                    string
 	SMTPSsl                           bool
 	SMTPInsecureSkipVerify            bool
 	SentryDSN                         string
@@ -92,6 +93,7 @@ func InitConfig() error {
 		SMTPUsername:                      getEnv("SMTP_USERNAME", ""),
 		SMTPPassword:                      getEnv("SMTP_PASSWORD", ""),
 		SMTPSenderAddress:                 getEnv("SMTP_SENDER_ADDRESS", ""),
+		SMTPSenderName:                    getEnv("SMTP_SENDER_NAME", ""),
 		SMTPSsl:                           (getEnv("SMTP_SSL", "false") == "true"),
 		SMTPInsecureSkipVerify:            (getEnv("SMTP_INSECURE_SKIP_VERIFY", "false") == "true"),
 		FrontendURL:                       getEnv("FRONTEND_URL", ""),
