@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/go-chi/chi/v5"
 )
@@ -129,13 +130,13 @@ func SendMailTemplateTest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	mailReq, err := database.Db.BuildEmailRequestFromTemplate(name, req.To, req.Data)
+	mailReq, err := database.BuildEmailRequestFromTemplate(name, req.To, req.Data)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
-	ok, err := mailReq.SendEmail()
+	ok, err := mailer.Send(mailReq)
 	if err != nil || !ok {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

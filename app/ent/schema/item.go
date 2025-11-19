@@ -24,8 +24,7 @@ func (Item) Fields() []ent.Field {
 			NotEmpty(),
 		field.Float("Price").
 			Positive(),
-		field.String("Image").
-			NotEmpty(),
+		field.String("Image"),
 		field.Bool("Archived").
 			Default(false),
 		field.Bool("Disabled").
