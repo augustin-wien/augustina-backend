@@ -55,7 +55,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: "1.22"
+        go-version: "1.23"
         cache-dependency-path: app/go.sum
     
     - name: Wait for Postgres to be reachable
@@ -105,18 +105,14 @@ jobs:
         # Ensure DB_* env vars are available to `tern`'s {{ env "..." }} helper.
         # Prefer the copied ../.env (app/.env) if present; otherwise export
         # the job-level env vars into the shell.
-        if [ -f ../.env ]; then
-          set -a
-          . ../.env
-          set +a
-        else
-          export DB_USER="user"
-          export DB_PASS="password"
-          export DB_HOST="localhost"
-          export DB_NAME="djtesting"
-          export DB_PORT="5432"
-          export DB_HOST_TEST="localhost"
-        fi
+
+        export DB_USER="user"
+        export DB_PASS="password"
+        export DB_HOST="localhost"
+        export DB_NAME="djtesting"
+        export DB_PORT="5432"
+        export DB_HOST_TEST="localhost"
+        
 
         tern migrate --config ./tern_test.conf
         echo "Migrations applied."

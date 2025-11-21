@@ -195,7 +195,8 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	if pdfId != 0 {
+	// handleItemPDF returns -1 when no file was provided; only set PDF when we have a positive id
+	if pdfId > 0 {
 		item.PDF = null.IntFrom(pdfId)
 	}
 
@@ -482,6 +483,20 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save item to database
+	// If a LicenseItem is provided, ensure it's not already assigned to another item.
+	if item.LicenseItem.Valid {
+		licID := int(item.LicenseItem.ValueOrZero())
+		owner, found, err := database.Db.GetItemByLicenseID(licID)
+		if err != nil {
+			log.Error("UpdateItem: failed to check license ownership", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		if found && owner.ID != ItemID {
+			utils.ErrorJSON(w, errors.New("license item is already assigned to another item"), http.StatusBadRequest)
+			return
+		}
+	}
 	err = database.Db.UpdateItem(ItemID, item)
 	if err != nil {
 		log.Error("UpdateItem: db update", err)
