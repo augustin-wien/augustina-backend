@@ -254,6 +254,18 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, e
 	}
 	entry.Price = item.Price
 
+	// Debug: log sender/receiver and ensure accounts exist in this transaction
+	log.Debug("createOrderEntryTx: inserting order entry", zap.Int("orderID", orderID), zap.Int("item", entry.Item), zap.Int("sender", entry.Sender), zap.Int("receiver", entry.Receiver))
+	var tmp int
+	err = tx.QueryRow(context.Background(), "SELECT ID FROM Account WHERE ID = $1", entry.Sender).Scan(&tmp)
+	if err != nil {
+		log.Error("createOrderEntryTx: sender account lookup failed", zap.Int("sender", entry.Sender), zap.Error(err))
+	}
+	err = tx.QueryRow(context.Background(), "SELECT ID FROM Account WHERE ID = $1", entry.Receiver).Scan(&tmp)
+	if err != nil {
+		log.Error("createOrderEntryTx: receiver account lookup failed", zap.Int("receiver", entry.Receiver), zap.Error(err))
+	}
+
 	// Create order entry
 	err = tx.QueryRow(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver, IsSale) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", entry.Item, entry.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver, entry.IsSale).Scan(&entry.ID)
 	if err != nil {
@@ -269,9 +281,10 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	var count int
 	err = tx.QueryRow(context.Background(), "SELECT COUNT(*) FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&count)
 	if err != nil {
-		log.Error("createPaymentForOrderEntryTx: ", err)
+		log.Error("createPaymentForOrderEntryTx: count query failed", zap.Int("entryID", entry.ID), zap.Error(err))
 		return
 	}
+	log.Debug("createPaymentForOrderEntryTx: payment count for entry", zap.Int("entryID", entry.ID), zap.Int("count", count))
 
 	// If no payment exists for this entry, create one
 	var payment Payment
@@ -287,6 +300,7 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 			Quantity:   entry.Quantity,
 			Price:      entry.Price,
 		}
+		log.Debug("createPaymentForOrderEntryTx: creating payment", zap.Int("orderID", orderID), zap.Int("entryID", entry.ID), zap.Int("sender", payment.Sender), zap.Int("receiver", payment.Receiver), zap.Int("amount", payment.Amount))
 		paymentID, err = createPaymentTx(tx, payment)
 	}
 

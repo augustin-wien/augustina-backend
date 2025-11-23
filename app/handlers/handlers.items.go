@@ -395,6 +395,20 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If some fields are omitted in the multipart form (e.g. Description),
+	// preserve existing values from the DB to avoid ent validator failures
+	// on partial updates.
+	if item.Description == "" {
+		if existing, err := database.Db.GetItem(ItemID); err == nil {
+			item.Description = existing.Description
+		}
+	}
+	if item.Price == 0 {
+		if existing, err := database.Db.GetItem(ItemID); err == nil {
+			item.Price = existing.Price
+		}
+	}
+
 	path, _ := updateItemImage(w, r)
 	if path != "" {
 		log.Info("UpdateItem: Path is empty", path)

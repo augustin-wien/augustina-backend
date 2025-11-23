@@ -219,6 +219,11 @@ func (db *Database) EmptyDatabase() (err error) {
 	if err != nil {
 		log.Error("CheckRolePermissions failed: ", err)
 	}
+
+	// Clear in-memory caches that may hold IDs from the previous database state
+	// This prevents stale IDs (e.g., accountTypeIDCache) being reused after truncation
+	accountTypeIDCache = make(map[string]int)
+
 	return
 }
 

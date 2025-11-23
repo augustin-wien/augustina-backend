@@ -394,6 +394,12 @@ type VerifyPaymentOrderResponse struct {
 	PDFDownloadLinks *[]database.PDFDownloadLinks
 }
 
+// paymentsResponse is the payload returned by ListPaymentsForPayout
+type paymentsResponse struct {
+	Payments []database.Payment `json:"payments"`
+	Balance  int                `json:"balance"`
+}
+
 // VerifyPaymentOrder godoc
 //
 //	 	@Summary 		Verify Payment Order
@@ -511,7 +517,7 @@ func parseBool(value string) (bool, error) {
 //		@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
 //		@Param			vendor query string false "Vendor LicenseID"
-//		@Success		200	{array}	database.Payment
+//		@Success	200	{object}	paymentsResponse
 //		@Security		KeycloakAuth
 //		@Security		KeycloakAuth
 //		@Router			/payments/forpayout/ [get]
@@ -520,7 +526,6 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 	minDateRaw := r.URL.Query().Get("from")
 	maxDateRaw := r.URL.Query().Get("to")
 	vendor := r.URL.Query().Get("vendor")
-	var vendorObj database.Vendor
 	// check if vendor exists
 	if vendor != "" {
 		v, err := database.Db.GetVendorByLicenseID(vendor)
@@ -528,11 +533,14 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
-		vendorObj, err = database.Db.GetVendorWithBalanceUpdate(v.ID)
+		// get vendor with updated balance and use its balance in response
+		vendorObj, err := database.Db.GetVendorWithBalanceUpdate(v.ID)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
+		// store vendorObj for later balance extraction via vendorObj.Balance
+		_ = vendorObj
 	}
 	var minDate, maxDate time.Time
 	if minDateRaw != "" {
@@ -548,15 +556,26 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	payments, err := database.Db.ListPaymentsForPayout(minDate, maxDate, vendor)
-	type paymentsResponse struct {
-		Payments []database.Payment `json:"payments"`
-		Balance  int                `json:"balance"`
+	if err != nil {
+		respond(w, err, nil)
+		return
 	}
-	response := paymentsResponse{
+
+	balance := 0
+	if vendor != "" {
+		// try to get vendor balance (GetVendorWithBalanceUpdate already updated balance)
+		if vObj, err := database.Db.GetVendorByLicenseID(vendor); err == nil {
+			if vFull, err := database.Db.GetVendorWithBalanceUpdate(vObj.ID); err == nil {
+				balance = vFull.Balance
+			}
+		}
+	}
+
+	resp := paymentsResponse{
 		Payments: payments,
-		Balance:  vendorObj.Balance,
+		Balance:  balance,
 	}
-	respond(w, err, response)
+	respond(w, nil, resp)
 }
 
 // ListPayments godoc
