@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/nikoksr/notify"
@@ -14,6 +15,7 @@ import (
 )
 
 var NotificationsClient Notifications
+var notificationsMu sync.Mutex
 
 type Notifications struct {
 	Client        *notify.Notify
@@ -21,6 +23,10 @@ type Notifications struct {
 }
 
 func InitNotifications(enableSentry bool) *notify.Notify {
+	// make initialization concurrent-safe
+	notificationsMu.Lock()
+	defer notificationsMu.Unlock()
+
 	client := notify.New()
 	if os.Getenv("NOTIFICATIONS_EMAIL_ENABLED") == "true" {
 		email := mail.New(os.Getenv("NOTIFICATIONS_EMAIL_SENDER"), os.Getenv("NOTIFICATIONS_EMAIL_SERVER")+":"+os.Getenv("NOTIFICATIONS_EMAIL_PORT"))
