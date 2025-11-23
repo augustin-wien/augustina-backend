@@ -304,6 +304,14 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		return err
 	}
 	defer func() { err = DeferTx(tx, err) }()
+	// Read current verified state before updating so we can detect a transition
+	var alreadyVerified bool
+	err = tx.QueryRow(context.Background(), "SELECT Verified FROM PaymentOrder WHERE ID = $1", orderID).Scan(&alreadyVerified)
+	if err != nil {
+		log.Error("VerifyOrderAndCreatePayments: read payment order verified flag", orderID, err)
+		// continue — we'll still try to update and proceed
+	}
+
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
 	UPDATE PaymentOrder
@@ -321,7 +329,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		return err
 	}
 
-	if order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
+	if !alreadyVerified && order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
 
 		for _, entry := range order.Entries {
 			item, err := db.GetItemTx(tx, entry.Item)
@@ -363,15 +371,15 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					mail, err := db.BuildEmailRequestFromTemplate("digitalLicenceItemTemplate.html", receivers, templateData)
 					if err != nil {
 						log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
+					} else if mail != nil {
+						// use subject from DB template (do not override)
+						go func() {
+							success, err := mail.SendEmail()
+							if err != nil || !success {
+								log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+							}
+						}()
 					}
-					// use subject from DB template (do not override)
-					go func() {
-						success, err := mail.SendEmail()
-						if err != nil || !success {
-
-							log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
-						}
-					}()
 
 				} else {
 					// Generate download link and send it to the
@@ -408,14 +416,15 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						mail, err := db.BuildEmailRequestFromTemplate("PDFLicenceItemTemplate.html", receivers, templateData)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
+						} else if mail != nil {
+							// use subject from DB template (do not override)
+							go func() {
+								success, err := mail.SendEmail()
+								if err != nil || !success {
+									log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+								}
+							}()
 						}
-						// use subject from DB template (do not override)
-						go func() {
-							success, err := mail.SendEmail()
-							if err != nil || !success {
-								log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
-							}
-						}()
 
 						pdfDownload.EmailSent = true
 						pdfDownload.OrderID = null.IntFrom(int64(orderID))
