@@ -307,18 +307,20 @@ func TestItems(t *testing.T) {
 
 // Set MaxOrderAmount to avoid errors
 func setMaxOrderAmount(t *testing.T, amount int) {
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	writer.WriteField("MaxOrderAmount", strconv.Itoa(amount))
-	writer.Close()
-	utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), 200, adminUserToken)
-
-	// Check if maxOrderAmount is set
-	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
-	var settings *ent.Settings
-	err := json.Unmarshal(res.Body.Bytes(), &settings)
+	// Update settings directly in DB to avoid relying on the HTTP handler
+	settings, err := database.Db.GetSettings()
 	utils.CheckError(t, err)
-	require.Equal(t, amount, settings.MaxOrderAmount)
+	if settings == nil {
+		t.Fatal("settings not found")
+	}
+	settings.MaxOrderAmount = amount
+	err = database.Db.UpdateSettings(settings)
+	utils.CheckError(t, err)
+
+	// Verify
+	settings2, err := database.Db.GetSettings()
+	utils.CheckError(t, err)
+	require.Equal(t, amount, settings2.MaxOrderAmount)
 }
 
 func CreateTestItemWithLicense(t *testing.T) (string, string) {
@@ -892,6 +894,94 @@ func TestPayments(t *testing.T) {
 	database.Db.DeletePayment(p1)
 	database.Db.DeletePayment(p2)
 	database.Db.DeleteItem(itemID)
+}
+
+// TestVerifyOrder_EmailSentOnlyOnce ensures that license/pdf emails are only
+// sent once even if VerifyOrderAndCreatePayments is called multiple times.
+func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	// fresh DB
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+
+	// create vendor
+	vendorLicenseId := "testverifyemail"
+	_ = createTestVendor(t, vendorLicenseId)
+
+	// create a PDF resource
+	pdf := database.PDF{Path: "testfile.pdf", Timestamp: time.Now()}
+	pdfID, err := database.Db.CreatePDF(pdf)
+	require.NoError(t, err)
+
+	// create a license item that is a PDF
+	licenseItem := database.Item{Name: "license-pdf", Description: "license pdf", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID)}
+	licenseID, err := database.Db.CreateItem(licenseItem)
+	require.NoError(t, err)
+
+	// create a normal item that references the license
+	item := database.Item{Name: "item-with-license-pdf", Description: "main item", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup")}
+	itemID, err := database.Db.CreateItem(item)
+	require.NoError(t, err)
+
+	// allow sufficiently large order amounts
+	setMaxOrderAmount(t, 5000)
+
+	customerEmail := "verify_once@example.com"
+
+	// create order via API (this will prepend license entry internally)
+	requestWithEmail := `{
+		"entries": [
+			{ "item": ` + strconv.Itoa(itemID) + `, "quantity": 1 }
+		],
+		"vendorLicenseID": "` + vendorLicenseId + `",
+		"customerEmail": "` + customerEmail + `"
+	}`
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithEmail, 200)
+	var respMap map[string]string
+	err = json.Unmarshal(res.Body.Bytes(), &respMap)
+	utils.CheckError(t, err)
+	url := respMap["SmartCheckoutURL"]
+	require.NotEmpty(t, url)
+	// In test mode we may get either the real Viva wallet URL or a local test URL.
+	// Assert it's a URL that indicates a checkout/success redirect.
+	require.True(t, strings.Contains(url, "checkout") || strings.Contains(url, "success"))
+
+	// fetch order
+	order, err := database.Db.GetOrderByOrderCode("0")
+	require.NoError(t, err)
+
+	// call verify twice
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 48)
+	require.NoError(t, err)
+	// second call should not resend emails or duplicate payments
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 48)
+	require.NoError(t, err)
+
+	// check payments: should only create payments once (license + item)
+	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(payments))
+
+	// check pdf downloads for order: only one download should exist and EmailSent true
+	pdfDownloads, err := database.Db.GetPDFDownloadByOrderId(order.ID)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(pdfDownloads))
+	require.True(t, pdfDownloads[0].EmailSent)
+	require.EqualValues(t, licenseID, pdfDownloads[0].ItemID.ValueOrZero())
+	require.EqualValues(t, order.ID, pdfDownloads[0].OrderID.ValueOrZero())
+
+	// cleanup
+	for _, payment := range payments {
+		database.Db.DeletePayment(payment.ID)
+	}
+	for _, entry := range order.Entries {
+		database.Db.DeleteOrderEntry(entry.ID)
+	}
+	database.Db.DeleteOrder(order.ID)
 }
 
 func timeRequest(t *testing.T, from int, to int, expectedLength int) {

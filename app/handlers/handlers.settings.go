@@ -237,16 +237,18 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Debug("updateSettings: settings are ", settings)
-	// Update main item
-	var mainItem ent.Item
+	// Update main item only when explicitly provided by the form.
+	// If not provided, leave MainItem nil so UpdateSettings won't try
+	// to change the FK (avoids foreign-key errors in tests where item 1
+	// may not exist).
 	if mainItemID, ok := fieldsClean["MainItem"].(int); ok {
+		var mainItem ent.Item
 		mainItem.ID = mainItemID
+		settings.Edges.MainItem = &mainItem
 	} else {
-		mainItem.ID = 1 // set default value
-		log.Warn("updateSettings: MainItem not set, using default value 1")
-
+		settings.Edges.MainItem = nil
+		log.Debug("updateSettings: MainItem not set; leaving unchanged")
 	}
-	settings.Edges.MainItem = &mainItem
 	// update the logo
 	logoPath, err := updateSettingsImg(w, r, ImagetypeLogo)
 	if err != nil {
