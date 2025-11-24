@@ -10,7 +10,6 @@ import (
 	"github.com/augustin-wien/augustina-backend/mailer"
 )
 
-
 // MailTemplate represents a mail template stored in the database
 type MailTemplate struct {
 	ID        int

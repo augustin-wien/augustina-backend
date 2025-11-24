@@ -239,8 +239,8 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err err
 	timeStamp := time.Now().Format("2006-01-02_15-04-05")
 	path := "pdf/" + timeStamp + "_" + name[0] + "." + name[len(name)-1]
 	_, err = os.Stat(dir + "/pdf")
-		if errors.Is(err, os.ErrNotExist) {
-			err = os.Mkdir(dir+"/pdf", 0755)
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.Mkdir(dir+"/pdf", 0755)
 		if err != nil {
 			log.Error("handleItemPDF: failed to create directory", err)
 			return

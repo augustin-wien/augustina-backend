@@ -3,12 +3,12 @@ package mailer
 import (
 	"bytes"
 	"crypto/tls"
-    "os"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"mime/quotedprintable"
 	"net/smtp"
+	"os"
 	"regexp"
 	"strings"
 	"text/template"
