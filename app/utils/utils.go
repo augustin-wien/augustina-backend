@@ -1,7 +1,8 @@
 package utils
 
 import (
-	"math/rand"
+	crand "crypto/rand"
+	"math/big"
 	"net/http"
 	"os"
 	"strings"
@@ -62,7 +63,15 @@ func RandomString(n int) string {
 
 // RandomInt returns a random int between min and max
 func RandomInt(min, max int) int {
-	return min + rand.Intn(max-min)
+	if max <= min {
+		return min
+	}
+	span := int64(max - min)
+	n, err := crand.Int(crand.Reader, big.NewInt(span))
+	if err != nil {
+		return min
+	}
+	return min + int(n.Int64())
 }
 
 // GetUnixTime returns the current unix time in seconds
@@ -95,6 +104,10 @@ func ToLower(s string) string {
 
 func GenerateRandomNumber() int {
 	// Generate a random number between 100000 and 999999
-	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(900000) + 100000
+	n, err := crand.Int(crand.Reader, big.NewInt(900000))
+	if err != nil {
+		// fallback to timestamp-based value (not crypto secure)
+		return int((time.Now().UnixNano()/1e6)%900000) + 100000
+	}
+	return int(n.Int64()) + 100000
 }

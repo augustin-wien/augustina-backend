@@ -519,7 +519,6 @@ func (k *Keycloak) UpdateUser(username string, firstName string, lastName string
 }
 
 func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email string) error {
-	username = utils.ToLower(username)
 	email = utils.ToLower(email)
 	k.checkAdminToken()
 	user, err := k.GetUserByID(userID)

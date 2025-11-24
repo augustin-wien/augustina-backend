@@ -62,8 +62,12 @@ func main() {
 
 	// Initialize server with graceful shutdown
 	srv := &http.Server{
-		Addr:    ":" + conf.Port,
-		Handler: handlers.GetRouter(),
+		Addr:              ":" + conf.Port,
+		Handler:           handlers.GetRouter(),
+		ReadHeaderTimeout: 20 * time.Second,
+		ReadTimeout:       25 * time.Second,
+		WriteTimeout:      25 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	// Start server in background

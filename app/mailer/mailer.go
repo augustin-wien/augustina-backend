@@ -3,6 +3,7 @@ package mailer
 import (
 	"bytes"
 	"crypto/tls"
+    "os"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -44,6 +45,18 @@ func Init() {
 	host := config.Config.SMTPServer
 	auth = smtp.PlainAuth("", config.Config.SMTPUsername, config.Config.SMTPPassword, host)
 
+	// Enforce safe TLS behaviour:
+	// - In production (Development == false) we fail-fast if InsecureSkipVerify is enabled.
+	// - In development we require an explicit opt-in via ALLOW_INSECURE_SMTP=true if InsecureSkipVerify is enabled.
+	if config.Config.SMTPInsecureSkipVerify {
+		if !config.Config.Development {
+			log.Fatal("SMTP insecure skip verify is true in production; refusing to start")
+		}
+		// In development require explicit opt-in
+		if os.Getenv("ALLOW_INSECURE_SMTP") != "true" {
+			log.Fatalf("SMTP insecure skip verify is enabled; set ALLOW_INSECURE_SMTP=true to allow this in development")
+		}
+	}
 }
 
 // loginAuth implements the AUTH LOGIN SASL mechanism.
