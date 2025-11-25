@@ -202,8 +202,9 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 	vendorID = v.ID
 	log.Info("CreateVendor: created vendor %v", vendorID)
 
-	// Create vendor account
-	_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, "Vendor", v.ID)
+	// Create vendor account (use QueryRow to capture any errors from RETURNING)
+	var accountID int
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, "Vendor", v.ID).Scan(&accountID)
 	if err != nil {
 		log.Errorf("CreateVendor: create vendor account %s %+v", vendor.Email, err)
 		return

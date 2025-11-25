@@ -22,9 +22,26 @@ func (db *Database) CreateSpecialVendorAccount(vendor Vendor) (vendorID int, err
 		return
 	}
 
-	_, err = db.Dbpool.Exec(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, vendor.LicenseID, vendorID)
+	// Use QueryRow to capture the RETURNING ID and any insertion error
+	var accountID int
+	// Determine account type: for special bootstrap accounts (created via InitiateAccounts)
+	// the Vendor.LicenseID contains the account type name (e.g., "Cash", "Orga", "UserAnon", "Paypal", "VivaWallet").
+	// For normal vendors use the enum value "Vendor".
+	accountType := "Vendor"
+	accountName := ""
+	if vendor.LicenseID.Valid && vendor.LicenseID.String != "" {
+		accountName = vendor.LicenseID.String
+		switch vendor.LicenseID.String {
+		case "Cash", "Orga", "UserAnon", "Paypal", "VivaWallet":
+			accountType = vendor.LicenseID.String
+		default:
+			accountType = "Vendor"
+		}
+	}
+	// Use the LicenseID string as the account name when present, otherwise empty name
+	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", accountName, accountType, vendorID).Scan(&accountID)
 	if err != nil {
-		log.Error("CreateSpecialVendor: create vendor account %s %+v", vendor.Email, err)
+		log.Error("CreateSpecialVendor: create vendor account failed: ", err)
 		return
 	}
 
@@ -171,14 +188,16 @@ func (db *Database) UpdateAccountBalanceByOpenPayments(vendorID int) (payoutAmou
 	log.Info("UpdateAccountBalanceByOpenPayments: Balance of account where Vendor = " + strconv.Itoa(vendorID) + " is " + strconv.Itoa(vendorAccount.Balance))
 
 	var openPaymentsReceiverSum int
-	err = db.Dbpool.QueryRow(ctx, "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Paymentorder IS NOT NULL AND Receiver = $1", vendorAccount.ID).Scan(&openPaymentsReceiverSum)
+	// Sum all open payments for this receiver (do not require PaymentOrder to be non-null)
+	err = db.Dbpool.QueryRow(ctx, "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Receiver = $1", vendorAccount.ID).Scan(&openPaymentsReceiverSum)
 	if err != nil {
 		log.Error("UpdateAccountBalanceByOpenPayments: ", err)
 	}
 
 	// Get open payments where vendor is sender
 	var openPaymentsSenderSum int
-	err = db.Dbpool.QueryRow(ctx, "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Paymentorder IS NOT NULL AND Sender = $1", vendorAccount.ID).Scan(&openPaymentsSenderSum)
+	// Sum all open payments where vendor is sender
+	err = db.Dbpool.QueryRow(ctx, "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Sender = $1", vendorAccount.ID).Scan(&openPaymentsSenderSum)
 	if err != nil {
 		log.Error("UpdateAccountBalanceByOpenPayments: ", err)
 	}

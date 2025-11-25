@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"gopkg.in/guregu/null.v4"
 )
+
 func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool, skipDisabled bool) ([]Item, error) {
 	var out []Item
 	ctx := context.Background()
@@ -247,6 +248,24 @@ func (db *Database) GetItemTx(tx pgx.Tx, id int) (item Item, err error) {
 	return
 }
 
+// GetItemByLicenseID returns the item that currently references the given
+// license item (via the licenseitem foreign key). If no item references the
+// license, found will be false and err will be nil.
+func (db *Database) GetItemByLicenseID(licenseID int) (item Item, found bool, err error) {
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID, Name, Description, Price, Image, LicenseItem, Archived, Disabled, IsLicenseItem, LicenseGroup, IsPDFItem, PDF, ItemOrder, ItemColor, ItemTextColor FROM Item WHERE LicenseItem = $1 LIMIT 1", licenseID).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.Disabled, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return item, false, nil
+		}
+		log.Error("GetItemByLicenseID: query failed", err)
+		return item, false, err
+	}
+	// if item.Disabled {
+	// 	return item, true, errors.New("item is disabled")
+	// }
+	return item, true, nil
+}
+
 // CreateItem creates an item in the database
 func (db *Database) CreateItem(item Item) (id int, err error) {
 	ctx := context.Background()
@@ -296,7 +315,20 @@ func (db *Database) UpdateItem(id int, item Item) (err error) {
 		SetItemTextColor(item.ItemTextColor.String)
 	if item.LicenseItem.Valid {
 		v := int(item.LicenseItem.ValueOrZero())
-		ub = ub.SetNillableLicenseItemID(&v)
+		// Avoid redundant license-edge update when the item already has this license assigned.
+		// Fetch current item and compare its license edge; only set the edge when it actually changes.
+		cur, errCur := db.EntClient.Item.Query().Where(entitem.IDEQ(id)).WithLicenseItem().Only(ctx)
+		if errCur != nil {
+			// Could not fetch current item, fall back to setting the license (ent will validate)
+			ub = ub.SetNillableLicenseItemID(&v)
+		} else {
+			if cur.Edges.LicenseItem != nil && cur.Edges.LicenseItem.ID == v {
+				// license already assigned to this item — skip changing the edge to avoid triggering constraint
+				// No-op: do not call SetNillableLicenseItemID
+			} else {
+				ub = ub.SetNillableLicenseItemID(&v)
+			}
+		}
 	} else {
 		// clear the license edge when license is not provided
 		ub = ub.ClearLicenseItem()
@@ -313,6 +345,7 @@ func (db *Database) UpdateItem(id int, item Item) (err error) {
 	}
 	return err
 }
+
 // DeleteItem archives an item in the database
 func (db *Database) DeleteItem(id int) (err error) {
 	ctx := context.Background()

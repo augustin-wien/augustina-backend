@@ -214,7 +214,7 @@ func TestQueryOrders(t *testing.T) {
 	utils.CheckError(t, err)
 	receiverVendorID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("receiver")})
 	utils.CheckError(t, err)
-	itemID, err := Db.CreateItem(Item{Price: 1})
+	itemID, err := Db.CreateItem(Item{Name: "test-item", Description: "Auto-created test item", Price: 1})
 	utils.CheckError(t, err)
 
 	senderAccount, err := Db.GetAccountByVendorID(senderVendorID)
