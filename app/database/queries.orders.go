@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/keycloak"
@@ -11,6 +12,20 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/guregu/null.v4"
 )
+
+	// orderLocks stores a mutex per order ID to serialize payment creation
+	// for a given order and avoid concurrent duplicate creation.
+	var orderLocks sync.Map // map[int]*sync.Mutex
+
+	// lockOrder acquires a mutex for the given orderID and returns an unlock function.
+	func lockOrder(orderID int) func() {
+		v, _ := orderLocks.LoadOrStore(orderID, &sync.Mutex{})
+		m := v.(*sync.Mutex)
+		m.Lock()
+		return func() {
+			m.Unlock()
+		}
+	}
 
 // Orders ---------------------------------------------------------------------
 
@@ -226,6 +241,12 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, e
 // createPaymentForOrderEntryTx creates a payment for an order entry
 func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, errorIfExists bool) (paymentID int, err error) {
 
+	// Ensure only one goroutine/process creates payments for a given order at a time.
+	// This serializes calls per-order to avoid race conditions when multiple
+	// callers attempt to create payments for the same order concurrently.
+	unlock := lockOrder(orderID)
+	defer unlock()
+
 	// Check if payment already exists for this entry
 	var count int
 	err = tx.QueryRow(context.Background(), "SELECT COUNT(*) FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&count)
@@ -294,6 +315,17 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 
 	if !alreadyVerified && order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
 
+		// We may have multiple order entries for the same order. To avoid
+		// assigning groups and sending the same email multiple times for the
+		// same customer/order, collect unique license groups and perform
+		// assignments and sends once per relevant unit.
+		processedLicenseGroups := make(map[string]bool)
+		var customerID string
+		var newUser bool
+		gotCustomer := false
+		customerAssigned := false
+		sentDigitalLicenceEmail := false
+
 		for _, entry := range order.Entries {
 			item, err := db.GetItemTx(tx, entry.Item)
 			if err != nil {
@@ -303,53 +335,75 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 			if item.LicenseItem.Valid {
 
 				if !item.IsPDFItem {
-					// add customer to licenseItemGroup
-
-					customer, newUser, err := keycloak.KeycloakClient.GetOrCreateUser(order.CustomerEmail.String)
-					if err != nil {
-						log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", orderID, err)
+					// Ensure we only call GetOrCreateUser once per order/customer
+					if !gotCustomer {
+						customerID, newUser, err = keycloak.KeycloakClient.GetOrCreateUser(order.CustomerEmail.String)
+						if err != nil {
+							log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", orderID, err)
+						}
+						gotCustomer = true
 					}
 
-					// add customer to customer group
-					err = keycloak.KeycloakClient.AssignGroup(customer, "customer")
-					if err != nil {
-						log.Error("VerifyOrderAndCreatePayments: failed to assign customer to group: ", orderID, err)
+					// Assign to top-level customer group once per customer
+					if gotCustomer && !customerAssigned {
+						err = keycloak.KeycloakClient.AssignGroup(customerID, "customer")
+						if err != nil {
+							log.Error("VerifyOrderAndCreatePayments: failed to assign customer to group: ", orderID, err)
+						}
+						customerAssigned = true
 					}
 
-					err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(customer, item.LicenseGroup.String)
-					if err != nil {
-						log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", orderID, err)
-
-					}
-					// Send email with link to the license Item
-					templateData := struct {
-						URL   string
-						EMAIL string
-					}{
-						URL:   config.Config.OnlinePaperUrl,
-						EMAIL: order.CustomerEmail.String,
+					// Assign to license subgroup once per unique license group
+					lg := item.LicenseGroup.String
+					if gotCustomer && lg != "" && !processedLicenseGroups[lg] {
+						err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(customerID, lg)
+						if err != nil {
+							log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", orderID, err)
+						}
+						processedLicenseGroups[lg] = true
 					}
 
-					receivers := []string{order.CustomerEmail.String}
-					mail, err := db.BuildEmailRequestFromTemplate("digitalLicenceItemTemplate.html", receivers, templateData)
-					if err != nil {
-						log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
-					} else if mail != nil {
-						// use subject from DB template (do not override)
-						go func(m *mailer.EmailRequest) {
-							success, err := mailer.Send(m)
-							if err != nil || !success {
-								log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
-							}
-						}(mail)
+					// Send email with link to the license item once per order
+					if !sentDigitalLicenceEmail {
+						templateData := struct {
+							URL   string
+							EMAIL string
+						}{
+							URL:   config.Config.OnlinePaperUrl,
+							EMAIL: order.CustomerEmail.String,
+						}
+
+						receivers := []string{order.CustomerEmail.String}
+						mail, err := db.BuildEmailRequestFromTemplate("digitalLicenceItemTemplate.html", receivers, templateData)
+						if err != nil {
+							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
+						} else if mail != nil {
+							// use subject from DB template (do not override)
+							go func(m *mailer.EmailRequest) {
+								success, err := mailer.Send(m)
+								if err != nil || !success {
+									log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
+								}
+							}(mail)
+						}
+						sentDigitalLicenceEmail = true
 					}
+
+					// If the user was newly created, send welcome email once
 					if newUser {
-						// send welcome email
+						newUser = false // ensure we only send welcome once
+						templateData := struct {
+							URL   string
+							EMAIL string
+						}{
+							URL:   config.Config.OnlinePaperUrl,
+							EMAIL: order.CustomerEmail.String,
+						}
+						receivers := []string{order.CustomerEmail.String}
 						newUserMail, err := db.BuildEmailRequestFromTemplate("welcome", receivers, templateData)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create welcome mail: ", orderID, err)
 						} else if newUserMail != nil {
-							// use subject from DB template (do not override)
 							go func(m *mailer.EmailRequest) {
 								success, err := mailer.Send(m)
 								if err != nil || !success {
