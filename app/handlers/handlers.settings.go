@@ -111,7 +111,8 @@ func updateSettingsImg(w http.ResponseWriter, r *http.Request, fileType Imagetyp
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
+	// Save with owner rw, group/other read
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0644)
 	if err != nil {
 		log.Error("updateSettingsLogo: saving failed", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -328,7 +329,8 @@ func updateCSS(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = os.WriteFile(dir+path, body, 0666)
+	// Public CSS should be readable by the webserver
+	err = os.WriteFile(dir+path, body, 0644)
 	if err != nil {
 		log.Error("updateCSS: saving failed", err)
 		err = errors.New("failed to update css")

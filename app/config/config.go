@@ -31,9 +31,6 @@ type config struct {
 	KeycloakRealm                     string
 	KeycloakClientID                  string
 	KeycloakClientSecret              string
-	KeycloakVendorGroup               string
-	KeycloakCustomerGroup             string
-	KeycloakBackofficeGroup           string
 	SendCustomerEmail                 bool
 	OnlinePaperUrl                    string
 	FrontendURL                       string
@@ -46,6 +43,7 @@ type config struct {
 	SMTPSenderName                    string
 	SMTPSsl                           bool
 	SMTPInsecureSkipVerify            bool
+	AllowInsecureSMTP                 bool
 	SentryDSN                         string
 	FlourWebhookURL                   string
 	DEBUG_payments                    bool // For debugging purposes, not used in production
@@ -78,9 +76,6 @@ func InitConfig() error {
 		VivaWalletSmartCheckoutClientKey:  getEnv("VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY", ""),
 		VivaWalletSourceCode:              getEnv("VIVA_WALLET_SOURCE_CODE", ""),
 		VivaWalletTransactionTypeIDPaypal: getEnvInt("VIVA_WALLET_TRANSACTION_TYPE_ID_PAYPAL", 0),
-		KeycloakVendorGroup:               getEnv("KEYCLOAK_VENDOR_GROUP", "vendors"),
-		KeycloakCustomerGroup:             getEnv("KEYCLOAK_CUSTOMER_GROUP", "customer"),
-		KeycloakBackofficeGroup:           getEnv("KEYCLOAK_BACKOFFICE_GROUP", "backoffice"),
 		KeycloakHostname:                  getEnv("KEYCLOAK_HOST", ""),
 		KeycloakRealm:                     getEnv("KEYCLOAK_REALM", ""),
 		KeycloakClientID:                  getEnv("KEYCLOAK_CLIENT_ID", ""),
@@ -96,6 +91,7 @@ func InitConfig() error {
 		SMTPSenderName:                    getEnv("SMTP_SENDER_NAME", ""),
 		SMTPSsl:                           (getEnv("SMTP_SSL", "false") == "true"),
 		SMTPInsecureSkipVerify:            (getEnv("SMTP_INSECURE_SKIP_VERIFY", "false") == "true"),
+		AllowInsecureSMTP:                 (getEnv("ALLOW_INSECURE_SMTP", "false") == "true"),
 		FrontendURL:                       getEnv("FRONTEND_URL", ""),
 		SentryDSN:                         getEnv("SENTRY_DSN", ""),
 		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),

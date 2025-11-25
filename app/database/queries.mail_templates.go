@@ -8,10 +8,7 @@ import (
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/mailer"
-	"github.com/augustin-wien/augustina-backend/utils"
 )
-
-var dblog = utils.GetLogger()
 
 // MailTemplate represents a mail template stored in the database
 type MailTemplate struct {

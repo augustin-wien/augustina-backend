@@ -184,8 +184,8 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	}
 	// current file path from os
 
-	// Save file with unique name
-	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
+	// Save file with unique name (owner read/write, group/other read)
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0644)
 	if err != nil {
 		log.Error("updateItemImage: failed to write file", err)
 	}
@@ -240,13 +240,13 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err err
 	path := "pdf/" + timeStamp + "_" + name[0] + "." + name[len(name)-1]
 	_, err = os.Stat(dir + "/pdf")
 	if errors.Is(err, os.ErrNotExist) {
-		err = os.Mkdir(dir+"/pdf", 0777)
+		err = os.Mkdir(dir+"/pdf", 0755)
 		if err != nil {
 			log.Error("handleItemPDF: failed to create directory", err)
 			return
 		}
 	}
-	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0666)
+	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0644)
 	if err != nil {
 		log.Error("handleItemPDF: failed to write file", err)
 		return

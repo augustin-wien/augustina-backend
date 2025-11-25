@@ -310,6 +310,39 @@ func TestItems(t *testing.T) {
 
 }
 
+// TestLicenseUnassignedWhenItemDeleted ensures that when an item that
+// references a digital license is deleted (archived), the license becomes
+// unassigned (no item references it any more).
+func TestLicenseUnassignedWhenItemDeleted(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	// Initialize database and empty it
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+
+	// Create a license item (IsLicenseItem = true)
+	licenseItemID := CreateTestItem(t, "License item", 3, "", "")
+	// Create a regular item that references the license
+	itemID := CreateTestItem(t, "Test item", 20, licenseItemID, "testedition")
+
+	licenseInt, err := strconv.Atoi(licenseItemID)
+	require.NoError(t, err)
+	itemInt, err := strconv.Atoi(itemID)
+	require.NoError(t, err)
+
+	// Delete (archive) the item
+	err = database.Db.DeleteItem(itemInt)
+	require.NoError(t, err)
+
+	// After deletion, the license should no longer be referenced by any item
+	_, found, err := database.Db.GetItemByLicenseID(licenseInt)
+	require.NoError(t, err)
+	require.False(t, found, "expected license to be unassigned after deleting the item")
+}
+
 // Set MaxOrderAmount to avoid errors
 func setMaxOrderAmount(t *testing.T, amount int) {
 	// Update settings directly in DB to avoid relying on the HTTP handler

@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/keycloak"
@@ -110,7 +109,7 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	log.Info("Created user in keycloak: ", user)
 	vendor.KeycloakID = user
 
-	err = keycloak.KeycloakClient.AssignGroup(user, config.Config.KeycloakVendorGroup)
+	err = keycloak.KeycloakClient.AssignGroup(user, keycloak.KeycloakClient.VendorGroup)
 	if err != nil {
 		log.Error("CreateVendor: Assigning user to vendor group failed: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

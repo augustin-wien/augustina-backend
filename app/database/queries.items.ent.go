@@ -349,7 +349,9 @@ func (db *Database) UpdateItem(id int, item Item) (err error) {
 // DeleteItem archives an item in the database
 func (db *Database) DeleteItem(id int) (err error) {
 	ctx := context.Background()
-	_, err = db.EntClient.Item.UpdateOneID(id).SetArchived(true).Save(ctx)
+	// Clear any assigned license on this item and mark it archived so that
+	// digital licenses become unassigned when the owning item is deleted.
+	_, err = db.EntClient.Item.UpdateOneID(id).ClearLicenseItem().SetArchived(true).Save(ctx)
 	if err != nil {
 		log.Error("DeleteItem (ent): ", err)
 	}

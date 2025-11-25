@@ -24,7 +24,9 @@ func ListMailTemplates(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, templates)
+	if err := utils.WriteJSON(w, http.StatusOK, templates); err != nil {
+		mtlog.Error("ListMailTemplates: WriteJSON failed", err)
+	}
 }
 
 // GetMailTemplate godoc
@@ -41,7 +43,9 @@ func GetMailTemplate(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, mt)
+	if err := utils.WriteJSON(w, http.StatusOK, mt); err != nil {
+		mtlog.Error("GetMailTemplate: WriteJSON failed", err)
+	}
 }
 
 // CreateOrUpdateMailTemplate godoc
@@ -71,7 +75,9 @@ func CreateOrUpdateMailTemplate(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	if err := utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"}); err != nil {
+		mtlog.Error("CreateOrUpdateMailTemplate: WriteJSON failed", err)
+	}
 }
 
 // DeleteMailTemplate godoc
@@ -91,7 +97,9 @@ func DeleteMailTemplate(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	if err := utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"}); err != nil {
+		mtlog.Error("DeleteMailTemplate: WriteJSON failed", err)
+	}
 }
 
 // SendMailTemplateTest godoc
@@ -141,5 +149,7 @@ func SendMailTemplateTest(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "sent"})
+	if err := utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "sent"}); err != nil {
+		mtlog.Error("SendMailTemplateTest: WriteJSON failed", err)
+	}
 }

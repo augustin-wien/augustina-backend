@@ -39,8 +39,18 @@ func main() {
 	log.Info("Starting Augustin Server v", conf.Version)
 
 	// Initialize Keycloak client
-	if err := keycloak.InitializeOauthServer(); err != nil {
-		log.Fatal("Keycloak: ", err)
+	// Initialize Keycloak client with retries: Keycloak service may not be ready
+	var kcErr error
+	for i := 0; i < 5; i++ {
+		kcErr = keycloak.InitializeOauthServer()
+		if kcErr == nil {
+			break
+		}
+		log.Warnf("Keycloak init attempt %d failed: %v; retrying...", i+1, kcErr)
+		time.Sleep(2 * time.Second)
+	}
+	if kcErr != nil {
+		log.Fatal("Keycloak: ", kcErr)
 	}
 
 	// Initialize database synchronously so server starts only when DB is ready
@@ -62,8 +72,12 @@ func main() {
 
 	// Initialize server with graceful shutdown
 	srv := &http.Server{
-		Addr:    ":" + conf.Port,
-		Handler: handlers.GetRouter(),
+		Addr:              ":" + conf.Port,
+		Handler:           handlers.GetRouter(),
+		ReadHeaderTimeout: 20 * time.Second,
+		ReadTimeout:       25 * time.Second,
+		WriteTimeout:      25 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	// Start server in background

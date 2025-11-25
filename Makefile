@@ -76,3 +76,22 @@ install-act:
 	@echo "Installing act into ./tools"
 	@bash scripts/install_act.sh
 
+# Run gosec (installs & runs via `go run` so no global install required)
+gosec:
+	@echo "Running gosec..."
+	@cd app && GO111MODULE=on go run github.com/securego/gosec/v2/cmd/gosec@latest ./... || true
+
+# Run staticcheck
+staticcheck:
+	@echo "Running staticcheck..."
+	@cd app && GO111MODULE=on go run honnef.co/go/tools/cmd/staticcheck@latest ./... || true
+
+# Run govulncheck
+govulncheck:
+	@echo "Running govulncheck..."
+	@cd app && GO111MODULE=on go run golang.org/x/vuln/cmd/govulncheck@latest ./... || true
+
+# Run all security checks in sequence
+security: gosec staticcheck govulncheck
+	@echo "Security checks complete."
+

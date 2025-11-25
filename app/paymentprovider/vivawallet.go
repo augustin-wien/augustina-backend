@@ -32,7 +32,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletAccountsURL
 	if apiURL == "" {
-		return "", errors.New("VivaWalletAccountURL is not set")
+		return "", errors.New("viva wallet accounts url is not set")
 	}
 	resource := "/connect/token"
 	jsonPost := []byte(`grant_type=client_credentials`)
@@ -46,13 +46,14 @@ func AuthenticateToVivaWallet() (string, error) {
 
 	req, err := http.NewRequest("POST", urlStr, bytes.NewReader(jsonPost))
 	if err != nil {
-		log.Error("Building request failed: ", err)
+		log.Error("building request failed: ", err)
+		return "", err
 	}
 
 	// Encode client credentials to base64
 
 	if config.Config.VivaWalletSmartCheckoutClientID == "" || config.Config.VivaWalletSmartCheckoutClientKey == "" {
-		err := errors.New("VivaWalletSmartCheckoutClientCredentials not in .env or empty")
+		err := errors.New("viva wallet smart checkout client credentials not set")
 		log.Error("AuthenticateToVivaWallet: ", err)
 		return "", err
 	}
@@ -76,15 +77,14 @@ func AuthenticateToVivaWallet() (string, error) {
 	res, err := client.Do(req)
 	if err != nil {
 		log.Error("impossible to send request: ", err)
+		return "", err
 	}
+	defer func() { _ = res.Body.Close() }()
 
-	// Close the body after the function returns
-	defer res.Body.Close()
-
-	// Log the request body
+	// Read the response body
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Error("Reading body failed: ", err)
+		log.Error("reading body failed: ", err)
 		return "", err
 	}
 
@@ -104,7 +104,7 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletAPIURL
 	if apiURL == "" {
-		return 0, errors.New("VivaWalletApiURL is not set")
+		return 0, errors.New("viva wallet api url is not set")
 	}
 	resource := "/checkout/v2/orders"
 	u, _ := url.ParseRequestURI(apiURL)
@@ -133,7 +133,7 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	}
 
 	if config.Config.VivaWalletSourceCode == "" {
-		return 0, errors.New("VIVA_WALLET_SOURCE_CODE is not set")
+		return 0, errors.New("viva wallet source code is not set")
 	}
 
 	// Create a new sample payment order
@@ -158,12 +158,14 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	// Create a new post request
 	jsonPost, err := json.Marshal(paymentOrderRequest)
 	if err != nil {
-		log.Error("Marshalling payment order failed: ", err)
+		log.Error("marshalling payment order failed: ", err)
+		return 0, err
 	}
 
 	req, err := http.NewRequest("POST", urlStr, bytes.NewReader(jsonPost))
 	if err != nil {
-		log.Error("Building request failed: ", err)
+		log.Error("building request failed: ", err)
+		return 0, err
 	}
 	// Create Header
 	req.Header.Set("Content-Type", "application/json")
@@ -175,26 +177,23 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	res, err := client.Do(req)
 	if err != nil {
 		log.Error("impossible to send request: ", err)
+		return 0, err
 	}
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != 200 {
-		// Log the request body
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			log.Error("Reading body failed: ", err)
-			body = []byte("Reading body failed: " + err.Error())
+		body, readErr := io.ReadAll(res.Body)
+		if readErr != nil {
+			log.Error("reading body failed: ", readErr)
+			return 0, fmt.Errorf("request failed: status %d (failed to read body: %v)", res.StatusCode, readErr)
 		}
-		bodyString := string(body)
-
-		return 0, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode) + " " + bodyString)
+		return 0, errors.New("request failed: status " + strconv.Itoa(res.StatusCode) + " " + string(body))
 	}
 
-	// Close the body after the function returns
-	defer res.Body.Close()
-	// Log the request body
+	// Read the successful response body
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Error("Reading body failed: ", err)
+		log.Error("reading body failed: ", err)
 		return 0, err
 	}
 
@@ -224,17 +223,17 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	// 1. Check: Verify that webhook request and API response match all three fields
 
 	if transactionVerificationResponse.OrderCode != paymentSuccessful.EventData.OrderCode {
-		return errors.New("OrderCode mismatch")
+		return errors.New("order code mismatch")
 	}
 
 	if transactionVerificationResponse.Amount != paymentSuccessful.EventData.Amount {
 		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
 		webhookToFloat64 := fmt.Sprintf("%f", paymentSuccessful.EventData.Amount)
-		return errors.New("Amount mismatch:" + transactionToFloat64 + "  vs. " + webhookToFloat64)
+		return errors.New("amount mismatch: " + transactionToFloat64 + " vs " + webhookToFloat64)
 	}
 
 	if transactionVerificationResponse.StatusID != paymentSuccessful.EventData.StatusID {
-		return errors.New("StatusId mismatch")
+		return errors.New("status id mismatch")
 	}
 
 	// 2. Check: Verify that order can be found by ordercode and order is not already set verified in database
@@ -244,7 +243,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	}
 
 	if order.Verified {
-		return errors.New("Order already verified")
+		return errors.New("order already verified")
 	}
 
 	// 3. Check: Verify amount matches with the ones in the database
@@ -255,7 +254,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 
 		// Check for TransactionCostsName
 		if config.Config.TransactionCostsName == "" {
-			return errors.New("TransactionCostsName is not set")
+			return errors.New("transaction costs name is not set")
 		}
 
 		// Check if entry is transaction costs, which are not included in the sum
@@ -283,7 +282,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	sum = float64(sum) / 100
 
 	if sum != paymentSuccessful.EventData.Amount {
-		return errors.New("Amount mismatch sum is" + fmt.Sprintf("%f", sum) + "  vs. payment amount" + fmt.Sprintf("%f", paymentSuccessful.EventData.Amount) + " with transaction id " + paymentSuccessful.EventData.TransactionID)
+		return errors.New("amount mismatch: " + fmt.Sprintf("%f", sum) + " vs " + fmt.Sprintf("%f", paymentSuccessful.EventData.Amount) + " with transaction id " + paymentSuccessful.EventData.TransactionID)
 	}
 
 	// Since every check passed, now set verification status of order and create payments
@@ -321,7 +320,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 func CreatePaypalTransactionCosts(paymentSuccessful TransactionSuccessRequest, order database.Order) (err error) {
 	// Check if VivaWalletTransactionTypeIDPaypal is set
 	if config.Config.VivaWalletTransactionTypeIDPaypal == 0 {
-		return errors.New("Env variable VivaWalletTransactionTypeIDPaypal is not set")
+		return errors.New("viva wallet transaction type id for paypal is not set")
 	}
 
 	// Check if order has been payed via Paypal i.e. TransactionTypeId == 48
@@ -364,7 +363,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletAPIURL
 	if apiURL == "" {
-		return transactionVerificationResponse, errors.New("VivaWalletApiURL is not set")
+		return transactionVerificationResponse, errors.New("viva wallet api url is not set")
 	}
 	// Use transactionId from webhook to get transaction details
 	resource := "/checkout/v2/transactions/" + transactionID
@@ -375,13 +374,15 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	// Create a new get request
 	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
-		log.Error("Building request failed: ", err)
+		log.Error("building request failed: ", err)
+		return transactionVerificationResponse, err
 	}
 
 	// Get access token
 	accessToken, err := AuthenticateToVivaWallet()
 	if err != nil {
-		log.Error("Authentication failed: ", err)
+		log.Error("authentication failed: ", err)
+		return transactionVerificationResponse, err
 	}
 
 	// Create Header
@@ -393,19 +394,24 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	// Send the request
 	res, err := client.Do(req)
 	if err != nil {
-		log.Error("Sending request failed: ", err)
+		log.Error("sending request failed: ", err)
+		return transactionVerificationResponse, err
 	}
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != 200 {
-		return transactionVerificationResponse, errors.New("Request failed instead received this response status code: " + strconv.Itoa(res.StatusCode))
+		body, readErr := io.ReadAll(res.Body)
+		if readErr != nil {
+			log.Error("reading body failed: ", readErr)
+			return transactionVerificationResponse, readErr
+		}
+		return transactionVerificationResponse, errors.New("request failed: status " + strconv.Itoa(res.StatusCode) + " " + string(body))
 	}
 
-	// Close the body after the function returns
-	defer res.Body.Close()
-	// Log the request body
+	// Read the response
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Error("Reading body failed: ", err)
+		log.Error("reading body failed: ", err)
 		return transactionVerificationResponse, err
 	}
 
@@ -418,7 +424,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 
 	// 1. Check: Verify that transaction has correct status, only status "F" and "MW" is allowed according to VivaWallet
 	if transactionVerificationResponse.StatusID != "F" && transactionVerificationResponse.StatusID != "MW" {
-		return transactionVerificationResponse, errors.New("Transaction status is either pending or has failed. No successfull transaction")
+		return transactionVerificationResponse, errors.New("transaction status is not successful")
 	}
 
 	// Only check isOrderVerified status if checkDBStatus is true
@@ -431,7 +437,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 		}
 		if !order.Verified {
 			log.Info("Order has not been verified in database but needs to be for frontend call")
-			return transactionVerificationResponse, errors.New("Order has not been verified in database but needs to be for frontend call")
+			return transactionVerificationResponse, errors.New("order has not been verified in database but needs to be for frontend call")
 		}
 	}
 
@@ -482,7 +488,7 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 func CreateTransactionCostEntries(order database.Order, transactionCosts int, paymentProvider string) (err error) {
 
 	if config.Config.TransactionCostsName == "" {
-		return errors.New("TransactionCostsName is not set")
+		return errors.New("transaction costs name is not set")
 	}
 
 	// Get ID of transaction costs item
