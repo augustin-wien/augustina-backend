@@ -44,6 +44,11 @@ func TestKeycloak(t *testing.T) {
 		panic(err)
 	}
 	config.InitConfig()
+
+	// Ensure tests don't trigger real SMTP sends via Keycloak.
+	// The repo includes an `app/.env` with a sender address for local dev;
+	// clear it here so the Keycloak helper will skip ExecuteActionsEmail.
+	config.Config.SMTPSenderAddress = ""
 	err = keycloak.InitializeOauthServer()
 	if err != nil {
 		log.Fatal(err)

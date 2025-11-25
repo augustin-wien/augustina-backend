@@ -3,6 +3,7 @@ package keycloak
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/utils"
@@ -25,10 +26,10 @@ type Keycloak struct {
 	Context                 context.Context
 	clientToken             *gocloak.JWT
 	clientTokenCreationTime int64
-	vendorGroup             string
-	customerGroup           string
-	backofficeGroup         string
-	newspaperGroup          string
+	VendorGroup             string
+	CustomerGroup           string
+	BackofficeGroup         string
+	NewspaperGroup          string
 }
 
 // InitializeOauthServer initializes the Keycloak client
@@ -37,18 +38,20 @@ func InitializeOauthServer() (err error) {
 	if err != nil {
 		log.Info("Error loading .env file which is okey if we are in production")
 	}
+	// Normalize hostname to avoid double slashes in request paths.
+	host := strings.TrimRight(config.Config.KeycloakHostname, "/")
 	KeycloakClient = Keycloak{
-		hostname:        config.Config.KeycloakHostname,
+		hostname:        host,
 		ClientID:        config.Config.KeycloakClientID,
 		ClientSecret:    config.Config.KeycloakClientSecret,
 		Realm:           config.Config.KeycloakRealm,
 		Client:          nil,
 		Context:         context.Background(),
 		clientToken:     nil,
-		vendorGroup:     config.Config.KeycloakVendorGroup,
-		customerGroup:   config.Config.KeycloakCustomerGroup,
-		backofficeGroup: config.Config.KeycloakBackofficeGroup,
-		newspaperGroup:  "newspapers",
+		VendorGroup:     "vendors",
+		CustomerGroup:   "customer",
+		BackofficeGroup: "backoffice",
+		NewspaperGroup:  "newspapers",
 	}
 	// Initialize Keycloak client
 	client := gocloak.NewClient(KeycloakClient.hostname)
@@ -59,45 +62,19 @@ func InitializeOauthServer() (err error) {
 		log.Fatalf("Error logging in Keycloak client. A running keycloak server is necessary! ", err)
 	}
 
-	// Check if groups exists
-	_, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, KeycloakClient.vendorGroup)
-	if err != nil {
-		// Create group
-		err = KeycloakClient.CreateGroup(KeycloakClient.vendorGroup)
-		if err != nil {
-			log.Error("Error creating keycloak vendor group ", KeycloakClient.vendorGroup, err)
-		}
+	// Ensure required group paths exist (creates missing groups and subgroups)
+	if err := KeycloakClient.EnsureGroupPath("/" + KeycloakClient.VendorGroup); err != nil {
+		log.Error("Error ensuring keycloak vendor group", KeycloakClient.VendorGroup, err)
 	}
-	_, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, KeycloakClient.customerGroup)
-	if err != nil {
-		// Create group
-		err = KeycloakClient.CreateGroup(KeycloakClient.customerGroup)
-		if err != nil {
-			log.Error("Error creating keycloak customer group ", KeycloakClient.customerGroup, err)
-		}
+	if err := KeycloakClient.EnsureGroupPath("/" + KeycloakClient.CustomerGroup); err != nil {
+		log.Error("Error ensuring keycloak customer group", KeycloakClient.CustomerGroup, err)
 	}
-	_, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, KeycloakClient.backofficeGroup)
-	if err != nil {
-		// Create group
-		err = KeycloakClient.CreateGroup(KeycloakClient.backofficeGroup)
-		if err != nil {
-			log.Error("Error creating keycloak backoffice group ", KeycloakClient.backofficeGroup, err)
-		}
+	if err := KeycloakClient.EnsureGroupPath("/" + KeycloakClient.BackofficeGroup); err != nil {
+		log.Error("Error ensuring keycloak backoffice group", KeycloakClient.BackofficeGroup, err)
 	}
-	_, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, "/"+KeycloakClient.customerGroup+"/"+KeycloakClient.newspaperGroup)
-	if err != nil {
-		// Create group
-		var customerGroup *gocloak.Group
-		customerGroup, err = KeycloakClient.Client.GetGroupByPath(KeycloakClient.Context, KeycloakClient.clientToken.AccessToken, KeycloakClient.Realm, "/"+KeycloakClient.customerGroup)
-		if err != nil {
-			log.Error("Error creating keycloak newspaper group: customer group not found ", err)
-		} else {
-			err = KeycloakClient.CreateSubGroup(KeycloakClient.newspaperGroup, *customerGroup.ID)
-			if err != nil {
-				log.Error("Error creating keycloak newspaper group ", err)
-			}
-		}
-
+	// Ensure customer/newspapers exists
+	if err := KeycloakClient.EnsureGroupPath("/" + KeycloakClient.CustomerGroup + "/" + KeycloakClient.NewspaperGroup); err != nil {
+		log.Error("Error ensuring keycloak newspaper group", err)
 	}
 
 	return err
@@ -220,14 +197,14 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 
 func (k *Keycloak) AssignDigitalLicenseGroup(userID string, licenseGroup string) error {
 	k.checkAdminToken()
-	licenseGroupPath := "/" + k.customerGroup + "/" + k.newspaperGroup + "/" + licenseGroup
+	licenseGroupPath := "/" + k.CustomerGroup + "/" + k.NewspaperGroup + "/" + licenseGroup
 	// Check if group exists
 	_, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, licenseGroupPath)
 	if err != nil {
 		// Create group
-		parentGroup, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, "/"+k.customerGroup+"/"+k.newspaperGroup)
+		parentGroup, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, "/"+k.CustomerGroup+"/"+k.NewspaperGroup)
 		if err != nil {
-			log.Errorf("AssignDigitalLicenseGroup: Error getting group by path %s for %s", "/"+k.customerGroup+"/"+k.newspaperGroup, k.newspaperGroup)
+			log.Errorf("AssignDigitalLicenseGroup: Error getting group by path %s for %s", "/"+k.CustomerGroup+"/"+k.NewspaperGroup, k.NewspaperGroup)
 			return err
 		}
 		err = k.CreateSubGroup(licenseGroup, *parentGroup.ID)
@@ -261,6 +238,46 @@ func (k *Keycloak) CreateSubGroup(groupName string, parentGroupID string) error 
 	}
 	_, err := k.Client.CreateChildGroup(k.Context, k.clientToken.AccessToken, k.Realm, parentGroupID, group)
 	return err
+}
+
+// EnsureGroupPath ensures that a group path (e.g. "/customers/newspapers/edition") exists.
+// It will create any missing top-level groups or subgroups along the path.
+func (k *Keycloak) EnsureGroupPath(path string) error {
+	k.checkAdminToken()
+	// Normalize path
+	p := "/" + strings.Trim(path, "/")
+	if p == "/" {
+		return nil
+	}
+	parts := strings.Split(strings.Trim(p, "/"), "/")
+	curr := ""
+	for i, part := range parts {
+		curr = curr + "/" + part
+		_, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, curr)
+		if err == nil {
+			continue
+		}
+		// Missing group — create it. If top-level, use CreateGroup, else create as child of previous.
+		if i == 0 {
+			if err := k.CreateGroup(part); err != nil {
+				log.Errorf("EnsureGroupPath: failed to create top-level group %s: %v", part, err)
+				return err
+			}
+		} else {
+			parent := strings.Join(parts[:i], "/")
+			parentPath := "/" + strings.Trim(parent, "/")
+			parentGroup, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, parentPath)
+			if err != nil {
+				log.Errorf("EnsureGroupPath: parent group %s not found: %v", parentPath, err)
+				return err
+			}
+			if err := k.CreateSubGroup(part, *parentGroup.ID); err != nil {
+				log.Errorf("EnsureGroupPath: failed to create subgroup %s under %s: %v", part, parentPath, err)
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // GetFroupByPath function returns the group of the given name
@@ -466,6 +483,14 @@ func (k *Keycloak) sendPasswordResetEmail(email, redirectURI string) error {
 		log.Error("SendPasswordResetEmail: Error getting user by email ", err)
 		return err
 	}
+	// If no SMTP sender is configured in the app config, skip attempting
+	// to trigger Keycloak to send emails. This avoids noisy errors during
+	// tests and in environments where Keycloak SMTP isn't set up.
+	if config.Config.SMTPSenderAddress == "" {
+		log.Infof("SendPasswordResetEmail: skipping email for %s because SMTPSenderAddress is not configured", email)
+		return nil
+	}
+
 	log.Info("SendPasswordResetEmail: Keycloak: execute password reset email for ", email)
 	return k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{
 		UserID:      user.ID,
@@ -539,7 +564,7 @@ func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email s
 }
 
 func (k *Keycloak) GetVendorGroup() string {
-	return k.vendorGroup
+	return k.VendorGroup
 }
 
 func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastName string) (string, error) {
@@ -564,7 +589,7 @@ func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastNa
 			keycloak_user_id = *new_keycloak_user.ID
 		}
 
-		err = k.AssignGroup(keycloak_user_id, config.Config.KeycloakVendorGroup)
+		err = k.AssignGroup(keycloak_user_id, k.VendorGroup)
 		if err != nil {
 
 			return "", fmt.Errorf("UpdateVendor: assign keycloak group for "+newEmail+" failed: %v", err)
