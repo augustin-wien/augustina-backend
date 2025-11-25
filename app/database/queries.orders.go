@@ -13,19 +13,19 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-	// orderLocks stores a mutex per order ID to serialize payment creation
-	// for a given order and avoid concurrent duplicate creation.
-	var orderLocks sync.Map // map[int]*sync.Mutex
+// orderLocks stores a mutex per order ID to serialize payment creation
+// for a given order and avoid concurrent duplicate creation.
+var orderLocks sync.Map // map[int]*sync.Mutex
 
-	// lockOrder acquires a mutex for the given orderID and returns an unlock function.
-	func lockOrder(orderID int) func() {
-		v, _ := orderLocks.LoadOrStore(orderID, &sync.Mutex{})
-		m := v.(*sync.Mutex)
-		m.Lock()
-		return func() {
-			m.Unlock()
-		}
+// lockOrder acquires a mutex for the given orderID and returns an unlock function.
+func lockOrder(orderID int) func() {
+	v, _ := orderLocks.LoadOrStore(orderID, &sync.Mutex{})
+	m := v.(*sync.Mutex)
+	m.Lock()
+	return func() {
+		m.Unlock()
 	}
+}
 
 // Orders ---------------------------------------------------------------------
 
