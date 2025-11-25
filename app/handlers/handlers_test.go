@@ -1020,7 +1020,7 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 	// Capture sends
 	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
 		// If the subject indicates Welcome, signal
-		if strings.Contains(strings.ToLower(r.Subject()), "welcome") || strings.Contains(strings.ToLower(r.Subject()), "welcome") {
+		if strings.Contains(strings.ToLower(r.Subject()), "welcome") {
 			select {
 			case welcomeCh <- struct{}{}:
 			default:
@@ -1163,11 +1163,11 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 
 	customerEmail := "verify_multi@example.com"
 
-	// create order via API with two entries for the same digital item
+	// create order via API with quantity > 1 for a digital item
+	// The email should only be sent once per order, not per quantity
 	requestWithEmail := `{
 		"entries": [
-			{ "item": ` + strconv.Itoa(itemID) + `, "quantity": 1 },
-			{ "item": ` + strconv.Itoa(itemID) + `, "quantity": 1 }
+			{ "item": ` + strconv.Itoa(itemID) + `, "quantity": 2 }
 		],
 		"vendorLicenseID": "` + vendorLicenseId + `",
 		"customerEmail": "` + customerEmail + `"
