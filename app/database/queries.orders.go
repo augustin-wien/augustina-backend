@@ -241,12 +241,6 @@ func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, e
 // createPaymentForOrderEntryTx creates a payment for an order entry
 func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, errorIfExists bool) (paymentID int, err error) {
 
-	// Ensure only one goroutine/process creates payments for a given order at a time.
-	// This serializes calls per-order to avoid race conditions when multiple
-	// callers attempt to create payments for the same order concurrently.
-	unlock := lockOrder(orderID)
-	defer unlock()
-
 	// Check if payment already exists for this entry
 	var count int
 	err = tx.QueryRow(context.Background(), "SELECT COUNT(*) FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&count)
@@ -280,6 +274,11 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
 func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID int) (err error) {
+	// Acquire per-order lock to serialize concurrent verification attempts
+	// and prevent duplicate payment creation.
+	unlock := lockOrder(orderID)
+	defer unlock()
+
 	log.Info("VerifyOrderAndCreatePayments: Verifying order ", orderID)
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())
@@ -487,6 +486,11 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 
 // CreatePayedOrderEntries creates entries with a payment for an order
 func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (err error) {
+
+	// Acquire per-order lock to serialize concurrent payment creation
+	// and prevent duplicate payments.
+	unlock := lockOrder(orderID)
+	defer unlock()
 
 	// Start a transaction
 	tx, err := db.Dbpool.Begin(context.Background())
