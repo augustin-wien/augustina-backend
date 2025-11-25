@@ -435,9 +435,9 @@ func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
 	return *user.ID, nil
 }
 
-func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
+func (k *Keycloak) GetOrCreateUser(email string) (userID string, newUser bool, err error) {
 	if email == "" {
-		return "", fmt.Errorf("GetOrCreateUser: email is empty")
+		return "", false, fmt.Errorf("GetOrCreateUser: email is empty")
 	}
 	email = utils.ToLower(email)
 	k.checkAdminToken()
@@ -449,7 +449,7 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 		user, err := k.CreateUser(email, email, "", email, password)
 		if err != nil {
 			log.Errorf("GetOrCreateUser: Error creating keycloak user %s", email)
-			return "", err
+			return "", false, err
 		}
 		log.Info("GetOrCreateUser: Created user ", user)
 
@@ -459,10 +459,10 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, err error) {
 			// send password reset email only should soft fail
 			log.Error("GetOrCreateUser: Error sending password reset email ", err)
 		}
-		return user, nil
+		return user, true, nil
 
 	}
-	return *user.ID, nil
+	return *user.ID, false, nil
 }
 
 // SendPasswordResetEmail function sends a password reset email to the user
@@ -579,7 +579,7 @@ func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastNa
 		new_keycloak_user, err := k.GetUserByEmail(newEmail)
 		if err != nil {
 
-			keycloakUser, err2 := k.GetOrCreateUser(newEmail)
+			keycloakUser, _, err2 := k.GetOrCreateUser(newEmail)
 			if err2 != nil {
 				log.Errorf("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v \n", err2, err)
 				return "", fmt.Errorf("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v", err2, err)

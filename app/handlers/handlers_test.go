@@ -9,12 +9,14 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/keycloak"
+	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -993,6 +995,40 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 	err = database.Db.CreateOrUpdateMailTemplate("PDFLicenceItemTemplate.html", "Your PDF", "Download your PDF at {{.URL}}")
 	utils.CheckError(t, err)
 
+	// Stub email building and sending so we can assert welcome emails are sent
+	origBuild := database.BuildEmailRequestFromTemplate
+	origSend := mailer.Send
+	defer func() {
+		database.BuildEmailRequestFromTemplate = origBuild
+		mailer.Send = origSend
+	}()
+
+	welcomeCh := make(chan struct{}, 1)
+	// Intercept BuildEmailRequestFromTemplate to return a real EmailRequest
+	// for non-welcome templates and for welcome templates return a valid request
+	// as well so mailer.Send gets invoked.
+	database.BuildEmailRequestFromTemplate = func(name string, to []string, data interface{}) (*mailer.EmailRequest, error) {
+		// For the welcome template we still return a simple EmailRequest
+		subj := "Welcome"
+		if name == "digitalLicenceItemTemplate.html" {
+			subj = "Your license"
+		}
+		r := mailer.NewRequest(to, subj, "body")
+		return r, nil
+	}
+
+	// Capture sends
+	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
+		// If the subject indicates Welcome, signal
+		if strings.Contains(strings.ToLower(r.Subject()), "welcome") {
+			select {
+			case welcomeCh <- struct{}{}:
+			default:
+			}
+		}
+		return true, nil
+	}
+
 	customerEmail := "verify_once@example.com"
 
 	// create order via API (this will prepend license entry internally)
@@ -1046,6 +1082,143 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 	require.EqualValues(t, order.ID, pdfDownloads[0].OrderID.ValueOrZero())
 
 	// cleanup
+	for _, payment := range payments {
+		database.Db.DeletePayment(payment.ID)
+	}
+	for _, entry := range order.Entries {
+		database.Db.DeleteOrderEntry(entry.ID)
+	}
+	database.Db.DeleteOrder(order.ID)
+}
+
+// TestVerifyOrder_MultipleDigitalItems_EmailSentOnce ensures that when an
+// order contains multiple digital/license items the notification mail is
+// only sent once.
+func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	// fresh DB
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+
+	// create vendor
+	vendorLicenseId := "testverifyemail"
+	_ = createTestVendor(t, vendorLicenseId)
+
+	// create a PDF resource
+	pdf := database.PDF{Path: "testfile.pdf", Timestamp: time.Now()}
+	pdfID, err := database.Db.CreatePDF(pdf)
+	require.NoError(t, err)
+
+	// create a license item that is a PDF (first license)
+	licenseItem := database.Item{Name: "license-pdf", Description: "license pdf", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID)}
+	licenseID, err := database.Db.CreateItem(licenseItem)
+	require.NoError(t, err)
+
+	// create a second PDF resource and license (second license)
+	pdf2 := database.PDF{Path: "testfile2.pdf", Timestamp: time.Now()}
+	pdfID2, err := database.Db.CreatePDF(pdf2)
+	require.NoError(t, err)
+	licenseItem2 := database.Item{Name: "license-pdf-2", Description: "license pdf 2", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID2)}
+	licenseID2, err := database.Db.CreateItem(licenseItem2)
+	require.NoError(t, err)
+
+	// create two normal items that reference their respective licenses (to test multiple entries)
+	item1 := database.Item{Name: "item-with-license-pdf-1", Description: "main item 1", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup1")}
+	itemID1, err := database.Db.CreateItem(item1)
+	require.NoError(t, err)
+
+	item2 := database.Item{Name: "item-with-license-pdf-2", Description: "main item 2", Price: 150, LicenseItem: null.IntFrom(int64(licenseID2)), LicenseGroup: null.StringFrom("pdfgroup2")}
+	itemID2, err := database.Db.CreateItem(item2)
+	require.NoError(t, err)
+
+	// allow sufficiently large order amounts
+	setMaxOrderAmount(t, 5000)
+
+	// Ensure mail templates exist so emails can be built during verification
+	err = database.Db.CreateOrUpdateMailTemplate("digitalLicenceItemTemplate.html", "Your license", "Please access your license at {{.URL}}")
+	utils.CheckError(t, err)
+	err = database.Db.CreateOrUpdateMailTemplate("PDFLicenceItemTemplate.html", "Your PDF", "Download your PDF at {{.URL}}")
+	utils.CheckError(t, err)
+
+	// Stub email building and sending so we can assert digital emails are sent only once
+	origBuild := database.BuildEmailRequestFromTemplate
+	origSend := mailer.Send
+	defer func() {
+		database.BuildEmailRequestFromTemplate = origBuild
+		mailer.Send = origSend
+	}()
+
+	var digitalCount int32
+	database.BuildEmailRequestFromTemplate = func(name string, to []string, data interface{}) (*mailer.EmailRequest, error) {
+		subj := "Digital"
+		if name == "digitalLicenceItemTemplate.html" {
+			subj = "Your license"
+		}
+		if name == "PDFLicenceItemTemplate.html" {
+			subj = "Your PDF"
+		}
+		r := mailer.NewRequest(to, subj, "body")
+		return r, nil
+	}
+
+	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
+		s := strings.ToLower(r.Subject())
+		if strings.Contains(s, "your pdf") || strings.Contains(s, "your license") || strings.Contains(s, "digital") {
+			atomic.AddInt32(&digitalCount, 1)
+		}
+		return true, nil
+	}
+
+	customerEmail := "verify_multi@example.com"
+
+	// create order via API with two different digital items
+	// The email should only be sent once per order, not per item
+	requestWithEmail := `{
+		"entries": [
+			{ "item": ` + strconv.Itoa(itemID1) + `, "quantity": 1 },
+			{ "item": ` + strconv.Itoa(itemID2) + `, "quantity": 1 }
+		],
+		"vendorLicenseID": "` + vendorLicenseId + `",
+		"customerEmail": "` + customerEmail + `"
+	}`
+	res := utils.TestRequestStr(t, r, "POST", "/api/orders/", requestWithEmail, 200)
+	var respMap map[string]string
+	err = json.Unmarshal(res.Body.Bytes(), &respMap)
+	utils.CheckError(t, err)
+	url := respMap["SmartCheckoutURL"]
+	require.NotEmpty(t, url)
+
+	// extract order code and get order
+	orderCodeStr := "0"
+	if idx := strings.Index(url, "s="); idx != -1 {
+		substr := url[idx+2:]
+		if j := strings.Index(substr, "&"); j != -1 {
+			substr = substr[:j]
+		}
+		orderCodeStr = substr
+	}
+	order, err := database.Db.GetOrderByOrderCode(orderCodeStr)
+	require.NoError(t, err)
+
+	// call verify twice
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 48)
+	require.NoError(t, err)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, 48)
+	require.NoError(t, err)
+
+	// Wait briefly for async sends to execute
+	time.Sleep(100 * time.Millisecond)
+
+	// digitalCount should be 1 (only one licence/pdf email)
+	require.EqualValues(t, 1, atomic.LoadInt32(&digitalCount))
+
+	// cleanup
+	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	require.NoError(t, err)
 	for _, payment := range payments {
 		database.Db.DeletePayment(payment.ID)
 	}
