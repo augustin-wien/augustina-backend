@@ -111,6 +111,8 @@ jobs:
         export DB_HOST="localhost"
         export DB_NAME="djtesting"
         export DB_PORT="5432"
+        # also export the test-specific port variable expected by tern_test.conf
+        export DB_PORT_TEST="$DB_PORT"
         export DB_HOST_TEST="localhost"
         
 
