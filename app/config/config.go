@@ -43,6 +43,7 @@ type config struct {
 	SMTPSenderName                    string
 	SMTPSsl                           bool
 	SMTPInsecureSkipVerify            bool
+	AllowInsecureSMTP                 bool
 	SentryDSN                         string
 	FlourWebhookURL                   string
 	DEBUG_payments                    bool // For debugging purposes, not used in production
@@ -90,6 +91,7 @@ func InitConfig() error {
 		SMTPSenderName:                    getEnv("SMTP_SENDER_NAME", ""),
 		SMTPSsl:                           (getEnv("SMTP_SSL", "false") == "true"),
 		SMTPInsecureSkipVerify:            (getEnv("SMTP_INSECURE_SKIP_VERIFY", "false") == "true"),
+		AllowInsecureSMTP:                 (getEnv("ALLOW_INSECURE_SMTP", "false") == "true"),
 		FrontendURL:                       getEnv("FRONTEND_URL", ""),
 		SentryDSN:                         getEnv("SENTRY_DSN", ""),
 		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),

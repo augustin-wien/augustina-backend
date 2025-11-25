@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"mime/quotedprintable"
 	"net/smtp"
-	"os"
 	"regexp"
 	"strings"
 	"text/template"
@@ -53,7 +52,7 @@ func Init() {
 			log.Fatal("SMTP insecure skip verify is true in production; refusing to start")
 		}
 		// In development require explicit opt-in
-		if os.Getenv("ALLOW_INSECURE_SMTP") != "true" {
+		if !config.Config.AllowInsecureSMTP {
 			log.Fatalf("SMTP insecure skip verify is enabled; set ALLOW_INSECURE_SMTP=true to allow this in development")
 		}
 	}
