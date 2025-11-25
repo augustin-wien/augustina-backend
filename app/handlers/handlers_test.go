@@ -1113,17 +1113,25 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 	pdfID, err := database.Db.CreatePDF(pdf)
 	require.NoError(t, err)
 
-	// create a license item that is a PDF
+	// create a license item that is a PDF (first license)
 	licenseItem := database.Item{Name: "license-pdf", Description: "license pdf", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID)}
 	licenseID, err := database.Db.CreateItem(licenseItem)
 	require.NoError(t, err)
 
-	// create two normal items that reference the license (to test multiple entries)
-	item1 := database.Item{Name: "item-with-license-pdf-1", Description: "main item 1", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup")}
+	// create a second PDF resource and license (second license)
+	pdf2 := database.PDF{Path: "testfile2.pdf", Timestamp: time.Now()}
+	pdfID2, err := database.Db.CreatePDF(pdf2)
+	require.NoError(t, err)
+	licenseItem2 := database.Item{Name: "license-pdf-2", Description: "license pdf 2", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID2)}
+	licenseID2, err := database.Db.CreateItem(licenseItem2)
+	require.NoError(t, err)
+
+	// create two normal items that reference their respective licenses (to test multiple entries)
+	item1 := database.Item{Name: "item-with-license-pdf-1", Description: "main item 1", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup1")}
 	itemID1, err := database.Db.CreateItem(item1)
 	require.NoError(t, err)
 
-	item2 := database.Item{Name: "item-with-license-pdf-2", Description: "main item 2", Price: 150, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup")}
+	item2 := database.Item{Name: "item-with-license-pdf-2", Description: "main item 2", Price: 150, LicenseItem: null.IntFrom(int64(licenseID2)), LicenseGroup: null.StringFrom("pdfgroup2")}
 	itemID2, err := database.Db.CreateItem(item2)
 	require.NoError(t, err)
 
