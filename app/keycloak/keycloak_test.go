@@ -2,9 +2,11 @@
 package keycloak_test
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
@@ -239,4 +241,203 @@ func TestHelloWorldAuth(t *testing.T) {
 
 	// We can use testify/require to assert values, as it is more convenient
 	require.Equal(t, "{\"error\":{\"message\":\"Unauthorized\"}}", response.Body.String())
+}
+
+// TestEnsureGroupPath verifies EnsureGroupPath creates nested groups and allows cleanup.
+func TestEnsureGroupPath(t *testing.T) {
+	// prepare environment
+	if err := os.Chdir(".."); err != nil {
+		t.Fatal(err)
+	}
+	config.InitConfig()
+	if err := keycloak.InitializeOauthServer(); err != nil {
+		t.Fatalf("InitializeOauthServer failed: %v", err)
+	}
+
+	// unique group path to avoid collisions
+	uniq := fmt.Sprintf("testgrp%d", time.Now().UnixNano())
+	// create under vendor group to avoid relying on config fields
+	path := "/" + keycloak.KeycloakClient.GetVendorGroup() + "/" + uniq
+
+	// Ensure group path
+	if err := keycloak.KeycloakClient.EnsureGroupPath(path); err != nil {
+		t.Fatalf("EnsureGroupPath returned error: %v", err)
+	}
+
+	// verify group exists
+	grp, err := keycloak.KeycloakClient.GetGroupByPath(path)
+	if err != nil {
+		t.Fatalf("GetGroupByPath failed: %v", err)
+	}
+	if grp == nil || grp.ID == nil {
+		t.Fatalf("expected group at path %s, got nil", path)
+	}
+
+	// cleanup: delete deepest subgroup
+	if err := keycloak.KeycloakClient.DeleteSubGroupByPath(path); err != nil {
+		t.Fatalf("DeleteSubGroupByPath failed: %v", err)
+	}
+}
+
+// TestAssignGroupNormalization verifies AssignGroup tolerates group names with or without leading slash.
+func TestAssignGroupNormalization(t *testing.T) {
+	if err := os.Chdir(".."); err != nil {
+		t.Fatal(err)
+	}
+	config.InitConfig()
+	if err := keycloak.InitializeOauthServer(); err != nil {
+		t.Fatalf("InitializeOauthServer failed: %v", err)
+	}
+
+	// create unique test user
+	email := fmt.Sprintf("assign_test_%d@example.com", time.Now().UnixNano())
+	// ensure user does not exist
+	_ = keycloak.KeycloakClient.DeleteUser(email)
+	uid, err := keycloak.KeycloakClient.CreateUser(email, "Test", "User", email, "password")
+	if err != nil {
+		t.Fatalf("CreateUser failed: %v", err)
+	}
+	defer func() {
+		_ = keycloak.KeycloakClient.DeleteUser(email)
+	}()
+
+	// assign by name without leading slash
+	if err := keycloak.KeycloakClient.AssignGroup(uid, keycloak.KeycloakClient.GetVendorGroup()); err != nil {
+		t.Fatalf("AssignGroup failed: %v", err)
+	}
+
+	// assign by path with leading slash
+	if err := keycloak.KeycloakClient.AssignGroup(uid, "/"+keycloak.KeycloakClient.GetVendorGroup()); err != nil {
+		t.Fatalf("AssignGroup with leading slash failed: %v", err)
+	}
+
+	// verify user is in group (GetUserGroups will return groups)
+	groups, err := keycloak.KeycloakClient.GetUserGroups(uid)
+	if err != nil {
+		t.Fatalf("GetUserGroups failed: %v", err)
+	}
+	if len(groups) == 0 {
+		t.Fatalf("expected user to be assigned to at least one group, got 0")
+	}
+}
+
+func TestSimpleErrorBranches(t *testing.T) {
+	if err := os.Chdir(".."); err != nil {
+		t.Fatal(err)
+	}
+	config.InitConfig()
+	if err := keycloak.InitializeOauthServer(); err != nil {
+		t.Fatalf("InitializeOauthServer failed: %v", err)
+	}
+
+	// GetUser with empty username
+	if _, err := keycloak.KeycloakClient.GetUser(""); err == nil {
+		t.Fatalf("expected error for empty username")
+	}
+
+	// GetUserByEmail with empty email
+	if _, err := keycloak.KeycloakClient.GetUserByEmail(""); err == nil {
+		t.Fatalf("expected error for empty email")
+	}
+
+	// CreateUser empty email
+	if _, err := keycloak.KeycloakClient.CreateUser("u1", "f", "l", "", "p"); err == nil {
+		t.Fatalf("expected error for create user with empty email")
+	}
+
+	// GetOrCreateUser empty
+	if _, err := keycloak.KeycloakClient.GetOrCreateUser(""); err == nil {
+		t.Fatalf("expected error for GetOrCreateUser empty")
+	}
+
+	// GetOrCreateVendor empty
+	if _, err := keycloak.KeycloakClient.GetOrCreateVendor(""); err == nil {
+		t.Fatalf("expected error for GetOrCreateVendor empty")
+	}
+}
+
+func TestUpdateAndVendorFlows(t *testing.T) {
+	if err := os.Chdir(".."); err != nil {
+		t.Fatal(err)
+	}
+	config.InitConfig()
+	// ensure SMTPSenderAddress empty so email sending is skipped
+	config.Config.SMTPSenderAddress = ""
+	if err := keycloak.InitializeOauthServer(); err != nil {
+		t.Fatalf("InitializeOauthServer failed: %v", err)
+	}
+
+	// create an initial user (oldEmail)
+	old := fmt.Sprintf("old_%d@example.com", time.Now().UnixNano())
+	newE := fmt.Sprintf("new_%d@example.com", time.Now().UnixNano())
+	// cleanup
+	_ = keycloak.KeycloakClient.DeleteUser(old)
+	_ = keycloak.KeycloakClient.DeleteUser(newE)
+
+	_, err := keycloak.KeycloakClient.CreateUser(old, "Old", "User", old, "password")
+	if err != nil {
+		t.Fatalf("CreateUser old failed: %v", err)
+	}
+	// UpdateVendor when old exists -> should update by id
+	gotID, err := keycloak.KeycloakClient.UpdateVendor(old, newE, "lic", "First", "Last")
+	if err != nil {
+		t.Fatalf("UpdateVendor existing failed: %v", err)
+	}
+	if gotID == "" {
+		t.Fatalf("UpdateVendor returned empty id")
+	}
+
+	// Now call UpdateVendor with old not existing (use a fresh email)
+	anotherOld := fmt.Sprintf("another_old_%d@example.com", time.Now().UnixNano())
+	_ = keycloak.KeycloakClient.DeleteUser(anotherOld)
+	gotID2, err := keycloak.KeycloakClient.UpdateVendor(anotherOld, fmt.Sprintf("created_%d@example.com", time.Now().UnixNano()), "lic2", "F", "L")
+	if err != nil {
+		t.Fatalf("UpdateVendor creating new failed: %v", err)
+	}
+	if gotID2 == "" {
+		t.Fatalf("UpdateVendor (create) returned empty id")
+	}
+
+	// Test UpdateUserById path: create user and update by id
+	uemail := fmt.Sprintf("upbyid_%d@example.com", time.Now().UnixNano())
+	_ = keycloak.KeycloakClient.DeleteUser(uemail)
+	uid3, err := keycloak.KeycloakClient.CreateUser(uemail, "U", "N", uemail, "pass")
+	if err != nil {
+		t.Fatalf("CreateUser for UpdateUserById failed: %v", err)
+	}
+	// update by id with different email to toggle EmailVerified branch
+	if err := keycloak.KeycloakClient.UpdateUserById(uid3, "newuname", "First", "Last", fmt.Sprintf("diff_%d@example.com", time.Now().UnixNano())); err != nil {
+		t.Fatalf("UpdateUserById failed: %v", err)
+	}
+
+	// ensure delete cleanup
+	_ = keycloak.KeycloakClient.DeleteUser(old)
+	_ = keycloak.KeycloakClient.DeleteUser(newE)
+	_ = keycloak.KeycloakClient.DeleteUser(uid3)
+}
+
+func TestSendPasswordResetGuard(t *testing.T) {
+	if err := os.Chdir(".."); err != nil {
+		t.Fatal(err)
+	}
+	config.InitConfig()
+	// ensure sender empty
+	config.Config.SMTPSenderAddress = ""
+	if err := keycloak.InitializeOauthServer(); err != nil {
+		t.Fatalf("InitializeOauthServer failed: %v", err)
+	}
+	email := fmt.Sprintf("pw_%d@example.com", time.Now().UnixNano())
+	_ = keycloak.KeycloakClient.DeleteUser(email)
+	_, err := keycloak.KeycloakClient.CreateUser(email, "P", "W", email, "pw")
+	if err != nil {
+		t.Fatalf("CreateUser for pw reset failed: %v", err)
+	}
+	defer func() { _ = keycloak.KeycloakClient.DeleteUser(email) }()
+
+	if err := keycloak.KeycloakClient.SendPasswordResetEmail(email); err != nil {
+		t.Fatalf("SendPasswordResetEmail guard expected nil, got: %v", err)
+	}
+	if err := keycloak.KeycloakClient.SendPasswordResetEmailVendor(email); err != nil {
+		t.Fatalf("SendPasswordResetEmailVendor guard expected nil, got: %v", err)
+	}
 }
