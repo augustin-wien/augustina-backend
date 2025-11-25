@@ -1118,9 +1118,13 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 	licenseID, err := database.Db.CreateItem(licenseItem)
 	require.NoError(t, err)
 
-	// create a normal item that references the license
-	item := database.Item{Name: "item-with-license-pdf", Description: "main item", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup")}
-	itemID, err := database.Db.CreateItem(item)
+	// create two normal items that reference the license (to test multiple entries)
+	item1 := database.Item{Name: "item-with-license-pdf-1", Description: "main item 1", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup")}
+	itemID1, err := database.Db.CreateItem(item1)
+	require.NoError(t, err)
+
+	item2 := database.Item{Name: "item-with-license-pdf-2", Description: "main item 2", Price: 150, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup")}
+	itemID2, err := database.Db.CreateItem(item2)
 	require.NoError(t, err)
 
 	// allow sufficiently large order amounts
@@ -1163,11 +1167,12 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 
 	customerEmail := "verify_multi@example.com"
 
-	// create order via API with quantity > 1 for a digital item
-	// The email should only be sent once per order, not per quantity
+	// create order via API with two different digital items
+	// The email should only be sent once per order, not per item
 	requestWithEmail := `{
 		"entries": [
-			{ "item": ` + strconv.Itoa(itemID) + `, "quantity": 2 }
+			{ "item": ` + strconv.Itoa(itemID1) + `, "quantity": 1 },
+			{ "item": ` + strconv.Itoa(itemID2) + `, "quantity": 1 }
 		],
 		"vendorLicenseID": "` + vendorLicenseId + `",
 		"customerEmail": "` + customerEmail + `"
