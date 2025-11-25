@@ -6,6 +6,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/keycloak"
+	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"gopkg.in/guregu/null.v4"
@@ -304,7 +305,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 				if !item.IsPDFItem {
 					// add customer to licenseItemGroup
 
-					customer, err := keycloak.KeycloakClient.GetOrCreateUser(order.CustomerEmail.String)
+					customer, newUser, err := keycloak.KeycloakClient.GetOrCreateUser(order.CustomerEmail.String)
 					if err != nil {
 						log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", orderID, err)
 					}
@@ -335,12 +336,27 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 					} else if mail != nil {
 						// use subject from DB template (do not override)
-						go func() {
-							success, err := mail.SendEmail()
+						go func(m *mailer.EmailRequest) {
+							success, err := mailer.Send(m)
 							if err != nil || !success {
 								log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
 							}
-						}()
+						}(mail)
+					}
+					if newUser {
+						// send welcome email
+						newUserMail, err := db.BuildEmailRequestFromTemplate("welcome", receivers, templateData)
+						if err != nil {
+							log.Error("VerifyOrderAndCreatePayments: failed to create welcome mail: ", orderID, err)
+						} else if newUserMail != nil {
+							// use subject from DB template (do not override)
+							go func(m *mailer.EmailRequest) {
+								success, err := mailer.Send(m)
+								if err != nil || !success {
+									log.Error("VerifyOrderAndCreatePayments: failed to send welcome mail: ", orderID, err)
+								}
+							}(newUserMail)
+						}
 					}
 
 				} else {

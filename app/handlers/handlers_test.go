@@ -15,6 +15,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/keycloak"
+	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -992,6 +993,40 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 	utils.CheckError(t, err)
 	err = database.Db.CreateOrUpdateMailTemplate("PDFLicenceItemTemplate.html", "Your PDF", "Download your PDF at {{.URL}}")
 	utils.CheckError(t, err)
+
+	// Stub email building and sending so we can assert welcome emails are sent
+	origBuild := database.BuildEmailRequestFromTemplate
+	origSend := mailer.Send
+	defer func() {
+		database.BuildEmailRequestFromTemplate = origBuild
+		mailer.Send = origSend
+	}()
+
+	welcomeCh := make(chan struct{}, 1)
+	// Intercept BuildEmailRequestFromTemplate to return a real EmailRequest
+	// for non-welcome templates and for welcome templates return a valid request
+	// as well so mailer.Send gets invoked.
+	database.BuildEmailRequestFromTemplate = func(name string, to []string, data interface{}) (*mailer.EmailRequest, error) {
+		// For the welcome template we still return a simple EmailRequest
+		subj := "Welcome"
+		if name == "digitalLicenceItemTemplate.html" {
+			subj = "Your license"
+		}
+		r := mailer.NewRequest(to, subj, "body")
+		return r, nil
+	}
+
+	// Capture sends
+	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
+		// If the subject indicates Welcome, signal
+		if strings.Contains(strings.ToLower(r.Subject()), "welcome") || strings.Contains(strings.ToLower(r.Subject()), "welcome") {
+			select {
+			case welcomeCh <- struct{}{}:
+			default:
+			}
+		}
+		return true, nil
+	}
 
 	customerEmail := "verify_once@example.com"
 

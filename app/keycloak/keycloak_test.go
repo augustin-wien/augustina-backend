@@ -143,7 +143,7 @@ func TestKeycloak(t *testing.T) {
 	// Get or Create User
 	userName := "testuser"
 	userEmail := userName + "@example.com"
-	userID, err := keycloak.KeycloakClient.GetOrCreateUser(userEmail)
+	userID, _, err := keycloak.KeycloakClient.GetOrCreateUser(userEmail)
 	if err != nil {
 		t.Error("TestKeycloak: Get or create user failed:", err)
 	}
@@ -346,7 +346,7 @@ func TestSimpleErrorBranches(t *testing.T) {
 	}
 
 	// GetOrCreateUser empty
-	if _, err := keycloak.KeycloakClient.GetOrCreateUser(""); err == nil {
+	if _, _, err := keycloak.KeycloakClient.GetOrCreateUser(""); err == nil {
 		t.Fatalf("expected error for GetOrCreateUser empty")
 	}
 
