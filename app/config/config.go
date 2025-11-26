@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var version = "1.0.23-f21f434"
+var version = "1.0.24-290aa6a"
 
 type config struct {
 	Version                           string

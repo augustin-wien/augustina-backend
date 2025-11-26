@@ -142,9 +142,9 @@ func updateAccountBalanceTx(tx pgx.Tx, id int, balanceDiff int) (err error) {
 
 	var account Account
 
-	// Lock account balance via "for update"
+	// Lock account balance via "FOR UPDATE" to serialize concurrent updates
 	// https://stackoverflow.com/a/45871295/19932351
-	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1", id).Scan(&account.Balance)
+	err = tx.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE ID = $1 FOR UPDATE", id).Scan(&account.Balance)
 	if err != nil {
 		log.Error("updateAccountBalanceTx: query row", err)
 	}
@@ -175,21 +175,18 @@ func (db *Database) UpdateAccountBalanceByOpenPayments(vendorID int) (payoutAmou
 	// Provide defer func to commit or rollback transaction after function returns
 	defer func() { err = DeferTx(tx, err) }()
 
-	// Get account
-	vendorAccount, err := db.GetAccountByVendorID(vendorID)
+	// Get account within the transaction and lock the row for update
+	var vendorAccount Account
+	err = tx.QueryRow(ctx, "SELECT ID, Name, Balance, Type, User, Vendor FROM Account WHERE Vendor = $1 FOR UPDATE", vendorID).Scan(&vendorAccount.ID, &vendorAccount.Name, &vendorAccount.Balance, &vendorAccount.Type, &vendorAccount.User, &vendorAccount.Vendor)
 	if err != nil {
+		log.Error("UpdateAccountBalanceByOpenPayments: couldn't get account for vendor", vendorID, err)
 		return
-	}
-
-	err = db.Dbpool.QueryRow(ctx, "SELECT Balance FROM Account WHERE ID = $1", vendorAccount.ID).Scan(&vendorAccount.Balance)
-	if err != nil {
-		log.Error("UpdateAccountBalanceByOpenPayments: ", err)
 	}
 	log.Info("UpdateAccountBalanceByOpenPayments: Balance of account where Vendor = " + strconv.Itoa(vendorID) + " is " + strconv.Itoa(vendorAccount.Balance))
 
 	var openPaymentsReceiverSum int
 	// Sum all open payments for this receiver (do not require PaymentOrder to be non-null)
-	err = db.Dbpool.QueryRow(ctx, "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Receiver = $1", vendorAccount.ID).Scan(&openPaymentsReceiverSum)
+	err = tx.QueryRow(ctx, "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Receiver = $1", vendorAccount.ID).Scan(&openPaymentsReceiverSum)
 	if err != nil {
 		log.Error("UpdateAccountBalanceByOpenPayments: ", err)
 	}
@@ -197,7 +194,14 @@ func (db *Database) UpdateAccountBalanceByOpenPayments(vendorID int) (payoutAmou
 	// Get open payments where vendor is sender
 	var openPaymentsSenderSum int
 	// Sum all open payments where vendor is sender
-	err = db.Dbpool.QueryRow(ctx, "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Sender = $1", vendorAccount.ID).Scan(&openPaymentsSenderSum)
+	// Exclude payments that are payouts to the Cash account (these are created by CreatePaymentPayout)
+	var cashAccountID int
+	err = tx.QueryRow(ctx, "SELECT ID FROM Account WHERE Type = $1", "Cash").Scan(&cashAccountID)
+	if err != nil {
+		log.Error("UpdateAccountBalanceByOpenPayments: couldn't get Cash account ID", err)
+		cashAccountID = 0
+	}
+	err = tx.QueryRow(ctx, "SELECT COALESCE(SUM(Amount), 0) FROM Payment WHERE Payout IS NULL AND Sender = $1 AND Receiver != $2", vendorAccount.ID, cashAccountID).Scan(&openPaymentsSenderSum)
 	if err != nil {
 		log.Error("UpdateAccountBalanceByOpenPayments: ", err)
 	}

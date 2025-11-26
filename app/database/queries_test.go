@@ -329,3 +329,80 @@ func TestQueryOrders(t *testing.T) {
 	utils.CheckError(t, err)
 
 }
+
+// TestVendorTwoPaymentsBalance ensures that when a vendor receives two separate payments
+// for two different items, the vendor balance is calculated correctly.
+func TestVendorTwoPaymentsBalance(t *testing.T) {
+	// reset DB to a clean state for this test
+	Db.InitEmptyTestDb()
+
+	// Create vendor (receiver)
+	vendorLicenseId := "testvendor-balance"
+	vendorID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom(vendorLicenseId)})
+	utils.CheckError(t, err)
+	vendorIDInt := int(vendorID)
+
+	// Get vendor account
+	vendorAccount, err := Db.GetAccountByVendorID(vendorIDInt)
+	utils.CheckError(t, err)
+
+	// Get anonymous user account to act as sender
+	anonAccount, err := Db.GetAccountByType("UserAnon")
+	utils.CheckError(t, err)
+
+	// Create two items with different prices
+	itemA, err := Db.CreateItem(Item{Name: "item-A", Description: "A", Price: 100})
+	utils.CheckError(t, err)
+	itemB, err := Db.CreateItem(Item{Name: "item-B", Description: "B", Price: 200})
+	utils.CheckError(t, err)
+
+	// Create two separate payments (one for each item)
+	_, err = Db.CreatePayment(Payment{Sender: anonAccount.ID, Receiver: vendorAccount.ID, Amount: 100, IsSale: true, Item: null.NewInt(int64(itemA), true), Price: 100, Quantity: 1})
+	utils.CheckError(t, err)
+	_, err = Db.CreatePayment(Payment{Sender: anonAccount.ID, Receiver: vendorAccount.ID, Amount: 200, IsSale: true, Item: null.NewInt(int64(itemB), true), Price: 200, Quantity: 1})
+	utils.CheckError(t, err)
+
+	// Recompute and fetch vendor with updated balance
+	vendor, err := Db.GetVendorWithBalanceUpdate(vendorIDInt)
+	utils.CheckError(t, err)
+
+	// Expect balance to be 100 + 200 = 300
+	require.Equal(t, 300, vendor.Balance)
+
+	// Now create a payout for these payments and ensure vendor balance becomes 0
+	paymentsForPayout, err := Db.ListPaymentsForPayout(time.Time{}, time.Time{}, vendorLicenseId)
+	utils.CheckError(t, err)
+	require.GreaterOrEqual(t, len(paymentsForPayout), 2)
+
+	// Sum amounts
+	total := 0
+	for _, p := range paymentsForPayout {
+		total += p.Amount
+	}
+
+	// Cash account before payout
+	cashBefore, err := Db.GetAccountByType("Cash")
+	utils.CheckError(t, err)
+
+	// Create payout
+	payoutID, err := Db.CreatePaymentPayout(vendor, vendorAccount.ID, "test", total, paymentsForPayout)
+	utils.CheckError(t, err)
+	_ = payoutID
+
+	// Refresh vendor balance
+	vendorAfter, err := Db.GetVendorWithBalanceUpdate(vendorIDInt)
+	utils.CheckError(t, err)
+	require.Equal(t, 0, vendorAfter.Balance)
+
+	// Cash account after payout should increase by total
+	cashAfter, err := Db.GetAccountByType("Cash")
+	utils.CheckError(t, err)
+	require.Equal(t, cashBefore.Balance+total, cashAfter.Balance)
+
+	// Cleanup payments for deterministic DB state
+	payments, err := Db.ListPayments(time.Time{}, time.Time{}, vendorLicenseId, false, false, false)
+	utils.CheckError(t, err)
+	for _, p := range payments {
+		_ = Db.DeletePayment(p.ID)
+	}
+}
