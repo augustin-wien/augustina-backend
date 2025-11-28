@@ -47,7 +47,7 @@ type PaymentOrderResponse struct {
 type TransactionVerificationResponse struct {
 	Email               string  `json:"email"`
 	Amount              float64 `json:"amount"`
-	OrderCode           string  `json:"orderCode"`
+	OrderCode           int64   `json:"orderCode"`
 	StatusID            string  `json:"statusId"`
 	FullName            string  `json:"fullName"`
 	InsDate             string  `json:"insDate"`
@@ -143,7 +143,7 @@ type EventData struct {
 	MerchantID                  string
 	MerchantTrns                string
 	Moto                        bool
-	OrderCode                   string
+	OrderCode                   int64
 	OrderCulture                string
 	OrderServiceID              int
 	PanEntryMode                string
