@@ -39,13 +39,14 @@ func GetLogger() *zap.SugaredLogger {
 	notificationEncoder := zapcore.NewConsoleEncoder(notificationCfg)
 
 	level := zap.NewAtomicLevelAt(zap.DebugLevel)
-	core := zapcore.NewTee(
-		zapcore.NewCore(consoleEncoder, stdout, level),
-		zapcore.NewCore(notificationEncoder, notifications.NotificationsClient, level),
-	)
 
-	// wrap core so we can inject goroutine-local request_id when present
-	core = &reqIDCore{core: core}
+	consoleCore := zapcore.NewCore(consoleEncoder, stdout, level)
+	notificationCore := zapcore.NewCore(notificationEncoder, notifications.NotificationsClient, zap.NewAtomicLevelAt(zap.ErrorLevel))
+
+	core := zapcore.NewTee(
+		&reqIDCore{core: consoleCore},
+		&reqIDCore{core: notificationCore},
+	)
 
 	return zap.New(core).Sugar()
 }
@@ -143,7 +144,7 @@ func (r *reqIDCore) With(fields []zapcore.Field) zapcore.Core {
 	return &reqIDCore{core: r.core.With(fields)}
 }
 func (r *reqIDCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
-	if ce = r.core.Check(ent, ce); ce != nil {
+	if r.Enabled(ent.Level) {
 		return ce.AddCore(ent, r)
 	}
 	return ce
