@@ -56,7 +56,9 @@ func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, greeting)
 	if err != nil {
-		log.Error("HelloWorld: ", err)
+		// use request-scoped logger when available so request_id is included
+		logger := utils.LoggerFromContext(r.Context())
+		logger.Error("HelloWorld: ", err)
 	}
 }
 
@@ -79,7 +81,9 @@ func HelloWorldAuth(w http.ResponseWriter, r *http.Request) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, greeting)
 	if err != nil {
-		log.Error("HelloWorldAuth: ", err)
+		// use request-scoped logger when available so request_id is included
+		logger := utils.LoggerFromContext(r.Context())
+		logger.Error("HelloWorldAuth: ", err)
 	}
 }
 
