@@ -21,7 +21,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/perimeterx/marshmallow"
 	"go.uber.org/zap"
 )
 
@@ -76,7 +75,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	// Send the request
 	res, err := client.Do(req)
 	if err != nil {
-		log.Error("impossible to send request: ", err)
+		log.Error("AuthenticateToVivaWallet: impossible to send request: ", err)
 		return "", err
 	}
 	defer func() { _ = res.Body.Close() }()
@@ -84,7 +83,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	// Read the response body
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Error("reading body failed: ", err)
+		log.Error("AuthenticateToVivaWallet: reading body failed: ", err)
 		return "", err
 	}
 
@@ -92,7 +91,7 @@ func AuthenticateToVivaWallet() (string, error) {
 	var authResponse AuthenticationResponse
 	err = json.Unmarshal(body, &authResponse)
 	if err != nil {
-		log.Error("Unmarshalling body failed: ", err)
+		log.Error("AuthenticateToVivaWallet: unmarshalling body failed: ", err)
 		return "", err
 	}
 
@@ -127,7 +126,7 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	for _, entry := range order.Entries {
 		item, err := database.Db.GetItem(entry.Item) // Get item by ID
 		if err != nil {
-			log.Error("Item could not be found", zap.Error(err))
+			log.Error("AuthenticateToVivaWallet: Item could not be found", zap.Error(err))
 		}
 		items = append(items, item.Name)
 	}
@@ -158,7 +157,7 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	// Create a new post request
 	jsonPost, err := json.Marshal(paymentOrderRequest)
 	if err != nil {
-		log.Error("marshalling payment order failed: ", err)
+		log.Error("AuthenticateToVivaWallet: marshalling payment order failed: ", err)
 		return "", err
 	}
 
@@ -423,7 +422,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	}
 
 	// Unmarshal response body to struct
-	_, err = marshmallow.Unmarshal(body, &transactionVerificationResponse)
+	err = json.Unmarshal(body, &transactionVerificationResponse)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
 		return transactionVerificationResponse, err
