@@ -73,7 +73,7 @@ func LoggerFromContext(ctx context.Context) *zap.SugaredLogger {
 // --- goroutine-local request id support ---
 
 var (
-	gidMu sync.RWMutex
+	gidMu  sync.RWMutex
 	gidMap = make(map[int64]string)
 )
 
@@ -134,12 +134,14 @@ func currentRequestID() string {
 
 // reqIDCore wraps another zapcore.Core and injects the goroutine-local
 // request_id field into logged entries when present.
-type reqIDCore struct{
+type reqIDCore struct {
 	core zapcore.Core
 }
 
 func (r *reqIDCore) Enabled(l zapcore.Level) bool { return r.core.Enabled(l) }
-func (r *reqIDCore) With(fields []zapcore.Field) zapcore.Core { return &reqIDCore{core: r.core.With(fields)} }
+func (r *reqIDCore) With(fields []zapcore.Field) zapcore.Core {
+	return &reqIDCore{core: r.core.With(fields)}
+}
 func (r *reqIDCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if ce = r.core.Check(ent, ce); ce != nil {
 		return ce.AddCore(ent, r)
