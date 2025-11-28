@@ -40,7 +40,7 @@ type AuthenticationResponse struct {
 
 // PaymentOrderResponse is the response body for creating a payment order
 type PaymentOrderResponse struct {
-	OrderCode string `json:"orderCode"`
+	OrderCode int64 `json:"orderCode"`
 }
 
 // TransactionVerificationResponse is the response body for verifying a transaction

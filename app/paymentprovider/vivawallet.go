@@ -207,12 +207,12 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 		return "", err
 	}
 
-	if orderCode.OrderCode == "" {
+	if orderCode.OrderCode == 0 {
 		log.Errorw("VivaWallet returned empty OrderCode", "body", string(body))
 		return "", errors.New("VivaWallet returned empty OrderCode")
 	}
 
-	return orderCode.OrderCode, err
+	return strconv.FormatInt(orderCode.OrderCode, 10), err
 
 }
 
