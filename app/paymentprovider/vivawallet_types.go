@@ -40,14 +40,14 @@ type AuthenticationResponse struct {
 
 // PaymentOrderResponse is the response body for creating a payment order
 type PaymentOrderResponse struct {
-	OrderCode int `json:"orderCode"`
+	OrderCode string `json:"orderCode"`
 }
 
 // TransactionVerificationResponse is the response body for verifying a transaction
 type TransactionVerificationResponse struct {
 	Email               string  `json:"email"`
 	Amount              float64 `json:"amount"`
-	OrderCode           int     `json:"orderCode"`
+	OrderCode           string  `json:"orderCode"`
 	StatusID            string  `json:"statusId"`
 	FullName            string  `json:"fullName"`
 	InsDate             string  `json:"insDate"`
@@ -71,7 +71,7 @@ type PriceEventData struct {
 	Interchange     float64 `json:"Interchange"`
 	IsvFee          float64 `json:"IsvFee"`
 	MerchantID      string  `json:"MerchantId"`
-	OrderCode       int     `json:"OrderCode"`
+	OrderCode       string  `json:"OrderCode"`
 	ResellerID      *any    `json:"ResellerId"`
 	TotalCommission float64 `json:"TotalCommission"`
 	TransactionID   string  `json:"TransactionId"`
@@ -143,7 +143,7 @@ type EventData struct {
 	MerchantID                  string
 	MerchantTrns                string
 	Moto                        bool
-	OrderCode                   int
+	OrderCode                   string
 	OrderCulture                string
 	OrderServiceID              int
 	PanEntryMode                string

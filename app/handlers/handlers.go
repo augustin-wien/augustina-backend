@@ -314,12 +314,12 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Submit order to vivawallet (disabled in tests)
-	var OrderCode int
+	var OrderCode string = "0"
 	if database.Db.IsProduction {
 
 		if config.Config.DEBUG_payments {
 			log.Info("DEBUG_payments is enabled, skipping payment order creation")
-			OrderCode = utils.GenerateRandomNumber() // Set OrderCode to a random number for testing purposes
+			OrderCode = strconv.Itoa(utils.GenerateRandomNumber()) // Set OrderCode to a random number for testing purposes
 		} else {
 			accessToken, err := paymentprovider.AuthenticateToVivaWallet()
 			if err != nil {
@@ -337,7 +337,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save order to database
-	order.OrderCode.String = strconv.Itoa(OrderCode)
+	order.OrderCode.String = OrderCode
 	order.OrderCode.Valid = true // This means that it is not null
 	_, err = database.Db.CreateOrder(order)
 	if err != nil {
@@ -352,10 +352,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create response
-	checkoutURL := config.Config.VivaWalletSmartCheckoutURL + strconv.Itoa(OrderCode)
+	checkoutURL := config.Config.VivaWalletSmartCheckoutURL + OrderCode
 	if config.Config.DEBUG_payments {
 		log.Info("DEBUG_payments is enabled, using test URL")
-		checkoutURL = "http://localhost:5173/success?t=" + strconv.Itoa(OrderCode) + "&s=" + strconv.Itoa(OrderCode) + "&lang=en-GB&eventId=0&eci=1"
+		checkoutURL = "http://localhost:5173/success?t=" + OrderCode + "&s=" + OrderCode + "&lang=en-GB&eventId=0&eci=1"
 	}
 	// Add color code to URL
 	if settings.Color == "" {
