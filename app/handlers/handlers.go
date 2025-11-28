@@ -383,6 +383,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	response := createOrderResponse{
 		SmartCheckoutURL: checkoutURL,
 	}
+	log.Debugf("CreatePaymentOrder: Created order with OrderCode %s for vendor %s", OrderCode, requestData.VendorLicenseID)
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
 		log.Error("CreatePaymentOrder: ", err)

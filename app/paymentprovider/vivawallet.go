@@ -90,7 +90,7 @@ func AuthenticateToVivaWallet() (string, error) {
 
 	// Unmarshal response body to struct
 	var authResponse AuthenticationResponse
-	_, err = marshmallow.Unmarshal(body, &authResponse)
+	err = json.Unmarshal(body, &authResponse)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
 		return "", err
@@ -201,7 +201,7 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 
 	// Unmarshal response body to struct
 	var orderCode PaymentOrderResponse
-	_, err = marshmallow.Unmarshal(body, &orderCode)
+	err = json.Unmarshal(body, &orderCode)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
 		return "", err
