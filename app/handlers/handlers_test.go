@@ -639,6 +639,13 @@ func TestOrders(t *testing.T) {
 
 	// Test that maxOrderAmount is set and cannot be exceeded
 	setMaxOrderAmount(t, 10)
+
+	// Ensure mail templates exist so emails can be built during verification
+	err = database.Db.CreateOrUpdateMailTemplate("digitalLicenceItemTemplate.html", "Your license", "Please access your license at {{.URL}}")
+	utils.CheckError(t, err)
+	err = database.Db.CreateOrUpdateMailTemplate("welcome", "Welcome", "Welcome to Augustina")
+	utils.CheckError(t, err)
+
 	itemID := CreateTestItem(t, "testordersItemWithoutLicense", 20, "", "")
 	request := `{
 		"entries": [
@@ -994,6 +1001,8 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 	utils.CheckError(t, err)
 	err = database.Db.CreateOrUpdateMailTemplate("PDFLicenceItemTemplate.html", "Your PDF", "Download your PDF at {{.URL}}")
 	utils.CheckError(t, err)
+	err = database.Db.CreateOrUpdateMailTemplate("welcome", "Welcome", "Welcome to Augustina")
+	utils.CheckError(t, err)
 
 	// Stub email building and sending so we can assert welcome emails are sent
 	origBuild := database.BuildEmailRequestFromTemplate
@@ -1142,6 +1151,8 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 	err = database.Db.CreateOrUpdateMailTemplate("digitalLicenceItemTemplate.html", "Your license", "Please access your license at {{.URL}}")
 	utils.CheckError(t, err)
 	err = database.Db.CreateOrUpdateMailTemplate("PDFLicenceItemTemplate.html", "Your PDF", "Download your PDF at {{.URL}}")
+	utils.CheckError(t, err)
+	err = database.Db.CreateOrUpdateMailTemplate("welcome", "Welcome", "Welcome to Augustina")
 	utils.CheckError(t, err)
 
 	// Stub email building and sending so we can assert digital emails are sent only once
@@ -1341,8 +1352,17 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
 
 	// Test GET payment filters for payout
-	createTestVendor(t, "testOTHERLicenseID")
-	database.Db.CreatePayment(database.Payment{})
+	otherVendorID := createTestVendor(t, "testOTHERLicenseID")
+	otherVendorIDInt, _ := strconv.Atoi(otherVendorID)
+	otherVendorAccount, _ := database.Db.GetAccountByVendorID(otherVendorIDInt)
+
+	_, err = database.Db.CreatePayment(database.Payment{
+		Sender:   anonUserAccount.ID,
+		Receiver: otherVendorAccount.ID,
+		Amount:   100,
+		IsSale:   true,
+	})
+	utils.CheckError(t, err)
 
 	var payouts []database.Payment
 	response := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/?payouts=true&vendor="+vendorLicenseId, nil, 200, adminUserToken)
@@ -1365,7 +1385,7 @@ func TestPaymentPayout(t *testing.T) {
 	response3 := utils.TestRequestWithAuth(t, r, "GET", "/api/payments/", nil, 200, adminUserToken)
 	err = json.Unmarshal(response3.Body.Bytes(), &payouts)
 	utils.CheckError(t, err)
-	require.Equal(t, 3, len(payouts))
+	require.Equal(t, 4, len(payouts))
 
 	// Check that there are no more payments for payout
 	res = utils.TestRequestWithAuth(t, r, "GET", "/api/payments/forpayout/?vendor="+vendorLicenseId, f, 200, adminUserToken)

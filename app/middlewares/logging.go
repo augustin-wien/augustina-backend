@@ -34,10 +34,16 @@ func RequestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqID := chimiddleware.GetReqID(r.Context())
 		start := time.Now()
+		// set goroutine-local request id so all logs from utils.GetLogger()
+		// will automatically include the `request_id` field
+		utils.SetRequestID(reqID)
+		defer utils.ClearRequestID()
+
 		sr := &statusRecorder{ResponseWriter: w}
 		next.ServeHTTP(sr, r)
 		duration := time.Since(start)
 
+		// use the global logger; the req id is injected by the core wrapper
 		log := utils.GetLogger()
 		log.Infow("http_request",
 			"id", reqID,

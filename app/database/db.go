@@ -36,7 +36,7 @@ func (db *Database) InitDb() (err error) {
 		log.Fatal(err)
 	}
 	drv := entsql.OpenDB(dialect.Postgres, pdb)
-	client := ent.NewClient(ent.Driver(drv), ent.Debug())
+	client := ent.NewClient(ent.Driver(NewDebugDriver(drv)))
 
 	db.EntClient = client
 	err = db.initDb(true, true)
@@ -64,7 +64,7 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		log.Fatal(err)
 	}
 	drv := entsql.OpenDB(dialect.Postgres, pdb)
-	client := ent.NewClient(ent.Driver(drv), ent.Debug())
+	client := ent.NewClient(ent.Driver(NewDebugDriver(drv)))
 
 	db.EntClient = client
 	err = initData(db)

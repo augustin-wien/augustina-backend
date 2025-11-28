@@ -100,11 +100,11 @@ func AuthenticateToVivaWallet() (string, error) {
 }
 
 // CreatePaymentOrder creates a payment order and returns the order code
-func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseID string) (int, error) {
+func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseID string) (string, error) {
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletAPIURL
 	if apiURL == "" {
-		return 0, errors.New("viva wallet api url is not set")
+		return "", errors.New("viva wallet api url is not set")
 	}
 	resource := "/checkout/v2/orders"
 	u, _ := url.ParseRequestURI(apiURL)
@@ -133,7 +133,7 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	}
 
 	if config.Config.VivaWalletSourceCode == "" {
-		return 0, errors.New("viva wallet source code is not set")
+		return "", errors.New("viva wallet source code is not set")
 	}
 
 	// Create a new sample payment order
@@ -159,13 +159,13 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	jsonPost, err := json.Marshal(paymentOrderRequest)
 	if err != nil {
 		log.Error("marshalling payment order failed: ", err)
-		return 0, err
+		return "", err
 	}
 
 	req, err := http.NewRequest("POST", urlStr, bytes.NewReader(jsonPost))
 	if err != nil {
 		log.Error("building request failed: ", err)
-		return 0, err
+		return "", err
 	}
 	// Create Header
 	req.Header.Set("Content-Type", "application/json")
@@ -177,7 +177,7 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	res, err := client.Do(req)
 	if err != nil {
 		log.Error("impossible to send request: ", err)
-		return 0, err
+		return "", err
 	}
 	defer func() { _ = res.Body.Close() }()
 
@@ -185,27 +185,34 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 		body, readErr := io.ReadAll(res.Body)
 		if readErr != nil {
 			log.Error("reading body failed: ", readErr)
-			return 0, fmt.Errorf("request failed: status %d (failed to read body: %v)", res.StatusCode, readErr)
+			return "", fmt.Errorf("request failed: status %d (failed to read body: %v)", res.StatusCode, readErr)
 		}
-		return 0, errors.New("request failed: status " + strconv.Itoa(res.StatusCode) + " " + string(body))
+		return "", errors.New("request failed: status " + strconv.Itoa(res.StatusCode) + " " + string(body))
 	}
 
 	// Read the successful response body
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Error("reading body failed: ", err)
-		return 0, err
+		return "", err
 	}
+
+	log.Debugw("VivaWallet CreatePaymentOrder response", "body", string(body))
 
 	// Unmarshal response body to struct
 	var orderCode PaymentOrderResponse
 	_, err = marshmallow.Unmarshal(body, &orderCode)
 	if err != nil {
 		log.Error("Unmarshalling body failed: ", err)
-		return 0, err
+		return "", err
 	}
 
-	return int(orderCode.OrderCode), err
+	if orderCode.OrderCode == "" {
+		log.Errorw("VivaWallet returned empty OrderCode", "body", string(body))
+		return "", errors.New("VivaWallet returned empty OrderCode")
+	}
+
+	return orderCode.OrderCode, err
 
 }
 
@@ -237,7 +244,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	}
 
 	// 2. Check: Verify that order can be found by ordercode and order is not already set verified in database
-	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentSuccessful.EventData.OrderCode))
+	order, err := database.Db.GetOrderByOrderCode(paymentSuccessful.EventData.OrderCode)
 	if err != nil {
 		log.Error("Getting order from database failed: ", err)
 	}
@@ -430,7 +437,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	// Only check isOrderVerified status if checkDBStatus is true
 	if checkDBStatus {
 		// 2. Check: Verify that transaction has been verified in database
-		order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(transactionVerificationResponse.OrderCode))
+		order, err := database.Db.GetOrderByOrderCode(transactionVerificationResponse.OrderCode)
 		if err != nil {
 			log.Error("Getting order from database failed: ", err)
 			return transactionVerificationResponse, err
@@ -462,7 +469,7 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	}
 
 	// 2. Check: Verify that order can be found by ordercode
-	order, err := database.Db.GetOrderByOrderCode(strconv.Itoa(paymentPrice.EventData.OrderCode))
+	order, err := database.Db.GetOrderByOrderCode(paymentPrice.EventData.OrderCode)
 	if err != nil {
 		log.Error("Getting order from database failed: ", err)
 		return err
