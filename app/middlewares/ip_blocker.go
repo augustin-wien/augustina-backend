@@ -1,12 +1,15 @@
 package middlewares
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/augustin-wien/augustina-backend/ent"
+	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/utils"
 )
 
@@ -15,6 +18,7 @@ type IPBlocker struct {
 	mu         sync.RWMutex
 	blockedIPs map[string]time.Time
 	strikes    map[string]int
+	client     *ent.Client
 }
 
 var (
@@ -163,6 +167,14 @@ var (
 	}
 )
 
+// InitIPBlocker initializes the GlobalBlocker with the Ent client and loads existing blocks
+func InitIPBlocker(client *ent.Client) {
+	GlobalBlocker.mu.Lock()
+	defer GlobalBlocker.mu.Unlock()
+	GlobalBlocker.client = client
+	GlobalBlocker.loadFromDB()
+}
+
 // BlockMaliciousPatterns middleware checks for common attack vectors in query parameters
 func BlockMaliciousPatterns(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -242,9 +254,21 @@ func BlockFakeBrowsers(next http.Handler) http.Handler {
 func (b *IPBlocker) BlockIP(ip string, duration time.Duration) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	b.blockedIPs[ip] = time.Now().Add(duration)
+
+	expiry := time.Now().Add(duration)
+	b.blockedIPs[ip] = expiry
 	// Reset strikes on block
 	delete(b.strikes, ip)
+
+	if b.client != nil {
+		go func() {
+			ctx := context.Background()
+			if err := b.saveBlockToDB(ctx, ip, expiry); err != nil {
+				log.Errorf("Failed to save block to DB: %v", err)
+			}
+		}()
+	}
+
 	log.Warnf("Security: Blocked IP %s for %v due to suspicious activity", ip, duration)
 }
 
@@ -254,11 +278,103 @@ func (b *IPBlocker) AddStrike(ip string) {
 	defer b.mu.Unlock()
 
 	b.strikes[ip]++
-	if b.strikes[ip] >= 10 { // 10 strikes = block
-		b.blockedIPs[ip] = time.Now().Add(1 * time.Hour)
+	strikes := b.strikes[ip]
+
+	if strikes >= 10 { // 10 strikes = block
+		expiry := time.Now().Add(1 * time.Hour)
+		b.blockedIPs[ip] = expiry
 		delete(b.strikes, ip)
 		log.Warnf("Security: Blocked IP %s for 1h due to too many strikes", ip)
+
+		if b.client != nil {
+			go func() {
+				ctx := context.Background()
+				if err := b.saveBlockToDB(ctx, ip, expiry); err != nil {
+					log.Errorf("Failed to save block to DB: %v", err)
+				}
+			}()
+		}
+	} else {
+		if b.client != nil {
+			go func() {
+				ctx := context.Background()
+				if err := b.saveStrikeToDB(ctx, ip, strikes); err != nil {
+					log.Errorf("Failed to save strike to DB: %v", err)
+				}
+			}()
+		}
 	}
+}
+
+func (b *IPBlocker) saveBlockToDB(ctx context.Context, ip string, expiry time.Time) error {
+	// Check if exists
+	exists, err := b.client.BlockedIP.Query().Where(blockedip.IP(ip)).Exist(ctx)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		_, err = b.client.BlockedIP.Update().
+			Where(blockedip.IP(ip)).
+			SetBlockExpiresAt(expiry).
+			SetStrikes(0).
+			Save(ctx)
+	} else {
+		_, err = b.client.BlockedIP.Create().
+			SetIP(ip).
+			SetBlockExpiresAt(expiry).
+			SetStrikes(0).
+			Save(ctx)
+	}
+	return err
+}
+
+func (b *IPBlocker) saveStrikeToDB(ctx context.Context, ip string, strikes int) error {
+	// Check if exists
+	exists, err := b.client.BlockedIP.Query().Where(blockedip.IP(ip)).Exist(ctx)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		_, err = b.client.BlockedIP.Update().
+			Where(blockedip.IP(ip)).
+			SetStrikes(strikes).
+			Save(ctx)
+	} else {
+		_, err = b.client.BlockedIP.Create().
+			SetIP(ip).
+			SetStrikes(strikes).
+			Save(ctx)
+	}
+	return err
+}
+
+// loadFromDB restores the blocker state from DB
+func (b *IPBlocker) loadFromDB() {
+	if b.client == nil {
+		return
+	}
+	ctx := context.Background()
+
+	// Load all
+	blocks, err := b.client.BlockedIP.Query().All(ctx)
+	if err != nil {
+		log.Errorf("Failed to load IP blocklist from DB: %v", err)
+		return
+	}
+
+	// Filter out expired blocks while loading
+	now := time.Now()
+	for _, block := range blocks {
+		if block.BlockExpiresAt.After(now) {
+			b.blockedIPs[block.IP] = block.BlockExpiresAt
+		}
+		if block.Strikes > 0 {
+			b.strikes[block.IP] = block.Strikes
+		}
+	}
+	log.Infof("Loaded IP blocklist: %d blocked IPs, %d IPs with strikes", len(b.blockedIPs), len(b.strikes))
 }
 
 // IsBlocked checks if an IP is currently blocked

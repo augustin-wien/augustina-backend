@@ -9,6 +9,20 @@ import (
 )
 
 var (
+	// BlockedIpsColumns holds the columns for the "blocked_ips" table.
+	BlockedIpsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "ip", Type: field.TypeString, Unique: true},
+		{Name: "strikes", Type: field.TypeInt, Default: 0},
+		{Name: "block_expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "reason", Type: field.TypeString, Nullable: true},
+	}
+	// BlockedIpsTable holds the schema information for the "blocked_ips" table.
+	BlockedIpsTable = &schema.Table{
+		Name:       "blocked_ips",
+		Columns:    BlockedIpsColumns,
+		PrimaryKey: []*schema.Column{BlockedIpsColumns[0]},
+	}
 	// CommentsColumns holds the columns for the "comments" table.
 	CommentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -193,6 +207,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BlockedIpsTable,
 		CommentsTable,
 		ItemTable,
 		LocationsTable,

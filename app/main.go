@@ -13,6 +13,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/handlers"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
+	"github.com/augustin-wien/augustina-backend/middlewares"
 	"github.com/augustin-wien/augustina-backend/notifications"
 	"github.com/augustin-wien/augustina-backend/utils"
 
@@ -57,6 +58,9 @@ func main() {
 	if err := database.Db.InitDb(); err != nil {
 		log.Fatal("Db init:", err)
 	}
+
+	// Initialize IP Blocker with DB persistence
+	middlewares.InitIPBlocker(database.Db.EntClient)
 
 	if conf.SentryDSN != "" {
 		if err := sentry.Init(sentry.ClientOptions{Dsn: conf.SentryDSN}); err != nil {

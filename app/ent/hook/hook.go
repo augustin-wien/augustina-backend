@@ -9,6 +9,18 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent"
 )
 
+// The BlockedIPFunc type is an adapter to allow the use of ordinary
+// function as BlockedIP mutator.
+type BlockedIPFunc func(context.Context, *ent.BlockedIPMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BlockedIPFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BlockedIPMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BlockedIPMutation", m)
+}
+
 // The CommentFunc type is an adapter to allow the use of ordinary
 // function as Comment mutator.
 type CommentFunc func(context.Context, *ent.CommentMutation) (ent.Value, error)
