@@ -1006,7 +1006,7 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 
 	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
 	if err != nil {
-		log.Error("VivaWalletWebhookPrice: ", err, paymentPrice.OrderCode)
+		log.Error("VivaWalletWebhookPrice: ", err, paymentPrice)
 		return
 	}
 

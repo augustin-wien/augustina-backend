@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -13,12 +14,14 @@ import (
 type IPBlocker struct {
 	mu         sync.RWMutex
 	blockedIPs map[string]time.Time
+	strikes    map[string]int
 }
 
 var (
 	// GlobalBlocker instance
 	GlobalBlocker = &IPBlocker{
 		blockedIPs: make(map[string]time.Time),
+		strikes:    make(map[string]int),
 	}
 
 	// Paths that trigger an immediate block
@@ -141,7 +144,51 @@ var (
 		"crawler",
 		"spider",
 	}
+
+	// Malicious patterns in Query Params (SQLi, XSS, LFI)
+	maliciousPatterns = []string{
+		"union select",
+		"or 1=1",
+		"<script",
+		"javascript:",
+		"vbscript:",
+		"expression(",
+		"onload=",
+		"onerror=",
+		"/etc/passwd",
+		"/bin/sh",
+		"cmd.exe",
+		"../../",
+		"..\\",
+	}
 )
+
+// BlockMaliciousPatterns middleware checks for common attack vectors in query parameters
+func BlockMaliciousPatterns(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		decodedQuery, err := url.QueryUnescape(r.URL.RawQuery)
+		if err != nil {
+			// If decoding fails, fall back to raw query
+			decodedQuery = r.URL.RawQuery
+		}
+		query := strings.ToLower(decodedQuery)
+
+		for _, pattern := range maliciousPatterns {
+			if strings.Contains(query, pattern) {
+				ip := utils.ReadUserIP(r)
+				GlobalBlocker.BlockIP(ip, 24*time.Hour)
+				log.Warnf("Security: Blocked IP %s for malicious query pattern: %s", ip, pattern)
+
+				// Tarpit
+				time.Sleep(2 * time.Second)
+
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
 
 // BlockBadUserAgents middleware blocks requests from non-browser tools
 func BlockBadUserAgents(next http.Handler) http.Handler {
@@ -155,8 +202,33 @@ func BlockBadUserAgents(next http.Handler) http.Handler {
 		ua := strings.ToLower(r.UserAgent())
 		for _, badUA := range blockedUserAgents {
 			if strings.Contains(ua, badUA) {
-				log.Warnf("Security: Blocked User-Agent %s from %s", r.UserAgent(), utils.ReadUserIP(r))
+				ip := utils.ReadUserIP(r)
+				log.Warnf("Security: Blocked User-Agent %s from %s", r.UserAgent(), ip)
+				GlobalBlocker.AddStrike(ip)
+
 				// Tarpit: Delay response to slow down the bot
+				time.Sleep(2 * time.Second)
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// BlockFakeBrowsers middleware blocks requests that claim to be browsers but miss standard headers
+func BlockFakeBrowsers(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ua := r.UserAgent()
+		// If it claims to be a modern browser (Mozilla/5.0...)
+		if strings.HasPrefix(ua, "Mozilla/") {
+			// But is missing standard browser headers like Accept-Language
+			if r.Header.Get("Accept-Language") == "" {
+				ip := utils.ReadUserIP(r)
+				log.Warnf("Security: Blocked Fake Browser (Missing Accept-Language) from %s", ip)
+				GlobalBlocker.AddStrike(ip)
+
+				// Tarpit
 				time.Sleep(2 * time.Second)
 				http.Error(w, "Forbidden", http.StatusForbidden)
 				return
@@ -171,7 +243,22 @@ func (b *IPBlocker) BlockIP(ip string, duration time.Duration) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.blockedIPs[ip] = time.Now().Add(duration)
+	// Reset strikes on block
+	delete(b.strikes, ip)
 	log.Warnf("Security: Blocked IP %s for %v due to suspicious activity", ip, duration)
+}
+
+// AddStrike adds a strike to an IP and blocks if threshold is reached
+func (b *IPBlocker) AddStrike(ip string) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.strikes[ip]++
+	if b.strikes[ip] >= 10 { // 10 strikes = block
+		b.blockedIPs[ip] = time.Now().Add(1 * time.Hour)
+		delete(b.strikes, ip)
+		log.Warnf("Security: Blocked IP %s for 1h due to too many strikes", ip)
+	}
 }
 
 // IsBlocked checks if an IP is currently blocked

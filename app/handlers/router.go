@@ -32,6 +32,8 @@ func GetRouter() (r *chi.Mux) {
 	r.Use(middlewares.FilterBlockedIPs)
 	r.Use(middlewares.BlockSuspiciousRequests)
 	r.Use(middlewares.BlockBadUserAgents)
+	r.Use(middlewares.BlockFakeBrowsers)
+	r.Use(middlewares.BlockMaliciousPatterns)
 
 	// Basic rate limiting: limit by IP to 100 requests per minute (tunable)
 	r.Use(httprate.LimitByIP(500, 1*time.Minute))

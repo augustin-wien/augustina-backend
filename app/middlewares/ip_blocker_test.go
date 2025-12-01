@@ -200,6 +200,40 @@ func TestIPBlocker(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w2.Code)
 	})
 
+	t.Run("BlockFakeBrowsers blocks fake browser", func(t *testing.T) {
+		resetBlocker()
+
+		handler := BlockFakeBrowsers(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest("GET", "/valid-path", nil)
+		// Claim to be Mozilla but no Accept-Language
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+	})
+
+	t.Run("BlockFakeBrowsers allows real browser", func(t *testing.T) {
+		resetBlocker()
+
+		handler := BlockFakeBrowsers(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest("GET", "/valid-path", nil)
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+		req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
 	t.Run("IsBlocked returns false for expired block", func(t *testing.T) {
 		resetBlocker()
 		// Block for a negative duration to simulate expiration
@@ -211,5 +245,84 @@ func TestIPBlocker(t *testing.T) {
 	t.Run("IsBlocked returns false for unknown IP", func(t *testing.T) {
 		resetBlocker()
 		assert.False(t, GlobalBlocker.IsBlocked("9.9.9.9"))
+	})
+
+	t.Run("BlockMaliciousPatterns blocks SQLi", func(t *testing.T) {
+		resetBlocker()
+
+		handler := BlockMaliciousPatterns(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest("GET", "/search?q=union+select", nil)
+		req.Header.Set("X-Real-Ip", "1.2.3.12")
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+		assert.True(t, GlobalBlocker.IsBlocked("1.2.3.12"))
+	})
+
+	t.Run("BlockMaliciousPatterns blocks XSS", func(t *testing.T) {
+		resetBlocker()
+
+		handler := BlockMaliciousPatterns(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		req := httptest.NewRequest("GET", "/search?q=<script>alert(1)</script>", nil)
+		req.Header.Set("X-Real-Ip", "1.2.3.13")
+		w := httptest.NewRecorder()
+
+		handler.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+		assert.True(t, GlobalBlocker.IsBlocked("1.2.3.13"))
+	})
+
+	t.Run("AddStrike blocks IP after threshold", func(t *testing.T) {
+		resetBlocker()
+		ip := "1.2.3.14"
+
+		// 9 strikes - not blocked
+		for i := 0; i < 9; i++ {
+			GlobalBlocker.AddStrike(ip)
+		}
+		assert.False(t, GlobalBlocker.IsBlocked(ip))
+
+		// 10th strike - blocked
+		GlobalBlocker.AddStrike(ip)
+		assert.True(t, GlobalBlocker.IsBlocked(ip))
+	})
+
+	t.Run("Integration: Bad User-Agent accumulates strikes", func(t *testing.T) {
+		resetBlocker()
+		ip := "1.2.3.15"
+
+		handler := BlockBadUserAgents(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		// 9 requests - should be forbidden but not blocked globally yet
+		for i := 0; i < 9; i++ {
+			req := httptest.NewRequest("GET", "/valid", nil)
+			req.Header.Set("X-Real-Ip", ip)
+			req.Header.Set("User-Agent", "curl/7.64.1")
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, req)
+			assert.Equal(t, http.StatusForbidden, w.Code)
+		}
+		assert.False(t, GlobalBlocker.IsBlocked(ip))
+
+		// 10th request - should trigger block
+		req := httptest.NewRequest("GET", "/valid", nil)
+		req.Header.Set("X-Real-Ip", ip)
+		req.Header.Set("User-Agent", "curl/7.64.1")
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+		assert.True(t, GlobalBlocker.IsBlocked(ip))
 	})
 }
