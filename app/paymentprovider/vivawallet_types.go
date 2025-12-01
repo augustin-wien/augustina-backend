@@ -71,7 +71,7 @@ type PriceEventData struct {
 	Interchange     float64 `json:"Interchange"`
 	IsvFee          float64 `json:"IsvFee"`
 	MerchantID      string  `json:"MerchantId"`
-	OrderCode       string  `json:"OrderCode"`
+	OrderCode       int64   `json:"OrderCode"`
 	ResellerID      *any    `json:"ResellerId"`
 	TotalCommission float64 `json:"TotalCommission"`
 	TransactionID   string  `json:"TransactionId"`

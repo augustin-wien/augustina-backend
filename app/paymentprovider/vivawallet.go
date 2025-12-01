@@ -468,7 +468,7 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	}
 
 	// 2. Check: Verify that order can be found by ordercode
-	order, err := database.Db.GetOrderByOrderCode(paymentPrice.EventData.OrderCode)
+	order, err := database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentPrice.EventData.OrderCode, 10))
 	if err != nil {
 		log.Error("HandlePaymentPriceResponse: Getting order from database failed: ", err, " for order code ", paymentPrice.EventData.OrderCode)
 		return err
@@ -483,7 +483,7 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	// Create order entries for transaction costs
 	err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
 	if err != nil {
-		log.Error("Creating transaction costs failed: ", err)
+		log.Error("HandlePaymentPriceResponse: Creating transaction costs failed: ", err)
 		return err
 	}
 

@@ -144,6 +144,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	var order database.Order
 	err := utils.ReadJSON(w, r, &requestData)
 	if err != nil {
+		log.Error("CreatePaymentOrder: ReadJSON: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -433,6 +434,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Get payment order from database
 	order, err := database.Db.GetOrderByOrderCode(OrderCode)
 	if err != nil {
+		log.Error("VerifyPaymentOrder: GetOrderByOrderCode: ", err, OrderCode)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -451,6 +453,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		log.Infof("VerifyPaymentOrder: Verifying transaction in development mode for TransactionID %s", TransactionID)
 		err = database.Db.VerifyOrderAndCreatePayments(order.ID, 0)
 		if err != nil {
+			log.Error("VerifyPaymentOrder: VerifyOrderAndCreatePayments: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 		}
 	}
@@ -758,12 +761,14 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	var payment database.Payment
 	err := utils.ReadJSON(w, r, &payment)
 	if err != nil {
+		log.Error("CreatePayment: ReadJSON: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	paymentID, err := database.Db.CreatePayment(payment)
 	if err != nil {
+		log.Error("CreatePayment: CreatePayment: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -793,12 +798,14 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)
 	if err != nil {
+		log.Error("CreatePayments: parse JSON ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	err = database.Db.CreatePayments(paymentBatch.Payments)
 	if err != nil {
+		log.Error("CreatePayments: db", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -920,7 +927,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 	var paymentSuccessful paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
-		log.Info("Reading JSON failed for webhook: ", err)
+		log.Info("VivaWalletWebhookSuccess: Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -954,7 +961,7 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 	var paymentFailure paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentFailure)
 	if err != nil {
-		log.Info("Reading JSON failed for webhook: ", err)
+		log.Info("VivaWalletWebhookFailure: Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -992,14 +999,14 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 	var paymentPrice paymentprovider.TransactionPriceRequest
 	err := utils.ReadJSON(w, r, &paymentPrice)
 	if err != nil {
-		log.Info("Reading JSON failed for webhook: ", err)
+		log.Info("VivaWalletWebhookPrice: Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
 	if err != nil {
-		log.Error("VivaWalletWebhookPrice: ", err)
+		log.Error("VivaWalletWebhookPrice: ", err, paymentPrice.OrderCode)
 		return
 	}
 

@@ -141,10 +141,13 @@ func (db *Database) GetOrderByIDTx(tx pgx.Tx, id int) (order Order, err error) {
 
 // GetOrderByOrderCode returns Order by OrderCode
 func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err error) {
-
+	if OrderCode == "" {
+		err = errors.New("GetOrderByOrderCode: order code is empty")
+		return
+	}
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
 	if err != nil {
-		log.Error("GetOrderByOrderCode: ", err)
+		log.Error("GetOrderByOrderCode: ", err, " orderCode: ", OrderCode)
 		return
 	}
 
