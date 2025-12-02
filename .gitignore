@@ -29,6 +29,7 @@ cover.html
 go.work
 go.work.sum
 /app/augustin
+/app/augustina-backend
 build/*
 docker/keycloak/export/*.json
 docker/augustin-plugin-data/pdf-files/*
