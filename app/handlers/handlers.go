@@ -459,10 +459,10 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
-	if time.Since(order.Timestamp) > 900*time.Second {
-		utils.ErrorJSON(w, errors.New("transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
-		return
-	}
+	// if time.Since(order.Timestamp) > 900*time.Second {
+	// 	utils.ErrorJSON(w, errors.New("transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
+	// 	return
+	// }
 
 	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
 
@@ -1006,7 +1006,7 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 
 	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
 	if err != nil {
-		log.Error("VivaWalletWebhookPrice: ", err, paymentPrice)
+		log.Error("VivaWalletWebhookPrice: handle payment price response failed: ", err, paymentPrice)
 		return
 	}
 
@@ -1015,7 +1015,7 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error("VivaWalletWebhookPrice: ", err)
+		log.Error("VivaWalletWebhookPrice: failed to write json: ", err)
 	}
 }
 

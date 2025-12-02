@@ -90,6 +90,7 @@ type Order struct {
 	OrderCode         null.String
 	TransactionID     string
 	Verified          bool
+	VerifiedAt        null.Time
 	TransactionTypeID int
 	Timestamp         time.Time
 	User              null.String `db:"userid"` // Keycloak UUID if user is authenticated

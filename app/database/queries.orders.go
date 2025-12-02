@@ -107,7 +107,7 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 
 // GetOrderByID returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID, OrderCode, TransactionID, Verified, VerifiedAt, TransactionTypeID, Timestamp, UserID, Vendor, CustomerEmail FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.VerifiedAt, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
 	if err != nil {
 		log.Error("GetOrderByID: ", err)
 		return
@@ -124,7 +124,7 @@ func (db *Database) GetOrderByID(id int) (order Order, err error) {
 
 // GetOrderByIDTx returns Order by OrderID
 func (db *Database) GetOrderByIDTx(tx pgx.Tx, id int) (order Order, err error) {
-	err = tx.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
+	err = tx.QueryRow(context.Background(), "SELECT ID, OrderCode, TransactionID, Verified, VerifiedAt, TransactionTypeID, Timestamp, UserID, Vendor, CustomerEmail FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.VerifiedAt, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
 	if err != nil {
 		log.Error("GetOrderByIDTx: ", err)
 		return
@@ -145,16 +145,16 @@ func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err erro
 		err = errors.New("GetOrderByOrderCode: order code is empty")
 		return
 	}
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT * FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
+	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID, OrderCode, TransactionID, Verified, VerifiedAt, TransactionTypeID, Timestamp, UserID, Vendor, CustomerEmail FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.VerifiedAt, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
 	if err != nil {
-		log.Error("GetOrderByOrderCode: ", err, " orderCode: ", OrderCode)
+		log.Error("GetOrderByOrderCode: failed to get order", err, " orderCode: ", OrderCode)
 		return
 	}
 
 	// Add items to order
 	order.Entries, err = db.GetOrderEntries(order.ID)
 	if err != nil {
-		log.Error("GetOrderByOrderCode: ", err, " orderID: ", order.ID)
+		log.Error("GetOrderByOrderCode: failed to get order entries: ", err, " orderID: ", order.ID)
 	}
 	return
 }
@@ -301,7 +301,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 	// Verify payment order
 	_, err = tx.Exec(context.Background(), `
 	UPDATE PaymentOrder
-	SET Verified = True, TransactionTypeID = $1
+	SET Verified = True, VerifiedAt = NOW(), TransactionTypeID = $1
 	WHERE ID = $2
 	`, transactionTypeID, orderID)
 	if err != nil {

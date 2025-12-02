@@ -1,0 +1,1 @@
+ALTER TABLE PaymentOrder ADD COLUMN VerifiedAt TIMESTAMP;
