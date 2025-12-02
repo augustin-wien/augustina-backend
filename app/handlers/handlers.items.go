@@ -417,7 +417,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	pdfId, err := handleItemPDF(w, r)
 	if err != nil {
-		log.Error("CreateItem: handleItemPDF failed ", err)
+		log.Error("UpdateItem: handleItemPDF failed ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
