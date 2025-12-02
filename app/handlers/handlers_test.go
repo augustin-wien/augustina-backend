@@ -719,10 +719,14 @@ func TestOrders(t *testing.T) {
 	var respMap map[string]string
 	err = json.Unmarshal(res4.Body.Bytes(), &respMap)
 	utils.CheckError(t, err)
-	url := respMap["SmartCheckoutURL"]
+	checkoutURL := respMap["SmartCheckoutURL"]
 	// In test mode we may get either the real Viva wallet URL or a local test URL.
 	// Assert it's a URL that indicates a checkout/success redirect.
-	require.True(t, strings.Contains(url, "checkout") || strings.Contains(url, "success"))
+	require.True(t, strings.Contains(checkoutURL, "checkout") || strings.Contains(checkoutURL, "success"))
+
+	parsedURL, err := url.Parse(checkoutURL)
+	utils.CheckError(t, err)
+	orderCode := parsedURL.Query().Get("s")
 
 	// Check if order was created
 	orders, _ = database.Db.GetOrders()
@@ -761,7 +765,7 @@ func TestOrders(t *testing.T) {
 		errc <- e
 	}()
 
-	resSuccess := utils.TestRequestStr(t, r, "GET", "/api/orders/verify/?s=0&t=0", "", 200)
+	resSuccess := utils.TestRequestStr(t, r, "GET", "/api/orders/verify/?s="+orderCode+"&t=0", "", 200)
 	require.Equal(t, strings.Contains(resSuccess.Body.String(), vendorLicenseId), true)
 
 	// Wait for the background verification to finish and check its error
