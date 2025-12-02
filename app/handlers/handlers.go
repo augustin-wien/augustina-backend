@@ -137,6 +137,27 @@ func hasDuplicitValues(m map[int]int) bool {
 //	    @Param		    data body createOrderRequest true "Payment Order"
 //		@Success		200 {object} createOrderResponse
 //		@Router			/orders/ [post]
+//
+// ListUnverifiedOrders godoc
+//
+//	@Summary		List unverified orders
+//	@Description	List all unverified orders
+//	@Tags			Orders
+//	@Accept			json
+//	@Produce		json
+//	@Security		KeycloakAuth
+//	@Router			/orders/unverified/ [get]
+//
+// ListUnverifiedOrders API Handler fetching data from database
+func ListUnverifiedOrders(w http.ResponseWriter, r *http.Request) {
+	orders, err := database.Db.GetUnverifiedOrders()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	respond(w, nil, orders)
+}
+
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Read payment order from request
@@ -148,6 +169,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+
+	order.CustomerEmail = requestData.CustomerEmail
 
 	// Security checks for entries
 	for _, entry := range requestData.Entries {
@@ -316,7 +339,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	// Submit order to vivawallet (disabled in tests)
 	var OrderCode string = "0"
-	if database.Db.IsProduction {
+	if database.Db.IsProduction || config.Config.DEBUG_payments {
 
 		if config.Config.DEBUG_payments {
 			log.Info("DEBUG_payments is enabled, skipping payment order creation")
@@ -340,11 +363,12 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Save order to database
 	order.OrderCode.String = OrderCode
 	order.OrderCode.Valid = true // This means that it is not null
-	_, err = database.Db.CreateOrder(order)
+	id, err := database.Db.CreateOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	order.ID = id
 
 	// Check if VivaWalletSmartCheckoutURL is set
 	if config.Config.VivaWalletSmartCheckoutURL == "" {

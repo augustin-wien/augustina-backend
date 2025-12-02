@@ -105,6 +105,31 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 	return
 }
 
+// GetUnverifiedOrders returns all unverified orders from the database
+func (db *Database) GetUnverifiedOrders() (orders []Order, err error) {
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT *, null as entries FROM PaymentOrder WHERE verified = false")
+	if err != nil {
+		log.Error("GetUnverifiedOrders: ", err)
+		return orders, err
+	}
+	defer rows.Close()
+	tmpOrders, err := pgx.CollectRows(rows, pgx.RowToStructByName[Order])
+	if err != nil {
+		log.Error("GetUnverifiedOrders: failed to collect rows: ", err)
+		return orders, err
+	}
+	for _, order := range tmpOrders {
+		// Add entries to order
+		order.Entries, err = db.GetOrderEntries(order.ID)
+		if err != nil {
+			log.Error("GetUnverifiedOrders: failed to get order entries: ", err)
+			return orders, err
+		}
+		orders = append(orders, order)
+	}
+	return
+}
+
 // GetOrderByID returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (order Order, err error) {
 	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID, OrderCode, TransactionID, Verified, VerifiedAt, TransactionTypeID, Timestamp, UserID, Vendor, CustomerEmail FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.VerifiedAt, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
