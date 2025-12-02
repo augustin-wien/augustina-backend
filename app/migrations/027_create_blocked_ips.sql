@@ -1,0 +1,7 @@
+CREATE TABLE blocked_ips (
+  id SERIAL PRIMARY KEY,
+  ip VARCHAR(255) NOT NULL UNIQUE,
+  strikes INT NOT NULL DEFAULT 0,
+  block_expires_at TIMESTAMP WITH TIME ZONE,
+  reason VARCHAR(255)
+);

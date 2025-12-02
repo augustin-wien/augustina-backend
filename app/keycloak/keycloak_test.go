@@ -441,3 +441,54 @@ func TestSendPasswordResetGuard(t *testing.T) {
 		t.Fatalf("SendPasswordResetEmailVendor guard expected nil, got: %v", err)
 	}
 }
+
+func TestAssignDigitalLicenseGroup(t *testing.T) {
+	// Ensure we are in the app root
+	if _, err := os.Stat(".env"); os.IsNotExist(err) {
+		if err := os.Chdir(".."); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	config.InitConfig()
+	// We don't need actual email sending for this test
+	config.Config.SMTPSenderAddress = ""
+
+	if err := keycloak.InitializeOauthServer(); err != nil {
+		t.Fatalf("InitializeOauthServer failed: %v", err)
+	}
+
+	// Create a unique user
+	userName := "license_test_user_" + utils.RandomString(5)
+	userEmail := userName + "@example.com"
+
+	// Cleanup
+	defer func() {
+		_ = keycloak.KeycloakClient.DeleteUser(userEmail)
+	}()
+
+	// 1. Create User
+	userID, _, err := keycloak.KeycloakClient.GetOrCreateUser(userEmail)
+	require.NoError(t, err)
+	require.NotEmpty(t, userID)
+
+	// 2. Assign Digital License Group
+	// This should create the group structure /customer/newspapers/test_digital_edition if it doesn't exist
+	licenseGroup := "test_digital_edition"
+	err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(userID, licenseGroup)
+	require.NoError(t, err)
+
+	// 3. Verify
+	groups, err := keycloak.KeycloakClient.GetUserGroups(userID)
+	require.NoError(t, err)
+
+	found := false
+	for _, g := range groups {
+		// The user should be assigned to the specific edition group
+		if g.Name != nil && *g.Name == licenseGroup {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "User should be assigned to the digital license group 'test_digital_edition'")
+}

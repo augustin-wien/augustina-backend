@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
@@ -30,6 +31,7 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeBlockedIP    = "BlockedIP"
 	TypeComment      = "Comment"
 	TypeItem         = "Item"
 	TypeLocation     = "Location"
@@ -38,6 +40,571 @@ const (
 	TypeSettings     = "Settings"
 	TypeVendor       = "Vendor"
 )
+
+// BlockedIPMutation represents an operation that mutates the BlockedIP nodes in the graph.
+type BlockedIPMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	ip               *string
+	strikes          *int
+	addstrikes       *int
+	block_expires_at *time.Time
+	reason           *string
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*BlockedIP, error)
+	predicates       []predicate.BlockedIP
+}
+
+var _ ent.Mutation = (*BlockedIPMutation)(nil)
+
+// blockedipOption allows management of the mutation configuration using functional options.
+type blockedipOption func(*BlockedIPMutation)
+
+// newBlockedIPMutation creates new mutation for the BlockedIP entity.
+func newBlockedIPMutation(c config, op Op, opts ...blockedipOption) *BlockedIPMutation {
+	m := &BlockedIPMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeBlockedIP,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withBlockedIPID sets the ID field of the mutation.
+func withBlockedIPID(id int) blockedipOption {
+	return func(m *BlockedIPMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *BlockedIP
+		)
+		m.oldValue = func(ctx context.Context) (*BlockedIP, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().BlockedIP.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withBlockedIP sets the old BlockedIP of the mutation.
+func withBlockedIP(node *BlockedIP) blockedipOption {
+	return func(m *BlockedIPMutation) {
+		m.oldValue = func(context.Context) (*BlockedIP, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m BlockedIPMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m BlockedIPMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *BlockedIPMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *BlockedIPMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().BlockedIP.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetIP sets the "ip" field.
+func (m *BlockedIPMutation) SetIP(s string) {
+	m.ip = &s
+}
+
+// IP returns the value of the "ip" field in the mutation.
+func (m *BlockedIPMutation) IP() (r string, exists bool) {
+	v := m.ip
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIP returns the old "ip" field's value of the BlockedIP entity.
+// If the BlockedIP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BlockedIPMutation) OldIP(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIP is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIP requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIP: %w", err)
+	}
+	return oldValue.IP, nil
+}
+
+// ResetIP resets all changes to the "ip" field.
+func (m *BlockedIPMutation) ResetIP() {
+	m.ip = nil
+}
+
+// SetStrikes sets the "strikes" field.
+func (m *BlockedIPMutation) SetStrikes(i int) {
+	m.strikes = &i
+	m.addstrikes = nil
+}
+
+// Strikes returns the value of the "strikes" field in the mutation.
+func (m *BlockedIPMutation) Strikes() (r int, exists bool) {
+	v := m.strikes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStrikes returns the old "strikes" field's value of the BlockedIP entity.
+// If the BlockedIP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BlockedIPMutation) OldStrikes(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStrikes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStrikes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStrikes: %w", err)
+	}
+	return oldValue.Strikes, nil
+}
+
+// AddStrikes adds i to the "strikes" field.
+func (m *BlockedIPMutation) AddStrikes(i int) {
+	if m.addstrikes != nil {
+		*m.addstrikes += i
+	} else {
+		m.addstrikes = &i
+	}
+}
+
+// AddedStrikes returns the value that was added to the "strikes" field in this mutation.
+func (m *BlockedIPMutation) AddedStrikes() (r int, exists bool) {
+	v := m.addstrikes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStrikes resets all changes to the "strikes" field.
+func (m *BlockedIPMutation) ResetStrikes() {
+	m.strikes = nil
+	m.addstrikes = nil
+}
+
+// SetBlockExpiresAt sets the "block_expires_at" field.
+func (m *BlockedIPMutation) SetBlockExpiresAt(t time.Time) {
+	m.block_expires_at = &t
+}
+
+// BlockExpiresAt returns the value of the "block_expires_at" field in the mutation.
+func (m *BlockedIPMutation) BlockExpiresAt() (r time.Time, exists bool) {
+	v := m.block_expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlockExpiresAt returns the old "block_expires_at" field's value of the BlockedIP entity.
+// If the BlockedIP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BlockedIPMutation) OldBlockExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlockExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlockExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlockExpiresAt: %w", err)
+	}
+	return oldValue.BlockExpiresAt, nil
+}
+
+// ClearBlockExpiresAt clears the value of the "block_expires_at" field.
+func (m *BlockedIPMutation) ClearBlockExpiresAt() {
+	m.block_expires_at = nil
+	m.clearedFields[blockedip.FieldBlockExpiresAt] = struct{}{}
+}
+
+// BlockExpiresAtCleared returns if the "block_expires_at" field was cleared in this mutation.
+func (m *BlockedIPMutation) BlockExpiresAtCleared() bool {
+	_, ok := m.clearedFields[blockedip.FieldBlockExpiresAt]
+	return ok
+}
+
+// ResetBlockExpiresAt resets all changes to the "block_expires_at" field.
+func (m *BlockedIPMutation) ResetBlockExpiresAt() {
+	m.block_expires_at = nil
+	delete(m.clearedFields, blockedip.FieldBlockExpiresAt)
+}
+
+// SetReason sets the "reason" field.
+func (m *BlockedIPMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *BlockedIPMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the BlockedIP entity.
+// If the BlockedIP object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BlockedIPMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ClearReason clears the value of the "reason" field.
+func (m *BlockedIPMutation) ClearReason() {
+	m.reason = nil
+	m.clearedFields[blockedip.FieldReason] = struct{}{}
+}
+
+// ReasonCleared returns if the "reason" field was cleared in this mutation.
+func (m *BlockedIPMutation) ReasonCleared() bool {
+	_, ok := m.clearedFields[blockedip.FieldReason]
+	return ok
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *BlockedIPMutation) ResetReason() {
+	m.reason = nil
+	delete(m.clearedFields, blockedip.FieldReason)
+}
+
+// Where appends a list predicates to the BlockedIPMutation builder.
+func (m *BlockedIPMutation) Where(ps ...predicate.BlockedIP) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the BlockedIPMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *BlockedIPMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.BlockedIP, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *BlockedIPMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *BlockedIPMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (BlockedIP).
+func (m *BlockedIPMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *BlockedIPMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.ip != nil {
+		fields = append(fields, blockedip.FieldIP)
+	}
+	if m.strikes != nil {
+		fields = append(fields, blockedip.FieldStrikes)
+	}
+	if m.block_expires_at != nil {
+		fields = append(fields, blockedip.FieldBlockExpiresAt)
+	}
+	if m.reason != nil {
+		fields = append(fields, blockedip.FieldReason)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *BlockedIPMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case blockedip.FieldIP:
+		return m.IP()
+	case blockedip.FieldStrikes:
+		return m.Strikes()
+	case blockedip.FieldBlockExpiresAt:
+		return m.BlockExpiresAt()
+	case blockedip.FieldReason:
+		return m.Reason()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *BlockedIPMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case blockedip.FieldIP:
+		return m.OldIP(ctx)
+	case blockedip.FieldStrikes:
+		return m.OldStrikes(ctx)
+	case blockedip.FieldBlockExpiresAt:
+		return m.OldBlockExpiresAt(ctx)
+	case blockedip.FieldReason:
+		return m.OldReason(ctx)
+	}
+	return nil, fmt.Errorf("unknown BlockedIP field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BlockedIPMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case blockedip.FieldIP:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIP(v)
+		return nil
+	case blockedip.FieldStrikes:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStrikes(v)
+		return nil
+	case blockedip.FieldBlockExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlockExpiresAt(v)
+		return nil
+	case blockedip.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BlockedIP field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *BlockedIPMutation) AddedFields() []string {
+	var fields []string
+	if m.addstrikes != nil {
+		fields = append(fields, blockedip.FieldStrikes)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *BlockedIPMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case blockedip.FieldStrikes:
+		return m.AddedStrikes()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BlockedIPMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case blockedip.FieldStrikes:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStrikes(v)
+		return nil
+	}
+	return fmt.Errorf("unknown BlockedIP numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *BlockedIPMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(blockedip.FieldBlockExpiresAt) {
+		fields = append(fields, blockedip.FieldBlockExpiresAt)
+	}
+	if m.FieldCleared(blockedip.FieldReason) {
+		fields = append(fields, blockedip.FieldReason)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *BlockedIPMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *BlockedIPMutation) ClearField(name string) error {
+	switch name {
+	case blockedip.FieldBlockExpiresAt:
+		m.ClearBlockExpiresAt()
+		return nil
+	case blockedip.FieldReason:
+		m.ClearReason()
+		return nil
+	}
+	return fmt.Errorf("unknown BlockedIP nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *BlockedIPMutation) ResetField(name string) error {
+	switch name {
+	case blockedip.FieldIP:
+		m.ResetIP()
+		return nil
+	case blockedip.FieldStrikes:
+		m.ResetStrikes()
+		return nil
+	case blockedip.FieldBlockExpiresAt:
+		m.ResetBlockExpiresAt()
+		return nil
+	case blockedip.FieldReason:
+		m.ResetReason()
+		return nil
+	}
+	return fmt.Errorf("unknown BlockedIP field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *BlockedIPMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *BlockedIPMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *BlockedIPMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *BlockedIPMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *BlockedIPMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *BlockedIPMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *BlockedIPMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown BlockedIP unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *BlockedIPMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown BlockedIP edge %s", name)
+}
 
 // CommentMutation represents an operation that mutates the Comment nodes in the graph.
 type CommentMutation struct {

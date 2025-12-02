@@ -236,7 +236,7 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err err
 		return
 	}
 	// Add a human readable timestamp to the filename to make it unique
-	timeStamp := time.Now().Format("2006-01-02_15-04-05")
+	timeStamp := time.Now().Format("2006-01-02_15-04-05.000")
 	path := "pdf/" + timeStamp + "_" + name[0] + "." + name[len(name)-1]
 	_, err = os.Stat(dir + "/pdf")
 	if errors.Is(err, os.ErrNotExist) {
@@ -398,6 +398,11 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	// If some fields are omitted in the multipart form (e.g. Description),
 	// preserve existing values from the DB to avoid ent validator failures
 	// on partial updates.
+	if item.Name == "" {
+		if existing, err := database.Db.GetItem(ItemID); err == nil {
+			item.Name = existing.Name
+		}
+	}
 	if item.Description == "" {
 		if existing, err := database.Db.GetItem(ItemID); err == nil {
 			item.Description = existing.Description
@@ -417,7 +422,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	pdfId, err := handleItemPDF(w, r)
 	if err != nil {
-		log.Error("CreateItem: handleItemPDF failed ", err)
+		log.Error("UpdateItem: handleItemPDF failed ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}

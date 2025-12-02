@@ -188,10 +188,10 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 	}
 	group, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, groupName)
 	if err != nil {
-		log.Errorf("Error getting group by path %s", groupName)
+		log.Errorf("AssignGroup: Error getting group by path %s", groupName)
 		return err
 	}
-	log.Infof("Assigning user to group %s %s %s", userID, *group.ID, groupName)
+	log.Infof("AssignGroup: Assigning user to group %s %s %s", userID, *group.ID, groupName)
 	return k.Client.AddUserToGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID)
 }
 
@@ -443,7 +443,7 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, newUser bool, e
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
-		log.Info("GetOrCreateUser: User does not exist we create one ", email)
+		log.Info("GetOrCreateUser: User does not exist we create one ", email, err)
 		// User does not exist
 		password := utils.RandomString(10)
 		user, err := k.CreateUser(email, email, "", email, password)

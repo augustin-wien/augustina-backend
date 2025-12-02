@@ -222,30 +222,30 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	var transactionVerificationResponse TransactionVerificationResponse
 	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionID, false)
 	if err != nil {
-		log.Error("TransactionID could not be verified: ", err)
+		log.Error("HandlePaymentSuccessfulResponse: TransactionID could not be verified: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
 		return err
 	}
 
 	// 1. Check: Verify that webhook request and API response match all three fields
 
 	if transactionVerificationResponse.OrderCode != paymentSuccessful.EventData.OrderCode {
-		return errors.New("order code mismatch")
+		return errors.New("HandlePaymentSuccessfulResponse: order code mismatch")
 	}
 
 	if transactionVerificationResponse.Amount != paymentSuccessful.EventData.Amount {
 		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
 		webhookToFloat64 := fmt.Sprintf("%f", paymentSuccessful.EventData.Amount)
-		return errors.New("amount mismatch: " + transactionToFloat64 + " vs " + webhookToFloat64)
+		return errors.New("HandlePaymentSuccessfulResponse: amount mismatch: " + transactionToFloat64 + " vs " + webhookToFloat64 + " with transaction id " + paymentSuccessful.EventData.TransactionID)
 	}
 
 	if transactionVerificationResponse.StatusID != paymentSuccessful.EventData.StatusID {
-		return errors.New("status id mismatch")
+		return errors.New("HandlePaymentSuccessfulResponse: status id mismatch")
 	}
 
 	// 2. Check: Verify that order can be found by ordercode and order is not already set verified in database
-	order, err := database.Db.GetOrderByOrderCode(paymentSuccessful.EventData.OrderCode)
+	order, err := database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentSuccessful.EventData.OrderCode, 10))
 	if err != nil {
-		log.Error("Getting order from database failed: ", err)
+		log.Error("HandlePaymentSuccessfulResponse: Getting order from database failed: ", err, " for order code ", paymentSuccessful.EventData.OrderCode)
 	}
 
 	if order.Verified {
@@ -274,7 +274,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		}
 		item, err := database.Db.GetItem(entry.Item) // Get item by ID
 		if err != nil {
-			log.Error("Item could not be found", zap.Error(err))
+			log.Error("HandlePaymentSuccessfulResponse: Item could not be found", zap.Error(err))
 		}
 
 		if item.IsLicenseItem {
@@ -417,14 +417,14 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	// Read the response
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Error("reading body failed: ", err)
+		log.Error("VerifyTransactionID: reading body failed: ", err)
 		return transactionVerificationResponse, err
 	}
 
 	// Unmarshal response body to struct
 	err = json.Unmarshal(body, &transactionVerificationResponse)
 	if err != nil {
-		log.Error("Unmarshalling body failed: ", err)
+		log.Error("VerifyTransactionID: Unmarshalling body failed: ", err)
 		return transactionVerificationResponse, err
 	}
 
@@ -436,13 +436,13 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	// Only check isOrderVerified status if checkDBStatus is true
 	if checkDBStatus {
 		// 2. Check: Verify that transaction has been verified in database
-		order, err := database.Db.GetOrderByOrderCode(transactionVerificationResponse.OrderCode)
+		order, err := database.Db.GetOrderByOrderCode(strconv.FormatInt(transactionVerificationResponse.OrderCode, 10))
 		if err != nil {
-			log.Error("Getting order from database failed: ", err)
+			log.Error("VerifyTransactionID: Getting order from database failed: ", err, " for order code ", transactionVerificationResponse.OrderCode)
 			return transactionVerificationResponse, err
 		}
 		if !order.Verified {
-			log.Info("Order has not been verified in database but needs to be for frontend call")
+			log.Info("VerifyTransactionID: Order has not been verified in database but needs to be for frontend call")
 			return transactionVerificationResponse, errors.New("order has not been verified in database but needs to be for frontend call")
 		}
 	}
@@ -463,14 +463,14 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
 	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionID, false)
 	if err != nil {
-		log.Error("TransactionID could not be verified: ", err)
+		log.Error("HandlePaymentPriceResponse: TransactionID could not be verified: ", err)
 		return err
 	}
 
 	// 2. Check: Verify that order can be found by ordercode
-	order, err := database.Db.GetOrderByOrderCode(paymentPrice.EventData.OrderCode)
+	order, err := database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentPrice.EventData.OrderCode, 10))
 	if err != nil {
-		log.Error("Getting order from database failed: ", err)
+		log.Error("HandlePaymentPriceResponse: Getting order from database failed: ", err, " for order code ", paymentPrice.EventData.OrderCode)
 		return err
 	}
 
@@ -483,7 +483,7 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	// Create order entries for transaction costs
 	err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
 	if err != nil {
-		log.Error("Creating transaction costs failed: ", err)
+		log.Error("HandlePaymentPriceResponse: Creating transaction costs failed: ", err)
 		return err
 	}
 

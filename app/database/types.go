@@ -90,12 +90,13 @@ type Order struct {
 	OrderCode         null.String
 	TransactionID     string
 	Verified          bool
+	VerifiedAt        null.Time
 	TransactionTypeID int
 	Timestamp         time.Time
 	User              null.String `db:"userid"` // Keycloak UUID if user is authenticated
 	Vendor            int
 	Entries           []OrderEntry
-	CustomerEmail     null.String
+	CustomerEmail     null.String `db:"customeremail"`
 }
 
 // OrderEntry is a struct that is used for the order_entry table

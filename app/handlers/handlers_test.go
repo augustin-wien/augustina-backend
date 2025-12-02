@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"mime/multipart"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -717,10 +719,14 @@ func TestOrders(t *testing.T) {
 	var respMap map[string]string
 	err = json.Unmarshal(res4.Body.Bytes(), &respMap)
 	utils.CheckError(t, err)
-	url := respMap["SmartCheckoutURL"]
+	checkoutURL := respMap["SmartCheckoutURL"]
 	// In test mode we may get either the real Viva wallet URL or a local test URL.
 	// Assert it's a URL that indicates a checkout/success redirect.
-	require.True(t, strings.Contains(url, "checkout") || strings.Contains(url, "success"))
+	require.True(t, strings.Contains(checkoutURL, "checkout") || strings.Contains(checkoutURL, "success"))
+
+	parsedURL, err := url.Parse(checkoutURL)
+	utils.CheckError(t, err)
+	orderCode := parsedURL.Query().Get("s")
 
 	// Check if order was created
 	orders, _ = database.Db.GetOrders()
@@ -759,7 +765,7 @@ func TestOrders(t *testing.T) {
 		errc <- e
 	}()
 
-	resSuccess := utils.TestRequestStr(t, r, "GET", "/api/orders/verify/?s=0&t=0", "", 200)
+	resSuccess := utils.TestRequestStr(t, r, "GET", "/api/orders/verify/?s="+orderCode+"&t=0", "", 200)
 	require.Equal(t, strings.Contains(resSuccess.Body.String(), vendorLicenseId), true)
 
 	// Wait for the background verification to finish and check its error
@@ -1513,4 +1519,79 @@ func TestVendorsOverview(t *testing.T) {
 	// Clean up after test
 	keycloak.KeycloakClient.DeleteUser(vendorEmail)
 	keycloak.KeycloakClient.DeleteUser(randomUserEmail)
+}
+
+func TestListUnverifiedOrders(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	// Save original config
+	originalDebugPayments := config.Config.DEBUG_payments
+	defer func() {
+		config.Config.DEBUG_payments = originalDebugPayments
+	}()
+
+	config.Config.DEBUG_payments = true
+
+	// Initialize database and empty it
+	err := database.Db.InitEmptyTestDb()
+	require.NoError(t, err)
+
+	// Create Vendor
+	vendorLicenseID := "testunverifiedorders"
+	createTestVendor(t, vendorLicenseID)
+
+	// Create Item
+	itemIDStr := CreateTestItem(t, "Test Item", 100, "", "")
+	itemID, _ := strconv.Atoi(itemIDStr)
+
+	// Create Unverified Order
+	reqData := createOrderRequest{
+		Entries: []createOrderRequestEntry{
+			{Item: itemID, Quantity: 1},
+		},
+		VendorLicenseID: vendorLicenseID,
+		CustomerEmail:   null.StringFrom("unverified@example.com"),
+	}
+	utils.TestRequest(t, r, "POST", "/api/orders/", reqData, 200)
+
+	// Create Verified Order
+	reqDataVerified := createOrderRequest{
+		Entries: []createOrderRequestEntry{
+			{Item: itemID, Quantity: 1},
+		},
+		VendorLicenseID: vendorLicenseID,
+		CustomerEmail:   null.StringFrom("verified@example.com"),
+	}
+	resVerified := utils.TestRequest(t, r, "POST", "/api/orders/", reqDataVerified, 200)
+	var responseVerified createOrderResponse
+	err = json.Unmarshal(resVerified.Body.Bytes(), &responseVerified)
+	require.NoError(t, err)
+
+	// Parse URL to get OrderCode
+	u, err := url.Parse(responseVerified.SmartCheckoutURL)
+	require.NoError(t, err)
+	orderCode := u.Query().Get("s")
+	require.NotEmpty(t, orderCode)
+
+	// Get Order ID from DB
+	orderVerified, err := database.Db.GetOrderByOrderCode(orderCode)
+	require.NoError(t, err)
+
+	t.Logf("Verified Order ID: %d", orderVerified.ID)
+
+	// Manually verify the second order
+	tag, err := database.Db.Dbpool.Exec(context.Background(), "UPDATE PaymentOrder SET verified = true WHERE id = $1", orderVerified.ID)
+	require.NoError(t, err)
+	t.Logf("Rows affected: %d", tag.RowsAffected())
+
+	// Test List Unverified Orders
+	res := utils.TestRequestWithAuth(t, r, "GET", "/api/orders/unverified/", nil, 200, adminUserToken)
+
+	var orders []database.Order
+	err = json.Unmarshal(res.Body.Bytes(), &orders)
+	require.NoError(t, err)
+
+	require.Len(t, orders, 1)
+	require.Equal(t, "unverified@example.com", orders[0].CustomerEmail.String)
 }

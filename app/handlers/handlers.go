@@ -137,6 +137,27 @@ func hasDuplicitValues(m map[int]int) bool {
 //	    @Param		    data body createOrderRequest true "Payment Order"
 //		@Success		200 {object} createOrderResponse
 //		@Router			/orders/ [post]
+//
+// ListUnverifiedOrders godoc
+//
+//	@Summary		List unverified orders
+//	@Description	List all unverified orders
+//	@Tags			Orders
+//	@Accept			json
+//	@Produce		json
+//	@Security		KeycloakAuth
+//	@Router			/orders/unverified/ [get]
+//
+// ListUnverifiedOrders API Handler fetching data from database
+func ListUnverifiedOrders(w http.ResponseWriter, r *http.Request) {
+	orders, err := database.Db.GetUnverifiedOrders()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	respond(w, nil, orders)
+}
+
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Read payment order from request
@@ -144,9 +165,12 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	var order database.Order
 	err := utils.ReadJSON(w, r, &requestData)
 	if err != nil {
+		log.Error("CreatePaymentOrder: ReadJSON: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+
+	order.CustomerEmail = requestData.CustomerEmail
 
 	// Security checks for entries
 	for _, entry := range requestData.Entries {
@@ -315,7 +339,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	// Submit order to vivawallet (disabled in tests)
 	var OrderCode string = "0"
-	if database.Db.IsProduction {
+	if database.Db.IsProduction || config.Config.DEBUG_payments {
 
 		if config.Config.DEBUG_payments {
 			log.Info("DEBUG_payments is enabled, skipping payment order creation")
@@ -339,11 +363,12 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Save order to database
 	order.OrderCode.String = OrderCode
 	order.OrderCode.Valid = true // This means that it is not null
-	_, err = database.Db.CreateOrder(order)
+	id, err := database.Db.CreateOrder(order)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	order.ID = id
 
 	// Check if VivaWalletSmartCheckoutURL is set
 	if config.Config.VivaWalletSmartCheckoutURL == "" {
@@ -433,6 +458,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	// Get payment order from database
 	order, err := database.Db.GetOrderByOrderCode(OrderCode)
 	if err != nil {
+		log.Error("VerifyPaymentOrder: GetOrderByOrderCode: ", err, OrderCode)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -451,15 +477,16 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		log.Infof("VerifyPaymentOrder: Verifying transaction in development mode for TransactionID %s", TransactionID)
 		err = database.Db.VerifyOrderAndCreatePayments(order.ID, 0)
 		if err != nil {
+			log.Error("VerifyPaymentOrder: VerifyOrderAndCreatePayments: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 		}
 	}
 
 	// Make sure that transaction timestamp is not older than 15 minutes (900 seconds) to time.Now()
-	if time.Since(order.Timestamp) > 900*time.Second {
-		utils.ErrorJSON(w, errors.New("transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
-		return
-	}
+	// if time.Since(order.Timestamp) > 900*time.Second {
+	// 	utils.ErrorJSON(w, errors.New("transaction timestamp is older than 15 minutes"), http.StatusBadRequest)
+	// 	return
+	// }
 
 	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
 
@@ -758,12 +785,14 @@ func CreatePayment(w http.ResponseWriter, r *http.Request) {
 	var payment database.Payment
 	err := utils.ReadJSON(w, r, &payment)
 	if err != nil {
+		log.Error("CreatePayment: ReadJSON: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	paymentID, err := database.Db.CreatePayment(payment)
 	if err != nil {
+		log.Error("CreatePayment: CreatePayment: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -793,12 +822,14 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 	var paymentBatch createPaymentsRequest
 	err := utils.ReadJSON(w, r, &paymentBatch)
 	if err != nil {
+		log.Error("CreatePayments: parse JSON ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	err = database.Db.CreatePayments(paymentBatch.Payments)
 	if err != nil {
+		log.Error("CreatePayments: db", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -920,7 +951,7 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 	var paymentSuccessful paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
-		log.Info("Reading JSON failed for webhook: ", err)
+		log.Info("VivaWalletWebhookSuccess: Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -954,7 +985,7 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 	var paymentFailure paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentFailure)
 	if err != nil {
-		log.Info("Reading JSON failed for webhook: ", err)
+		log.Info("VivaWalletWebhookFailure: Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -992,14 +1023,14 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 	var paymentPrice paymentprovider.TransactionPriceRequest
 	err := utils.ReadJSON(w, r, &paymentPrice)
 	if err != nil {
-		log.Info("Reading JSON failed for webhook: ", err)
+		log.Info("VivaWalletWebhookPrice: Reading JSON failed for webhook: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
 	if err != nil {
-		log.Error("VivaWalletWebhookPrice: ", err)
+		log.Error("VivaWalletWebhookPrice: handle payment price response failed: ", err, paymentPrice)
 		return
 	}
 
@@ -1008,7 +1039,7 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
-		log.Error("VivaWalletWebhookPrice: ", err)
+		log.Error("VivaWalletWebhookPrice: failed to write json: ", err)
 	}
 }
 

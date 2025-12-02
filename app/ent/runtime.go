@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/pdf"
@@ -15,6 +16,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	blockedipFields := schema.BlockedIP{}.Fields()
+	_ = blockedipFields
+	// blockedipDescIP is the schema descriptor for ip field.
+	blockedipDescIP := blockedipFields[0].Descriptor()
+	// blockedip.IPValidator is a validator for the "ip" field. It is called by the builders before save.
+	blockedip.IPValidator = blockedipDescIP.Validators[0].(func(string) error)
+	// blockedipDescStrikes is the schema descriptor for strikes field.
+	blockedipDescStrikes := blockedipFields[1].Descriptor()
+	// blockedip.DefaultStrikes holds the default value on creation for the strikes field.
+	blockedip.DefaultStrikes = blockedipDescStrikes.Default.(int)
 	itemFields := schema.Item{}.Fields()
 	_ = itemFields
 	// itemDescName is the schema descriptor for Name field.

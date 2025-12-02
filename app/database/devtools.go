@@ -2,6 +2,7 @@ package database
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
@@ -114,6 +115,50 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		return
 	}
 
+	// Create newspaper with PDF
+	digitalNewspaperLicense2 := Item{
+		Name:          "Digitale Zeitung (Lizenz) 2",
+		Description:   "Lizenz für digitale Zeitungsausgabe 2",
+		Price:         50,
+		Archived:      false,
+		IsLicenseItem: true,
+		Image:         "123",
+	}
+
+	digitalNewspaperLicenseID2, err := db.CreateItem(digitalNewspaperLicense2)
+	if err != nil {
+		log.Error("createDevItems: ", err)
+		return
+	}
+
+	pdf := PDF{
+		Path:      "test.pdf",
+		Timestamp: time.Now(),
+	}
+	pdfID, err := db.CreatePDF(pdf)
+	if err != nil {
+		log.Error("createDevItems PDF creation failed: ", err)
+		return
+	}
+
+	digitalNewspaperWithPDF := Item{
+		Name:         "Digitale Zeitung (PDF)",
+		Description:  "Digitale Zeitungsausgabe mit PDF",
+		Price:        300,
+		LicenseItem:  null.NewInt(int64(digitalNewspaperLicenseID2), true),
+		Archived:     false,
+		LicenseGroup: null.NewString("testedition", true),
+		Image:        "123",
+		PDF:          null.NewInt(int64(pdfID), true),
+		IsPDFItem:    true,
+	}
+
+	_, err = db.CreateItem(digitalNewspaperWithPDF)
+	if err != nil {
+		log.Error("Dev newspaper with PDF creation failed ", zap.Error(err))
+		return
+	}
+
 	return ids, err
 }
 
@@ -124,6 +169,8 @@ func (db *Database) createDevItems() (ids []int, err error) {
 // item[3] = Digital newspaper license
 // item[4] = Digital newspaper
 // item[5] = Calendar
+// item[6] = Digital newspaper license 2
+// item[7] = Digital newspaper (PDF)
 
 // CreateDevOrdersAndPayments creates test orders and payments
 // This function replicates what happens in CreateOrder handler

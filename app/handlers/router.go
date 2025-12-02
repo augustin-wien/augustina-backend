@@ -27,6 +27,14 @@ func GetRouter() (r *chi.Mux) {
 	// Add request IDs and structured request logging middleware
 	r.Use(middleware.RequestID)
 	r.Use(middlewares.RequestLogger)
+
+	// Security middlewares: Block suspicious IPs and requests
+	r.Use(middlewares.FilterBlockedIPs)
+	r.Use(middlewares.BlockSuspiciousRequests)
+	r.Use(middlewares.BlockBadUserAgents)
+	r.Use(middlewares.BlockFakeBrowsers)
+	r.Use(middlewares.BlockMaliciousPatterns)
+
 	// Basic rate limiting: limit by IP to 100 requests per minute (tunable)
 	r.Use(httprate.LimitByIP(500, 1*time.Minute))
 
@@ -176,6 +184,11 @@ func GetRouter() (r *chi.Mux) {
 	r.Route("/api/orders", func(r chi.Router) {
 		r.Post("/", CreatePaymentOrder)
 		r.Get("/verify/", VerifyPaymentOrder)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/unverified/", ListUnverifiedOrders)
+		})
 	})
 
 	// Payments

@@ -43,6 +43,11 @@ update-docker-containers:
 	@docker pull node:24
 	@echo "Docker containers updated."
 
+test:
+	@echo "Running tests..."
+	@cd app && go test ./...
+	@echo "Tests passed."
+
 build: build-frontend build-backend
 
 push: push-frontend push-backend
