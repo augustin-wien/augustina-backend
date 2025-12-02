@@ -142,15 +142,15 @@ func (db *Database) createDevItems() (ids []int, err error) {
 	}
 
 	digitalNewspaperWithPDF := Item{
-		Name:          "Digitale Zeitung (PDF)",
-		Description:   "Digitale Zeitungsausgabe mit PDF",
-		Price:         300,
-		LicenseItem:   null.NewInt(int64(digitalNewspaperLicenseID2), true),
-		Archived:      false,
-		LicenseGroup:  null.NewString("testedition", true),
-		Image:         "123",
-		PDF:           null.NewInt(int64(pdfID), true),
-		IsPDFItem:     true,
+		Name:         "Digitale Zeitung (PDF)",
+		Description:  "Digitale Zeitungsausgabe mit PDF",
+		Price:        300,
+		LicenseItem:  null.NewInt(int64(digitalNewspaperLicenseID2), true),
+		Archived:     false,
+		LicenseGroup: null.NewString("testedition", true),
+		Image:        "123",
+		PDF:          null.NewInt(int64(pdfID), true),
+		IsPDFItem:    true,
 	}
 
 	_, err = db.CreateItem(digitalNewspaperWithPDF)
