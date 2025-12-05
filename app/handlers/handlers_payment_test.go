@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
@@ -112,4 +113,103 @@ func TestCreatePaymentOrder_LargeOrderCode(t *testing.T) {
 
 	// Also verify it didn't become ...772
 	require.NotContains(t, resp.SmartCheckoutURL, "9995519122790772")
+}
+
+func TestVerifyPaymentOrder_SavesTransactionID(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	// Initialize database and empty it
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+
+	// Create Vendor
+	vendorLicenseID := "testverifytransaction"
+	createTestVendor(t, vendorLicenseID)
+	vendor, err := database.Db.GetVendorByLicenseID(vendorLicenseID)
+	require.NoError(t, err)
+
+	// Create Order
+	orderCode := "1234567890"
+	order := database.Order{
+		OrderCode:     null.StringFrom(orderCode),
+		Vendor:        vendor.ID,
+		Timestamp:     time.Now(),
+		CustomerEmail: null.StringFrom("test@example.com"),
+	}
+	orderID, err := database.Db.CreateOrder(order)
+	require.NoError(t, err)
+	require.NotZero(t, orderID)
+
+	// Mock VivaWallet Server (needed if verification logic is triggered)
+	// However, in development mode (which tests usually run in), verification might be skipped or mocked differently.
+	// Let's check handlers.go:
+	// if database.Db.IsProduction && !config.Config.Development && !config.Config.DEBUG_payments { ... VerifyTransactionID ... }
+	// if config.Config.Development { ... VerifyOrderAndCreatePayments ... }
+
+	// We want to test that TransactionID is saved regardless of verification outcome,
+	// but the handler returns early if verification fails in production mode.
+	// In development mode, it proceeds to VerifyOrderAndCreatePayments.
+
+	// Let's simulate development mode to avoid external calls and focus on saving TransactionID.
+	originalDevelopment := config.Config.Development
+	config.Config.Development = true
+	defer func() { config.Config.Development = originalDevelopment }()
+
+	transactionID := "test-transaction-id-123"
+	url := "/api/orders/verify/?s=" + orderCode + "&t=" + transactionID
+
+	// Execute Request
+	utils.TestRequest(t, r, "GET", url, nil, 200)
+
+	// Verify TransactionID is saved in database
+	updatedOrder, err := database.Db.GetOrderByOrderCode(orderCode)
+	require.NoError(t, err)
+	require.Equal(t, transactionID, updatedOrder.TransactionID)
+}
+
+func TestAdminAddTransactionIDToOrder(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	// Initialize database and empty it
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+
+	// Create Vendor
+	vendorLicenseID := "testadminaddtx"
+	createTestVendor(t, vendorLicenseID)
+	vendor, err := database.Db.GetVendorByLicenseID(vendorLicenseID)
+	require.NoError(t, err)
+
+	// Create Order
+	orderCode := "9876543210"
+	order := database.Order{
+		OrderCode:     null.StringFrom(orderCode),
+		Vendor:        vendor.ID,
+		Timestamp:     time.Now(),
+		CustomerEmail: null.StringFrom("test@example.com"),
+	}
+	orderID, err := database.Db.CreateOrder(order)
+	require.NoError(t, err)
+	require.NotZero(t, orderID)
+
+	// Prepare Request
+	transactionID := "manual-tx-id-999"
+	reqData := addTransactionIDRequest{
+		TransactionID: transactionID,
+	}
+
+	// Execute Request
+	url := "/api/orders/unverified/code/" + orderCode + "/transactionID/"
+	utils.TestRequestWithAuth(t, r, "POST", url, reqData, 200, adminUserToken)
+
+	// Verify TransactionID is saved in database
+	updatedOrder, err := database.Db.GetOrderByOrderCode(orderCode)
+	require.NoError(t, err)
+	require.Equal(t, transactionID, updatedOrder.TransactionID)
 }

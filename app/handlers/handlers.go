@@ -463,6 +463,15 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Infof("VerifyPaymentOrder: Verifying order with OrderCode %s and TransactionID %s", OrderCode, TransactionID)
+
+	// Save transaction ID
+	err = database.Db.SetOrderTransactionID(order.ID, TransactionID)
+	if err != nil {
+		log.Error("VerifyPaymentOrder: SetOrderTransactionID: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
 	if database.Db.IsProduction && !config.Config.Development && !config.Config.DEBUG_payments {
 		// Verify transaction
 		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
@@ -527,6 +536,161 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	err = utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
 	if err != nil {
 		log.Error("VerifyPaymentOrder: ", err)
+	}
+}
+
+// AdminVerifyPaymentOrderByCode godoc
+//
+//	 	@Summary 		Verify Payment Order by Code (Admin)
+//		@Description	Verifies order and creates payments manually
+//		@Tags			Orders
+//		@Accept			json
+//		@Produce		json
+//		@Param			orderCode path string true "Order Code"
+//		@Success		200 {object} VerifyPaymentOrderResponse
+//		@Security		KeycloakAuth
+//		@Security		KeycloakAuth
+//		@Router			/orders/unverified/code/{orderCode}/verify/ [get]
+func AdminVerifyPaymentOrderByCode(w http.ResponseWriter, r *http.Request) {
+	// Get orderCode from URL parameter
+	orderCode := chi.URLParam(r, "orderCode")
+	if orderCode == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter orderCode"), http.StatusBadRequest)
+		return
+	}
+
+	// Get payment order from database
+	order, err := database.Db.GetOrderByOrderCode(orderCode)
+	if err != nil {
+		log.Error("AdminVerifyPaymentOrderByCode: GetOrderByOrderCode: ", err, orderCode)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if order.Verified {
+		utils.ErrorJSON(w, errors.New("order already verified"), http.StatusBadRequest)
+		return
+	}
+
+	transactionTypeID := 0 // Default to 0 (unknown/manual)
+
+	// If transaction ID is present, try to verify with VivaWallet to get correct TransactionTypeID
+	if order.TransactionID != "" {
+		// Verify transaction
+		verificationResponse, err := paymentprovider.VerifyTransactionID(order.TransactionID, false)
+		if err == nil {
+			transactionTypeID = verificationResponse.TransactionTypeID
+		} else {
+			log.Warn("AdminVerifyPaymentOrderByCode: Could not verify transaction with VivaWallet, proceeding with default type: ", err)
+		}
+	} else {
+		log.Warn("AdminVerifyPaymentOrderByCode: No TransactionID present")
+		utils.ErrorJSON(w, errors.New("no TransactionID present"), http.StatusBadRequest)
+
+		return
+	}
+
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, transactionTypeID)
+	if err != nil {
+		log.Error("AdminVerifyPaymentOrderByCode: VerifyOrderAndCreatePayments: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Construct response (similar to VerifyPaymentOrder)
+	var verifyPaymentOrderResponse VerifyPaymentOrderResponse
+	verifyPaymentOrderResponse.TimeStamp = order.Timestamp
+	for _, entry := range order.Entries {
+		if entry.IsSale {
+			verifyPaymentOrderResponse.PurchasedItems = append(verifyPaymentOrderResponse.PurchasedItems, entry)
+		}
+	}
+	verifyPaymentOrderResponse.TotalSum = order.GetTotal()
+	verifyPaymentOrderResponse.PDFDownloadLinks = order.GetPDFDownloadLinks()
+
+	vendor, err := database.Db.GetVendor(order.Vendor)
+	if err != nil {
+		log.Error("Getting vendor's first name failed: ", err)
+		return
+	}
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		log.Error("Getting settings failed: ", err)
+		return
+	}
+	if settings.UseVendorLicenseIdInShop {
+		verifyPaymentOrderResponse.FirstName = vendor.LicenseID.String
+	} else {
+		verifyPaymentOrderResponse.FirstName = vendor.FirstName
+	}
+
+	err = utils.WriteJSON(w, http.StatusOK, verifyPaymentOrderResponse)
+	if err != nil {
+		log.Error("AdminVerifyPaymentOrderByCode: ", err)
+	}
+}
+
+type addTransactionIDRequest struct {
+	TransactionID string `json:"transactionID"`
+}
+
+// AdminAddTransactionIDToOrder godoc
+//
+//	 	@Summary 		Add Transaction ID to Order (Admin)
+//		@Description	Manually adds a transaction ID to an unverified order
+//		@Tags			Orders
+//		@Accept			json
+//		@Produce		json
+//		@Param			orderCode path string true "Order Code"
+//		@Param			body body addTransactionIDRequest true "Transaction ID"
+//		@Success		200
+//		@Security		KeycloakAuth
+//		@Security		KeycloakAuth
+//		@Router			/orders/unverified/code/{orderCode}/transactionID [post]
+func AdminAddTransactionIDToOrder(w http.ResponseWriter, r *http.Request) {
+	// Get orderCode from URL parameter
+	orderCode := chi.URLParam(r, "orderCode")
+	if orderCode == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter orderCode"), http.StatusBadRequest)
+		return
+	}
+
+	var req addTransactionIDRequest
+	err := utils.ReadJSON(w, r, &req)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if req.TransactionID == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter transactionID"), http.StatusBadRequest)
+		return
+	}
+
+	// Get payment order from database
+	order, err := database.Db.GetOrderByOrderCode(orderCode)
+	if err != nil {
+		log.Error("AdminAddTransactionIDToOrder: GetOrderByOrderCode: ", err, orderCode)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if order.Verified {
+		utils.ErrorJSON(w, errors.New("order already verified"), http.StatusBadRequest)
+		return
+	}
+
+	// Save transaction ID
+	err = database.Db.SetOrderTransactionID(order.ID, req.TransactionID)
+	if err != nil {
+		log.Error("AdminAddTransactionIDToOrder: SetOrderTransactionID: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = utils.WriteJSON(w, http.StatusOK, "Transaction ID updated")
+	if err != nil {
+		log.Error("AdminAddTransactionIDToOrder: ", err)
 	}
 }
 
