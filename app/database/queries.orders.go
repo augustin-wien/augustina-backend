@@ -299,6 +299,19 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	return
 }
 
+// SetOrderTransactionID sets the transaction ID for an order
+func (db *Database) SetOrderTransactionID(orderID int, transactionID string) (err error) {
+	_, err = db.Dbpool.Exec(context.Background(), `
+	UPDATE PaymentOrder
+	SET TransactionID = $1
+	WHERE ID = $2
+	`, transactionID, orderID)
+	if err != nil {
+		log.Error("SetOrderTransactionID: ", err)
+	}
+	return
+}
+
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
 func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID int) (err error) {

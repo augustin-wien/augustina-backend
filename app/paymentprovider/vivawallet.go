@@ -220,15 +220,31 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
-	transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionID, false)
+
+	// Retry verification to handle eventual consistency
+	for i := 0; i < 5; i++ {
+		transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionID, false)
+		if err != nil {
+			log.Error("HandlePaymentSuccessfulResponse: TransactionID could not be verified: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
+		} else {
+			// Check if OrderCode matches
+			if transactionVerificationResponse.OrderCode == paymentSuccessful.EventData.OrderCode {
+				break // Match found, proceed
+			}
+			log.Warnf("HandlePaymentSuccessfulResponse: order code mismatch (attempt %d): %d vs %d", i+1, transactionVerificationResponse.OrderCode, paymentSuccessful.EventData.OrderCode)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
 	if err != nil {
-		log.Error("HandlePaymentSuccessfulResponse: TransactionID could not be verified: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
+		log.Error("HandlePaymentSuccessfulResponse: Verifying transaction ID failed: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
 		return err
 	}
 
 	// 1. Check: Verify that webhook request and API response match all three fields
 
 	if transactionVerificationResponse.OrderCode != paymentSuccessful.EventData.OrderCode {
+		log.Errorf("HandlePaymentSuccessfulResponse: order code mismatch: %d vs %d with transaction id %s", transactionVerificationResponse.OrderCode, paymentSuccessful.EventData.OrderCode, paymentSuccessful.EventData.TransactionID)
 		return errors.New("HandlePaymentSuccessfulResponse: order code mismatch")
 	}
 
@@ -243,7 +259,15 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	}
 
 	// 2. Check: Verify that order can be found by ordercode and order is not already set verified in database
-	order, err := database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentSuccessful.EventData.OrderCode, 10))
+	var order database.Order
+	// Retry getting order from database to avoid race conditions
+	for i := 0; i < 5; i++ {
+		order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentSuccessful.EventData.OrderCode, 10))
+		if err == nil {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
 	if err != nil {
 		log.Error("HandlePaymentSuccessfulResponse: Getting order from database failed: ", err, " for order code ", paymentSuccessful.EventData.OrderCode)
 	}
@@ -468,7 +492,15 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	}
 
 	// 2. Check: Verify that order can be found by ordercode
-	order, err := database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentPrice.EventData.OrderCode, 10))
+	var order database.Order
+	// Retry getting order from database to avoid race conditions
+	for i := 0; i < 5; i++ {
+		order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentPrice.EventData.OrderCode, 10))
+		if err == nil {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
 	if err != nil {
 		log.Error("HandlePaymentPriceResponse: Getting order from database failed: ", err, " for order code ", paymentPrice.EventData.OrderCode)
 		return err
