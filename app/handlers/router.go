@@ -189,6 +189,7 @@ func GetRouter() (r *chi.Mux) {
 			r.Use(middlewares.AdminAuthMiddleware)
 			r.Get("/unverified/", ListUnverifiedOrders)
 			r.Get("/unverified/code/{orderCode}/verify/", AdminVerifyPaymentOrderByCode)
+			r.Post("/unverified/code/{orderCode}/transactionID/", AdminAddTransactionIDToOrder)
 		})
 	})
 

@@ -169,3 +169,47 @@ func TestVerifyPaymentOrder_SavesTransactionID(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, transactionID, updatedOrder.TransactionID)
 }
+
+func TestAdminAddTransactionIDToOrder(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	// Initialize database and empty it
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+
+	// Create Vendor
+	vendorLicenseID := "testadminaddtx"
+	createTestVendor(t, vendorLicenseID)
+	vendor, err := database.Db.GetVendorByLicenseID(vendorLicenseID)
+	require.NoError(t, err)
+
+	// Create Order
+	orderCode := "9876543210"
+	order := database.Order{
+		OrderCode:     null.StringFrom(orderCode),
+		Vendor:        vendor.ID,
+		Timestamp:     time.Now(),
+		CustomerEmail: null.StringFrom("test@example.com"),
+	}
+	orderID, err := database.Db.CreateOrder(order)
+	require.NoError(t, err)
+	require.NotZero(t, orderID)
+
+	// Prepare Request
+	transactionID := "manual-tx-id-999"
+	reqData := addTransactionIDRequest{
+		TransactionID: transactionID,
+	}
+
+	// Execute Request
+	url := "/api/orders/unverified/code/" + orderCode + "/transactionID/"
+	utils.TestRequestWithAuth(t, r, "POST", url, reqData, 200, adminUserToken)
+
+	// Verify TransactionID is saved in database
+	updatedOrder, err := database.Db.GetOrderByOrderCode(orderCode)
+	require.NoError(t, err)
+	require.Equal(t, transactionID, updatedOrder.TransactionID)
+}

@@ -630,6 +630,70 @@ func AdminVerifyPaymentOrderByCode(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type addTransactionIDRequest struct {
+	TransactionID string `json:"transactionID"`
+}
+
+// AdminAddTransactionIDToOrder godoc
+//
+//	 	@Summary 		Add Transaction ID to Order (Admin)
+//		@Description	Manually adds a transaction ID to an unverified order
+//		@Tags			Orders
+//		@Accept			json
+//		@Produce		json
+//		@Param			orderCode path string true "Order Code"
+//		@Param			body body addTransactionIDRequest true "Transaction ID"
+//		@Success		200
+//		@Security		KeycloakAuth
+//		@Security		KeycloakAuth
+//		@Router			/orders/unverified/code/{orderCode}/transactionID [post]
+func AdminAddTransactionIDToOrder(w http.ResponseWriter, r *http.Request) {
+	// Get orderCode from URL parameter
+	orderCode := chi.URLParam(r, "orderCode")
+	if orderCode == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter orderCode"), http.StatusBadRequest)
+		return
+	}
+
+	var req addTransactionIDRequest
+	err := utils.ReadJSON(w, r, &req)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if req.TransactionID == "" {
+		utils.ErrorJSON(w, errors.New("missing parameter transactionID"), http.StatusBadRequest)
+		return
+	}
+
+	// Get payment order from database
+	order, err := database.Db.GetOrderByOrderCode(orderCode)
+	if err != nil {
+		log.Error("AdminAddTransactionIDToOrder: GetOrderByOrderCode: ", err, orderCode)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if order.Verified {
+		utils.ErrorJSON(w, errors.New("order already verified"), http.StatusBadRequest)
+		return
+	}
+
+	// Save transaction ID
+	err = database.Db.SetOrderTransactionID(order.ID, req.TransactionID)
+	if err != nil {
+		log.Error("AdminAddTransactionIDToOrder: SetOrderTransactionID: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = utils.WriteJSON(w, http.StatusOK, "Transaction ID updated")
+	if err != nil {
+		log.Error("AdminAddTransactionIDToOrder: ", err)
+	}
+}
+
 // Payments (from one account to another account) -----------------------------
 
 func parseBool(value string) (bool, error) {
