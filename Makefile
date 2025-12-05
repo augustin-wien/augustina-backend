@@ -45,7 +45,7 @@ update-docker-containers:
 
 test:
 	@echo "Running tests..."
-	@cd app && go test ./...
+	@cd app && go test -p 1 ./...
 	@echo "Tests passed."
 
 build: build-frontend build-backend

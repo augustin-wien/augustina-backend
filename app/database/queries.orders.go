@@ -82,7 +82,7 @@ func (db *Database) DeleteOrderEntry(id int) (err error) {
 
 // GetOrders returns all orders from the database
 func (db *Database) GetOrders() (orders []Order, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT *, null as entries FROM PaymentOrder")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT *, null as entries FROM PaymentOrder ORDER BY Timestamp DESC")
 	if err != nil {
 		log.Error("GetOrders: ", err)
 		return orders, err
@@ -107,7 +107,7 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 
 // GetUnverifiedOrders returns all unverified orders from the database
 func (db *Database) GetUnverifiedOrders() (orders []Order, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT *, null as entries FROM PaymentOrder WHERE verified = false")
+	rows, err := db.Dbpool.Query(context.Background(), "SELECT *, null as entries FROM PaymentOrder WHERE verified = false ORDER BY Timestamp DESC")
 	if err != nil {
 		log.Error("GetUnverifiedOrders: ", err)
 		return orders, err

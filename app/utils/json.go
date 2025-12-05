@@ -88,6 +88,7 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	maxBytes := 1024 * 1024 // one megabyte
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 	dec := json.NewDecoder(r.Body)
+	dec.UseNumber()
 
 	// Use a map to decode into, allowing unknown fields
 	var m map[string]interface{}

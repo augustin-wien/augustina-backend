@@ -240,7 +240,18 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		log.Error("HandlePaymentSuccessfulResponse: Verifying transaction ID failed: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
 		return err
 	}
+	var order database.Order
 
+	order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(transactionVerificationResponse.OrderCode, 10))
+	if err != nil {
+		log.Error("HandlePaymentSuccessfulResponse: failed to get order", err)
+		return err
+	}
+	err = database.Db.SetOrderTransactionID(order.ID, paymentSuccessful.EventData.TransactionID)
+	if err != nil {
+		log.Error("HandlePaymentSuccessfulResponse: SetOrderTransactionID: ", err)
+		return err
+	}
 	// 1. Check: Verify that webhook request and API response match all three fields
 
 	if transactionVerificationResponse.OrderCode != paymentSuccessful.EventData.OrderCode {
@@ -259,7 +270,6 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	}
 
 	// 2. Check: Verify that order can be found by ordercode and order is not already set verified in database
-	var order database.Order
 	// Retry getting order from database to avoid race conditions
 	for i := 0; i < 5; i++ {
 		order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentSuccessful.EventData.OrderCode, 10))
