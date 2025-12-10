@@ -14,7 +14,7 @@ func TestRouterHealthReadyFlour(t *testing.T) {
 	origFrontend := config.Config.FrontendURL
 	origFlour := config.Config.FlourWebhookURL
 	config.Config.FrontendURL = "http://localhost"
-	config.Config.FlourWebhookURL = "http://example.com/flour"
+	config.Config.FlourWebhookURL = "http://localhost:8081/flour"
 	t.Cleanup(func() {
 		config.Config.FrontendURL = origFrontend
 		config.Config.FlourWebhookURL = origFlour
@@ -55,7 +55,7 @@ func TestHealthAndFlourEndpointsNotBlockedByUserAgent(t *testing.T) {
 	origFrontend := config.Config.FrontendURL
 	origFlour := config.Config.FlourWebhookURL
 	config.Config.FrontendURL = "http://localhost"
-	config.Config.FlourWebhookURL = "http://example.com/flour"
+	config.Config.FlourWebhookURL = "http://localhost:8081/flour"
 	t.Cleanup(func() {
 		config.Config.FrontendURL = origFrontend
 		config.Config.FlourWebhookURL = origFlour

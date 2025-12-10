@@ -10,3 +10,5 @@ docker-compose.production.yml
 
 docker/augustin-plugin-data/pdf-files/*
 docker/augustin-plugin-data/sample_data/*
+scripts/*.py
+scripts/*

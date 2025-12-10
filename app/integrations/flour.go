@@ -31,6 +31,8 @@ type Payload struct {
 func sendJSONToFlourWebhook(payload interface{}) error {
 	flourwebhookEndpoint := config.Config.FlourWebhookURL
 
+	log.Debugf("sendJSONToFlourWebhook: Sending payload to Flour webhook: %+v", payload)
+
 	// Convert payload to JSON
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
@@ -100,10 +102,17 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 	log.Info("SendPaymentToFlour: Sending payment to Flour for order ", id)
 	flourItems := make([]FlourPayloadItem, 0)
 	for _, item := range items {
+		itemPrice := item.Price
+		// If the receiver of the OrderEntry is not the Vendor, the price should be negative
+		if item.Receiver != vendor.ID {
+			itemPrice = -itemPrice
+			// subtract licence cost from total price for items not going to vendor
+			price = price - itemPrice
+		}
 		flourItems = append(flourItems, FlourPayloadItem{
 			ID:       item.Item,
 			Quantity: item.Quantity,
-			Price:    item.Price,
+			Price:    itemPrice,
 		})
 	}
 	// Create a new payload

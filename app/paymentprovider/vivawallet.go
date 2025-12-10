@@ -221,25 +221,39 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
 
-	// Retry verification to handle eventual consistency
-	for i := 0; i < 5; i++ {
-		transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionID, false)
-		if err != nil {
-			log.Error("HandlePaymentSuccessfulResponse: TransactionID could not be verified: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
-		} else {
-			// Check if OrderCode matches
-			if transactionVerificationResponse.OrderCode == paymentSuccessful.EventData.OrderCode {
-				break // Match found, proceed
+	// Check if this is a development simulation webhook
+	isSimulation := strings.HasPrefix(paymentSuccessful.EventData.TransactionID, "dev-simulation-")
+
+	// Skip VivaWallet verification for simulated webhooks in development mode
+	if !isSimulation {
+		// Retry verification to handle eventual consistency
+		for i := 0; i < 5; i++ {
+			transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionID, false)
+			if err != nil {
+				log.Error("HandlePaymentSuccessfulResponse: TransactionID could not be verified: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
+			} else {
+				// Check if OrderCode matches
+				if transactionVerificationResponse.OrderCode == paymentSuccessful.EventData.OrderCode {
+					break // Match found, proceed
+				}
+				log.Warnf("HandlePaymentSuccessfulResponse: order code mismatch (attempt %d): %d vs %d", i+1, transactionVerificationResponse.OrderCode, paymentSuccessful.EventData.OrderCode)
 			}
-			log.Warnf("HandlePaymentSuccessfulResponse: order code mismatch (attempt %d): %d vs %d", i+1, transactionVerificationResponse.OrderCode, paymentSuccessful.EventData.OrderCode)
+			time.Sleep(500 * time.Millisecond)
 		}
-		time.Sleep(500 * time.Millisecond)
+
+		if err != nil {
+			log.Error("HandlePaymentSuccessfulResponse: Verifying transaction ID failed: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
+			return err
+		}
+	} else {
+		// For simulated webhooks, use the webhook data directly
+		log.Info("HandlePaymentSuccessfulResponse: Skipping VivaWallet verification for simulated webhook")
+		transactionVerificationResponse.OrderCode = paymentSuccessful.EventData.OrderCode
+		transactionVerificationResponse.Amount = paymentSuccessful.EventData.Amount
+		transactionVerificationResponse.StatusID = paymentSuccessful.EventData.StatusID
+		transactionVerificationResponse.TransactionTypeID = paymentSuccessful.EventData.TransactionTypeID
 	}
 
-	if err != nil {
-		log.Error("HandlePaymentSuccessfulResponse: Verifying transaction ID failed: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
-		return err
-	}
 	var order database.Order
 
 	order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(transactionVerificationResponse.OrderCode, 10))

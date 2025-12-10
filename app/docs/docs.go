@@ -27,6 +27,38 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/vendors/comments/{id}/": {
+            "delete": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Delete vendor comment",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete vendor comment",
+                "operationId": "deleteVendorComment",
+                "responses": {}
+            }
+        },
+        "/api/vendors/locations/{id}/": {
+            "delete": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Delete vendor location",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete vendor location",
+                "operationId": "deleteVendorLocation",
+                "responses": {}
+            }
+        },
         "/auth/hello/": {
             "get": {
                 "security": [
@@ -243,6 +275,168 @@ const docTemplate = `{
                 }
             }
         },
+        "/mail-templates/": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MailTemplates"
+                ],
+                "summary": "List mail templates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/database.MailTemplate"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MailTemplates"
+                ],
+                "summary": "Create or update a mail template",
+                "parameters": [
+                    {
+                        "description": "Template",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/database.MailTemplate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/mail-templates/{name}/": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MailTemplates"
+                ],
+                "summary": "Get mail template by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Template name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.MailTemplate"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "tags": [
+                    "MailTemplates"
+                ],
+                "summary": "Delete a mail template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Template name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/mail-templates/{name}/send/": {
+            "post": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MailTemplates"
+                ],
+                "summary": "Send a test email for a stored template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Template name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payload with 'to' (array of recipients) and 'data' for template rendering",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/map/": {
             "get": {
                 "security": [
@@ -276,17 +470,25 @@ const docTemplate = `{
         },
         "/orders/": {
             "post": {
-                "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.",
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.\nList all unverified orders",
                 "consumes": [
+                    "application/json",
                     "application/json"
                 ],
                 "produces": [
+                    "application/json",
                     "application/json"
                 ],
                 "tags": [
+                    "Orders",
                     "Orders"
                 ],
-                "summary": "Create Payment Order",
+                "summary": "List unverified orders",
                 "parameters": [
                     {
                         "description": "Payment Order",
@@ -303,6 +505,134 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.createOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/unverified/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Submits payment order to provider \u0026 saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.\nList all unverified orders",
+                "consumes": [
+                    "application/json",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders",
+                    "Orders"
+                ],
+                "summary": "List unverified orders",
+                "parameters": [
+                    {
+                        "description": "Payment Order",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createOrderResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/unverified/code/{orderCode}/transactionID": {
+            "post": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    },
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Manually adds a transaction ID to an unverified order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Add Transaction ID to Order (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order Code",
+                        "name": "orderCode",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Transaction ID",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.addTransactionIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/orders/unverified/code/{orderCode}/verify/": {
+            "get": {
+                "security": [
+                    {
+                        "KeycloakAuth": []
+                    },
+                    {
+                        "KeycloakAuth": []
+                    }
+                ],
+                "description": "Verifies order and creates payments manually",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Verify Payment Order by Code (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order Code",
+                        "name": "orderCode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VerifyPaymentOrderResponse"
                         }
                     }
                 }
@@ -501,10 +831,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/database.Payment"
-                            }
+                            "$ref": "#/definitions/handlers.paymentsResponse"
                         }
                     }
                 }
@@ -594,6 +921,46 @@ const docTemplate = `{
                                 "$ref": "#/definitions/handlers.PaymentsStatistics"
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/pdf/": {
+            "get": {
+                "description": "Get PDF path",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PDF"
+                ],
+                "summary": "Get PDF path",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/pdf/download/": {
+            "get": {
+                "description": "Get PDF download path",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PDF"
+                ],
+                "summary": "Get PDF download path",
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -1061,6 +1428,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "disabled": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -1069,6 +1439,29 @@ const docTemplate = `{
                 },
                 "isLicenseItem": {
                     "type": "boolean"
+                },
+                "isPDFItem": {
+                    "type": "boolean"
+                },
+                "itemColor": {
+                    "description": "Color of the item in the webshop",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/null.String"
+                        }
+                    ]
+                },
+                "itemOrder": {
+                    "description": "Order in the webshop",
+                    "type": "integer"
+                },
+                "itemTextColor": {
+                    "description": "Text color of the item in the webshop",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/null.String"
+                        }
+                    ]
                 },
                 "licenseGroup": {
                     "$ref": "#/definitions/null.String"
@@ -1083,6 +1476,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "pdf": {
+                    "$ref": "#/definitions/null.Int"
                 },
                 "price": {
                     "description": "Price in cents",
@@ -1103,10 +1499,33 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "licenseID": {
-                    "$ref": "#/definitions/null.String"
+                    "type": "string"
                 },
                 "longitude": {
                     "type": "number"
+                }
+            }
+        },
+        "database.MailTemplate": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
@@ -1140,6 +1559,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "senderName": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.PDFDownloadLinks": {
+            "type": "object",
+            "properties": {
+                "itemID": {
+                    "$ref": "#/definitions/null.Int"
+                },
+                "link": {
                     "type": "string"
                 }
             }
@@ -1216,7 +1646,13 @@ const docTemplate = `{
         "database.Settings": {
             "type": "object",
             "properties": {
+                "agburl": {
+                    "type": "string"
+                },
                 "color": {
+                    "type": "string"
+                },
+                "favicon": {
                     "type": "string"
                 },
                 "fontColor": {
@@ -1243,10 +1679,46 @@ const docTemplate = `{
                 "mainItemPrice": {
                     "$ref": "#/definitions/null.Int"
                 },
+                "maintainanceModeHelpUrl": {
+                    "type": "string"
+                },
+                "mapCenterLat": {
+                    "type": "number"
+                },
+                "mapCenterLong": {
+                    "type": "number"
+                },
                 "maxOrderAmount": {
                     "type": "integer"
                 },
+                "newspaperName": {
+                    "type": "string"
+                },
                 "orgaCoversTransactionCosts": {
+                    "type": "boolean"
+                },
+                "qrcodeEnableLogo": {
+                    "type": "boolean"
+                },
+                "qrcodeLogoImgUrl": {
+                    "type": "string"
+                },
+                "qrcodeSettings": {
+                    "type": "string"
+                },
+                "qrcodeUrl": {
+                    "type": "string"
+                },
+                "useVendorLicenseIdInShop": {
+                    "type": "boolean"
+                },
+                "vendorEmailPostfix": {
+                    "type": "string"
+                },
+                "vendorNotFoundHelpUrl": {
+                    "type": "string"
+                },
+                "webshopIsClosed": {
                     "type": "boolean"
                 }
             }
@@ -1254,14 +1726,20 @@ const docTemplate = `{
         "database.Vendor": {
             "type": "object",
             "properties": {
-                "address": {
-                    "type": "string"
+                "accountProofUrl": {
+                    "$ref": "#/definitions/null.String"
                 },
                 "balance": {
                     "description": "This is joined in from the account",
                     "type": "integer"
                 },
-                "comment": {
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.Comment"
+                    }
+                },
+                "debt": {
                     "type": "string"
                 },
                 "email": {
@@ -1279,6 +1757,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "isDeleted": {
+                    "type": "boolean"
+                },
                 "isDisabled": {
                     "type": "boolean"
                 },
@@ -1295,23 +1776,17 @@ const docTemplate = `{
                     "type": "string",
                     "format": "date-time"
                 },
-                "latitude": {
-                    "type": "number"
-                },
                 "licenseID": {
                     "$ref": "#/definitions/null.String"
                 },
-                "location": {
-                    "type": "string"
-                },
-                "longitude": {
-                    "type": "number"
+                "locations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.Location"
+                    }
                 },
                 "onlineMap": {
                     "type": "boolean"
-                },
-                "plz": {
-                    "type": "string"
                 },
                 "registrationDate": {
                     "type": "string"
@@ -1325,9 +1800,214 @@ const docTemplate = `{
                 },
                 "vendorSince": {
                     "type": "string"
-                },
-                "workingTime": {
+                }
+            }
+        },
+        "ent.Comment": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Comment holds the value of the \"comment\" field.",
                     "type": "string"
+                },
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the CommentQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.CommentEdges"
+                        }
+                    ]
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "integer"
+                },
+                "resolved_at": {
+                    "description": "ResolvedAt holds the value of the \"resolved_at\" field.",
+                    "type": "string"
+                },
+                "warning": {
+                    "description": "Warning holds the value of the \"warning\" field.",
+                    "type": "boolean"
+                }
+            }
+        },
+        "ent.CommentEdges": {
+            "type": "object",
+            "properties": {
+                "vendor": {
+                    "description": "Vendor holds the value of the vendor edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Vendor"
+                        }
+                    ]
+                }
+            }
+        },
+        "ent.Location": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "description": "Address holds the value of the \"address\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the LocationQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.LocationEdges"
+                        }
+                    ]
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "integer"
+                },
+                "latitude": {
+                    "description": "Latitude holds the value of the \"latitude\" field.",
+                    "type": "number"
+                },
+                "longitude": {
+                    "description": "Longitude holds the value of the \"longitude\" field.",
+                    "type": "number"
+                },
+                "name": {
+                    "description": "Name holds the value of the \"name\" field.",
+                    "type": "string"
+                },
+                "working_time": {
+                    "description": "WorkingTime holds the value of the \"working_time\" field.",
+                    "type": "string"
+                },
+                "zip": {
+                    "description": "Zip holds the value of the \"zip\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.LocationEdges": {
+            "type": "object",
+            "properties": {
+                "vendor": {
+                    "description": "Vendor holds the value of the vendor edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Vendor"
+                        }
+                    ]
+                }
+            }
+        },
+        "ent.Vendor": {
+            "type": "object",
+            "properties": {
+                "accountproofurl": {
+                    "description": "Accountproofurl holds the value of the \"accountproofurl\" field.",
+                    "type": "string"
+                },
+                "debt": {
+                    "description": "Debt holds the value of the \"debt\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the VendorQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.VendorEdges"
+                        }
+                    ]
+                },
+                "email": {
+                    "description": "Email holds the value of the \"email\" field.",
+                    "type": "string"
+                },
+                "firstname": {
+                    "description": "Firstname holds the value of the \"firstname\" field.",
+                    "type": "string"
+                },
+                "hasbankaccount": {
+                    "description": "Hasbankaccount holds the value of the \"hasbankaccount\" field.",
+                    "type": "boolean"
+                },
+                "hassmartphone": {
+                    "description": "Hassmartphone holds the value of the \"hassmartphone\" field.",
+                    "type": "boolean"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "integer"
+                },
+                "isdeleted": {
+                    "description": "Isdeleted holds the value of the \"isdeleted\" field.",
+                    "type": "boolean"
+                },
+                "isdisabled": {
+                    "description": "Isdisabled holds the value of the \"isdisabled\" field.",
+                    "type": "boolean"
+                },
+                "keycloakid": {
+                    "description": "Keycloakid holds the value of the \"keycloakid\" field.",
+                    "type": "string"
+                },
+                "language": {
+                    "description": "Language holds the value of the \"language\" field.",
+                    "type": "string"
+                },
+                "lastname": {
+                    "description": "Lastname holds the value of the \"lastname\" field.",
+                    "type": "string"
+                },
+                "lastpayout": {
+                    "description": "Lastpayout holds the value of the \"lastpayout\" field.",
+                    "type": "string"
+                },
+                "licenseid": {
+                    "description": "Licenseid holds the value of the \"licenseid\" field.",
+                    "type": "string"
+                },
+                "onlinemap": {
+                    "description": "Onlinemap holds the value of the \"onlinemap\" field.",
+                    "type": "boolean"
+                },
+                "registrationdate": {
+                    "description": "Registrationdate holds the value of the \"registrationdate\" field.",
+                    "type": "string"
+                },
+                "telephone": {
+                    "description": "Telephone holds the value of the \"telephone\" field.",
+                    "type": "string"
+                },
+                "urlid": {
+                    "description": "Urlid holds the value of the \"urlid\" field.",
+                    "type": "string"
+                },
+                "vendorsince": {
+                    "description": "Vendorsince holds the value of the \"vendorsince\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.VendorEdges": {
+            "type": "object",
+            "properties": {
+                "comments": {
+                    "description": "Comments holds the value of the comments edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.Comment"
+                    }
+                },
+                "locations": {
+                    "description": "Locations holds the value of the locations edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.Location"
+                    }
                 }
             }
         },
@@ -1374,6 +2054,12 @@ const docTemplate = `{
                 "balance": {
                     "type": "integer"
                 },
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.Comment"
+                    }
+                },
                 "email": {
                     "type": "string"
                 },
@@ -1393,8 +2079,11 @@ const docTemplate = `{
                 "licenseID": {
                     "type": "string"
                 },
-                "location": {
-                    "type": "string"
+                "locations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.Location"
+                    }
                 },
                 "openPayments": {
                     "type": "array",
@@ -1419,6 +2108,12 @@ const docTemplate = `{
                 "firstName": {
                     "type": "string"
                 },
+                "pdfdownloadLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.PDFDownloadLinks"
+                    }
+                },
                 "purchasedItems": {
                     "type": "array",
                     "items": {
@@ -1430,6 +2125,14 @@ const docTemplate = `{
                 },
                 "totalSum": {
                     "type": "integer"
+                }
+            }
+        },
+        "handlers.addTransactionIDRequest": {
+            "type": "object",
+            "properties": {
+                "transactionID": {
+                    "type": "string"
                 }
             }
         },
@@ -1489,6 +2192,20 @@ const docTemplate = `{
         "handlers.createPaymentsRequest": {
             "type": "object",
             "properties": {
+                "payments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.Payment"
+                    }
+                }
+            }
+        },
+        "handlers.paymentsResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "integer"
+                },
                 "payments": {
                     "type": "array",
                     "items": {

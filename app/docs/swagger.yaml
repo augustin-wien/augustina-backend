@@ -8,12 +8,27 @@ definitions:
         type: boolean
       description:
         type: string
+      disabled:
+        type: boolean
       id:
         type: integer
       image:
         type: string
       isLicenseItem:
         type: boolean
+      isPDFItem:
+        type: boolean
+      itemColor:
+        allOf:
+        - $ref: '#/definitions/null.String'
+        description: Color of the item in the webshop
+      itemOrder:
+        description: Order in the webshop
+        type: integer
+      itemTextColor:
+        allOf:
+        - $ref: '#/definitions/null.String'
+        description: Text color of the item in the webshop
       licenseGroup:
         $ref: '#/definitions/null.String'
       licenseItem:
@@ -22,6 +37,8 @@ definitions:
         description: License has to be bought before item
       name:
         type: string
+      pdf:
+        $ref: '#/definitions/null.Int'
       price:
         description: Price in cents
         type: integer
@@ -35,9 +52,24 @@ definitions:
       latitude:
         type: number
       licenseID:
-        $ref: '#/definitions/null.String'
+        type: string
       longitude:
         type: number
+    type: object
+  database.MailTemplate:
+    properties:
+      body:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      subject:
+        type: string
+      updatedAt:
+        type: string
     type: object
   database.OrderEntry:
     properties:
@@ -60,6 +92,13 @@ definitions:
       sender:
         type: integer
       senderName:
+        type: string
+    type: object
+  database.PDFDownloadLinks:
+    properties:
+      itemID:
+        $ref: '#/definitions/null.Int'
+      link:
         type: string
     type: object
   database.Payment:
@@ -108,7 +147,11 @@ definitions:
     type: object
   database.Settings:
     properties:
+      agburl:
+        type: string
       color:
+        type: string
+      favicon:
         type: string
       fontColor:
         type: string
@@ -126,19 +169,47 @@ definitions:
         $ref: '#/definitions/null.String'
       mainItemPrice:
         $ref: '#/definitions/null.Int'
+      maintainanceModeHelpUrl:
+        type: string
+      mapCenterLat:
+        type: number
+      mapCenterLong:
+        type: number
       maxOrderAmount:
         type: integer
+      newspaperName:
+        type: string
       orgaCoversTransactionCosts:
+        type: boolean
+      qrcodeEnableLogo:
+        type: boolean
+      qrcodeLogoImgUrl:
+        type: string
+      qrcodeSettings:
+        type: string
+      qrcodeUrl:
+        type: string
+      useVendorLicenseIdInShop:
+        type: boolean
+      vendorEmailPostfix:
+        type: string
+      vendorNotFoundHelpUrl:
+        type: string
+      webshopIsClosed:
         type: boolean
     type: object
   database.Vendor:
     properties:
-      address:
-        type: string
+      accountProofUrl:
+        $ref: '#/definitions/null.String'
       balance:
         description: This is joined in from the account
         type: integer
-      comment:
+      comments:
+        items:
+          $ref: '#/definitions/ent.Comment'
+        type: array
+      debt:
         type: string
       email:
         type: string
@@ -150,6 +221,8 @@ definitions:
         type: boolean
       id:
         type: integer
+      isDeleted:
+        type: boolean
       isDisabled:
         type: boolean
       keycloakID:
@@ -161,18 +234,14 @@ definitions:
       lastPayout:
         format: date-time
         type: string
-      latitude:
-        type: number
       licenseID:
         $ref: '#/definitions/null.String'
-      location:
-        type: string
-      longitude:
-        type: number
+      locations:
+        items:
+          $ref: '#/definitions/ent.Location'
+        type: array
       onlineMap:
         type: boolean
-      plz:
-        type: string
       registrationDate:
         type: string
       telephone:
@@ -182,8 +251,153 @@ definitions:
         type: string
       vendorSince:
         type: string
-      workingTime:
+    type: object
+  ent.Comment:
+    properties:
+      comment:
+        description: Comment holds the value of the "comment" field.
         type: string
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.CommentEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the CommentQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: integer
+      resolved_at:
+        description: ResolvedAt holds the value of the "resolved_at" field.
+        type: string
+      warning:
+        description: Warning holds the value of the "warning" field.
+        type: boolean
+    type: object
+  ent.CommentEdges:
+    properties:
+      vendor:
+        allOf:
+        - $ref: '#/definitions/ent.Vendor'
+        description: Vendor holds the value of the vendor edge.
+    type: object
+  ent.Location:
+    properties:
+      address:
+        description: Address holds the value of the "address" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.LocationEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the LocationQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: integer
+      latitude:
+        description: Latitude holds the value of the "latitude" field.
+        type: number
+      longitude:
+        description: Longitude holds the value of the "longitude" field.
+        type: number
+      name:
+        description: Name holds the value of the "name" field.
+        type: string
+      working_time:
+        description: WorkingTime holds the value of the "working_time" field.
+        type: string
+      zip:
+        description: Zip holds the value of the "zip" field.
+        type: string
+    type: object
+  ent.LocationEdges:
+    properties:
+      vendor:
+        allOf:
+        - $ref: '#/definitions/ent.Vendor'
+        description: Vendor holds the value of the vendor edge.
+    type: object
+  ent.Vendor:
+    properties:
+      accountproofurl:
+        description: Accountproofurl holds the value of the "accountproofurl" field.
+        type: string
+      debt:
+        description: Debt holds the value of the "debt" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.VendorEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the VendorQuery when eager-loading is set.
+      email:
+        description: Email holds the value of the "email" field.
+        type: string
+      firstname:
+        description: Firstname holds the value of the "firstname" field.
+        type: string
+      hasbankaccount:
+        description: Hasbankaccount holds the value of the "hasbankaccount" field.
+        type: boolean
+      hassmartphone:
+        description: Hassmartphone holds the value of the "hassmartphone" field.
+        type: boolean
+      id:
+        description: ID of the ent.
+        type: integer
+      isdeleted:
+        description: Isdeleted holds the value of the "isdeleted" field.
+        type: boolean
+      isdisabled:
+        description: Isdisabled holds the value of the "isdisabled" field.
+        type: boolean
+      keycloakid:
+        description: Keycloakid holds the value of the "keycloakid" field.
+        type: string
+      language:
+        description: Language holds the value of the "language" field.
+        type: string
+      lastname:
+        description: Lastname holds the value of the "lastname" field.
+        type: string
+      lastpayout:
+        description: Lastpayout holds the value of the "lastpayout" field.
+        type: string
+      licenseid:
+        description: Licenseid holds the value of the "licenseid" field.
+        type: string
+      onlinemap:
+        description: Onlinemap holds the value of the "onlinemap" field.
+        type: boolean
+      registrationdate:
+        description: Registrationdate holds the value of the "registrationdate" field.
+        type: string
+      telephone:
+        description: Telephone holds the value of the "telephone" field.
+        type: string
+      urlid:
+        description: Urlid holds the value of the "urlid" field.
+        type: string
+      vendorsince:
+        description: Vendorsince holds the value of the "vendorsince" field.
+        type: string
+    type: object
+  ent.VendorEdges:
+    properties:
+      comments:
+        description: Comments holds the value of the comments edge.
+        items:
+          $ref: '#/definitions/ent.Comment'
+        type: array
+      locations:
+        description: Locations holds the value of the locations edge.
+        items:
+          $ref: '#/definitions/ent.Location'
+        type: array
     type: object
   handlers.ItemStatistics:
     properties:
@@ -213,6 +427,10 @@ definitions:
         type: string
       balance:
         type: integer
+      comments:
+        items:
+          $ref: '#/definitions/ent.Comment'
+        type: array
       email:
         type: string
       firstName:
@@ -226,8 +444,10 @@ definitions:
         type: string
       licenseID:
         type: string
-      location:
-        type: string
+      locations:
+        items:
+          $ref: '#/definitions/ent.Location'
+        type: array
       openPayments:
         items:
           $ref: '#/definitions/database.Payment'
@@ -243,6 +463,10 @@ definitions:
     properties:
       firstName:
         type: string
+      pdfdownloadLinks:
+        items:
+          $ref: '#/definitions/database.PDFDownloadLinks'
+        type: array
       purchasedItems:
         items:
           $ref: '#/definitions/database.OrderEntry'
@@ -251,6 +475,11 @@ definitions:
         type: string
       totalSum:
         type: integer
+    type: object
+  handlers.addTransactionIDRequest:
+    properties:
+      transactionID:
+        type: string
     type: object
   handlers.createOrderRequest:
     properties:
@@ -288,6 +517,15 @@ definitions:
     type: object
   handlers.createPaymentsRequest:
     properties:
+      payments:
+        items:
+          $ref: '#/definitions/database.Payment'
+        type: array
+    type: object
+  handlers.paymentsResponse:
+    properties:
+      balance:
+        type: integer
       payments:
         items:
           $ref: '#/definitions/database.Payment'
@@ -520,6 +758,26 @@ info:
   title: Augustin Swagger
   version: 0.0.1
 paths:
+  /api/vendors/comments/{id}/:
+    delete:
+      description: Delete vendor comment
+      operationId: deleteVendorComment
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - KeycloakAuth: []
+      summary: Delete vendor comment
+  /api/vendors/locations/{id}/:
+    delete:
+      description: Delete vendor location
+      operationId: deleteVendorLocation
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - KeycloakAuth: []
+      summary: Delete vendor location
   /auth/hello/:
     get:
       consumes:
@@ -655,6 +913,108 @@ paths:
       summary: List Items for backoffice overview
       tags:
       - Items
+  /mail-templates/:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/database.MailTemplate'
+            type: array
+      summary: List mail templates
+      tags:
+      - MailTemplates
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Template
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/database.MailTemplate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - KeycloakAuth: []
+      summary: Create or update a mail template
+      tags:
+      - MailTemplates
+  /mail-templates/{name}/:
+    delete:
+      parameters:
+      - description: Template name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - KeycloakAuth: []
+      summary: Delete a mail template
+      tags:
+      - MailTemplates
+    get:
+      parameters:
+      - description: Template name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.MailTemplate'
+      summary: Get mail template by name
+      tags:
+      - MailTemplates
+  /mail-templates/{name}/send/:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Template name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Payload with 'to' (array of recipients) and 'data' for template
+          rendering
+        in: body
+        name: data
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - KeycloakAuth: []
+      summary: Send a test email for a stored template
+      tags:
+      - MailTemplates
   /map/:
     get:
       consumes:
@@ -678,9 +1038,10 @@ paths:
     post:
       consumes:
       - application/json
-      description: Submits payment order to provider & saves it to database. Entries
-        need to have an item id and a quantity (for entries without a price like tips,
-        the quantity is the amount of cents). If no user is given, the order is anonymous.
+      - application/json
+      description: |-
+        Submits payment order to provider & saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.
+        List all unverified orders
       parameters:
       - description: Payment Order
         in: body
@@ -690,12 +1051,97 @@ paths:
           $ref: '#/definitions/handlers.createOrderRequest'
       produces:
       - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             $ref: '#/definitions/handlers.createOrderResponse'
-      summary: Create Payment Order
+      security:
+      - KeycloakAuth: []
+      summary: List unverified orders
+      tags:
+      - Orders
+      - Orders
+  /orders/unverified/:
+    get:
+      consumes:
+      - application/json
+      - application/json
+      description: |-
+        Submits payment order to provider & saves it to database. Entries need to have an item id and a quantity (for entries without a price like tips, the quantity is the amount of cents). If no user is given, the order is anonymous.
+        List all unverified orders
+      parameters:
+      - description: Payment Order
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createOrderRequest'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.createOrderResponse'
+      security:
+      - KeycloakAuth: []
+      summary: List unverified orders
+      tags:
+      - Orders
+      - Orders
+  /orders/unverified/code/{orderCode}/transactionID:
+    post:
+      consumes:
+      - application/json
+      description: Manually adds a transaction ID to an unverified order
+      parameters:
+      - description: Order Code
+        in: path
+        name: orderCode
+        required: true
+        type: string
+      - description: Transaction ID
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.addTransactionIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - KeycloakAuth: []
+      - KeycloakAuth: []
+      summary: Add Transaction ID to Order (Admin)
+      tags:
+      - Orders
+  /orders/unverified/code/{orderCode}/verify/:
+    get:
+      consumes:
+      - application/json
+      description: Verifies order and creates payments manually
+      parameters:
+      - description: Order Code
+        in: path
+        name: orderCode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VerifyPaymentOrderResponse'
+      security:
+      - KeycloakAuth: []
+      - KeycloakAuth: []
+      summary: Verify Payment Order by Code (Admin)
       tags:
       - Orders
   /orders/verify/:
@@ -821,9 +1267,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/database.Payment'
-            type: array
+            $ref: '#/definitions/handlers.paymentsResponse'
       security:
       - KeycloakAuth: []
       - KeycloakAuth: []
@@ -884,6 +1328,32 @@ paths:
       summary: Calculate statistics of items & payments
       tags:
       - Payments
+  /pdf/:
+    get:
+      consumes:
+      - application/json
+      description: Get PDF path
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Get PDF path
+      tags:
+      - PDF
+  /pdf/download/:
+    get:
+      consumes:
+      - application/json
+      description: Get PDF download path
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Get PDF download path
+      tags:
+      - PDF
   /settings/:
     get:
       consumes:
