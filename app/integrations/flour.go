@@ -101,14 +101,14 @@ type FlourPayloadItem struct {
 func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry, vendor database.Vendor, price int) error {
 	log.Info("SendPaymentToFlour: Sending payment to Flour for order ", id)
 	flourItems := make([]FlourPayloadItem, 0)
+	totalPrice := 0
 	for _, item := range items {
 		itemPrice := item.Price
 		// If the receiver of the OrderEntry is not the Vendor, the price should be negative
 		if item.Receiver != vendor.ID {
 			itemPrice = -itemPrice
-			// subtract licence cost from total price for items not going to vendor
-			price = price - itemPrice
 		}
+		totalPrice += itemPrice
 		flourItems = append(flourItems, FlourPayloadItem{
 			ID:       item.Item,
 			Quantity: item.Quantity,
@@ -118,7 +118,7 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 	// Create a new payload
 	payload := FlourPayload{
 		OrderID:   id,
-		Price:     price,
+		Price:     totalPrice,
 		LicenseID: vendor.LicenseID,
 		Timestamp: timestamp,
 		Items:     flourItems,

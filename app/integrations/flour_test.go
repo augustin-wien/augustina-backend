@@ -191,8 +191,8 @@ func TestSendPaymentToFlourMultipleItems(t *testing.T) {
 			require.Equal(t, i+1, receivedPayload.Items[i].ID)
 		}
 		require.Equal(t, 555, receivedPayload.OrderID)
-		// Price should be adjusted: 15000 + 15000 (5 items * 3000 negated) = 30000
-		require.Equal(t, 30000, receivedPayload.Price)
+		// Price should be sum of all items: 5 items * -3000 = -15000
+		require.Equal(t, -15000, receivedPayload.Price)
 
 		w.WriteHeader(http.StatusCreated) // Test with 201 Created status as well
 		w.Write([]byte(`{"status":"created"}`))
@@ -216,7 +216,7 @@ func TestSendPaymentToFlourMultipleItems(t *testing.T) {
 		LicenseID: null.StringFrom("test-license-555"),
 	}
 
-	// Price should be 15000 + (5 items * 3000 negated) = 15000 + 15000 = 30000
+	// Price should be sum: 5 items * -3000 = -15000
 	err := SendPaymentToFlour(555, timestamp, items, vendor, 15000)
 	require.NoError(t, err)
 }
@@ -257,8 +257,8 @@ func TestSendPaymentToFlourPayloadStructure(t *testing.T) {
 
 	// Verify all fields are present and correct
 	require.Equal(t, 666, payload.OrderID)
-	// Price should be adjusted: 2000 + 2000 (negated item price) = 4000
-	require.Equal(t, 4000, payload.Price)
+	// Price should be sum of items: 1 item * -2000 = -2000
+	require.Equal(t, -2000, payload.Price)
 	require.Equal(t, "structure-test-license", payload.LicenseID.String)
 	require.True(t, payload.Timestamp.Equal(timestamp))
 	require.Len(t, payload.Items, 1)
