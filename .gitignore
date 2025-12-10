@@ -37,3 +37,6 @@ docker/augustin-plugin-data/sample_data/*
 docker/.env.parser
 docker/wpcli/.env.parser
 
+webhook-logs/*
+__pycache__/*
+*.pyc

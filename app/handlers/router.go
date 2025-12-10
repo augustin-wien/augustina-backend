@@ -113,10 +113,27 @@ func GetRouter() (r *chi.Mux) {
 		_, _ = w.Write([]byte("ok"))
 	})
 
+	// Swagger documentation - only expose in development mode to avoid leaking API docs or
+	// generated files that may contain example credentials. The `Development` flag is set
+	// from the environment in `config.Config`.
+	if config.Config.Development {
+		r.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
+		))
+	}
+	// Only serve repository docs in development. Serving repo documentation from the
+	// application in production can leak sensitive example data (credentials, tokens,
+	// verification keys). Keep docs available for local development but do not expose
+	// them publicly when `Development` is false.
+	if config.Config.Development {
+		fsDocs := http.FileServer(http.Dir("docs"))
+		r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))
+	}
+
 	// Flour integration - NO strict security middlewares (BlockBadUserAgents, BlockFakeBrowsers, BlockMaliciousPatterns)
 	// to allow external software like Flour to communicate without being blocked
 	if config.Config.FlourWebhookURL != "" {
-		log.Info("Flour integration enabled")
+		log.Infof("Flour integration enabled: %s", config.Config.FlourWebhookURL)
 
 		r.Route("/api/flour", func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
@@ -138,6 +155,15 @@ func GetRouter() (r *chi.Mux) {
 		})
 
 	}
+	// Payment service providers
+	r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
+		r.Post("/success/", VivaWalletWebhookSuccess)
+		r.Get("/success/", VivaWalletVerificationKey)
+		r.Post("/failure/", VivaWalletWebhookFailure)
+		r.Get("/failure/", VivaWalletVerificationKey)
+		r.Post("/price/", VivaWalletWebhookPrice)
+		r.Get("/price/", VivaWalletVerificationKey)
+	})
 
 	// Apply strict security middlewares to all remaining routes
 	r.Group(func(r chi.Router) {
@@ -236,16 +262,6 @@ func GetRouter() (r *chi.Mux) {
 			})
 		})
 
-		// Payment service providers
-		r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
-			r.Post("/success/", VivaWalletWebhookSuccess)
-			r.Get("/success/", VivaWalletVerificationKey)
-			r.Post("/failure/", VivaWalletWebhookFailure)
-			r.Get("/failure/", VivaWalletVerificationKey)
-			r.Post("/price/", VivaWalletWebhookPrice)
-			r.Get("/price/", VivaWalletVerificationKey)
-		})
-
 		// Online Map
 		r.Group(func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
@@ -272,15 +288,6 @@ func GetRouter() (r *chi.Mux) {
 			})
 		})
 
-		// Swagger documentation - only expose in development mode to avoid leaking API docs or
-		// generated files that may contain example credentials. The `Development` flag is set
-		// from the environment in `config.Config`.
-		if config.Config.Development {
-			r.Get("/swagger/*", httpSwagger.Handler(
-				httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
-			))
-		}
-
 		// Mount static file servers in img folder
 		fsImg := http.FileServer(http.Dir("img"))
 		r.Handle("/img/*", http.StripPrefix("/img/", fsImg))
@@ -289,14 +296,6 @@ func GetRouter() (r *chi.Mux) {
 		fsCSS := http.FileServer(http.Dir("public"))
 		r.Handle("/public/*", http.StripPrefix("/public/", fsCSS))
 
-		// Only serve repository docs in development. Serving repo documentation from the
-		// application in production can leak sensitive example data (credentials, tokens,
-		// verification keys). Keep docs available for local development but do not expose
-		// them publicly when `Development` is false.
-		if config.Config.Development {
-			fsDocs := http.FileServer(http.Dir("docs"))
-			r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))
-		}
 	})
 
 	return r

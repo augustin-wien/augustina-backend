@@ -409,10 +409,52 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		SmartCheckoutURL: checkoutURL,
 	}
 	log.Debugf("CreatePaymentOrder: Created order with OrderCode %s for vendor %s", OrderCode, requestData.VendorLicenseID)
+
+	// In development mode, simulate VivaWallet webhook call
+	if config.Config.Development {
+		go simulateVivaWalletWebhook(OrderCode, order.GetTotal())
+	}
+
 	err = utils.WriteJSON(w, http.StatusOK, response)
 	if err != nil {
 		log.Error("CreatePaymentOrder: ", err)
 	}
+}
+
+// simulateVivaWalletWebhook simulates an incoming VivaWallet success webhook in development mode
+func simulateVivaWalletWebhook(orderCode string, totalAmount int) {
+	// Wait a bit to simulate payment processing time
+	time.Sleep(2 * time.Second)
+
+	log.Infof("Development mode: Simulating VivaWallet webhook for order %s", orderCode)
+
+	// Parse order code to int64
+	orderCodeInt, err := strconv.ParseInt(orderCode, 10, 64)
+	if err != nil {
+		log.Errorf("simulateVivaWalletWebhook: Failed to parse order code %s: %v", orderCode, err)
+		return
+	}
+
+	// Create webhook payload
+	webhookPayload := paymentprovider.TransactionSuccessRequest{
+		EventData: paymentprovider.EventData{
+			OrderCode:         orderCodeInt,
+			TransactionID:     "dev-simulation-" + orderCode,
+			Amount:            float64(totalAmount) / 100.0, // Convert cents to euros
+			StatusID:          "F",
+			TransactionTypeID: 0,
+			Email:             "dev-simulation@augustin.or.at",
+		},
+	}
+
+	// Call the webhook handler directly
+	err = paymentprovider.HandlePaymentSuccessfulResponse(webhookPayload)
+	if err != nil {
+		log.Errorf("simulateVivaWalletWebhook: Failed to handle simulated webhook: %v", err)
+		return
+	}
+
+	log.Infof("Development mode: Successfully processed simulated webhook for order %s", orderCode)
 }
 
 // VerifyPaymentOrderResponse is the response to VerifyPaymentOrder

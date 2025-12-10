@@ -54,6 +54,7 @@ services:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       SENTRY_DSN: ${SENTRY_DSN}
+      FLOUR_WEBHOOK_URL: ${FLOUR_WEBHOOK_URL}
     depends_on:
       augustin-db:
         condition: service_healthy
@@ -61,6 +62,7 @@ services:
       - augustin-db
       - augustin-db-test
       - keycloak
+      - webhook-receiver
     ports:
       - "3000:3000"
     healthcheck:
@@ -242,8 +244,23 @@ services:
     depends_on:
       wordpress:
         condition: service_healthy
+  webhook-receiver:
+    build:
+      context: ./docker/webhook-receiver
+    container_name: webhook-receiver
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./webhook-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 volumes:
   dbdata:
   wp_data:
   wp_db_data:
   dbdata-test:
+  webhook-logs:

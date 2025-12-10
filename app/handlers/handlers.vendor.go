@@ -350,7 +350,7 @@ func UpdateVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Info(r.Header.Get("X-Auth-User-Name") + " is updating vendor via flour with license id: " + licenseID)
-	respond(w, err, vendor)
+	respond(w, err, updatedVendor)
 }
 
 func GetVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
