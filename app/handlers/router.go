@@ -31,9 +31,6 @@ func GetRouter() (r *chi.Mux) {
 	// Security middlewares: Block suspicious IPs and requests
 	r.Use(middlewares.FilterBlockedIPs)
 	r.Use(middlewares.BlockSuspiciousRequests)
-	r.Use(middlewares.BlockBadUserAgents)
-	r.Use(middlewares.BlockFakeBrowsers)
-	r.Use(middlewares.BlockMaliciousPatterns)
 
 	// Basic rate limiting: limit by IP to 100 requests per minute (tunable)
 	r.Use(httprate.LimitByIP(500, 1*time.Minute))
@@ -116,134 +113,8 @@ func GetRouter() (r *chi.Mux) {
 		_, _ = w.Write([]byte("ok"))
 	})
 
-	// Protected routes
-	r.Group(func(r chi.Router) {
-		r.Use(middleware.Timeout(60 * time.Second)) // 60 seconds
-		r.Use(middlewares.AuthMiddleware)
-		r.Get("/api/auth/hello/", HelloWorldAuth)
-	})
-
-	// Public routes
-	r.Get("/api/hello/", HelloWorld)
-	r.Route("/api/settings", func(r chi.Router) {
-		r.Get("/", getSettings)
-		r.Group(func(r chi.Router) {
-			r.Use(middlewares.AuthMiddleware)
-			r.Use(middlewares.AdminAuthMiddleware)
-			r.Put("/", updateSettings)
-			r.Put("/css/", updateCSS)
-		})
-	})
-
-	// Vendors
-	r.Route("/api/vendors", func(r chi.Router) {
-		r.Get("/check/{licenseID}/", CheckVendorsLicenseID)
-		r.Group(func(r chi.Router) {
-			r.Use(middlewares.AuthMiddleware)
-			r.Use(middlewares.AdminAuthMiddleware)
-			r.Get("/", ListVendors)
-			r.Post("/", CreateVendor)
-			r.Get("/{vendorid}/locations/", ListVendorLocations)
-			r.Post("/{vendorid}/locations/", CreateVendorLocation)
-			r.Patch("/{vendorid}/locations/{id}/", UpdateVendorLocation)
-			r.Delete("/{vendorid}/locations/{id}/", DeleteVendorLocation)
-			r.Get("/{vendorid}/comments/", ListVendorComments)
-			r.Post("/{vendorid}/comments/", CreateVendorComment)
-			r.Delete("/{vendorid}/comments/{id}/", DeleteVendorComment)
-			r.Patch("/{vendorid}/comments/{id}/", UpdateVendorComment)
-
-			r.Route("/{id}", func(r chi.Router) {
-				r.Put("/", UpdateVendor)
-				r.Delete("/", DeleteVendor)
-				r.Get("/", GetVendor)
-			})
-		})
-		r.Group(func(r chi.Router) {
-			r.Use(middlewares.AuthMiddleware)
-			r.Use(middlewares.VendorAuthMiddleware)
-			r.Get("/me/", GetVendorOverview)
-		})
-	})
-
-	// Items
-	r.Route("/api/items", func(r chi.Router) {
-		r.Get("/", ListItems)
-		r.Group(func(r chi.Router) {
-			r.Use(middlewares.AuthMiddleware)
-			r.Use(middlewares.AdminAuthMiddleware)
-			r.Get("/backoffice/", ListItemsBackoffice)
-			r.Post("/", CreateItem)
-			r.Route("/{id}", func(r chi.Router) {
-				r.Put("/", UpdateItem)
-				r.Delete("/", DeleteItem)
-			})
-		})
-	})
-
-	// Payment orders
-	r.Route("/api/orders", func(r chi.Router) {
-		r.Post("/", CreatePaymentOrder)
-		r.Get("/verify/", VerifyPaymentOrder)
-		r.Group(func(r chi.Router) {
-			r.Use(middlewares.AuthMiddleware)
-			r.Use(middlewares.AdminAuthMiddleware)
-			r.Get("/unverified/", ListUnverifiedOrders)
-			r.Get("/unverified/code/{orderCode}/verify/", AdminVerifyPaymentOrderByCode)
-			r.Post("/unverified/code/{orderCode}/transactionID/", AdminAddTransactionIDToOrder)
-		})
-	})
-
-	// Payments
-	r.Route("/api/payments", func(r chi.Router) {
-		r.Group(func(r chi.Router) {
-			r.Use(middlewares.AuthMiddleware)
-			r.Use(middlewares.AdminAuthMiddleware)
-			r.Post("/", CreatePayment)
-			r.Post("/batch/", CreatePayments)
-			r.Get("/", ListPayments)
-			r.Get("/forpayout/", ListPaymentsForPayout)
-			r.Get("/statistics/", ListPaymentsStatistics)
-			r.Post("/payout/", CreatePaymentPayout)
-		})
-	})
-
-	// Payment service providers
-	r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
-		r.Post("/success/", VivaWalletWebhookSuccess)
-		r.Get("/success/", VivaWalletVerificationKey)
-		r.Post("/failure/", VivaWalletWebhookFailure)
-		r.Get("/failure/", VivaWalletVerificationKey)
-		r.Post("/price/", VivaWalletWebhookPrice)
-		r.Get("/price/", VivaWalletVerificationKey)
-	})
-
-	// Online Map
-	r.Group(func(r chi.Router) {
-		r.Use(middlewares.AuthMiddleware)
-		r.Use(middlewares.AdminAuthMiddleware)
-		r.Get("/api/map/", GetVendorLocations)
-	})
-
-	// PDF Upload
-	r.Route("/api/pdf", func(r chi.Router) {
-		r.Get("/{id}/validate/", validatePDFLink)
-		r.Get("/{id}/", downloadPDF)
-	})
-
-	// Mail templates management
-	r.Route("/api/mail-templates", func(r chi.Router) {
-		r.Use(middlewares.AuthMiddleware)
-		r.Use(middlewares.AdminAuthMiddleware)
-		r.Get("/", ListMailTemplates)
-		r.Get("/{name}/", GetMailTemplate)
-		r.Group(func(r chi.Router) {
-			r.Post("/", CreateOrUpdateMailTemplate)
-			r.Post("/{name}/send/", SendMailTemplateTest)
-			r.Delete("/{name}/", DeleteMailTemplate)
-		})
-	})
-
-	// Flour integration
+	// Flour integration - NO strict security middlewares (BlockBadUserAgents, BlockFakeBrowsers, BlockMaliciousPatterns)
+	// to allow external software like Flour to communicate without being blocked
 	if config.Config.FlourWebhookURL != "" {
 		log.Info("Flour integration enabled")
 
@@ -267,31 +138,166 @@ func GetRouter() (r *chi.Mux) {
 		})
 
 	}
-	// Swagger documentation - only expose in development mode to avoid leaking API docs or
-	// generated files that may contain example credentials. The `Development` flag is set
-	// from the environment in `config.Config`.
-	if config.Config.Development {
-		r.Get("/swagger/*", httpSwagger.Handler(
-			httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
-		))
-	}
 
-	// Mount static file servers in img folder
-	fsImg := http.FileServer(http.Dir("img"))
-	r.Handle("/img/*", http.StripPrefix("/img/", fsImg))
+	// Apply strict security middlewares to all remaining routes
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares.BlockBadUserAgents)
+		r.Use(middlewares.BlockFakeBrowsers)
+		r.Use(middlewares.BlockMaliciousPatterns)
 
-	// Mount style.css file server and always serve the same file
-	fsCSS := http.FileServer(http.Dir("public"))
-	r.Handle("/public/*", http.StripPrefix("/public/", fsCSS))
+		// Protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.Timeout(60 * time.Second)) // 60 seconds
+			r.Use(middlewares.AuthMiddleware)
+			r.Get("/api/auth/hello/", HelloWorldAuth)
+		})
 
-	// Only serve repository docs in development. Serving repo documentation from the
-	// application in production can leak sensitive example data (credentials, tokens,
-	// verification keys). Keep docs available for local development but do not expose
-	// them publicly when `Development` is false.
-	if config.Config.Development {
-		fsDocs := http.FileServer(http.Dir("docs"))
-		r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))
-	}
+		// Public routes
+		r.Get("/api/hello/", HelloWorld)
+		r.Route("/api/settings", func(r chi.Router) {
+			r.Get("/", getSettings)
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.AdminAuthMiddleware)
+				r.Put("/", updateSettings)
+				r.Put("/css/", updateCSS)
+			})
+		})
+
+		// Vendors
+		r.Route("/api/vendors", func(r chi.Router) {
+			r.Get("/check/{licenseID}/", CheckVendorsLicenseID)
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.AdminAuthMiddleware)
+				r.Get("/", ListVendors)
+				r.Post("/", CreateVendor)
+				r.Get("/{vendorid}/locations/", ListVendorLocations)
+				r.Post("/{vendorid}/locations/", CreateVendorLocation)
+				r.Patch("/{vendorid}/locations/{id}/", UpdateVendorLocation)
+				r.Delete("/{vendorid}/locations/{id}/", DeleteVendorLocation)
+				r.Get("/{vendorid}/comments/", ListVendorComments)
+				r.Post("/{vendorid}/comments/", CreateVendorComment)
+				r.Delete("/{vendorid}/comments/{id}/", DeleteVendorComment)
+				r.Patch("/{vendorid}/comments/{id}/", UpdateVendorComment)
+
+				r.Route("/{id}", func(r chi.Router) {
+					r.Put("/", UpdateVendor)
+					r.Delete("/", DeleteVendor)
+					r.Get("/", GetVendor)
+				})
+			})
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.VendorAuthMiddleware)
+				r.Get("/me/", GetVendorOverview)
+			})
+		})
+
+		// Items
+		r.Route("/api/items", func(r chi.Router) {
+			r.Get("/", ListItems)
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.AdminAuthMiddleware)
+				r.Get("/backoffice/", ListItemsBackoffice)
+				r.Post("/", CreateItem)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Put("/", UpdateItem)
+					r.Delete("/", DeleteItem)
+				})
+			})
+		})
+
+		// Payment orders
+		r.Route("/api/orders", func(r chi.Router) {
+			r.Post("/", CreatePaymentOrder)
+			r.Get("/verify/", VerifyPaymentOrder)
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.AdminAuthMiddleware)
+				r.Get("/unverified/", ListUnverifiedOrders)
+				r.Get("/unverified/code/{orderCode}/verify/", AdminVerifyPaymentOrderByCode)
+				r.Post("/unverified/code/{orderCode}/transactionID/", AdminAddTransactionIDToOrder)
+			})
+		})
+
+		// Payments
+		r.Route("/api/payments", func(r chi.Router) {
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.AdminAuthMiddleware)
+				r.Post("/", CreatePayment)
+				r.Post("/batch/", CreatePayments)
+				r.Get("/", ListPayments)
+				r.Get("/forpayout/", ListPaymentsForPayout)
+				r.Get("/statistics/", ListPaymentsStatistics)
+				r.Post("/payout/", CreatePaymentPayout)
+			})
+		})
+
+		// Payment service providers
+		r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
+			r.Post("/success/", VivaWalletWebhookSuccess)
+			r.Get("/success/", VivaWalletVerificationKey)
+			r.Post("/failure/", VivaWalletWebhookFailure)
+			r.Get("/failure/", VivaWalletVerificationKey)
+			r.Post("/price/", VivaWalletWebhookPrice)
+			r.Get("/price/", VivaWalletVerificationKey)
+		})
+
+		// Online Map
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/api/map/", GetVendorLocations)
+		})
+
+		// PDF Upload
+		r.Route("/api/pdf", func(r chi.Router) {
+			r.Get("/{id}/validate/", validatePDFLink)
+			r.Get("/{id}/", downloadPDF)
+		})
+
+		// Mail templates management
+		r.Route("/api/mail-templates", func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/", ListMailTemplates)
+			r.Get("/{name}/", GetMailTemplate)
+			r.Group(func(r chi.Router) {
+				r.Post("/", CreateOrUpdateMailTemplate)
+				r.Post("/{name}/send/", SendMailTemplateTest)
+				r.Delete("/{name}/", DeleteMailTemplate)
+			})
+		})
+
+		// Swagger documentation - only expose in development mode to avoid leaking API docs or
+		// generated files that may contain example credentials. The `Development` flag is set
+		// from the environment in `config.Config`.
+		if config.Config.Development {
+			r.Get("/swagger/*", httpSwagger.Handler(
+				httpSwagger.URL("http://localhost:3000/docs/swagger.json"),
+			))
+		}
+
+		// Mount static file servers in img folder
+		fsImg := http.FileServer(http.Dir("img"))
+		r.Handle("/img/*", http.StripPrefix("/img/", fsImg))
+
+		// Mount style.css file server and always serve the same file
+		fsCSS := http.FileServer(http.Dir("public"))
+		r.Handle("/public/*", http.StripPrefix("/public/", fsCSS))
+
+		// Only serve repository docs in development. Serving repo documentation from the
+		// application in production can leak sensitive example data (credentials, tokens,
+		// verification keys). Keep docs available for local development but do not expose
+		// them publicly when `Development` is false.
+		if config.Config.Development {
+			fsDocs := http.FileServer(http.Dir("docs"))
+			r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))
+		}
+	})
 
 	return r
 }
