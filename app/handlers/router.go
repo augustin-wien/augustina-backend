@@ -245,6 +245,7 @@ func GetRouter() (r *chi.Mux) {
 				r.Get("/unverified/", ListUnverifiedOrders)
 				r.Get("/unverified/code/{orderCode}/verify/", AdminVerifyPaymentOrderByCode)
 				r.Post("/unverified/code/{orderCode}/transactionID/", AdminAddTransactionIDToOrder)
+				r.Post("/resend/{orderID}/", ResendFlourWebhook)
 			})
 		})
 
