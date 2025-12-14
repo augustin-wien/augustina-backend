@@ -105,10 +105,12 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 	for _, item := range items {
 		itemPrice := item.Price
 		// If the receiver of the OrderEntry is not the Vendor, the price should be negative
-		if item.Receiver != vendor.ID {
+		log.Debugf("SendPaymentToFlour: Processing item %+v for vendor %+v", item, vendor)
+		if item.Receiver <= 5 { // system accounts have IDs 1-5
 			itemPrice = -itemPrice
 		}
-		totalPrice += itemPrice
+		// Total price includes the quantity: price * quantity
+		totalPrice += itemPrice * item.Quantity
 		flourItems = append(flourItems, FlourPayloadItem{
 			ID:       item.Item,
 			Quantity: item.Quantity,
@@ -123,9 +125,16 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 		Timestamp: timestamp,
 		Items:     flourItems,
 	}
+	// print payload as JSON for debugging
+	payloadJSON, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		log.Errorf("SendPaymentToFlour: Failed to marshal payload to JSON: %v", err)
+	} else {
+		log.Debugf("SendPaymentToFlour: Payload JSON:\n%s", string(payloadJSON))
+	}
 
 	// Send the payload to the webhook
-	err := sendJSONToFlourWebhook(payload)
+	err = sendJSONToFlourWebhook(payload)
 	if err != nil {
 		log.Errorf("Failed to send JSON to flour: %v\n", err)
 	}

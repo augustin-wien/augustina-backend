@@ -8,6 +8,9 @@ and updates the CSV with success status.
 import csv
 import sys
 import requests
+import time
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import argparse
 from typing import List, Dict
 import os
@@ -34,7 +37,8 @@ def add_transaction_id_to_order(
     base_url: str,
     order_code: str,
     transaction_id: str,
-    auth_token: str = None
+    auth_token: str = None,
+    session: requests.Session = None
 ) -> tuple[bool, str]:
     """
     Make POST request to add transaction ID to order.
@@ -46,6 +50,13 @@ def add_transaction_id_to_order(
     
     headers = {
         'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin',
     }
     
     if auth_token:
@@ -56,7 +67,9 @@ def add_transaction_id_to_order(
     }
     
     try:
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        # Use provided session or create a new one
+        requester = session if session else requests
+        response = requester.post(url, json=payload, headers=headers, timeout=10)
         
         if response.status_code == 200:
             return True, "Success"
@@ -73,6 +86,29 @@ def add_transaction_id_to_order(
         return False, "Connection error"
     except Exception as e:
         return False, f"Exception: {str(e)[:100]}"
+
+
+def ask_continue(row_num: int, order_code: str, error_msg: str) -> bool:
+    """
+    Ask the user whether to continue processing after a failure.
+    Defaults to 'yes' if user just presses Enter.
+    
+    Returns:
+        bool: True to continue, False to stop processing
+    """
+    print(f"\n{'='*60}")
+    print(f"Row {row_num} FAILED for order '{order_code}'")
+    print(f"Error: {error_msg}")
+    print(f"{'='*60}")
+    
+    while True:
+        response = input("Continue with next row? (Y/n): ").strip().lower()
+        if response in ['yes', 'y', '']:  # Empty input defaults to yes
+            return True
+        elif response in ['no', 'n']:
+            return False
+        else:
+            print("Please enter 'y' or 'n' (or just press Enter to continue)")
 
 
 def process_csv(
@@ -101,6 +137,26 @@ def process_csv(
     print(f"Reading CSV from: {input_file}")
     headers, rows = read_csv(input_file, delimiter)
     
+    # Create a session with retry strategy and proper headers
+    session = requests.Session()
+    retry_strategy = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504]
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin',
+    })
+    
     # Find column indices
     try:
         transaction_id_idx = headers.index(transaction_id_col)
@@ -121,6 +177,17 @@ def process_csv(
     else:
         status_idx = headers.index(status_col_name)
     
+    # Add new column for error details if it doesn't exist
+    error_col_name = 'Error_Details'
+    if error_col_name not in headers:
+        headers.append(error_col_name)
+        error_idx = len(headers) - 1
+        # Add empty values for existing rows
+        for row in rows:
+            row.append('')
+    else:
+        error_idx = headers.index(error_col_name)
+    
     print(f"\nProcessing {len(rows)} rows...")
     print(f"Base URL: {base_url}")
     print(f"Dry run: {dry_run}\n")
@@ -131,8 +198,9 @@ def process_csv(
     for i, row in enumerate(rows, start=2):  # Start at 2 (1 for header + 1-indexed)
         if len(row) <= transaction_id_idx or len(row) <= order_code_idx:
             print(f"Row {i}: Skipping - insufficient columns")
-            row.extend([''] * (status_idx + 1 - len(row)))
-            row[status_idx] = 'Skipped - insufficient columns'
+            row.extend([''] * (error_idx + 1 - len(row)))
+            row[status_idx] = 'Skipped'
+            row[error_idx] = 'Insufficient columns'
             error_count += 1
             continue
         
@@ -141,34 +209,50 @@ def process_csv(
         
         if not transaction_id or not order_code:
             print(f"Row {i}: Skipping - missing transaction ID or order code")
-            if len(row) <= status_idx:
-                row.extend([''] * (status_idx + 1 - len(row)))
-            row[status_idx] = 'Skipped - missing data'
+            if len(row) <= error_idx:
+                row.extend([''] * (error_idx + 1 - len(row)))
+            row[status_idx] = 'Skipped'
+            row[error_idx] = 'Missing transaction ID or order code'
             error_count += 1
             continue
         
         if dry_run:
             print(f"Row {i}: [DRY RUN] Would add transaction ID '{transaction_id}' to order '{order_code}'")
-            if len(row) <= status_idx:
-                row.extend([''] * (status_idx + 1 - len(row)))
+            if len(row) <= error_idx:
+                row.extend([''] * (error_idx + 1 - len(row)))
             row[status_idx] = 'DRY_RUN'
+            row[error_idx] = ''
         else:
             success, message = add_transaction_id_to_order(
-                base_url, order_code, transaction_id, auth_token
+                base_url, order_code, transaction_id, auth_token, session
             )
             
             # Ensure row has enough columns
-            if len(row) <= status_idx:
-                row.extend([''] * (status_idx + 1 - len(row)))
-            
-            row[status_idx] = message
+            if len(row) <= error_idx:
+                row.extend([''] * (error_idx + 1 - len(row)))
             
             if success:
+                row[status_idx] = 'Success'
+                row[error_idx] = ''
                 print(f"Row {i}: ✓ Successfully added transaction ID to order {order_code}")
                 success_count += 1
             else:
-                print(f"Row {i}: ✗ Failed to add transaction ID to order {order_code}: {message} {base_url}api/orders/unverified/code/{order_code}/transactionID/")
+                row[status_idx] = 'Failed'
+                row[error_idx] = message
+                print(f"Row {i}: ✗ Failed to add transaction ID to order {order_code}: {message}")
                 error_count += 1
+                
+                # Ask user if they want to continue
+                if not ask_continue(i, order_code, message):
+                    print("\nStopping processing as requested by user.")
+                    session.close()
+                    # Write partial results
+                    write_csv(output_file, headers, rows, delimiter)
+                    print(f"Partial results written to: {output_file}")
+                    sys.exit(0)
+    
+    # Close the session
+    session.close()
     
     # Write output CSV
     print(f"\nWriting results to: {output_file}")

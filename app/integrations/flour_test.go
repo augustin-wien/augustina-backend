@@ -29,7 +29,8 @@ func TestSendPaymentToFlourSuccess(t *testing.T) {
 
 		// Verify payload structure
 		require.Equal(t, 123, receivedPayload.OrderID)
-		require.Equal(t, 5000, receivedPayload.Price)
+		// Total price: (2500 * 2) + (2500 * 1) = 7500
+		require.Equal(t, 7500, receivedPayload.Price)
 		require.Equal(t, "test-license-123", receivedPayload.LicenseID.String)
 		require.Len(t, receivedPayload.Items, 2)
 		require.Equal(t, 1, receivedPayload.Items[0].ID)
@@ -77,7 +78,8 @@ func TestSendPaymentToFlourSuccess(t *testing.T) {
 	}
 
 	// Call the function
-	err := SendPaymentToFlour(123, timestamp, items, vendor, 5000)
+	// Total price: (2500 * 2) + (2500 * 1) = 5000 + 2500 = 7500
+	err := SendPaymentToFlour(123, timestamp, items, vendor, 7500)
 	require.NoError(t, err)
 }
 
@@ -191,8 +193,8 @@ func TestSendPaymentToFlourMultipleItems(t *testing.T) {
 			require.Equal(t, i+1, receivedPayload.Items[i].ID)
 		}
 		require.Equal(t, 555, receivedPayload.OrderID)
-		// Price should be sum of all items: 5 items * -3000 = -15000
-		require.Equal(t, -15000, receivedPayload.Price)
+		// Price should be: (3000*3) + (3000*2) + (3000*2) + (3000*1) + (3000*1) = 9000 + 6000 + 6000 + 3000 + 3000 = 27000
+		require.Equal(t, 27000, receivedPayload.Price)
 
 		w.WriteHeader(http.StatusCreated) // Test with 201 Created status as well
 		w.Write([]byte(`{"status":"created"}`))
@@ -205,19 +207,19 @@ func TestSendPaymentToFlourMultipleItems(t *testing.T) {
 
 	timestamp := time.Date(2025, 12, 10, 15, 45, 30, 0, time.UTC)
 	items := []database.OrderEntry{
-		{ID: 1, Item: 1, Quantity: 3, Price: 3000, Receiver: 6235},
-		{ID: 2, Item: 2, Quantity: 2, Price: 3000, Receiver: 6235},
-		{ID: 3, Item: 3, Quantity: 2, Price: 3000, Receiver: 6235},
-		{ID: 4, Item: 4, Quantity: 1, Price: 3000, Receiver: 6235},
-		{ID: 5, Item: 5, Quantity: 1, Price: 3000, Receiver: 6235},
+		{ID: 1, Item: 1, Quantity: 3, Price: 3000, Receiver: 6238},
+		{ID: 2, Item: 2, Quantity: 2, Price: 3000, Receiver: 6238},
+		{ID: 3, Item: 3, Quantity: 2, Price: 3000, Receiver: 6238},
+		{ID: 4, Item: 4, Quantity: 1, Price: 3000, Receiver: 6238},
+		{ID: 5, Item: 5, Quantity: 1, Price: 3000, Receiver: 6238},
 	}
 	vendor := database.Vendor{
 		ID:        6238,
 		LicenseID: null.StringFrom("test-license-555"),
 	}
 
-	// Price should be sum: 5 items * -3000 = -15000
-	err := SendPaymentToFlour(555, timestamp, items, vendor, 15000)
+	// Price should be: (3000*3) + (3000*2) + (3000*2) + (3000*1) + (3000*1) = 27000
+	err := SendPaymentToFlour(555, timestamp, items, vendor, 27000)
 	require.NoError(t, err)
 }
 
@@ -240,7 +242,7 @@ func TestSendPaymentToFlourPayloadStructure(t *testing.T) {
 
 	timestamp := time.Date(2025, 12, 10, 16, 0, 0, 0, time.UTC)
 	items := []database.OrderEntry{
-		{ID: 1, Item: 100, Quantity: 1, Price: 2000, Receiver: 6238},
+		{ID: 1, Item: 100, Quantity: 1, Price: 2000, Receiver: 9999},
 	}
 	vendor := database.Vendor{
 		ID:        9999,
@@ -257,12 +259,89 @@ func TestSendPaymentToFlourPayloadStructure(t *testing.T) {
 
 	// Verify all fields are present and correct
 	require.Equal(t, 666, payload.OrderID)
-	// Price should be sum of items: 1 item * -2000 = -2000
-	require.Equal(t, -2000, payload.Price)
+	// Price should be sum of items: 1 item * 2000 = 2000
+	require.Equal(t, 2000, payload.Price)
 	require.Equal(t, "structure-test-license", payload.LicenseID.String)
 	require.True(t, payload.Timestamp.Equal(timestamp))
 	require.Len(t, payload.Items, 1)
 	require.Equal(t, 100, payload.Items[0].ID)
 	require.Equal(t, 1, payload.Items[0].Quantity)
-	require.Equal(t, -2000, payload.Items[0].Price)
+	require.Equal(t, 2000, payload.Items[0].Price)
+}
+
+// TestSendPaymentToFlourDonationWithMultipleQuantities tests 100 cents donation with multiple items and quantities
+func TestSendPaymentToFlourDonationWithMultipleQuantities(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var receivedPayload FlourPayload
+		err := json.NewDecoder(r.Body).Decode(&receivedPayload)
+		require.NoError(t, err)
+
+		// Verify payload for donation scenario
+		require.Equal(t, 777, receivedPayload.OrderID)
+		// Price should be: (50*5) + (-100*1) + (-50*1) = 250 - 100 - 50 = 100 cents
+		require.Equal(t, 100, receivedPayload.Price)
+		require.Equal(t, "donation-license-123", receivedPayload.LicenseID.String)
+
+		// Verify items with different quantities
+		require.Len(t, receivedPayload.Items, 3)
+
+		// Item 1: Magazine (quantity 5, price 50 cents each)
+		require.Equal(t, 1, receivedPayload.Items[0].ID)
+		require.Equal(t, 5, receivedPayload.Items[0].Quantity)
+		require.Equal(t, 50, receivedPayload.Items[0].Price)
+
+		// Item 2: Donation to charity (quantity 1, price -100 cents, receiver is charity not vendor)
+		require.Equal(t, 2, receivedPayload.Items[1].ID)
+		require.Equal(t, 100, receivedPayload.Items[1].Quantity)
+		require.Equal(t, -1, receivedPayload.Items[1].Price)
+
+		// Item 3: Service fee (quantity 1, price -50 cents, receiver is not vendor)
+		require.Equal(t, 3, receivedPayload.Items[2].ID)
+		require.Equal(t, 1, receivedPayload.Items[2].Quantity)
+		require.Equal(t, -50, receivedPayload.Items[2].Price)
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok"}`))
+	}))
+	defer mockServer.Close()
+
+	originalURL := config.Config.FlourWebhookURL
+	config.Config.FlourWebhookURL = mockServer.URL
+	defer func() { config.Config.FlourWebhookURL = originalURL }()
+
+	timestamp := time.Date(2025, 12, 12, 10, 30, 0, 0, time.UTC)
+	items := []database.OrderEntry{
+		{
+			ID:       1,
+			Item:     1, // Magazine
+			Quantity: 5,
+			Price:    50,   // 50 cents each
+			Receiver: 6240, // Vendor receives this
+		},
+		{
+			ID:       2,
+			Item:     2, // Donation to charity
+			Quantity: 100,
+			Price:    1, // 100 cents donation
+			Receiver: 1, // Charity receives this (not vendor, so negated)
+		},
+		{
+			ID:       3,
+			Item:     3, // Service fee
+			Quantity: 1,
+			Price:    50, // 50 cents service fee
+			Receiver: 2,  // Platform receives this (not vendor, so negated)
+		},
+	}
+	vendor := database.Vendor{
+		ID:        6240,
+		FirstName: "Donation",
+		LastName:  "Vendor",
+		Email:     "donation@example.com",
+		LicenseID: null.StringFrom("donation-license-123"),
+	}
+
+	// Total price: (50*5) + (-100*1) + (-50*1) = 250 - 100 - 50 = 100 cents
+	err := SendPaymentToFlour(777, timestamp, items, vendor, 100)
+	require.NoError(t, err)
 }
