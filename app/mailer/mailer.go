@@ -111,9 +111,33 @@ func NewRequestFromTemplate(to []string, subject, templateFileName string, data 
 	return r, nil
 }
 
+func sanitizeAndValidateRecipients(recipients []string) ([]string, error) {
+	sanitized := make([]string, 0, len(recipients))
+	for _, r := range recipients {
+		s := strings.TrimSpace(r)
+		if s == "" {
+			continue
+		}
+		if strings.ContainsAny(s, "\r\n") {
+			return nil, errors.New("recipient address contains invalid characters")
+		}
+		sanitized = append(sanitized, s)
+	}
+	return sanitized, nil
+}
+
 func NewRequest(to []string, subject, body string) (*EmailRequest, error) {
+	cleanTo, err := sanitizeAndValidateRecipients(to)
+	if err != nil {
+		return nil, err
+	}
+	// Also validate subject for injection
+	if strings.ContainsAny(subject, "\r\n") {
+		return nil, errors.New("subject contains invalid characters")
+	}
+
 	return &EmailRequest{
-		to:      to,
+		to:      cleanTo,
 		subject: subject,
 		body:    body,
 	}, nil
