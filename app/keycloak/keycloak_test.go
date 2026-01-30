@@ -117,7 +117,7 @@ func TestKeycloak(t *testing.T) {
 
 	// Create Group
 	groupName := "testgroup"
-	err = keycloak.KeycloakClient.CreateGroup(groupName)
+	_, err = keycloak.KeycloakClient.CreateGroup(groupName)
 	if err != nil {
 		t.Error("TestKeycloak: Create group failed:", err)
 	}
@@ -129,14 +129,14 @@ func TestKeycloak(t *testing.T) {
 
 	// Create Subgroup
 	subGroupName := "testsubgroup"
-	err = keycloak.KeycloakClient.CreateSubGroup(subGroupName, *group.ID)
+	_, err = keycloak.KeycloakClient.CreateSubGroup(subGroupName, *group.ID)
 	if err != nil {
-		t.Error("TestKeycloak: Create subgroup failed:", err)
+		t.Fatalf("TestKeycloak: Create subgroup failed: %v", err)
 	}
 	subGroupPath := "/" + groupName + "/" + subGroupName
 	subGroup, err := keycloak.KeycloakClient.GetGroupByPath(subGroupPath)
 	if err != nil {
-		t.Error("TestKeycloak: Get subgroup failed:", err)
+		t.Fatalf("TestKeycloak: Get subgroup failed: %v", err)
 	}
 	require.Equal(t, subGroupName, *subGroup.Name)
 
@@ -378,6 +378,7 @@ func TestUpdateAndVendorFlows(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateUser old failed: %v", err)
 	}
+
 	// UpdateVendor when old exists -> should update by id
 	gotID, err := keycloak.KeycloakClient.UpdateVendor(old, newE, "lic", "First", "Last")
 	if err != nil {
@@ -426,6 +427,7 @@ func TestSendPasswordResetGuard(t *testing.T) {
 	if err := keycloak.InitializeOauthServer(); err != nil {
 		t.Fatalf("InitializeOauthServer failed: %v", err)
 	}
+
 	email := fmt.Sprintf("pw_%d@example.com", time.Now().UnixNano())
 	_ = keycloak.KeycloakClient.DeleteUser(email)
 	_, err := keycloak.KeycloakClient.CreateUser(email, "P", "W", email, "pw")
