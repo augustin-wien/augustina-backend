@@ -112,11 +112,19 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 		}
 		// Total price includes the quantity: price * quantity
 		totalPrice += itemPrice * item.Quantity
+
+		itemName := ""
+		if dbItem, err := database.Db.GetItem(item.Item); err != nil {
+			log.Errorf("SendPaymentToFlour: Failed to fetch item name for item %d: %v", item.Item, err)
+		} else {
+			itemName = dbItem.Name
+		}
+
 		flourItems = append(flourItems, FlourPayloadItem{
 			ID:       item.Item,
 			Quantity: item.Quantity,
 			Price:    itemPrice,
-			Name:     item.Name,
+			Name:     itemName,
 		})
 	}
 	// Create a new payload
