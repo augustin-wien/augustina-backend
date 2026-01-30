@@ -16,6 +16,16 @@ import (
 
 // TestSendPaymentToFlourSuccess tests successful payment sending to Flour webhook
 func TestSendPaymentToFlourSuccess(t *testing.T) {
+	// Mock getItemByID
+	originalGetItemByID := getItemByID
+	getItemByID = func(id int) (database.Item, error) {
+		return database.Item{
+			ID:   id,
+			Name: "Test Item",
+		}, nil
+	}
+	defer func() { getItemByID = originalGetItemByID }()
+
 	// Create a mock server to capture the webhook request
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Verify request method and headers
@@ -36,9 +46,11 @@ func TestSendPaymentToFlourSuccess(t *testing.T) {
 		require.Equal(t, 1, receivedPayload.Items[0].ID)
 		require.Equal(t, 2, receivedPayload.Items[0].Quantity)
 		require.Equal(t, 2500, receivedPayload.Items[0].Price)
+		require.Equal(t, "Test Item", receivedPayload.Items[0].Name)
 		require.Equal(t, 2, receivedPayload.Items[1].ID)
 		require.Equal(t, 1, receivedPayload.Items[1].Quantity)
 		require.Equal(t, 2500, receivedPayload.Items[1].Price)
+		require.Equal(t, "Test Item", receivedPayload.Items[1].Name)
 
 		// Return successful response
 		w.WriteHeader(http.StatusOK)
@@ -115,6 +127,16 @@ func TestSendPaymentToFlourEmptyItems(t *testing.T) {
 
 // TestSendPaymentToFlourWithNullLicenseID tests sending payment with null license ID
 func TestSendPaymentToFlourWithNullLicenseID(t *testing.T) {
+	// Mock getItemByID
+	originalGetItemByID := getItemByID
+	getItemByID = func(id int) (database.Item, error) {
+		return database.Item{
+			ID:   id,
+			Name: "Test Item",
+		}, nil
+	}
+	defer func() { getItemByID = originalGetItemByID }()
+
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var receivedPayload FlourPayload
 		err := json.NewDecoder(r.Body).Decode(&receivedPayload)
@@ -182,6 +204,16 @@ func TestSendPaymentToFlourWithNullLicenseID(t *testing.T) {
 
 // TestSendPaymentToFlourMultipleItems tests sending payment with multiple items
 func TestSendPaymentToFlourMultipleItems(t *testing.T) {
+	// Mock getItemByID
+	originalGetItemByID := getItemByID
+	getItemByID = func(id int) (database.Item, error) {
+		return database.Item{
+			ID:   id,
+			Name: "Test Item",
+		}, nil
+	}
+	defer func() { getItemByID = originalGetItemByID }()
+
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var receivedPayload FlourPayload
 		err := json.NewDecoder(r.Body).Decode(&receivedPayload)
@@ -225,6 +257,16 @@ func TestSendPaymentToFlourMultipleItems(t *testing.T) {
 
 // TestSendPaymentToFlourPayloadStructure tests that payload structure is correct
 func TestSendPaymentToFlourPayloadStructure(t *testing.T) {
+	// Mock getItemByID
+	originalGetItemByID := getItemByID
+	getItemByID = func(id int) (database.Item, error) {
+		return database.Item{
+			ID:   id,
+			Name: "Test Item",
+		}, nil
+	}
+	defer func() { getItemByID = originalGetItemByID }()
+
 	var capturedPayload []byte
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var buf bytes.Buffer
@@ -271,6 +313,16 @@ func TestSendPaymentToFlourPayloadStructure(t *testing.T) {
 
 // TestSendPaymentToFlourDonationWithMultipleQuantities tests 100 cents donation with multiple items and quantities
 func TestSendPaymentToFlourDonationWithMultipleQuantities(t *testing.T) {
+	// Mock getItemByID
+	originalGetItemByID := getItemByID
+	getItemByID = func(id int) (database.Item, error) {
+		return database.Item{
+			ID:   id,
+			Name: "Test Item",
+		}, nil
+	}
+	defer func() { getItemByID = originalGetItemByID }()
+
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var receivedPayload FlourPayload
 		err := json.NewDecoder(r.Body).Decode(&receivedPayload)
