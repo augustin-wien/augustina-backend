@@ -260,8 +260,12 @@ func (k *Keycloak) EnsureGroupPath(path string) error {
 		// Missing group — create it. If top-level, use CreateGroup, else create as child of previous.
 		if i == 0 {
 			if err := k.CreateGroup(part); err != nil {
-				log.Errorf("EnsureGroupPath: failed to create top-level group %s: %v", part, err)
-				return err
+				if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "Conflict") {
+					log.Infof("EnsureGroupPath: top-level group %s already exists (409)", part)
+				} else {
+					log.Errorf("EnsureGroupPath: failed to create top-level group %s: %v", part, err)
+					return err
+				}
 			}
 		} else {
 			parent := strings.Join(parts[:i], "/")
@@ -272,8 +276,12 @@ func (k *Keycloak) EnsureGroupPath(path string) error {
 				return err
 			}
 			if err := k.CreateSubGroup(part, *parentGroup.ID); err != nil {
-				log.Errorf("EnsureGroupPath: failed to create subgroup %s under %s: %v", part, parentPath, err)
-				return err
+				if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "Conflict") {
+					log.Infof("EnsureGroupPath: subgroup %s already exists (409)", part)
+				} else {
+					log.Errorf("EnsureGroupPath: failed to create subgroup %s under %s: %v", part, parentPath, err)
+					return err
+				}
 			}
 		}
 	}
@@ -289,6 +297,19 @@ func (k *Keycloak) GetGroupByPath(path string) (*gocloak.Group, error) {
 // GetGroup function returns the group of the given name
 func (k *Keycloak) GetGroup(name string) (*gocloak.Group, error) {
 	k.checkAdminToken()
+	// First try using GetGroups with search which is safer against path normalization issues
+	params := gocloak.GetGroupsParams{
+		Search: &name,
+	}
+	groups, err := k.Client.GetGroups(k.Context, k.clientToken.AccessToken, k.Realm, params)
+	if err == nil {
+		for _, g := range groups {
+			if g.Name != nil && *g.Name == name {
+				return g, nil
+			}
+		}
+	}
+	// Fallback to path
 	return k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, "/"+name)
 }
 
