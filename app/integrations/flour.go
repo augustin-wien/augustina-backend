@@ -22,6 +22,11 @@ const (
 	initialBackoff = 2 * time.Second // Initial backoff time
 )
 
+// getItemByID is a variable to allow mocking in tests
+var getItemByID = func(id int) (database.Item, error) {
+	return database.Db.GetItem(id)
+}
+
 // Payload is the structure of the JSON payload to be sent.
 type Payload struct {
 	Message string `json:"message"`
@@ -93,9 +98,10 @@ type FlourPayload struct {
 }
 
 type FlourPayloadItem struct {
-	ID       int `json:"id"`
-	Quantity int `json:"quantity"`
-	Price    int `json:"price"`
+	ID       int    `json:"id"`
+	Quantity int    `json:"quantity"`
+	Price    int    `json:"price"`
+	Name     string `json:"name,omitempty"`
 }
 
 func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry, vendor database.Vendor, price int) error {
@@ -111,10 +117,19 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 		}
 		// Total price includes the quantity: price * quantity
 		totalPrice += itemPrice * item.Quantity
+
+		itemName := ""
+		if dbItem, err := getItemByID(item.Item); err != nil {
+			log.Errorf("SendPaymentToFlour: Failed to fetch item name for item %d: %v", item.Item, err)
+		} else {
+			itemName = dbItem.Name
+		}
+
 		flourItems = append(flourItems, FlourPayloadItem{
 			ID:       item.Item,
 			Quantity: item.Quantity,
 			Price:    itemPrice,
+			Name:     itemName,
 		})
 	}
 	// Create a new payload

@@ -100,3 +100,10 @@ govulncheck:
 security: gosec staticcheck govulncheck
 	@echo "Security checks complete."
 
+# Restart the development server
+restart:
+	@docker compose restart augustin && docker compose logs -f augustin
+
+# shows the webhooks logs
+log-webhooks:
+	@docker compose logs -f webhook-receiver

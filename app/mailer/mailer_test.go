@@ -10,7 +10,7 @@ import (
 
 // TestParseTemplateFromString parses a simple template string
 func TestParseTemplateFromString(t *testing.T) {
-	r := NewRequest([]string{"test@example.com"}, "subj", "")
+	r, _ := NewRequest([]string{"test@example.com"}, "subj", "")
 	tmpl := "Hello {{.Name}}, welcome!"
 	data := map[string]string{"Name": "Alice"}
 	err := r.ParseTemplateFromString(tmpl, data)
@@ -33,7 +33,7 @@ func TestParseTemplate_Success(t *testing.T) {
 		_ = os.Remove(dir)
 	})
 
-	r := NewRequest([]string{"foo@bar.test"}, "subj", "")
+	r, _ := NewRequest([]string{"foo@bar.test"}, "subj", "")
 	if err := r.ParseTemplate("test_mailer_template.html", map[string]string{"Name": "World"}); err != nil {
 		t.Fatalf("ParseTemplate returned error: %v", err)
 	}
@@ -43,7 +43,7 @@ func TestParseTemplate_Success(t *testing.T) {
 }
 
 func TestParseTemplate_EmptyName(t *testing.T) {
-	r := NewRequest(nil, "", "")
+	r, _ := NewRequest(nil, "", "")
 	if err := r.ParseTemplate("", nil); err == nil {
 		t.Fatalf("expected error for empty template name")
 	}

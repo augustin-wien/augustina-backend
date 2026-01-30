@@ -51,7 +51,10 @@ func TestSendMailTemplateHandler_FillsURLAndEmailAndSends(t *testing.T) {
 		}
 		// Render a template that uses both casings: EMAIL uppercase and url lowercase
 		tmpl := "email: {{.EMAIL}} url: {{.url}}"
-		r := mailer.NewRequest(to, "subject", "")
+		r, err := mailer.NewRequest(to, "subject", "")
+		if err != nil {
+			return nil, err
+		}
 		if err := r.ParseTemplateFromString(tmpl, data); err != nil {
 			t.Fatalf("ParseTemplateFromString failed: %v", err)
 		}
