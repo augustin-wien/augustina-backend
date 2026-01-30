@@ -93,9 +93,10 @@ type FlourPayload struct {
 }
 
 type FlourPayloadItem struct {
-	ID       int `json:"id"`
-	Quantity int `json:"quantity"`
-	Price    int `json:"price"`
+	ID       int    `json:"id"`
+	Quantity int    `json:"quantity"`
+	Price    int    `json:"price"`
+	Name     string `json:"name,omitempty"`
 }
 
 func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry, vendor database.Vendor, price int) error {
@@ -115,6 +116,7 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 			ID:       item.Item,
 			Quantity: item.Quantity,
 			Price:    itemPrice,
+			Name:     item.Name,
 		})
 	}
 	// Create a new payload
