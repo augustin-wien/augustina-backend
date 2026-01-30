@@ -99,21 +99,45 @@ type EmailRequest struct {
 	body    string
 }
 
+// sanitizeAndValidateRecipients trims whitespace and ensures that recipient
+// addresses do not contain CR/LF characters to prevent header injection.
+func sanitizeAndValidateRecipients(to []string) ([]string, error) {
+	clean := make([]string, 0, len(to))
+	for _, addr := range to {
+		a := strings.TrimSpace(addr)
+		if a == "" {
+			return nil, errors.New("empty recipient address is not allowed")
+		}
+		if strings.ContainsAny(a, "\r\n") {
+			return nil, errors.New("invalid recipient address: contains newline characters")
+		}
+		clean = append(clean, a)
+	}
+	return clean, nil
+}
+
 func NewRequestFromTemplate(to []string, subject, templateFileName string, data interface{}) (*EmailRequest, error) {
-	r := NewRequest(to, subject, "")
-	err := r.ParseTemplate(templateFileName, data)
+	r, err := NewRequest(to, subject, "")
+	if err != nil {
+		return nil, err
+	}
+	err = r.ParseTemplate(templateFileName, data)
 	if err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-func NewRequest(to []string, subject, body string) *EmailRequest {
+func NewRequest(to []string, subject, body string) (*EmailRequest, error) {
+	cleanTo, err := sanitizeAndValidateRecipients(to)
+	if err != nil {
+		return nil, err
+	}
 	return &EmailRequest{
-		to:      to,
+		to:      cleanTo,
 		subject: subject,
 		body:    body,
-	}
+	}, nil
 }
 
 // SetSubject sets the email subject (exported helper for other packages)
