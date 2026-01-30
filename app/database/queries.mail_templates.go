@@ -83,7 +83,10 @@ func (db *Database) BuildEmailRequestFromTemplate(name string, to []string, data
 		}
 		subj = buf.String()
 	}
-	r := mailer.NewRequest(to, subj, "")
+	r, err := mailer.NewRequest(to, subj, "")
+	if err != nil {
+		return nil, err
+	}
 	if err := r.ParseTemplateFromString(mt.Body, data); err != nil {
 		return nil, err
 	}
