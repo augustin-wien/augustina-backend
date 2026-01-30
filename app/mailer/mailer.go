@@ -28,10 +28,10 @@ var Send = func(r *EmailRequest) (bool, error) {
 }
 
 // encodeRFC2047 encodes a header value (Subject) if it contains non-ASCII
-// characters using the 'encoded-word' syntax from RFC 2047 (base64, UTF-8).
+// characters or control characters using the 'encoded-word' syntax from RFC 2047 (base64, UTF-8).
 func encodeRFC2047(s string) string {
 	for i := 0; i < len(s); i++ {
-		if s[i] >= 128 {
+		if s[i] >= 128 || s[i] == '\r' || s[i] == '\n' {
 			return "=?UTF-8?B?" + base64.StdEncoding.EncodeToString([]byte(s)) + "?="
 		}
 	}
@@ -164,11 +164,20 @@ func (r *EmailRequest) Body() string {
 func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 	from := config.Config.SMTPSenderAddress
 	toHeader := strings.Join(r.to, ", ")
+	// Defense in depth: catch any injection attempts in To header
+	if strings.ContainsAny(toHeader, "\r\n") {
+		return nil, "", errors.New("header injection attempt in To")
+	}
+
 	dateHeader := time.Now().UTC().Format(time.RFC1123Z)
 	domain := config.Config.SMTPServer
 	if parts := strings.Split(from, "@"); len(parts) == 2 {
 		domain = parts[1]
 	}
+	// Sanitize domain to be safe (though it comes from config)
+	domain = strings.ReplaceAll(domain, "\r", "")
+	domain = strings.ReplaceAll(domain, "\n", "")
+
 	msgID := fmt.Sprintf("<%d.%d@%s>", time.Now().UnixNano(), time.Now().Unix(), domain)
 
 	// create a plain-text alternative by stripping HTML tags (simple fallback)
