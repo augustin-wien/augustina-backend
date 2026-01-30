@@ -1028,7 +1028,10 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 		if name == "digitalLicenceItemTemplate.html" {
 			subj = "Your license"
 		}
-		r := mailer.NewRequest(to, subj, "body")
+		r, err := mailer.NewRequest(to, subj, "body")
+		if err != nil {
+			return nil, err
+		}
 		return r, nil
 	}
 
@@ -1178,7 +1181,10 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 		if name == "PDFLicenceItemTemplate.html" {
 			subj = "Your PDF"
 		}
-		r := mailer.NewRequest(to, subj, "body")
+		r, err := mailer.NewRequest(to, subj, "body")
+		if err != nil {
+			return nil, err
+		}
 		return r, nil
 	}
 

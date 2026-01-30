@@ -100,20 +100,23 @@ type EmailRequest struct {
 }
 
 func NewRequestFromTemplate(to []string, subject, templateFileName string, data interface{}) (*EmailRequest, error) {
-	r := NewRequest(to, subject, "")
-	err := r.ParseTemplate(templateFileName, data)
+	r, err := NewRequest(to, subject, "")
+	if err != nil {
+		return nil, err
+	}
+	err = r.ParseTemplate(templateFileName, data)
 	if err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-func NewRequest(to []string, subject, body string) *EmailRequest {
+func NewRequest(to []string, subject, body string) (*EmailRequest, error) {
 	return &EmailRequest{
 		to:      to,
 		subject: subject,
 		body:    body,
-	}
+	}, nil
 }
 
 // SetSubject sets the email subject (exported helper for other packages)
