@@ -91,18 +91,21 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		return payments, err
 	}
 	for _, payment := range tmpPayments {
-
-		subrows, err := tx.Query(context.Background(), "SELECT ID, Timestamp, Sender, null as SenderName, Receiver, null as ReceiverName, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, null as IsPayoutFor, Item, Quantity, Price FROM Payment WHERE Payout = $1 ORDER BY Timestamp", payment.ID)
-		if err != nil {
-			return payments, err
+		// Optimization: Sales are not payouts, so they don't have sub-payments.
+		// This prevents N+1 queries when listing thousands of sales.
+		if !payment.IsSale {
+			subrows, err := tx.Query(context.Background(), "SELECT ID, Timestamp, Sender, null as SenderName, Receiver, null as ReceiverName, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, null as IsPayoutFor, Item, Quantity, Price FROM Payment WHERE Payout = $1 ORDER BY Timestamp", payment.ID)
+			if err != nil {
+				return payments, err
+			}
+			tmpSubPayments, err := pgx.CollectRows(subrows, pgx.RowToStructByName[Payment])
+			subrows.Close()
+			if err != nil {
+				log.Error("ListPayments: ", err)
+				return payments, err
+			}
+			payment.IsPayoutFor = append(payment.IsPayoutFor, tmpSubPayments...)
 		}
-		defer subrows.Close()
-		tmpSubPayments, err := pgx.CollectRows(subrows, pgx.RowToStructByName[Payment])
-		if err != nil {
-			log.Error("ListPayments: ", err)
-			return payments, err
-		}
-		payment.IsPayoutFor = append(payment.IsPayoutFor, tmpSubPayments...)
 		payments = append(payments, payment)
 	}
 
