@@ -90,26 +90,42 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 		log.Error("ListPayments: ", err)
 		return payments, err
 	}
-	for _, payment := range tmpPayments {
-		// Optimization: Sales are not payouts, so they don't have sub-payments.
-		// This prevents N+1 queries when listing thousands of sales.
-		if !payment.IsSale {
-			subrows, err := tx.Query(context.Background(), "SELECT ID, Timestamp, Sender, null as SenderName, Receiver, null as ReceiverName, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, null as IsPayoutFor, Item, Quantity, Price FROM Payment WHERE Payout = $1 ORDER BY Timestamp", payment.ID)
-			if err != nil {
-				return payments, err
-			}
-			tmpSubPayments, err := pgx.CollectRows(subrows, pgx.RowToStructByName[Payment])
-			subrows.Close()
-			if err != nil {
-				log.Error("ListPayments: ", err)
-				return payments, err
-			}
-			payment.IsPayoutFor = append(payment.IsPayoutFor, tmpSubPayments...)
+
+	// Optimization: Batch fetch sub-payments to avoid N+1 queries
+	var payoutIDs []int
+	paymentsMap := make(map[int]*Payment)
+
+	for i := range tmpPayments {
+		// Sales are not payouts, so they don't have sub-payments.
+		if !tmpPayments[i].IsSale {
+			payoutIDs = append(payoutIDs, tmpPayments[i].ID)
+			paymentsMap[tmpPayments[i].ID] = &tmpPayments[i]
 		}
-		payments = append(payments, payment)
 	}
 
-	return payments, nil
+	if len(payoutIDs) > 0 {
+		subrows, err := tx.Query(context.Background(), "SELECT ID, Timestamp, Sender, null as SenderName, Receiver, null as ReceiverName, Amount, AuthorizedBy, PaymentOrder, OrderEntry, IsSale, Payout, null as IsPayoutFor, Item, Quantity, Price FROM Payment WHERE Payout = ANY($1) ORDER BY Timestamp", payoutIDs)
+		if err != nil {
+			return payments, err
+		}
+		// pgx.CollectRows closes the rows automatically
+		subPayments, err := pgx.CollectRows(subrows, pgx.RowToStructByName[Payment])
+		if err != nil {
+			log.Error("ListPayments subquery: ", err)
+			return payments, err
+		}
+
+		for _, sub := range subPayments {
+			if sub.Payout.Valid {
+				parentID := int(sub.Payout.Int64)
+				if parent, ok := paymentsMap[parentID]; ok {
+					parent.IsPayoutFor = append(parent.IsPayoutFor, sub)
+				}
+			}
+		}
+	}
+
+	return tmpPayments, nil
 }
 
 // ListPaymentsForPayout returns sales payments that have not been paid out yet
