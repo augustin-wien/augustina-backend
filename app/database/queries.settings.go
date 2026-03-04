@@ -4,21 +4,30 @@ import (
 	"context"
 
 	"github.com/augustin-wien/augustina-backend/ent"
+	entdbsettings "github.com/augustin-wien/augustina-backend/ent/dbsettings"
+	entsettings "github.com/augustin-wien/augustina-backend/ent/settings"
 )
 
 // Settings (singleton) -------------------------------------------------------
 
 // InitiateSettings creates default settings if they don't exist
 func (db *Database) InitiateSettings() (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	INSERT INTO Settings (ID) VALUES (1)
-	ON CONFLICT (ID) DO NOTHING;
-	`)
+	// Attempt to create. If ID 1 exists, it will fail (unique constraint).
+	// Since we don't have OnConflict easy access without custom dialect/features,
+	// checking existence is safer migration.
+	exists, err := db.EntClient.Settings.Query().Where(entsettings.ID(1)).Exist(context.Background())
 	if err != nil {
 		log.Error("InitiateSettings: ", err)
 		return err
 	}
-	return err
+	if !exists {
+		_, err = db.EntClient.Settings.Create().SetID(1).Save(context.Background())
+		if err != nil {
+			log.Error("InitiateSettings: ", err)
+			return err
+		}
+	}
+	return nil
 }
 
 // GetSettings returns the settings from the database
@@ -34,15 +43,21 @@ func (db *Database) GetSettings() (*ent.Settings, error) {
 // UpdateSettings updates the settings in the database
 func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 
-	tx, err := db.Dbpool.Begin(context.Background())
-	defer func() { err = DeferTx(tx, err) }()
+	tx, err := db.EntClient.Tx(context.Background())
 	if err != nil {
-		log.Error("UpdateSettings failed to access db pool: ", err)
+		log.Error("UpdateSettings failed to start tx: ", err)
 		return err
 	}
+	defer func() {
+		if v, ok := err.(interface{ Rollback() error }); ok && v != nil {
+			tx.Rollback()
+		}
+	}()
+
 	log.Debug("UpdateSettings: ", settings.UseTipInsteadOfDonation)
-	// Update the settings in the database
-	_, err = db.EntClient.Settings.UpdateOneID(1).
+
+	// Prepare update builder
+	update := tx.Settings.UpdateOneID(1).
 		SetAGBUrl(settings.AGBUrl).
 		SetColor(settings.Color).
 		SetFontColor(settings.FontColor).
@@ -64,47 +79,45 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetQRCodeEnableLogo(settings.QRCodeEnableLogo).
 		SetUseTipInsteadOfDonation(settings.UseTipInsteadOfDonation).
 		SetShopLanding(settings.ShopLanding).
-		SetDigitalItemsUrl(settings.DigitalItemsUrl).
-		Save(context.Background())
+		SetDigitalItemsUrl(settings.DigitalItemsUrl)
+
+	// Update main item if present
+	if settings.Edges.MainItem != nil {
+		update.SetMainItemID(settings.Edges.MainItem.ID)
+	}
+
+	err = update.Exec(context.Background())
 	if err != nil {
 		log.Error("UpdateSettings: ", err)
 		return err
 	}
-	// update main item
-	if settings.Edges.MainItem != nil {
-		_, err = db.EntClient.Settings.UpdateOneID(1).
-			SetMainItemID(settings.Edges.MainItem.ID).
-			Save(context.Background())
+
+	return tx.Commit()
+}
+
+// InitiateDBSettings creates default settings if they don't exist
+func (db *Database) InitiateDBSettings() (err error) {
+	exists, err := db.EntClient.DBSettings.Query().Where(entdbsettings.ID(1)).Exist(context.Background())
+	if err != nil {
+		log.Error("InitiateDBSettings: check failed ", err)
+		return err
+	}
+
+	if !exists {
+		_, err = db.EntClient.DBSettings.Create().SetID(1).SetIsInitialized(false).Save(context.Background())
 		if err != nil {
-			log.Error("UpdateSettings main item failed: ", err, settings.Edges.MainItem)
+			log.Error("InitiateDBSettings: ", err)
 			return err
 		}
 	}
 	return nil
 }
 
-// DBSettings -----------------------------------------------------------------
-
-// InitiateDBSettings creates default settings if they don't exist
-func (db *Database) InitiateDBSettings() (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	INSERT INTO DBSettings (ID, isInitialized) VALUES (1, false)
-	ON CONFLICT (ID) DO NOTHING;
-	`)
-	if err != nil {
-		log.Error("InitiateDBSettings: ", err)
-		return err
-	}
-	return err
-}
-
 // UpdateDBSettings updates the settings in the database
 func (db *Database) UpdateDBSettings(dbsettings DBSettings) (err error) {
-	_, err = db.Dbpool.Query(context.Background(), `
-	UPDATE DBSettings
-	SET isInitialized = $1
-	WHERE ID = 1
-	`, dbsettings.IsInitialized)
+	err = db.EntClient.DBSettings.UpdateOneID(1).
+		SetIsInitialized(dbsettings.IsInitialized).
+		Exec(context.Background())
 	if err != nil {
 		log.Error("UpdateDBSettings: ", err)
 	}
@@ -112,13 +125,13 @@ func (db *Database) UpdateDBSettings(dbsettings DBSettings) (err error) {
 }
 
 // GetDBSettings returns the settings from the database
-func (db *Database) GetDBSettings() (DBSettings, error) {
-	var dbsettings DBSettings
-	err := db.Dbpool.QueryRow(context.Background(), `
-	SELECT * from DBSettings LIMIT 1
-	`).Scan(&dbsettings.ID, &dbsettings.IsInitialized)
+func (db *Database) GetDBSettings() (s DBSettings, err error) {
+	res, err := db.EntClient.DBSettings.Query().Where(entdbsettings.ID(1)).Only(context.Background())
 	if err != nil {
 		log.Error("GetDBSettings: ", err)
+		return s, err
 	}
-	return dbsettings, err
+	s.ID = res.ID
+	s.IsInitialized = res.IsInitialized
+	return s, nil
 }

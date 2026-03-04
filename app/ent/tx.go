@@ -12,18 +12,30 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Account is the client for interacting with the Account builders.
+	Account *AccountClient
 	// BlockedIP is the client for interacting with the BlockedIP builders.
 	BlockedIP *BlockedIPClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
+	// DBSettings is the client for interacting with the DBSettings builders.
+	DBSettings *DBSettingsClient
 	// Item is the client for interacting with the Item builders.
 	Item *ItemClient
 	// Location is the client for interacting with the Location builders.
 	Location *LocationClient
 	// MailTemplate is the client for interacting with the MailTemplate builders.
 	MailTemplate *MailTemplateClient
+	// Order is the client for interacting with the Order builders.
+	Order *OrderClient
+	// OrderEntry is the client for interacting with the OrderEntry builders.
+	OrderEntry *OrderEntryClient
 	// PDF is the client for interacting with the PDF builders.
 	PDF *PDFClient
+	// PDFDownload is the client for interacting with the PDFDownload builders.
+	PDFDownload *PDFDownloadClient
+	// Payment is the client for interacting with the Payment builders.
+	Payment *PaymentClient
 	// Settings is the client for interacting with the Settings builders.
 	Settings *SettingsClient
 	// Vendor is the client for interacting with the Vendor builders.
@@ -159,12 +171,18 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Account = NewAccountClient(tx.config)
 	tx.BlockedIP = NewBlockedIPClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
+	tx.DBSettings = NewDBSettingsClient(tx.config)
 	tx.Item = NewItemClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
 	tx.MailTemplate = NewMailTemplateClient(tx.config)
+	tx.Order = NewOrderClient(tx.config)
+	tx.OrderEntry = NewOrderEntryClient(tx.config)
 	tx.PDF = NewPDFClient(tx.config)
+	tx.PDFDownload = NewPDFDownloadClient(tx.config)
+	tx.Payment = NewPaymentClient(tx.config)
 	tx.Settings = NewSettingsClient(tx.config)
 	tx.Vendor = NewVendorClient(tx.config)
 }
@@ -176,7 +194,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: BlockedIP.QueryXXX(), the query will be executed
+// applies a query, for example: Account.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

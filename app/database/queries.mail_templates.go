@@ -7,6 +7,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/augustin-wien/augustina-backend/ent"
+	"github.com/augustin-wien/augustina-backend/ent/mailtemplate"
 	"github.com/augustin-wien/augustina-backend/mailer"
 )
 
@@ -23,45 +25,79 @@ type MailTemplate struct {
 // GetMailTemplateByName fetches a mail template by its name
 func (db *Database) GetMailTemplateByName(name string) (MailTemplate, error) {
 	var mt MailTemplate
-	row := db.Dbpool.QueryRow(context.Background(), `SELECT id, name, subject, body, created_at, updated_at FROM mail_templates WHERE name=$1`, name)
-	err := row.Scan(&mt.ID, &mt.Name, &mt.Subject, &mt.Body, &mt.CreatedAt, &mt.UpdatedAt)
+
+	t, err := db.EntClient.MailTemplate.Query().Where(mailtemplate.Name(name)).First(context.Background())
 	if err != nil {
 		return mt, err
 	}
+
+	mt.ID = t.ID
+	mt.Name = t.Name
+	mt.Subject = t.Subject
+	mt.Body = t.Body
+	mt.CreatedAt = t.CreatedAt
+	mt.UpdatedAt = t.UpdatedAt
 	return mt, nil
 }
 
 // ListMailTemplates returns all templates
 func (db *Database) ListMailTemplates() ([]MailTemplate, error) {
-	rows, err := db.Dbpool.Query(context.Background(), `SELECT id, name, subject, body, created_at, updated_at FROM mail_templates ORDER BY name`)
+	list, err := db.EntClient.MailTemplate.Query().Order(ent.Asc(mailtemplate.FieldName)).All(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
 	var out []MailTemplate
-	for rows.Next() {
-		var mt MailTemplate
-		if err := rows.Scan(&mt.ID, &mt.Name, &mt.Subject, &mt.Body, &mt.CreatedAt, &mt.UpdatedAt); err != nil {
-			return nil, err
-		}
-		out = append(out, mt)
+	for _, t := range list {
+		out = append(out, MailTemplate{
+			ID:        t.ID,
+			Name:      t.Name,
+			Subject:   t.Subject,
+			Body:      t.Body,
+			CreatedAt: t.CreatedAt,
+			UpdatedAt: t.UpdatedAt,
+		})
 	}
 	return out, nil
 }
 
 // CreateOrUpdateMailTemplate inserts or updates a template by name
 func (db *Database) CreateOrUpdateMailTemplate(name, subject, body string) error {
-	_, err := db.Dbpool.Exec(context.Background(), `
-        INSERT INTO mail_templates (name, subject, body, created_at, updated_at)
-        VALUES ($1, $2, $3, now(), now())
-        ON CONFLICT (name) DO UPDATE SET subject = EXCLUDED.subject, body = EXCLUDED.body, updated_at = now();
-    `, name, subject, body)
+	// Using Upsert via OnConflict is dialect specific in Ent, or we can use the Upsert feature if generated.
+	// Since standard Ent doesn't generate Upsert (OnConflict) methods without correct feature flags,
+	// and enabling them requires changing generate.go which I didn't see flags for,
+	// I will use a simple check-and-update pattern or simple recreate.
+	// Actually "entgo.io/ent/dialect/sql" allows it but cleaner to use Ent semantics.
+	// Let's try to find, if exists update, else create.
+
+	ctx := context.Background()
+	exists, err := db.EntClient.MailTemplate.Query().Where(mailtemplate.Name(name)).Exist(ctx)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		_, err = db.EntClient.MailTemplate.Update().
+			Where(mailtemplate.Name(name)).
+			SetSubject(subject).
+			SetBody(body).
+			SetUpdatedAt(time.Now()).
+			Save(ctx)
+	} else {
+		_, err = db.EntClient.MailTemplate.Create().
+			SetName(name).
+			SetSubject(subject).
+			SetBody(body).
+			SetCreatedAt(time.Now()).
+			SetUpdatedAt(time.Now()).
+			Save(ctx)
+	}
 	return err
 }
 
 // DeleteMailTemplate deletes a template by name
 func (db *Database) DeleteMailTemplate(name string) error {
-	_, err := db.Dbpool.Exec(context.Background(), `DELETE FROM mail_templates WHERE name=$1`, name)
+	_, err := db.EntClient.MailTemplate.Delete().Where(mailtemplate.Name(name)).Exec(context.Background())
 	return err
 }
 

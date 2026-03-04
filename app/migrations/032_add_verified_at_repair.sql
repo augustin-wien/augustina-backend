@@ -1,0 +1,1 @@
+ALTER TABLE "paymentorder" ADD COLUMN IF NOT EXISTS "verified_at" TIMESTAMP;

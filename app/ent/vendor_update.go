@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
@@ -312,6 +313,21 @@ func (vu *VendorUpdate) AddComments(c ...*Comment) *VendorUpdate {
 	return vu.AddCommentIDs(ids...)
 }
 
+// AddAccountIDs adds the "accounts" edge to the Account entity by IDs.
+func (vu *VendorUpdate) AddAccountIDs(ids ...int) *VendorUpdate {
+	vu.mutation.AddAccountIDs(ids...)
+	return vu
+}
+
+// AddAccounts adds the "accounts" edges to the Account entity.
+func (vu *VendorUpdate) AddAccounts(a ...*Account) *VendorUpdate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return vu.AddAccountIDs(ids...)
+}
+
 // Mutation returns the VendorMutation object of the builder.
 func (vu *VendorUpdate) Mutation() *VendorMutation {
 	return vu.mutation
@@ -357,6 +373,27 @@ func (vu *VendorUpdate) RemoveComments(c ...*Comment) *VendorUpdate {
 		ids[i] = c[i].ID
 	}
 	return vu.RemoveCommentIDs(ids...)
+}
+
+// ClearAccounts clears all "accounts" edges to the Account entity.
+func (vu *VendorUpdate) ClearAccounts() *VendorUpdate {
+	vu.mutation.ClearAccounts()
+	return vu
+}
+
+// RemoveAccountIDs removes the "accounts" edge to Account entities by IDs.
+func (vu *VendorUpdate) RemoveAccountIDs(ids ...int) *VendorUpdate {
+	vu.mutation.RemoveAccountIDs(ids...)
+	return vu
+}
+
+// RemoveAccounts removes "accounts" edges to Account entities.
+func (vu *VendorUpdate) RemoveAccounts(a ...*Account) *VendorUpdate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return vu.RemoveAccountIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -532,6 +569,51 @@ func (vu *VendorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if vu.mutation.AccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vendor.AccountsTable,
+			Columns: []string{vendor.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vu.mutation.RemovedAccountsIDs(); len(nodes) > 0 && !vu.mutation.AccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vendor.AccountsTable,
+			Columns: []string{vendor.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vu.mutation.AccountsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vendor.AccountsTable,
+			Columns: []string{vendor.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -841,6 +923,21 @@ func (vuo *VendorUpdateOne) AddComments(c ...*Comment) *VendorUpdateOne {
 	return vuo.AddCommentIDs(ids...)
 }
 
+// AddAccountIDs adds the "accounts" edge to the Account entity by IDs.
+func (vuo *VendorUpdateOne) AddAccountIDs(ids ...int) *VendorUpdateOne {
+	vuo.mutation.AddAccountIDs(ids...)
+	return vuo
+}
+
+// AddAccounts adds the "accounts" edges to the Account entity.
+func (vuo *VendorUpdateOne) AddAccounts(a ...*Account) *VendorUpdateOne {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return vuo.AddAccountIDs(ids...)
+}
+
 // Mutation returns the VendorMutation object of the builder.
 func (vuo *VendorUpdateOne) Mutation() *VendorMutation {
 	return vuo.mutation
@@ -886,6 +983,27 @@ func (vuo *VendorUpdateOne) RemoveComments(c ...*Comment) *VendorUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return vuo.RemoveCommentIDs(ids...)
+}
+
+// ClearAccounts clears all "accounts" edges to the Account entity.
+func (vuo *VendorUpdateOne) ClearAccounts() *VendorUpdateOne {
+	vuo.mutation.ClearAccounts()
+	return vuo
+}
+
+// RemoveAccountIDs removes the "accounts" edge to Account entities by IDs.
+func (vuo *VendorUpdateOne) RemoveAccountIDs(ids ...int) *VendorUpdateOne {
+	vuo.mutation.RemoveAccountIDs(ids...)
+	return vuo
+}
+
+// RemoveAccounts removes "accounts" edges to Account entities.
+func (vuo *VendorUpdateOne) RemoveAccounts(a ...*Account) *VendorUpdateOne {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return vuo.RemoveAccountIDs(ids...)
 }
 
 // Where appends a list predicates to the VendorUpdate builder.
@@ -1091,6 +1209,51 @@ func (vuo *VendorUpdateOne) sqlSave(ctx context.Context) (_node *Vendor, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if vuo.mutation.AccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vendor.AccountsTable,
+			Columns: []string{vendor.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vuo.mutation.RemovedAccountsIDs(); len(nodes) > 0 && !vuo.mutation.AccountsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vendor.AccountsTable,
+			Columns: []string{vendor.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := vuo.mutation.AccountsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vendor.AccountsTable,
+			Columns: []string{vendor.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

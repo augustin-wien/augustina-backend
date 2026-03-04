@@ -17,6 +17,9 @@ import (
 )
 
 func TestSendMailTemplateHandler_FillsURLAndEmailAndSends(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
 	// prepare request body: only `to` so Data will be nil and handler should default it
 	body := map[string]interface{}{
 		"to": []string{"buyer@example.test"},

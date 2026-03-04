@@ -53,6 +53,7 @@ func (Vendor) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("locations", Location.Type),
 		edge.To("comments", Comment.Type),
+		edge.To("accounts", Account.Type),
 	}
 }
 

@@ -9,6 +9,18 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent"
 )
 
+// The AccountFunc type is an adapter to allow the use of ordinary
+// function as Account mutator.
+type AccountFunc func(context.Context, *ent.AccountMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AccountMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
+}
+
 // The BlockedIPFunc type is an adapter to allow the use of ordinary
 // function as BlockedIP mutator.
 type BlockedIPFunc func(context.Context, *ent.BlockedIPMutation) (ent.Value, error)
@@ -31,6 +43,18 @@ func (f CommentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CommentMutation", m)
+}
+
+// The DBSettingsFunc type is an adapter to allow the use of ordinary
+// function as DBSettings mutator.
+type DBSettingsFunc func(context.Context, *ent.DBSettingsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DBSettingsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DBSettingsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DBSettingsMutation", m)
 }
 
 // The ItemFunc type is an adapter to allow the use of ordinary
@@ -69,6 +93,30 @@ func (f MailTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MailTemplateMutation", m)
 }
 
+// The OrderFunc type is an adapter to allow the use of ordinary
+// function as Order mutator.
+type OrderFunc func(context.Context, *ent.OrderMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderMutation", m)
+}
+
+// The OrderEntryFunc type is an adapter to allow the use of ordinary
+// function as OrderEntry mutator.
+type OrderEntryFunc func(context.Context, *ent.OrderEntryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OrderEntryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OrderEntryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderEntryMutation", m)
+}
+
 // The PDFFunc type is an adapter to allow the use of ordinary
 // function as PDF mutator.
 type PDFFunc func(context.Context, *ent.PDFMutation) (ent.Value, error)
@@ -79,6 +127,30 @@ func (f PDFFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PDFMutation", m)
+}
+
+// The PDFDownloadFunc type is an adapter to allow the use of ordinary
+// function as PDFDownload mutator.
+type PDFDownloadFunc func(context.Context, *ent.PDFDownloadMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PDFDownloadFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PDFDownloadMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PDFDownloadMutation", m)
+}
+
+// The PaymentFunc type is an adapter to allow the use of ordinary
+// function as Payment mutator.
+type PaymentFunc func(context.Context, *ent.PaymentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PaymentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PaymentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PaymentMutation", m)
 }
 
 // The SettingsFunc type is an adapter to allow the use of ordinary

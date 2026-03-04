@@ -87,6 +87,6 @@ func logQuery(ctx context.Context, op, query string, args any, duration time.Dur
 	if err != nil {
 		logger.Errorw(msg, "op", op, "duration", duration, "error", err)
 	} else {
-		logger.Infow(msg, "op", op, "duration", duration)
+		logger.Debugw(msg, "op", op, "duration", duration)
 	}
 }

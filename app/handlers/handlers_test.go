@@ -80,6 +80,11 @@ func TestMain(m *testing.M) {
 	}
 	fmt.Println("Created admin keycloak token")
 
+	// Global mailer mock to prevent real SMTP connections
+	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
+		return true, nil
+	}
+
 	returnCode := m.Run()
 	err = keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	if err != nil {
@@ -1587,9 +1592,9 @@ func TestListUnverifiedOrders(t *testing.T) {
 	t.Logf("Verified Order ID: %d", orderVerified.ID)
 
 	// Manually verify the second order
-	tag, err := database.Db.Dbpool.Exec(context.Background(), "UPDATE PaymentOrder SET verified = true WHERE id = $1", orderVerified.ID)
+	err = database.Db.EntClient.Order.UpdateOneID(orderVerified.ID).SetVerified(true).Exec(context.Background())
 	require.NoError(t, err)
-	t.Logf("Rows affected: %d", tag.RowsAffected())
+	// t.Logf("Rows affected: %d", tag.RowsAffected()) // Ent handles this check implicitly by error if not found
 
 	// Test List Unverified Orders
 	res := utils.TestRequestWithAuth(t, r, "GET", "/api/orders/unverified/", nil, 200, adminUserToken)

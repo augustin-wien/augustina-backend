@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 	"strings"
 	"time"
@@ -99,13 +98,12 @@ func GetRouter() (r *chi.Mux) {
 	})
 	r.Get("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		// Check DB readiness
-		if database.Db.Dbpool == nil {
+		if database.Db.EntClient == nil {
 			http.Error(w, "not ready", http.StatusServiceUnavailable)
 			return
 		}
-		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
-		defer cancel()
-		if err := database.Db.Dbpool.Ping(ctx); err != nil {
+		// Connection check
+		if _, err := database.Db.GetHelloWorld(); err != nil {
 			http.Error(w, "not ready", http.StatusServiceUnavailable)
 			return
 		}

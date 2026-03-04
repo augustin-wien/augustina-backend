@@ -9,6 +9,29 @@ import (
 )
 
 var (
+	// AccountColumns holds the columns for the "account" table.
+	AccountColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "balance", Type: field.TypeFloat64, Default: 0},
+		{Name: "type", Type: field.TypeString},
+		{Name: "userid", Type: field.TypeString, Nullable: true},
+		{Name: "vendor", Type: field.TypeInt, Nullable: true},
+	}
+	// AccountTable holds the schema information for the "account" table.
+	AccountTable = &schema.Table{
+		Name:       "account",
+		Columns:    AccountColumns,
+		PrimaryKey: []*schema.Column{AccountColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "account_vendor_accounts",
+				Columns:    []*schema.Column{AccountColumns[5]},
+				RefColumns: []*schema.Column{VendorColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// BlockedIpsColumns holds the columns for the "blocked_ips" table.
 	BlockedIpsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -45,6 +68,17 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// DbSettingsColumns holds the columns for the "db_settings" table.
+	DbSettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "is_initialized", Type: field.TypeBool},
+	}
+	// DbSettingsTable holds the schema information for the "db_settings" table.
+	DbSettingsTable = &schema.Table{
+		Name:       "db_settings",
+		Columns:    DbSettingsColumns,
+		PrimaryKey: []*schema.Column{DbSettingsColumns[0]},
 	}
 	// ItemColumns holds the columns for the "item" table.
 	ItemColumns = []*schema.Column{
@@ -124,6 +158,68 @@ var (
 		Columns:    MailTemplatesColumns,
 		PrimaryKey: []*schema.Column{MailTemplatesColumns[0]},
 	}
+	// PaymentorderColumns holds the columns for the "paymentorder" table.
+	PaymentorderColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "order_code", Type: field.TypeString, Nullable: true},
+		{Name: "transaction_id", Type: field.TypeString},
+		{Name: "verified", Type: field.TypeBool},
+		{Name: "verified_at", Type: field.TypeTime, Nullable: true},
+		{Name: "transaction_type_id", Type: field.TypeInt},
+		{Name: "timestamp", Type: field.TypeTime},
+		{Name: "userid", Type: field.TypeString, Nullable: true},
+		{Name: "vendor_id", Type: field.TypeInt},
+		{Name: "customeremail", Type: field.TypeString, Nullable: true},
+	}
+	// PaymentorderTable holds the schema information for the "paymentorder" table.
+	PaymentorderTable = &schema.Table{
+		Name:       "paymentorder",
+		Columns:    PaymentorderColumns,
+		PrimaryKey: []*schema.Column{PaymentorderColumns[0]},
+	}
+	// OrderentryColumns holds the columns for the "orderentry" table.
+	OrderentryColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "quantity", Type: field.TypeInt},
+		{Name: "price", Type: field.TypeInt},
+		{Name: "is_sale", Type: field.TypeBool},
+		{Name: "paymentorder", Type: field.TypeInt, Nullable: true},
+		{Name: "item", Type: field.TypeInt},
+		{Name: "sender", Type: field.TypeInt},
+		{Name: "receiver", Type: field.TypeInt},
+	}
+	// OrderentryTable holds the schema information for the "orderentry" table.
+	OrderentryTable = &schema.Table{
+		Name:       "orderentry",
+		Columns:    OrderentryColumns,
+		PrimaryKey: []*schema.Column{OrderentryColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "orderentry_paymentorder_entries",
+				Columns:    []*schema.Column{OrderentryColumns[4]},
+				RefColumns: []*schema.Column{PaymentorderColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "orderentry_item_item",
+				Columns:    []*schema.Column{OrderentryColumns[5]},
+				RefColumns: []*schema.Column{ItemColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "orderentry_account_sender",
+				Columns:    []*schema.Column{OrderentryColumns[6]},
+				RefColumns: []*schema.Column{AccountColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "orderentry_account_receiver",
+				Columns:    []*schema.Column{OrderentryColumns[7]},
+				RefColumns: []*schema.Column{AccountColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// PdfColumns holds the columns for the "pdf" table.
 	PdfColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -135,6 +231,60 @@ var (
 		Name:       "pdf",
 		Columns:    PdfColumns,
 		PrimaryKey: []*schema.Column{PdfColumns[0]},
+	}
+	// PdfDownloadColumns holds the columns for the "pdf_download" table.
+	PdfDownloadColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "link_id", Type: field.TypeString, Unique: true},
+		{Name: "pdf_id", Type: field.TypeInt},
+		{Name: "timestamp", Type: field.TypeTime},
+		{Name: "email_sent", Type: field.TypeBool, Default: false},
+		{Name: "last_download", Type: field.TypeTime, Nullable: true},
+		{Name: "download_count", Type: field.TypeInt, Default: 0},
+		{Name: "order_id", Type: field.TypeInt, Nullable: true},
+		{Name: "item_id", Type: field.TypeInt, Nullable: true},
+	}
+	// PdfDownloadTable holds the schema information for the "pdf_download" table.
+	PdfDownloadTable = &schema.Table{
+		Name:       "pdf_download",
+		Columns:    PdfDownloadColumns,
+		PrimaryKey: []*schema.Column{PdfDownloadColumns[0]},
+	}
+	// PaymentColumns holds the columns for the "payment" table.
+	PaymentColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "timestamp", Type: field.TypeTime},
+		{Name: "amount", Type: field.TypeInt},
+		{Name: "authorized_by", Type: field.TypeString},
+		{Name: "is_sale", Type: field.TypeBool},
+		{Name: "quantity", Type: field.TypeInt},
+		{Name: "price", Type: field.TypeInt},
+		{Name: "sender", Type: field.TypeInt},
+		{Name: "receiver", Type: field.TypeInt},
+		{Name: "order_entry", Type: field.TypeInt, Nullable: true},
+		{Name: "item", Type: field.TypeInt, Nullable: true},
+		{Name: "paymentorder", Type: field.TypeInt, Nullable: true},
+		{Name: "payout", Type: field.TypeInt, Nullable: true},
+	}
+	// PaymentTable holds the schema information for the "payment" table.
+	PaymentTable = &schema.Table{
+		Name:       "payment",
+		Columns:    PaymentColumns,
+		PrimaryKey: []*schema.Column{PaymentColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "payment_paymentorder_payments",
+				Columns:    []*schema.Column{PaymentColumns[11]},
+				RefColumns: []*schema.Column{PaymentorderColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "payment_payment_children",
+				Columns:    []*schema.Column{PaymentColumns[12]},
+				RefColumns: []*schema.Column{PaymentColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// SettingsColumns holds the columns for the "settings" table.
 	SettingsColumns = []*schema.Column{
@@ -207,27 +357,58 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AccountTable,
 		BlockedIpsTable,
 		CommentsTable,
+		DbSettingsTable,
 		ItemTable,
 		LocationsTable,
 		MailTemplatesTable,
+		PaymentorderTable,
+		OrderentryTable,
 		PdfTable,
+		PdfDownloadTable,
+		PaymentTable,
 		SettingsTable,
 		VendorTable,
 	}
 )
 
 func init() {
+	AccountTable.ForeignKeys[0].RefTable = VendorTable
+	AccountTable.Annotation = &entsql.Annotation{
+		Table: "account",
+	}
 	CommentsTable.ForeignKeys[0].RefTable = VendorTable
+	DbSettingsTable.Annotation = &entsql.Annotation{
+		Table: "db_settings",
+	}
 	ItemTable.ForeignKeys[0].RefTable = ItemTable
 	ItemTable.ForeignKeys[1].RefTable = PdfTable
 	ItemTable.Annotation = &entsql.Annotation{
 		Table: "item",
 	}
 	LocationsTable.ForeignKeys[0].RefTable = VendorTable
+	PaymentorderTable.Annotation = &entsql.Annotation{
+		Table: "paymentorder",
+	}
+	OrderentryTable.ForeignKeys[0].RefTable = PaymentorderTable
+	OrderentryTable.ForeignKeys[1].RefTable = ItemTable
+	OrderentryTable.ForeignKeys[2].RefTable = AccountTable
+	OrderentryTable.ForeignKeys[3].RefTable = AccountTable
+	OrderentryTable.Annotation = &entsql.Annotation{
+		Table: "orderentry",
+	}
 	PdfTable.Annotation = &entsql.Annotation{
 		Table: "pdf",
+	}
+	PdfDownloadTable.Annotation = &entsql.Annotation{
+		Table: "pdf_download",
+	}
+	PaymentTable.ForeignKeys[0].RefTable = PaymentorderTable
+	PaymentTable.ForeignKeys[1].RefTable = PaymentTable
+	PaymentTable.Annotation = &entsql.Annotation{
+		Table: "payment",
 	}
 	SettingsTable.ForeignKeys[0].RefTable = ItemTable
 	VendorTable.Annotation = &entsql.Annotation{

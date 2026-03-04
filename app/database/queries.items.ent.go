@@ -8,7 +8,6 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	ent "github.com/augustin-wien/augustina-backend/ent"
 	entitem "github.com/augustin-wien/augustina-backend/ent/item"
-	"github.com/jackc/pgx/v5"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -235,31 +234,67 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 }
 
 // GetItemTx returns the item with the given ID inside a transaction
-func (db *Database) GetItemTx(tx pgx.Tx, id int) (item Item, err error) {
-	// keep tx-based retrieval for transactional callers (uses pgx.Tx)
-	err = tx.QueryRow(context.Background(), "SELECT ID, Name, Description, Price, Image, LicenseItem, Archived, Disabled, IsLicenseItem, LicenseGroup, IsPDFItem, PDF, ItemOrder, ItemColor, ItemTextColor FROM Item WHERE ID = $1", id).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.Disabled, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
+func (db *Database) GetItemTx(tx *ent.Tx, id int) (item Item, err error) {
+	e, err := tx.Item.Query().
+		Where(entitem.ID(id)).
+		WithPDF().
+		WithLicenseItem().
+		Only(context.Background())
+
 	if err != nil {
 		log.Error("GetItem: failed in GetItemTx() ", err)
 		return
 	}
+	item = convertEntItem(e)
 	if item.Disabled {
 		return item, errors.New("item is disabled")
 	}
 	return
 }
 
+func convertEntItem(e *ent.Item) Item {
+	var it Item
+	it.ID = e.ID
+	it.Name = e.Name
+	it.Description = e.Description
+	it.Price = int(math.Round(e.Price))
+	it.Image = e.Image
+	it.Archived = e.Archived
+	it.Disabled = e.Disabled
+	it.IsLicenseItem = e.IsLicenseItem
+	if e.LicenseGroup != "" {
+		it.LicenseGroup = null.NewString(e.LicenseGroup, true)
+	}
+	it.IsPDFItem = e.IsPDFItem
+	if e.Edges.PDF != nil {
+		it.PDF = null.IntFrom(int64(e.Edges.PDF.ID))
+	}
+	it.ItemOrder = e.ItemOrder
+	if e.ItemColor != "" {
+		it.ItemColor = null.NewString(e.ItemColor, true)
+	}
+	if e.ItemTextColor != "" {
+		it.ItemTextColor = null.NewString(e.ItemTextColor, true)
+	}
+	if e.Edges.LicenseItem != nil {
+		it.LicenseItem = null.IntFrom(int64(e.Edges.LicenseItem.ID))
+	}
+	return it
+}
+
 // GetItemByLicenseID returns the item that currently references the given
 // license item (via the licenseitem foreign key). If no item references the
 // license, found will be false and err will be nil.
 func (db *Database) GetItemByLicenseID(licenseID int) (item Item, found bool, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID, Name, Description, Price, Image, LicenseItem, Archived, Disabled, IsLicenseItem, LicenseGroup, IsPDFItem, PDF, ItemOrder, ItemColor, ItemTextColor FROM Item WHERE LicenseItem = $1 LIMIT 1", licenseID).Scan(&item.ID, &item.Name, &item.Description, &item.Price, &item.Image, &item.LicenseItem, &item.Archived, &item.Disabled, &item.IsLicenseItem, &item.LicenseGroup, &item.IsPDFItem, &item.PDF, &item.ItemOrder, &item.ItemColor, &item.ItemTextColor)
+	e, err := db.EntClient.Item.Query().Where(entitem.HasLicenseItemWith(entitem.ID(licenseID))).First(context.Background())
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if ent.IsNotFound(err) {
 			return item, false, nil
 		}
 		log.Error("GetItemByLicenseID: query failed", err)
 		return item, false, err
 	}
+	item = convertEntItem(e)
 	// if item.Disabled {
 	// 	return item, true, errors.New("item is disabled")
 	// }

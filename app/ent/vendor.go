@@ -65,9 +65,11 @@ type VendorEdges struct {
 	Locations []*Location `json:"locations,omitempty"`
 	// Comments holds the value of the comments edge.
 	Comments []*Comment `json:"comments,omitempty"`
+	// Accounts holds the value of the accounts edge.
+	Accounts []*Account `json:"accounts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // LocationsOrErr returns the Locations value or an error if the edge
@@ -86,6 +88,15 @@ func (e VendorEdges) CommentsOrErr() ([]*Comment, error) {
 		return e.Comments, nil
 	}
 	return nil, &NotLoadedError{edge: "comments"}
+}
+
+// AccountsOrErr returns the Accounts value or an error if the edge
+// was not loaded in eager-loading.
+func (e VendorEdges) AccountsOrErr() ([]*Account, error) {
+	if e.loadedTypes[2] {
+		return e.Accounts, nil
+	}
+	return nil, &NotLoadedError{edge: "accounts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -251,6 +262,11 @@ func (v *Vendor) QueryLocations() *LocationQuery {
 // QueryComments queries the "comments" edge of the Vendor entity.
 func (v *Vendor) QueryComments() *CommentQuery {
 	return NewVendorClient(v.config).QueryComments(v)
+}
+
+// QueryAccounts queries the "accounts" edge of the Vendor entity.
+func (v *Vendor) QueryAccounts() *AccountQuery {
+	return NewVendorClient(v.config).QueryAccounts(v)
 }
 
 // Update returns a builder for updating this Vendor.

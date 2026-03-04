@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/augustin-wien/augustina-backend/ent"
+	entaccount "github.com/augustin-wien/augustina-backend/ent/account"
 	entvendor "github.com/augustin-wien/augustina-backend/ent/vendor"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"gopkg.in/guregu/null.v4"
@@ -20,8 +21,10 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 	vendor = db.VendorEntIntoVendor(*v)
 
 	// Get vendor balance
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
-	if err != nil {
+	acc, err := db.EntClient.Account.Query().Where(entaccount.VendorID(vendor.ID)).First(context.Background())
+	if err == nil {
+		vendor.Balance = int(acc.Balance)
+	} else {
 		log.Error("GetVendorByLicenseID: couldn't get balance: ", err)
 	}
 
@@ -37,27 +40,37 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 
 // ListVendors returns all users from the database but not all fields for better overview
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), `
-		SELECT vendor.ID, LicenseID, FirstName, LastName, LastPayout, Balance, IsDisabled
-		FROM Vendor 
-		JOIN Account ON Account.vendor = Vendor.id 
-		WHERE Account.Type = 'Vendor' and IsDeleted = false
-		ORDER BY LicenseID ASC
-	`)
+	ctx := context.Background()
+	// Get vendors with accounts of type 'Vendor'
+	// The original query did a JOIN and filtered by Account.Type = 'Vendor'
+	// This implies we only want vendors that HAVE such an account,
+	// AND we only care about THAT account's balance.
+	// We load only the relevant account.
+	ents, err := db.EntClient.Vendor.Query().
+		Where(entvendor.Isdisabled(false)). // Query had IsDeleted=false, but comment says IsDisabled? No, query says IsDeleted=false.
+		Where(entvendor.Isdeleted(false)).
+		Where(entvendor.HasAccountsWith(entaccount.Type("Vendor"))).
+		WithAccounts(func(q *ent.AccountQuery) {
+			q.Where(entaccount.Type("Vendor"))
+		}).
+		Order(ent.Asc(entvendor.FieldLicenseid)).
+		All(ctx)
+
 	if err != nil {
 		log.Error("ListVendors", err)
 		return vendors, err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var vendor Vendor
-		err = rows.Scan(&vendor.ID, &vendor.LicenseID, &vendor.FirstName, &vendor.LastName, &vendor.LastPayout, &vendor.Balance, &vendor.IsDisabled)
-		if err != nil {
-			log.Error("ListVendors", err)
-			return vendors, err
+	for _, e := range ents {
+		v := db.VendorEntIntoVendor(*e)
+		// Set balance from the loaded account (there should be exactly one per vendor of type 'Vendor')
+		if len(e.Edges.Accounts) > 0 {
+			v.Balance = int(e.Edges.Accounts[0].Balance)
 		}
-		vendors = append(vendors, vendor)
+
+		// The original query selected: ID, LicenseID, FirstName, LastName, LastPayout, Balance, IsDisabled
+		// VendorEntIntoVendor copies all fields, so that's fine.
+		vendors = append(vendors, v)
 	}
 
 	return vendors, nil
@@ -72,10 +85,13 @@ func (db *Database) GetVendorByLicenseIDWithoutDisabled(licenseID string) (vendo
 	vendor = db.VendorEntIntoVendor(*v)
 
 	// Get vendor balance
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
-	if err != nil {
+	acc, err := db.EntClient.Account.Query().Where(entaccount.VendorID(vendor.ID)).First(context.Background())
+	if err == nil {
+		vendor.Balance = int(acc.Balance)
+	} else {
 		log.Error("GetVendorByLicenseIDWithoutDisable: couldn't get balance: ", err)
 	}
+
 	vendor, err = db.GetAdditionalVendorData(vendor)
 	if err != nil {
 		log.Error("GetVendorByLicenseIDWithoutDisable: couldn't get additional vendor data: ", err)
@@ -97,8 +113,10 @@ func (db *Database) GetVendorByEmail(mail string) (vendor Vendor, err error) {
 	}
 	vendor = db.VendorEntIntoVendor(*v)
 	// Get vendor balance
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
-	if err != nil {
+	acc, err := db.EntClient.Account.Query().Where(entaccount.VendorID(vendor.ID)).First(ctx)
+	if err == nil {
+		vendor.Balance = int(acc.Balance)
+	} else {
 		log.Error("GetVendorByEmail: Couldn't get balance: ", err)
 	}
 	vendor, err = db.GetAdditionalVendorData(vendor)
@@ -120,9 +138,11 @@ func (db *Database) GetVendorSimple(vendorID int) (vendor Vendor, err error) {
 	}
 	vendor = db.VendorEntIntoVendor(*v)
 	// Get vendor balance
-	err = db.Dbpool.QueryRow(ctx, "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
-	if err != nil {
-		log.Error("GetVendor: couldn't get vendor ", err)
+	acc, err := db.EntClient.Account.Query().Where(entaccount.VendorID(vendor.ID)).First(ctx)
+	if err == nil {
+		vendor.Balance = int(acc.Balance)
+	} else {
+		log.Error("GetVendorSimple: couldn't get vendor balance ", err)
 	}
 	return vendor, nil
 }
@@ -137,9 +157,11 @@ func (db *Database) GetVendor(vendorID int) (vendor Vendor, err error) {
 	}
 	vendor = db.VendorEntIntoVendor(*v)
 	// Get vendor balance
-	err = db.Dbpool.QueryRow(ctx, "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
-	if err != nil {
-		log.Error("GetVendor: couldn't get vendor ", err)
+	acc, err := db.EntClient.Account.Query().Where(entaccount.VendorID(vendor.ID)).First(ctx)
+	if err == nil {
+		vendor.Balance = int(acc.Balance)
+	} else {
+		log.Error("GetVendor: couldn't get vendor balance ", err)
 	}
 	return vendor, nil
 }
@@ -163,8 +185,10 @@ func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err
 	vendor = db.VendorEntIntoVendor(*v)
 
 	// Get vendor balance
-	err = db.Dbpool.QueryRow(ctx, "SELECT Balance FROM Account WHERE Vendor = $1", vendor.ID).Scan(&vendor.Balance)
-	if err != nil {
+	acc, err := db.EntClient.Account.Query().Where(entaccount.VendorID(vendor.ID)).First(ctx)
+	if err == nil {
+		vendor.Balance = int(acc.Balance)
+	} else {
 		log.Error("GetVendorWithBalanceUpdate: Couldn't get balance ", err)
 	}
 
@@ -202,9 +226,13 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 	vendorID = v.ID
 	log.Info("CreateVendor: created vendor %v", vendorID)
 
-	// Create vendor account (use QueryRow to capture any errors from RETURNING)
-	var accountID int
-	err = db.Dbpool.QueryRow(context.Background(), "INSERT INTO Account (Name, Balance, Type, Vendor) values ($1, 0, $2, $3) RETURNING ID", vendor.LicenseID, "Vendor", v.ID).Scan(&accountID)
+	// Create vendor account
+	_, err = db.EntClient.Account.Create().
+		SetName(vendor.LicenseID.String).
+		SetBalance(0).
+		SetType("Vendor").
+		SetVendorID(vendorID).
+		Save(context.Background())
 	if err != nil {
 		log.Errorf("CreateVendor: create vendor account %s %+v", vendor.Email, err)
 		return
