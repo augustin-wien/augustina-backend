@@ -256,8 +256,10 @@ func (db *Database) CreatePayment(payment Payment) (paymentID int, err error) {
 		return
 	}
 	defer func() {
-		if v, ok := err.(interface{ Rollback() error }); ok && v != nil {
-			tx.Rollback()
+		if err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				log.Error("CreatePayment: rollback failed: ", rbErr)
+			}
 		}
 	}()
 

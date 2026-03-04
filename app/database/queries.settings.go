@@ -49,8 +49,10 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		return err
 	}
 	defer func() {
-		if v, ok := err.(interface{ Rollback() error }); ok && v != nil {
-			tx.Rollback()
+		if err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				log.Error("UpdateSettings: rollback failed: ", rbErr)
+			}
 		}
 	}()
 
