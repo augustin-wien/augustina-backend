@@ -40,3 +40,5 @@ docker/wpcli/.env.parser
 webhook-logs/*
 __pycache__/*
 *.pyc
+app/test.txt
+app/test_output.txt
