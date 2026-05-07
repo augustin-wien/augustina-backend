@@ -3,12 +3,17 @@ package database
 import (
 	"context"
 	"errors"
+	"math"
 	"sync"
+	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/ent"
+	"github.com/augustin-wien/augustina-backend/ent/order"
+	"github.com/augustin-wien/augustina-backend/ent/orderentry"
+	"github.com/augustin-wien/augustina-backend/ent/payment"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
-	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 	"gopkg.in/guregu/null.v4"
 )
@@ -31,49 +36,42 @@ func lockOrder(orderID int) func() {
 
 // GetOrderEntries returns all entries of an order
 func (db *Database) GetOrderEntries(orderID int) (entries []OrderEntry, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT OrderEntry.ID, Item, Quantity, Price, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, IsSale FROM OrderEntry JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE paymentorder = $1 ", orderID)
+	res, err := db.EntClient.OrderEntry.Query().
+		Where(orderentry.OrderID(orderID)).
+		WithSender().
+		WithReceiver().
+		All(context.Background())
 	if err != nil {
 		log.Error("GetOrderEntries: ", err)
 		return
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var entry OrderEntry
-		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver, &entry.SenderName, &entry.ReceiverName, &entry.IsSale)
-		if err != nil {
-			log.Error("GetOrderEntries: ", err)
-			return
-		}
-		entries = append(entries, entry)
+	for _, e := range res {
+		entries = append(entries, convertOrderEntry(e))
 	}
 	return
 }
-func (db *Database) GetOrderEntriesTx(tx pgx.Tx, orderID int) (entries []OrderEntry, err error) {
-	rows, err := tx.Query(context.Background(), "SELECT OrderEntry.ID, Item, Quantity, Price, Sender, Receiver, SenderAccount.Name, ReceiverAccount.Name, IsSale FROM OrderEntry JOIN Account as SenderAccount ON SenderAccount.ID = Sender JOIN Account as ReceiverAccount ON ReceiverAccount.ID = Receiver WHERE paymentorder = $1 ", orderID)
+func (db *Database) GetOrderEntriesTx(tx *ent.Tx, orderID int) (entries []OrderEntry, err error) {
+	res, err := tx.OrderEntry.Query().
+		Where(orderentry.OrderID(orderID)).
+		WithSender().
+		WithReceiver().
+		All(context.Background())
+
 	if err != nil {
 		log.Error("GetOrderEntriesTx: ", err)
 		return
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var entry OrderEntry
-		err = rows.Scan(&entry.ID, &entry.Item, &entry.Quantity, &entry.Price, &entry.Sender, &entry.Receiver, &entry.SenderName, &entry.ReceiverName, &entry.IsSale)
-		if err != nil {
-			log.Error("GetOrderEntriesTx: ", err)
-			return
-		}
-		entries = append(entries, entry)
+	for _, e := range res {
+		entries = append(entries, convertOrderEntry(e))
 	}
+
 	return
 }
 
 // DeleteOrderEntry deletes an entry in the database
 func (db *Database) DeleteOrderEntry(id int) (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	DELETE FROM OrderEntry
-	WHERE ID = $1
-	`, id)
+	err = db.EntClient.OrderEntry.DeleteOneID(id).Exec(context.Background())
 	if err != nil {
 		log.Error("DeleteOrderEntry: ", err)
 	}
@@ -82,24 +80,20 @@ func (db *Database) DeleteOrderEntry(id int) (err error) {
 
 // GetOrders returns all orders from the database
 func (db *Database) GetOrders() (orders []Order, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT *, null as entries FROM PaymentOrder ORDER BY Timestamp DESC")
+	res, err := db.EntClient.Order.Query().
+		Order(ent.Desc(order.FieldTimestamp)).
+		WithEntries(func(q *ent.OrderEntryQuery) {
+			q.WithSender().WithReceiver()
+		}).
+		All(context.Background())
+
 	if err != nil {
 		log.Error("GetOrders: ", err)
-		return orders, err
+		return nil, err
 	}
-	defer rows.Close()
-	tmpOrders, err := pgx.CollectRows(rows, pgx.RowToStructByName[Order])
-	if err != nil {
-		log.Error("GetOrders: failed to collect rows: ", err)
-		return orders, err
-	}
-	for _, order := range tmpOrders {
-		// Add entries to order
-		order.Entries, err = db.GetOrderEntries(order.ID)
-		if err != nil {
-			log.Error("GetOrders: failed to get order entries: ", err)
-		}
-		orders = append(orders, order)
+
+	for _, o := range res {
+		orders = append(orders, convertOrder(o))
 	}
 
 	return
@@ -107,107 +101,128 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 
 // GetUnverifiedOrders returns all unverified orders from the database
 func (db *Database) GetUnverifiedOrders() (orders []Order, err error) {
-	rows, err := db.Dbpool.Query(context.Background(), "SELECT *, null as entries FROM PaymentOrder WHERE verified = false ORDER BY Timestamp DESC")
+	res, err := db.EntClient.Order.Query().
+		Where(order.Verified(false)).
+		Order(ent.Desc(order.FieldTimestamp)).
+		WithEntries(func(q *ent.OrderEntryQuery) {
+			q.WithSender().WithReceiver()
+		}).
+		All(context.Background())
+
 	if err != nil {
 		log.Error("GetUnverifiedOrders: ", err)
-		return orders, err
+		return nil, err
 	}
-	defer rows.Close()
-	tmpOrders, err := pgx.CollectRows(rows, pgx.RowToStructByName[Order])
-	if err != nil {
-		log.Error("GetUnverifiedOrders: failed to collect rows: ", err)
-		return orders, err
+
+	for _, o := range res {
+		orders = append(orders, convertOrder(o))
 	}
-	for _, order := range tmpOrders {
-		// Add entries to order
-		order.Entries, err = db.GetOrderEntries(order.ID)
-		if err != nil {
-			log.Error("GetUnverifiedOrders: failed to get order entries: ", err)
-			return orders, err
-		}
-		orders = append(orders, order)
-	}
+
 	return
 }
 
 // GetOrderByID returns Order by OrderID
-func (db *Database) GetOrderByID(id int) (order Order, err error) {
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID, OrderCode, TransactionID, Verified, VerifiedAt, TransactionTypeID, Timestamp, UserID, Vendor, CustomerEmail FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.VerifiedAt, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
+func (db *Database) GetOrderByID(id int) (o Order, err error) {
+	res, err := db.EntClient.Order.Query().
+		Where(order.ID(id)).
+		WithEntries(func(q *ent.OrderEntryQuery) {
+			q.WithSender().WithReceiver()
+		}).
+		Only(context.Background())
+
 	if err != nil {
 		log.Error("GetOrderByID: ", err)
 		return
 	}
 
-	// Add entries to order
-	order.Entries, err = db.GetOrderEntries(order.ID)
-	if err != nil {
-		log.Error("GetOrderByID failed to add entries: ", err)
-	}
-
-	return
+	return convertOrder(res), nil
 }
 
 // GetOrderByIDTx returns Order by OrderID
-func (db *Database) GetOrderByIDTx(tx pgx.Tx, id int) (order Order, err error) {
-	err = tx.QueryRow(context.Background(), "SELECT ID, OrderCode, TransactionID, Verified, VerifiedAt, TransactionTypeID, Timestamp, UserID, Vendor, CustomerEmail FROM PaymentOrder WHERE ID = $1", id).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.VerifiedAt, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
+func (db *Database) GetOrderByIDTx(tx *ent.Tx, id int) (o Order, err error) {
+	res, err := tx.Order.Query().
+		Where(order.ID(id)).
+		WithEntries(func(q *ent.OrderEntryQuery) {
+			q.WithSender().WithReceiver()
+		}).
+		Only(context.Background())
+
 	if err != nil {
 		log.Error("GetOrderByIDTx: ", err)
 		return
 	}
 
-	// Add entries to order
-	order.Entries, err = db.GetOrderEntriesTx(tx, order.ID)
-	if err != nil {
-		log.Error("GetOrderByIDTx failed to add entries: ", err)
-	}
-
-	return
+	return convertOrder(res), nil
 }
 
 // GetOrderByOrderCode returns Order by OrderCode
-func (db *Database) GetOrderByOrderCode(OrderCode string) (order Order, err error) {
+func (db *Database) GetOrderByOrderCode(OrderCode string) (o Order, err error) {
 	if OrderCode == "" {
 		err = errors.New("GetOrderByOrderCode: order code is empty")
 		return
 	}
-	err = db.Dbpool.QueryRow(context.Background(), "SELECT ID, OrderCode, TransactionID, Verified, VerifiedAt, TransactionTypeID, Timestamp, UserID, Vendor, CustomerEmail FROM PaymentOrder WHERE OrderCode = $1", OrderCode).Scan(&order.ID, &order.OrderCode, &order.TransactionID, &order.Verified, &order.VerifiedAt, &order.TransactionTypeID, &order.Timestamp, &order.User, &order.Vendor, &order.CustomerEmail)
+	res, err := db.EntClient.Order.Query().
+		Where(order.OrderCode(OrderCode)). // Assuming order.OrderCode works as predicate
+		WithEntries(func(q *ent.OrderEntryQuery) {
+			q.WithSender().WithReceiver()
+		}).
+		Only(context.Background())
+
 	if err != nil {
 		log.Error("GetOrderByOrderCode: failed to get order", err, " orderCode: ", OrderCode)
 		return
 	}
 
-	// Add items to order
-	order.Entries, err = db.GetOrderEntries(order.ID)
-	if err != nil {
-		log.Error("GetOrderByOrderCode: failed to get order entries: ", err, " orderID: ", order.ID)
-	}
-	return
+	return convertOrder(res), nil
 }
 
 // CreateOrder creates an order in the database
 // Processes OrderCode, vendor, and items (trinkgeld is an item)
-func (db *Database) CreateOrder(order Order) (orderID int, err error) {
+func (db *Database) CreateOrder(o Order) (orderID int, err error) {
 
 	// Start a transaction
-	tx, err := db.Dbpool.Begin(context.Background())
+	tx, err := db.EntClient.Tx(context.Background())
 	if err != nil {
 		return
 	}
 	defer func() {
-		err = DeferTx(tx, err)
 		if err != nil {
-			log.Error("CreateOrder: reached defer error ", err)
+			_ = tx.Rollback()
 		}
 	}()
 
-	err = tx.QueryRow(context.Background(), "INSERT INTO PaymentOrder (OrderCode, Vendor, CustomerEmail) values ($1, $2, $3) RETURNING ID", order.OrderCode, order.Vendor, order.CustomerEmail).Scan(&orderID)
+	tCreate := tx.Order.Create().
+		SetVendorID(o.Vendor).
+		SetVerified(o.Verified).
+		SetTransactionTypeID(o.TransactionTypeID).
+		SetTimestamp(time.Now().UTC())
+
+	if o.TransactionID != "" {
+		tCreate.SetTransactionID(o.TransactionID)
+	} else {
+		tCreate.SetTransactionID("manual-" + time.Now().Format(time.RFC3339Nano))
+	}
+
+	if o.VerifiedAt.Valid {
+		tCreate.SetVerifiedAt(o.VerifiedAt.Time)
+	}
+
+	if o.OrderCode.Valid {
+		tCreate.SetOrderCode(o.OrderCode.String)
+	}
+	if o.CustomerEmail.Valid {
+		tCreate.SetCustomerEmail(o.CustomerEmail.String)
+	}
+
+	oRes, err := tCreate.Save(context.Background())
 	if err != nil {
 		log.Error("CreateOrder failed: ", err)
 		return
 	}
+	orderID = oRes.ID
 
 	// Create order items
-	for _, entry := range order.Entries {
+	for _, entry := range o.Entries {
 		_, err = createOrderEntryTx(tx, orderID, entry)
 		if err != nil {
 			log.Errorf("CreateOrder create order entries: %+v %+v", entry, err)
@@ -215,15 +230,13 @@ func (db *Database) CreateOrder(order Order) (orderID int, err error) {
 		}
 	}
 
+	err = tx.Commit()
 	return
 }
 
 // DeleteOrder deletes an order in the database
 func (db *Database) DeleteOrder(id int) (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	DELETE FROM PaymentOrder
-	WHERE ID = $1
-	`, id)
+	err = db.EntClient.Order.DeleteOneID(id).Exec(context.Background())
 	if err != nil {
 		log.Error("DeleteOrder: ", err)
 	}
@@ -231,47 +244,46 @@ func (db *Database) DeleteOrder(id int) (err error) {
 }
 
 // createOrderEntryTx adds an entry to an order in an transaction
-func createOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry) (OrderEntry, error) {
+func createOrderEntryTx(tx *ent.Tx, orderID int, entry OrderEntry) (OrderEntry, error) {
 
 	// Get current item price and disabled flag
-	var item Item
-	err := tx.QueryRow(context.Background(), "SELECT Price, Disabled FROM Item WHERE ID = $1", entry.Item).Scan(&item.Price, &item.Disabled)
+	itemRes, err := tx.Item.Get(context.Background(), entry.Item)
 	if err != nil {
 		log.Error("createOrderEntryTx: query row", err)
 		return entry, err
 	}
-	if item.Disabled {
+	if itemRes.Disabled {
 		log.Debug("createOrderEntryTx: item is disabled", zap.Int("item_id", entry.Item))
 		return entry, errors.New("item is disabled")
 	}
-	entry.Price = item.Price
-
-	// Debug: log sender/receiver and ensure accounts exist in this transaction
-	log.Debug("createOrderEntryTx: inserting order entry", zap.Int("orderID", orderID), zap.Int("item", entry.Item), zap.Int("sender", entry.Sender), zap.Int("receiver", entry.Receiver))
-	var tmp int
-	err = tx.QueryRow(context.Background(), "SELECT ID FROM Account WHERE ID = $1", entry.Sender).Scan(&tmp)
-	if err != nil {
-		log.Error("createOrderEntryTx: sender account lookup failed", zap.Int("sender", entry.Sender), zap.Error(err))
-	}
-	err = tx.QueryRow(context.Background(), "SELECT ID FROM Account WHERE ID = $1", entry.Receiver).Scan(&tmp)
-	if err != nil {
-		log.Error("createOrderEntryTx: receiver account lookup failed", zap.Int("receiver", entry.Receiver), zap.Error(err))
-	}
+	entry.Price = int(math.Round(itemRes.Price))
 
 	// Create order entry
-	err = tx.QueryRow(context.Background(), "INSERT INTO OrderEntry (Item, Price, Quantity, PaymentOrder, Sender, Receiver, IsSale) values ($1, $2, $3, $4, $5, $6, $7) RETURNING ID", entry.Item, entry.Price, entry.Quantity, orderID, entry.Sender, entry.Receiver, entry.IsSale).Scan(&entry.ID)
+	oeRes, err := tx.OrderEntry.Create().
+		SetItemID(entry.Item).
+		SetPrice(entry.Price).
+		SetQuantity(entry.Quantity).
+		SetOrderID(orderID).
+		SetSenderID(entry.Sender).
+		SetReceiverID(entry.Receiver).
+		SetIsSale(entry.IsSale).
+		Save(context.Background())
+
 	if err != nil {
 		log.Error("createOrderEntryTx: insert ", err)
+		return entry, err
 	}
+	entry.ID = oeRes.ID
 	return entry, err
 }
 
 // createPaymentForOrderEntryTx creates a payment for an order entry
-func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, errorIfExists bool) (paymentID int, err error) {
+func createPaymentForOrderEntryTx(tx *ent.Tx, orderID int, entry OrderEntry, errorIfExists bool) (paymentID int, err error) {
 
 	// Check if payment already exists for this entry
-	var count int
-	err = tx.QueryRow(context.Background(), "SELECT COUNT(*) FROM Payment WHERE OrderEntry = $1", entry.ID).Scan(&count)
+	count, err := tx.Payment.Query().
+		Where(payment.OrderEntryID(entry.ID)).
+		Count(context.Background())
 	if err != nil {
 		log.Error("createPaymentForOrderEntryTx: count query failed", zap.Int("entryID", entry.ID), zap.Error(err))
 		return
@@ -279,9 +291,8 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 	log.Debug("createPaymentForOrderEntryTx: payment count for entry", zap.Int("entryID", entry.ID), zap.Int("count", count))
 
 	// If no payment exists for this entry, create one
-	var payment Payment
 	if count == 0 && !errorIfExists {
-		payment = Payment{
+		p := Payment{
 			Sender:     entry.Sender,
 			Receiver:   entry.Receiver,
 			Amount:     entry.Price * entry.Quantity,
@@ -292,8 +303,8 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 			Quantity:   entry.Quantity,
 			Price:      entry.Price,
 		}
-		log.Debug("createPaymentForOrderEntryTx: creating payment", zap.Int("orderID", orderID), zap.Int("entryID", entry.ID), zap.Int("sender", payment.Sender), zap.Int("receiver", payment.Receiver), zap.Int("amount", payment.Amount))
-		paymentID, err = createPaymentTx(tx, payment)
+		log.Debug("createPaymentForOrderEntryTx: creating payment", zap.Int("orderID", orderID), zap.Int("entryID", entry.ID), zap.Int("sender", p.Sender), zap.Int("receiver", p.Receiver), zap.Int("amount", p.Amount))
+		paymentID, err = createPaymentTx(tx, p)
 	}
 
 	return
@@ -301,11 +312,9 @@ func createPaymentForOrderEntryTx(tx pgx.Tx, orderID int, entry OrderEntry, erro
 
 // SetOrderTransactionID sets the transaction ID for an order
 func (db *Database) SetOrderTransactionID(orderID int, transactionID string) (err error) {
-	_, err = db.Dbpool.Exec(context.Background(), `
-	UPDATE PaymentOrder
-	SET TransactionID = $1
-	WHERE ID = $2
-	`, transactionID, orderID)
+	err = db.EntClient.Order.UpdateOneID(orderID).
+		SetTransactionID(transactionID).
+		Exec(context.Background())
 	if err != nil {
 		log.Error("SetOrderTransactionID: ", err)
 	}
@@ -322,38 +331,43 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 
 	log.Info("VerifyOrderAndCreatePayments: Verifying order ", orderID)
 	// Start a transaction
-	tx, err := db.Dbpool.Begin(context.Background())
+	tx, err := db.EntClient.Tx(context.Background())
 	if err != nil {
 		log.Error("VerifyOrderAndCreatePayments: Opening DBPool failed", err)
 		return err
 	}
-	defer func() { err = DeferTx(tx, err) }()
+	defer tx.Rollback()
+
 	// Read current verified state before updating so we can detect a transition
-	var alreadyVerified bool
-	err = tx.QueryRow(context.Background(), "SELECT Verified FROM PaymentOrder WHERE ID = $1", orderID).Scan(&alreadyVerified)
+	alreadyVerified, err := tx.Order.Query().
+		Where(order.ID(orderID)).
+		Select(order.FieldVerified).
+		Bool(context.Background())
+
 	if err != nil {
 		log.Error("VerifyOrderAndCreatePayments: read payment order verified flag", orderID, err)
 		// continue — we'll still try to update and proceed
 	}
 
 	// Verify payment order
-	_, err = tx.Exec(context.Background(), `
-	UPDATE PaymentOrder
-	SET Verified = True, VerifiedAt = NOW(), TransactionTypeID = $1
-	WHERE ID = $2
-	`, transactionTypeID, orderID)
+	err = tx.Order.UpdateOneID(orderID).
+		SetVerified(true).
+		SetVerifiedAt(time.Now().UTC()).
+		SetTransactionTypeID(transactionTypeID).
+		Exec(context.Background())
+
 	if err != nil {
 		log.Error("VerifyOrderAndCreatePayments: update payment order", orderID, err)
 	}
 
 	// Get Paymentorder (including payments)
-	order, err := db.GetOrderByIDTx(tx, orderID)
+	o, err := db.GetOrderByIDTx(tx, orderID)
 	if err != nil {
 		log.Error("VerifyOrderAndCreatePayments: get order by id", orderID, err)
 		return err
 	}
 
-	if !alreadyVerified && order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
+	if !alreadyVerified && o.CustomerEmail.Valid && o.CustomerEmail.String != "" {
 
 		// We may have multiple order entries for the same order. To avoid
 		// assigning groups and sending the same email multiple times for the
@@ -366,7 +380,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		customerAssigned := false
 		sentDigitalLicenceEmail := false
 
-		for _, entry := range order.Entries {
+		for _, entry := range o.Entries {
 			item, err := db.GetItemTx(tx, entry.Item)
 			if err != nil {
 				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", orderID, err)
@@ -377,7 +391,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 				if !item.IsPDFItem {
 					// Ensure we only call GetOrCreateUser once per order/customer
 					if !gotCustomer {
-						customerID, newUser, err = keycloak.KeycloakClient.GetOrCreateUser(order.CustomerEmail.String)
+						customerID, newUser, err = keycloak.KeycloakClient.GetOrCreateUser(o.CustomerEmail.String)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", orderID, err)
 						}
@@ -410,10 +424,10 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							EMAIL string
 						}{
 							URL:   config.Config.OnlinePaperUrl,
-							EMAIL: order.CustomerEmail.String,
+							EMAIL: o.CustomerEmail.String,
 						}
 
-						receivers := []string{order.CustomerEmail.String}
+						receivers := []string{o.CustomerEmail.String}
 						mail, err := db.BuildEmailRequestFromTemplate("digitalLicenceItemTemplate.html", receivers, templateData)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
@@ -437,9 +451,9 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							EMAIL string
 						}{
 							URL:   config.Config.OnlinePaperUrl,
-							EMAIL: order.CustomerEmail.String,
+							EMAIL: o.CustomerEmail.String,
 						}
-						receivers := []string{order.CustomerEmail.String}
+						receivers := []string{o.CustomerEmail.String}
 						newUserMail, err := db.BuildEmailRequestFromTemplate("welcome", receivers, templateData)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create welcome mail: ", orderID, err)
@@ -469,6 +483,8 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					pdfDownload, err := db.GetPDFDownloadByOrderIdAndItemTx(tx, orderID, item.ID)
 
 					if err != nil {
+						// Likely not found in Ent context, err is not nil.
+						// If specific check needed, use ent.IsNotFound(err).
 						log.Debug("VerifyOrderAndCreatePayments:create pdf download: ", orderID, item.ID, err)
 						pdfDownload, err = db.CreatePDFDownload(tx, pdf, orderID, item.ID)
 						if err != nil {
@@ -482,9 +498,9 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							EMAIL string
 						}{
 							URL:   url,
-							EMAIL: order.CustomerEmail.String,
+							EMAIL: o.CustomerEmail.String,
 						}
-						receivers := []string{order.CustomerEmail.String}
+						receivers := []string{o.CustomerEmail.String}
 						mail, err := db.BuildEmailRequestFromTemplate("PDFLicenceItemTemplate.html", receivers, templateData)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
@@ -514,7 +530,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 	}
 	log.Info("VerifyOrderAndCreatePayments: Creating payments for order ", orderID)
 	// Create payments
-	for _, entry := range order.Entries {
+	for _, entry := range o.Entries {
 		_, err = createPaymentForOrderEntryTx(tx, orderID, entry, false)
 		if err != nil {
 			log.Error("VerifyOrderAndCreatePayments: create payments for order entry: ", orderID, err)
@@ -522,7 +538,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		}
 	}
 
-	return
+	return tx.Commit()
 }
 
 // CreatePayedOrderEntries creates entries with a payment for an order
@@ -534,11 +550,11 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 	defer unlock()
 
 	// Start a transaction
-	tx, err := db.Dbpool.Begin(context.Background())
+	tx, err := db.EntClient.Tx(context.Background())
 	if err != nil {
 		return err
 	}
-	defer func() { err = DeferTx(tx, err) }()
+	defer tx.Rollback()
 
 	// Create entries & associated payments
 	for _, entry := range entries {
@@ -554,5 +570,52 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 		}
 	}
 
-	return
+	return tx.Commit()
+}
+
+func convertOrderEntry(e *ent.OrderEntry) OrderEntry {
+	oe := OrderEntry{
+		ID:       e.ID,
+		Item:     e.ItemID,
+		Quantity: e.Quantity,
+		Price:    e.Price,
+		Sender:   e.SenderID,
+		Receiver: e.ReceiverID,
+		IsSale:   e.IsSale,
+	}
+	if e.Edges.Sender != nil {
+		oe.SenderName = e.Edges.Sender.Name
+	}
+	if e.Edges.Receiver != nil {
+		oe.ReceiverName = e.Edges.Receiver.Name
+	}
+	return oe
+}
+
+func convertOrder(e *ent.Order) Order {
+	o := Order{
+		ID:                e.ID,
+		TransactionID:     e.TransactionID,
+		Verified:          e.Verified,
+		TransactionTypeID: e.TransactionTypeID,
+		Timestamp:         e.Timestamp,
+		Vendor:            e.VendorID,
+	}
+	if e.OrderCode != nil {
+		o.OrderCode = null.StringFrom(*e.OrderCode)
+	}
+	if e.UserID != nil {
+		o.User = null.StringFrom(*e.UserID)
+	}
+	if e.CustomerEmail != nil {
+		o.CustomerEmail = null.StringFrom(*e.CustomerEmail)
+	}
+	if e.VerifiedAt != nil {
+		tt := *e.VerifiedAt
+		o.VerifiedAt = null.TimeFrom(tt)
+	}
+	for _, entry := range e.Edges.Entries {
+		o.Entries = append(o.Entries, convertOrderEntry(entry))
+	}
+	return o
 }

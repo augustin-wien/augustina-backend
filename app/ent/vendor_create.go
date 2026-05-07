@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
@@ -236,6 +237,21 @@ func (vc *VendorCreate) AddComments(c ...*Comment) *VendorCreate {
 		ids[i] = c[i].ID
 	}
 	return vc.AddCommentIDs(ids...)
+}
+
+// AddAccountIDs adds the "accounts" edge to the Account entity by IDs.
+func (vc *VendorCreate) AddAccountIDs(ids ...int) *VendorCreate {
+	vc.mutation.AddAccountIDs(ids...)
+	return vc
+}
+
+// AddAccounts adds the "accounts" edges to the Account entity.
+func (vc *VendorCreate) AddAccounts(a ...*Account) *VendorCreate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return vc.AddAccountIDs(ids...)
 }
 
 // Mutation returns the VendorMutation object of the builder.
@@ -501,6 +517,22 @@ func (vc *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := vc.mutation.AccountsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   vendor.AccountsTable,
+			Columns: []string{vendor.AccountsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

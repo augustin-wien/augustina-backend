@@ -1312,15 +1312,16 @@ func downloadPDF(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("missing parameter id"), http.StatusBadRequest)
 		return
 	}
-	tx, err := database.Db.Dbpool.Begin(context.Background())
+	tx, err := database.Db.EntClient.Tx(context.Background())
 	if err != nil {
 		log.Error("UpdatePdfDownload: failed to start transaction ", err)
 		return
 	}
 	defer func() {
-		err = database.DeferTx(tx, err)
 		if err != nil {
-			log.Error("DownloadPDF: failed to defer transaction ", err)
+			tx.Rollback()
+		} else {
+			tx.Commit()
 		}
 	}()
 

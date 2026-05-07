@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
@@ -27,6 +28,7 @@ type VendorQuery struct {
 	predicates    []predicate.Vendor
 	withLocations *LocationQuery
 	withComments  *CommentQuery
+	withAccounts  *AccountQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (vq *VendorQuery) QueryComments() *CommentQuery {
 			sqlgraph.From(vendor.Table, vendor.FieldID, selector),
 			sqlgraph.To(comment.Table, comment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, vendor.CommentsTable, vendor.CommentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAccounts chains the current query on the "accounts" edge.
+func (vq *VendorQuery) QueryAccounts() *AccountQuery {
+	query := (&AccountClient{config: vq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := vq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := vq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(vendor.Table, vendor.FieldID, selector),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, vendor.AccountsTable, vendor.AccountsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
 		return fromU, nil
@@ -301,6 +325,7 @@ func (vq *VendorQuery) Clone() *VendorQuery {
 		predicates:    append([]predicate.Vendor{}, vq.predicates...),
 		withLocations: vq.withLocations.Clone(),
 		withComments:  vq.withComments.Clone(),
+		withAccounts:  vq.withAccounts.Clone(),
 		// clone intermediate query.
 		sql:  vq.sql.Clone(),
 		path: vq.path,
@@ -326,6 +351,17 @@ func (vq *VendorQuery) WithComments(opts ...func(*CommentQuery)) *VendorQuery {
 		opt(query)
 	}
 	vq.withComments = query
+	return vq
+}
+
+// WithAccounts tells the query-builder to eager-load the nodes that are connected to
+// the "accounts" edge. The optional arguments are used to configure the query builder of the edge.
+func (vq *VendorQuery) WithAccounts(opts ...func(*AccountQuery)) *VendorQuery {
+	query := (&AccountClient{config: vq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	vq.withAccounts = query
 	return vq
 }
 
@@ -407,9 +443,10 @@ func (vq *VendorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vendo
 	var (
 		nodes       = []*Vendor{}
 		_spec       = vq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			vq.withLocations != nil,
 			vq.withComments != nil,
+			vq.withAccounts != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,6 +478,13 @@ func (vq *VendorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vendo
 		if err := vq.loadComments(ctx, query, nodes,
 			func(n *Vendor) { n.Edges.Comments = []*Comment{} },
 			func(n *Vendor, e *Comment) { n.Edges.Comments = append(n.Edges.Comments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := vq.withAccounts; query != nil {
+		if err := vq.loadAccounts(ctx, query, nodes,
+			func(n *Vendor) { n.Edges.Accounts = []*Account{} },
+			func(n *Vendor, e *Account) { n.Edges.Accounts = append(n.Edges.Accounts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -504,6 +548,36 @@ func (vq *VendorQuery) loadComments(ctx context.Context, query *CommentQuery, no
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "vendor_comments" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (vq *VendorQuery) loadAccounts(ctx context.Context, query *AccountQuery, nodes []*Vendor, init func(*Vendor), assign func(*Vendor, *Account)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Vendor)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(account.FieldVendorID)
+	}
+	query.Where(predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(vendor.AccountsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.VendorID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "vendor_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

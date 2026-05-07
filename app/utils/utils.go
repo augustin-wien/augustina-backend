@@ -79,7 +79,7 @@ var (
 )
 
 func getGID() int64 {
-	var buf [64]byte
+	var buf [128]byte
 	n := runtime.Stack(buf[:], false)
 	if n <= 0 {
 		return 0

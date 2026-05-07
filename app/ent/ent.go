@@ -12,12 +12,18 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
+	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/mailtemplate"
+	"github.com/augustin-wien/augustina-backend/ent/order"
+	"github.com/augustin-wien/augustina-backend/ent/orderentry"
+	"github.com/augustin-wien/augustina-backend/ent/payment"
 	"github.com/augustin-wien/augustina-backend/ent/pdf"
+	"github.com/augustin-wien/augustina-backend/ent/pdfdownload"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
@@ -80,12 +86,18 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			account.Table:      account.ValidColumn,
 			blockedip.Table:    blockedip.ValidColumn,
 			comment.Table:      comment.ValidColumn,
+			dbsettings.Table:   dbsettings.ValidColumn,
 			item.Table:         item.ValidColumn,
 			location.Table:     location.ValidColumn,
 			mailtemplate.Table: mailtemplate.ValidColumn,
+			order.Table:        order.ValidColumn,
+			orderentry.Table:   orderentry.ValidColumn,
 			pdf.Table:          pdf.ValidColumn,
+			pdfdownload.Table:  pdfdownload.ValidColumn,
+			payment.Table:      payment.ValidColumn,
 			settings.Table:     settings.ValidColumn,
 			vendor.Table:       vendor.ValidColumn,
 		})

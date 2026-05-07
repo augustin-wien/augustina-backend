@@ -3,10 +3,16 @@
 package ent
 
 import (
+	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
+	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/order"
+	"github.com/augustin-wien/augustina-backend/ent/orderentry"
+	"github.com/augustin-wien/augustina-backend/ent/payment"
 	"github.com/augustin-wien/augustina-backend/ent/pdf"
+	"github.com/augustin-wien/augustina-backend/ent/pdfdownload"
 	"github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
@@ -16,6 +22,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	accountFields := schema.Account{}.Fields()
+	_ = accountFields
+	// accountDescBalance is the schema descriptor for balance field.
+	accountDescBalance := accountFields[2].Descriptor()
+	// account.DefaultBalance holds the default value on creation for the balance field.
+	account.DefaultBalance = accountDescBalance.Default.(float64)
+	// accountDescID is the schema descriptor for id field.
+	accountDescID := accountFields[0].Descriptor()
+	// account.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	account.IDValidator = accountDescID.Validators[0].(func(int) error)
 	blockedipFields := schema.BlockedIP{}.Fields()
 	_ = blockedipFields
 	// blockedipDescIP is the schema descriptor for ip field.
@@ -26,6 +42,12 @@ func init() {
 	blockedipDescStrikes := blockedipFields[1].Descriptor()
 	// blockedip.DefaultStrikes holds the default value on creation for the strikes field.
 	blockedip.DefaultStrikes = blockedipDescStrikes.Default.(int)
+	dbsettingsFields := schema.DBSettings{}.Fields()
+	_ = dbsettingsFields
+	// dbsettingsDescID is the schema descriptor for id field.
+	dbsettingsDescID := dbsettingsFields[0].Descriptor()
+	// dbsettings.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	dbsettings.IDValidator = dbsettingsDescID.Validators[0].(func(int) error)
 	itemFields := schema.Item{}.Fields()
 	_ = itemFields
 	// itemDescName is the schema descriptor for Name field.
@@ -90,12 +112,44 @@ func init() {
 	locationDescID := locationFields[0].Descriptor()
 	// location.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	location.IDValidator = locationDescID.Validators[0].(func(int) error)
+	orderFields := schema.Order{}.Fields()
+	_ = orderFields
+	// orderDescID is the schema descriptor for id field.
+	orderDescID := orderFields[0].Descriptor()
+	// order.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	order.IDValidator = orderDescID.Validators[0].(func(int) error)
+	orderentryFields := schema.OrderEntry{}.Fields()
+	_ = orderentryFields
+	// orderentryDescID is the schema descriptor for id field.
+	orderentryDescID := orderentryFields[0].Descriptor()
+	// orderentry.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	orderentry.IDValidator = orderentryDescID.Validators[0].(func(int) error)
 	pdfFields := schema.PDF{}.Fields()
 	_ = pdfFields
 	// pdfDescID is the schema descriptor for id field.
 	pdfDescID := pdfFields[0].Descriptor()
 	// pdf.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	pdf.IDValidator = pdfDescID.Validators[0].(func(int) error)
+	pdfdownloadFields := schema.PDFDownload{}.Fields()
+	_ = pdfdownloadFields
+	// pdfdownloadDescEmailSent is the schema descriptor for email_sent field.
+	pdfdownloadDescEmailSent := pdfdownloadFields[4].Descriptor()
+	// pdfdownload.DefaultEmailSent holds the default value on creation for the email_sent field.
+	pdfdownload.DefaultEmailSent = pdfdownloadDescEmailSent.Default.(bool)
+	// pdfdownloadDescDownloadCount is the schema descriptor for download_count field.
+	pdfdownloadDescDownloadCount := pdfdownloadFields[6].Descriptor()
+	// pdfdownload.DefaultDownloadCount holds the default value on creation for the download_count field.
+	pdfdownload.DefaultDownloadCount = pdfdownloadDescDownloadCount.Default.(int)
+	// pdfdownloadDescID is the schema descriptor for id field.
+	pdfdownloadDescID := pdfdownloadFields[0].Descriptor()
+	// pdfdownload.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	pdfdownload.IDValidator = pdfdownloadDescID.Validators[0].(func(int) error)
+	paymentFields := schema.Payment{}.Fields()
+	_ = paymentFields
+	// paymentDescID is the schema descriptor for id field.
+	paymentDescID := paymentFields[0].Descriptor()
+	// payment.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	payment.IDValidator = paymentDescID.Validators[0].(func(int) error)
 	settingsFields := schema.Settings{}.Fields()
 	_ = settingsFields
 	// settingsDescAGBUrl is the schema descriptor for AGBUrl field.

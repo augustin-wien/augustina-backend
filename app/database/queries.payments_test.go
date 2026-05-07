@@ -159,3 +159,75 @@ func Test_ListPayments_Correctness(t *testing.T) {
 		require.True(t, subIds[sale.ID], "Sale ID %d missing from payout sub-list", sale.ID)
 	}
 }
+
+// Test_ListPayments_VendorFilter_HijackSafe ensures that the vendor filter works
+// and is resistant to basic SQL injection attempts (hijacking).
+func Test_ListPayments_VendorFilter_HijackSafe(t *testing.T) {
+	Db.InitEmptyTestDb()
+
+	// 1. Setup Data
+	vendor1Lic := "10000000"
+	vendor2Lic := "20000000"
+
+	// Create Vendors
+	v1ID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom(vendor1Lic)})
+	require.NoError(t, err)
+	v2ID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom(vendor2Lic)})
+	require.NoError(t, err)
+
+	v1Account, err := Db.GetAccountByVendorID(v1ID)
+	require.NoError(t, err)
+	v2Account, err := Db.GetAccountByVendorID(v2ID)
+	require.NoError(t, err)
+
+	// Create Payments
+	// Payment for Vendor 1
+	err = Db.CreatePayments([]Payment{{
+		Sender:       v1Account.ID,
+		Receiver:     v1Account.ID, // Self payment? Or just involving V1
+		Amount:       100,
+		AuthorizedBy: "test",
+		IsSale:       true,
+		Timestamp:    time.Now(),
+	}})
+	require.NoError(t, err)
+
+	// Payment for Vendor 2
+	err = Db.CreatePayments([]Payment{{
+		Sender:       v2Account.ID,
+		Receiver:     v2Account.ID,
+		Amount:       200,
+		AuthorizedBy: "test",
+		IsSale:       true,
+		Timestamp:    time.Now(),
+	}})
+	require.NoError(t, err)
+
+	// 2. Test Valid Filter
+	minDate := time.Now().Add(-24 * time.Hour)
+	maxDate := time.Now().Add(24 * time.Hour)
+
+	payments, err := Db.ListPayments(minDate, maxDate, vendor1Lic, false, false, false)
+	require.NoError(t, err)
+	require.Len(t, payments, 1)
+	require.Equal(t, 100, payments[0].Amount)
+
+	// 3. Test Invalid Filter (Hijack Attempt)
+	// Passing a string that attempts SQL injection.
+	// Since GetVendorByLicenseID uses ent (ORM) which uses parameterized queries,
+	// this should simply fail to find the vendor and return an error.
+	hijackPayload := "10000000' OR '1'='1"
+	paymentsHijack, err := Db.ListPayments(minDate, maxDate, hijackPayload, false, false, false)
+
+	// Expectation: Error because vendor not found (LicenseID equality check fails), OR empty list if strict.
+	// Current implementation returns error if vendor not found.
+	require.Error(t, err)
+	require.Nil(t, paymentsHijack)
+	require.Contains(t, err.Error(), "GetVendorByLicenseID")
+
+	// 4. Test Partial Match (should not work)
+	partialPayload := "100000"
+	paymentsPartial, err := Db.ListPayments(minDate, maxDate, partialPayload, false, false, false)
+	require.Error(t, err)
+	require.Nil(t, paymentsPartial)
+}

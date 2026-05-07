@@ -1,0 +1,1 @@
+ALTER TABLE Payment ADD COLUMN authorized_by VARCHAR(255) NOT NULL DEFAULT '';

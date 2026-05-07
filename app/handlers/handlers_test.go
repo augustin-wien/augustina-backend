@@ -80,6 +80,11 @@ func TestMain(m *testing.M) {
 	}
 	fmt.Println("Created admin keycloak token")
 
+	// Global mailer mock to prevent real SMTP connections
+	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
+		return true, nil
+	}
+
 	returnCode := m.Run()
 	err = keycloak.KeycloakClient.DeleteUser(adminUserEmail)
 	if err != nil {
@@ -870,6 +875,13 @@ func TestPayments(t *testing.T) {
 		t.Error(err)
 	}
 
+	_, err = database.Db.CreateVendor(
+		database.Vendor{LicenseID: null.StringFrom("Test inactive"), Email: "testInactive@augustina.cc"},
+	)
+	if err != nil {
+		t.Error(err)
+	}
+
 	itemID, err := database.Db.CreateItem(database.Item{Name: "Test item for payments", Description: "Payment test item description", Price: 314})
 	if err != nil {
 		t.Error(err)
@@ -961,6 +973,17 @@ func TestPayments(t *testing.T) {
 			require.Equal(t, item.SumQuantity, 2)
 		}
 	}
+
+	// Test vendor usage statistics
+	response4 := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/statistics/?from=2020-01-01T00:00:00Z&to=2999-01-01T00:00:00Z", nil, 200, adminUserToken)
+	var vendorUsageStatistics VendorUsageStatistics
+	err = json.Unmarshal(response4.Body.Bytes(), &vendorUsageStatistics)
+	utils.CheckError(t, err)
+	require.Equal(t, 3, vendorUsageStatistics.TotalVendors)
+	require.Equal(t, 2, vendorUsageStatistics.UsedVendors)
+	require.Equal(t, 1, vendorUsageStatistics.UnusedVendors)
+	require.InDelta(t, 66.6667, vendorUsageStatistics.UsedPercentage, 0.001)
+	require.InDelta(t, 33.3333, vendorUsageStatistics.UnusedPercentage, 0.001)
 
 	// Clean up
 	database.Db.DeletePayment(p1)
@@ -1587,9 +1610,9 @@ func TestListUnverifiedOrders(t *testing.T) {
 	t.Logf("Verified Order ID: %d", orderVerified.ID)
 
 	// Manually verify the second order
-	tag, err := database.Db.Dbpool.Exec(context.Background(), "UPDATE PaymentOrder SET verified = true WHERE id = $1", orderVerified.ID)
+	err = database.Db.EntClient.Order.UpdateOneID(orderVerified.ID).SetVerified(true).Exec(context.Background())
 	require.NoError(t, err)
-	t.Logf("Rows affected: %d", tag.RowsAffected())
+	// t.Logf("Rows affected: %d", tag.RowsAffected()) // Ent handles this check implicitly by error if not found
 
 	// Test List Unverified Orders
 	res := utils.TestRequestWithAuth(t, r, "GET", "/api/orders/unverified/", nil, 200, adminUserToken)

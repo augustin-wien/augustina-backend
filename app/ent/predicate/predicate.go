@@ -6,11 +6,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Account is the predicate function for account builders.
+type Account func(*sql.Selector)
+
 // BlockedIP is the predicate function for blockedip builders.
 type BlockedIP func(*sql.Selector)
 
 // Comment is the predicate function for comment builders.
 type Comment func(*sql.Selector)
+
+// DBSettings is the predicate function for dbsettings builders.
+type DBSettings func(*sql.Selector)
 
 // Item is the predicate function for item builders.
 type Item func(*sql.Selector)
@@ -21,8 +27,20 @@ type Location func(*sql.Selector)
 // MailTemplate is the predicate function for mailtemplate builders.
 type MailTemplate func(*sql.Selector)
 
+// Order is the predicate function for order builders.
+type Order func(*sql.Selector)
+
+// OrderEntry is the predicate function for orderentry builders.
+type OrderEntry func(*sql.Selector)
+
 // PDF is the predicate function for pdf builders.
 type PDF func(*sql.Selector)
+
+// PDFDownload is the predicate function for pdfdownload builders.
+type PDFDownload func(*sql.Selector)
+
+// Payment is the predicate function for payment builders.
+type Payment func(*sql.Selector)
 
 // Settings is the predicate function for settings builders.
 type Settings func(*sql.Selector)

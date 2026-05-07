@@ -39,6 +39,11 @@ func RequestLogger(next http.Handler) http.Handler {
 		utils.SetRequestID(reqID)
 		defer utils.ClearRequestID()
 
+		// Also inject logger into context for code that uses utils.LoggerFromContext(ctx)
+		logger := utils.GetLogger().With("request_id", reqID)
+		ctx := utils.WithLogger(r.Context(), logger)
+		r = r.WithContext(ctx)
+
 		sr := &statusRecorder{ResponseWriter: w}
 		next.ServeHTTP(sr, r)
 		duration := time.Since(start)

@@ -1,1 +1,1 @@
-ALTER TABLE PaymentOrder ADD COLUMN VerifiedAt TIMESTAMP;
+ALTER TABLE "paymentorder" ADD COLUMN "verified_at" TIMESTAMP;

@@ -29,25 +29,35 @@ func TestMain(m *testing.M) {
 
 // Test_pingDB tests if the database can be pinged
 func Test_pingDB(t *testing.T) {
-	if Db.Dbpool == nil {
-		t.Error("dbpool is nil")
+	if Db.EntClient == nil {
+		t.Fatal("EntClient is nil")
 	}
-	err := Db.Dbpool.Ping(context.Background())
+	// Use GetHelloWorld as ping
+	_, err := Db.GetHelloWorld()
 	if err != nil {
-		t.Error("can't ping database")
+		t.Errorf("can't ping database: %v", err)
 	}
 }
 
+// Test_DatabaseTablesCreated cheks if tables were created
 func Test_DatabaseTablesCreated(t *testing.T) {
 	var tableCount int
-	err := Db.Dbpool.QueryRow(context.Background(), "select count(*) from information_schema.tables where table_schema = 'public'").Scan(&tableCount)
+	// Use standard DB handle for checking system tables
+	rows, err := Db.DB.QueryContext(context.Background(), "select count(*) from information_schema.tables where table_schema = 'public'")
 	if err != nil {
-		t.Error("can't get table count")
+		t.Fatal("can't query information_schema", err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		if err := rows.Scan(&tableCount); err != nil {
+			t.Fatal("scan failed", err)
+		}
 	}
 
 	// Check if there is at least one table
 	if tableCount < 1 {
-		t.Error("No tables exist")
+		t.Error("No tables exist, got", tableCount)
 	}
 }
 
