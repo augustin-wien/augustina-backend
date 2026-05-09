@@ -26,8 +26,8 @@ func TestVendorLocationsCRUD(t *testing.T) {
 
 	// CREATE: Create a location for the vendor with structured working time
 	locationBody := map[string]any{
-		"name":    "Test Location",
-		"address": "Test Street 1",
+		"name":      "Test Location",
+		"address":   "Test Street 1",
 		"longitude": 16.3,
 		"latitude":  48.2,
 		"zip":       "1000",
@@ -50,7 +50,7 @@ func TestVendorLocationsCRUD(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &locations)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(locations), "Expected 1 location to be returned")
-	
+
 	// Check that location fields are present
 	location := locations[0]
 	require.Equal(t, "Test Location", location["name"], "Location name should match")
@@ -58,21 +58,21 @@ func TestVendorLocationsCRUD(t *testing.T) {
 	require.Equal(t, float64(16.3), location["longitude"], "Longitude should match")
 	require.Equal(t, float64(48.2), location["latitude"], "Latitude should match")
 	require.Equal(t, "1000", location["zip"], "Zip should match")
-	
+
 	// Check working_time structure was preserved
 	workingTime, ok := location["working_time"].(map[string]any)
 	require.True(t, ok, "working_time should be an object")
 	require.Equal(t, "everyday", workingTime["mode"], "Mode should be 'everyday'")
-	
+
 	// Extract location ID for update
 	locationID, ok := location["id"].(float64)
 	require.True(t, ok, "Location should have an id field as number")
 
 	// UPDATE: Modify the location with new details
 	updatedLocationBody := map[string]any{
-		"id":      int(locationID),
-		"name":    "Updated Location",
-		"address": "Test Street 2",
+		"id":        int(locationID),
+		"name":      "Updated Location",
+		"address":   "Test Street 2",
 		"longitude": 16.4,
 		"latitude":  48.3,
 		"zip":       "2000",
@@ -118,20 +118,20 @@ func TestVendorLocationsCRUD(t *testing.T) {
 	err = json.Unmarshal(res.Body.Bytes(), &updatedLocations)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(updatedLocations), "Should still have 1 location")
-	
+
 	updatedLoc := updatedLocations[0]
 	require.Equal(t, "Updated Location", updatedLoc["name"], "Location name should be updated")
 	require.Equal(t, "Test Street 2", updatedLoc["address"], "Location address should be updated")
 	require.Equal(t, float64(16.4), updatedLoc["longitude"], "Longitude should be updated")
 	require.Equal(t, float64(48.3), updatedLoc["latitude"], "Latitude should be updated")
 	require.Equal(t, "2000", updatedLoc["zip"], "Zip should be updated")
-	
+
 	// Verify by_day working time structure
 	updatedWorkingTime, ok := updatedLoc["working_time"].(map[string]any)
 	require.True(t, ok, "updated working_time should be an object")
 	require.Equal(t, "by_day", updatedWorkingTime["mode"], "Mode should be updated to 'by_day'")
 	require.NotNil(t, updatedWorkingTime["week_days"], "week_days should be present")
-	
+
 	// Verify old 'everyday' field is gone (complete replacement, not merge)
 	_, hasEveryday := updatedWorkingTime["everyday"]
 	require.False(t, hasEveryday, "everyday field should be removed after update to by_day mode")
@@ -246,4 +246,3 @@ func TestWorkingTimeValidation(t *testing.T) {
 		}
 	}
 }
-
