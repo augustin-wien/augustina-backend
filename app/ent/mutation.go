@@ -24,6 +24,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/pdf"
 	"github.com/augustin-wien/augustina-backend/ent/pdfdownload"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
+	"github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/ent/settings"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
@@ -3343,7 +3344,7 @@ type LocationMutation struct {
 	latitude      *float64
 	addlatitude   *float64
 	zip           *string
-	working_time  *string
+	working_time  **schema.WorkingTime
 	clearedFields map[string]struct{}
 	vendor        *int
 	clearedvendor bool
@@ -3677,12 +3678,12 @@ func (m *LocationMutation) ResetZip() {
 }
 
 // SetWorkingTime sets the "working_time" field.
-func (m *LocationMutation) SetWorkingTime(s string) {
-	m.working_time = &s
+func (m *LocationMutation) SetWorkingTime(st *schema.WorkingTime) {
+	m.working_time = &st
 }
 
 // WorkingTime returns the value of the "working_time" field in the mutation.
-func (m *LocationMutation) WorkingTime() (r string, exists bool) {
+func (m *LocationMutation) WorkingTime() (r *schema.WorkingTime, exists bool) {
 	v := m.working_time
 	if v == nil {
 		return
@@ -3693,7 +3694,7 @@ func (m *LocationMutation) WorkingTime() (r string, exists bool) {
 // OldWorkingTime returns the old "working_time" field's value of the Location entity.
 // If the Location object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LocationMutation) OldWorkingTime(ctx context.Context) (v string, err error) {
+func (m *LocationMutation) OldWorkingTime(ctx context.Context) (v *schema.WorkingTime, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldWorkingTime is only allowed on UpdateOne operations")
 	}
@@ -3890,7 +3891,7 @@ func (m *LocationMutation) SetField(name string, value ent.Value) error {
 		m.SetZip(v)
 		return nil
 	case location.FieldWorkingTime:
-		v, ok := value.(string)
+		v, ok := value.(*schema.WorkingTime)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

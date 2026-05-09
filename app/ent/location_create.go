@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
 
@@ -67,8 +68,8 @@ func (lc *LocationCreate) SetZip(s string) *LocationCreate {
 }
 
 // SetWorkingTime sets the "working_time" field.
-func (lc *LocationCreate) SetWorkingTime(s string) *LocationCreate {
-	lc.mutation.SetWorkingTime(s)
+func (lc *LocationCreate) SetWorkingTime(st *schema.WorkingTime) *LocationCreate {
+	lc.mutation.SetWorkingTime(st)
 	return lc
 }
 
@@ -220,7 +221,7 @@ func (lc *LocationCreate) createSpec() (*Location, *sqlgraph.CreateSpec) {
 		_node.Zip = value
 	}
 	if value, ok := lc.mutation.WorkingTime(); ok {
-		_spec.SetField(location.FieldWorkingTime, field.TypeString, value)
+		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)
 		_node.WorkingTime = value
 	}
 	if nodes := lc.mutation.VendorIDs(); len(nodes) > 0 {

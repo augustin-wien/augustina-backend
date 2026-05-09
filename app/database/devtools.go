@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/augustin-wien/augustina-backend/ent"
+	schema "github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 	"gopkg.in/guregu/null.v4"
@@ -14,6 +16,16 @@ func (db *Database) CreateDevData() (err error) {
 	vendorIDs, err := db.createDevVendors()
 	if err != nil {
 		log.Error("Dev data vendor creation failed ", zap.Error(err))
+		return err
+	}
+	err = db.createDevLocations(vendorIDs)
+	if err != nil {
+		log.Error("Dev data location creation failed ", zap.Error(err))
+		return err
+	}
+	err = db.createDevComments(vendorIDs)
+	if err != nil {
+		log.Error("Dev data comment creation failed ", zap.Error(err))
 		return err
 	}
 	_, err = db.createDevItems()
@@ -59,6 +71,89 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 	}
 
 	return
+}
+
+func (db *Database) createDevLocations(vendorIDs []int) (err error) {
+	if len(vendorIDs) == 0 {
+		return nil
+	}
+
+	vendorID := vendorIDs[0]
+	locations := []ent.Location{
+		{
+			Name:      "Morning Market",
+			Address:   "Marktplatz 1",
+			Longitude: 16.3725,
+			Latitude:  48.2082,
+			Zip:       "1010",
+			WorkingTime: &schema.WorkingTime{
+				Mode: "everyday",
+				Everyday: []schema.TimeRange{
+					{From: "08:00", To: "12:00"},
+				},
+			},
+		},
+		{
+			Name:      "Evening Stand",
+			Address:   "Kulturstraße 7",
+			Longitude: 16.3790,
+			Latitude:  48.2110,
+			Zip:       "1020",
+			WorkingTime: &schema.WorkingTime{
+				Mode: "by_day",
+				WeekDays: map[string][]schema.TimeRange{
+					"mon": {{From: "09:00", To: "17:00"}},
+					"tue": {{From: "09:00", To: "17:00"}},
+					"wed": {{From: "09:00", To: "17:00"}},
+					"thu": {{From: "09:00", To: "17:00"}},
+					"fri": {{From: "09:00", To: "17:00"}},
+					"sat": {{FullDay: true}},
+				},
+			},
+		},
+	}
+
+	for _, location := range locations {
+		err = db.CreateLocation(vendorID, location)
+		if err != nil {
+			log.Error("Dev data location creation failed ", zap.Error(err))
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (db *Database) createDevComments(vendorIDs []int) (err error) {
+	if len(vendorIDs) == 0 {
+		return nil
+	}
+
+	now := time.Now()
+	comments := []ent.Comment{
+		{
+			Comment:    "Demo vendor is active and ready for use.",
+			Warning:    false,
+			CreatedAt:  now.Add(-72 * time.Hour),
+			ResolvedAt: now.Add(-72 * time.Hour),
+		},
+		{
+			Comment:    "Please verify the demo vendor's contract details.",
+			Warning:    true,
+			CreatedAt:  now.Add(-24 * time.Hour),
+			ResolvedAt: now,
+		},
+	}
+
+	for _, comment := range comments {
+		err = db.CreateVendorComment(vendorIDs[0], comment)
+		if err != nil {
+			log.Error("Dev data comment creation failed ", zap.Error(err))
+			return err
+		}
+	}
+
+	return nil
 }
 
 // CreateDevItems creates test items for the application

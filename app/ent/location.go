@@ -3,12 +3,14 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
 
@@ -28,7 +30,7 @@ type Location struct {
 	// Zip holds the value of the "zip" field.
 	Zip string `json:"zip,omitempty"`
 	// WorkingTime holds the value of the "working_time" field.
-	WorkingTime string `json:"working_time,omitempty"`
+	WorkingTime *schema.WorkingTime `json:"working_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LocationQuery when eager-loading is set.
 	Edges            LocationEdges `json:"edges"`
@@ -61,11 +63,13 @@ func (*Location) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case location.FieldWorkingTime:
+			values[i] = new([]byte)
 		case location.FieldLongitude, location.FieldLatitude:
 			values[i] = new(sql.NullFloat64)
 		case location.FieldID:
 			values[i] = new(sql.NullInt64)
-		case location.FieldName, location.FieldAddress, location.FieldZip, location.FieldWorkingTime:
+		case location.FieldName, location.FieldAddress, location.FieldZip:
 			values[i] = new(sql.NullString)
 		case location.ForeignKeys[0]: // vendor_locations
 			values[i] = new(sql.NullInt64)
@@ -121,10 +125,12 @@ func (l *Location) assignValues(columns []string, values []any) error {
 				l.Zip = value.String
 			}
 		case location.FieldWorkingTime:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field working_time", values[i])
-			} else if value.Valid {
-				l.WorkingTime = value.String
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &l.WorkingTime); err != nil {
+					return fmt.Errorf("unmarshal field working_time: %w", err)
+				}
 			}
 		case location.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -190,7 +196,7 @@ func (l *Location) String() string {
 	builder.WriteString(l.Zip)
 	builder.WriteString(", ")
 	builder.WriteString("working_time=")
-	builder.WriteString(l.WorkingTime)
+	builder.WriteString(fmt.Sprintf("%v", l.WorkingTime))
 	builder.WriteByte(')')
 	return builder.String()
 }

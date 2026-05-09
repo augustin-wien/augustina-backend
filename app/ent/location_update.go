@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
+	"github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
 
@@ -113,16 +114,8 @@ func (lu *LocationUpdate) SetNillableZip(s *string) *LocationUpdate {
 }
 
 // SetWorkingTime sets the "working_time" field.
-func (lu *LocationUpdate) SetWorkingTime(s string) *LocationUpdate {
-	lu.mutation.SetWorkingTime(s)
-	return lu
-}
-
-// SetNillableWorkingTime sets the "working_time" field if the given value is not nil.
-func (lu *LocationUpdate) SetNillableWorkingTime(s *string) *LocationUpdate {
-	if s != nil {
-		lu.SetWorkingTime(*s)
-	}
+func (lu *LocationUpdate) SetWorkingTime(st *schema.WorkingTime) *LocationUpdate {
+	lu.mutation.SetWorkingTime(st)
 	return lu
 }
 
@@ -214,7 +207,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(location.FieldZip, field.TypeString, value)
 	}
 	if value, ok := lu.mutation.WorkingTime(); ok {
-		_spec.SetField(location.FieldWorkingTime, field.TypeString, value)
+		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)
 	}
 	if lu.mutation.VendorCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -350,16 +343,8 @@ func (luo *LocationUpdateOne) SetNillableZip(s *string) *LocationUpdateOne {
 }
 
 // SetWorkingTime sets the "working_time" field.
-func (luo *LocationUpdateOne) SetWorkingTime(s string) *LocationUpdateOne {
-	luo.mutation.SetWorkingTime(s)
-	return luo
-}
-
-// SetNillableWorkingTime sets the "working_time" field if the given value is not nil.
-func (luo *LocationUpdateOne) SetNillableWorkingTime(s *string) *LocationUpdateOne {
-	if s != nil {
-		luo.SetWorkingTime(*s)
-	}
+func (luo *LocationUpdateOne) SetWorkingTime(st *schema.WorkingTime) *LocationUpdateOne {
+	luo.mutation.SetWorkingTime(st)
 	return luo
 }
 
@@ -481,7 +466,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err
 		_spec.SetField(location.FieldZip, field.TypeString, value)
 	}
 	if value, ok := luo.mutation.WorkingTime(); ok {
-		_spec.SetField(location.FieldWorkingTime, field.TypeString, value)
+		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)
 	}
 	if luo.mutation.VendorCleared() {
 		edge := &sqlgraph.EdgeSpec{

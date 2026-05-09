@@ -126,7 +126,7 @@ var (
 		{Name: "longitude", Type: field.TypeFloat64, Default: 0.1},
 		{Name: "latitude", Type: field.TypeFloat64, Default: 0.1},
 		{Name: "zip", Type: field.TypeString},
-		{Name: "working_time", Type: field.TypeString},
+		{Name: "working_time", Type: field.TypeJSON},
 		{Name: "vendor_locations", Type: field.TypeInt, Nullable: true},
 	}
 	// LocationsTable holds the schema information for the "locations" table.

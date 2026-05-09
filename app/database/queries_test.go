@@ -9,6 +9,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/ent"
+	schema "github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/stretchr/testify/require"
@@ -139,12 +140,15 @@ func TestVendors(t *testing.T) {
 		HasBankAccount: true,
 		Locations: []*ent.Location{
 			{
-				Name:        "test",
-				Address:     "test",
-				Longitude:   10.0,
-				Latitude:    20.0,
-				Zip:         "1234",
-				WorkingTime: "G",
+				Name:      "test",
+				Address:   "test",
+				Longitude: 10.0,
+				Latitude:  20.0,
+				Zip:       "1234",
+				WorkingTime: &schema.WorkingTime{
+					Mode:      "whole_week",
+					WholeWeek: true,
+				},
 			},
 		},
 		Comments: []*ent.Comment{
