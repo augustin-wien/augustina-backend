@@ -431,7 +431,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						// grant access to the currently published online_issue for the same
 						// license group so the customer can read it immediately.
 						if item.Type == "abonement" && dbCustomer != nil {
-							_, createAboErr := db.CreateAbonement(&Abonement{
+							createdAbo, createAboErr := db.CreateAbonement(&Abonement{
 								CustomerID: dbCustomer.ID,
 								ItemID:     item.ID,
 								FromDate:   o.Timestamp,
@@ -440,6 +440,25 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							})
 							if createAboErr != nil {
 								log.Error("VerifyOrderAndCreatePayments: failed to create abonement record: ", orderID, createAboErr)
+							} else if dbCustomer.Email != "" {
+								aboTemplateData := map[string]interface{}{
+									"CustomerName": dbCustomer.FirstName + " " + dbCustomer.LastName,
+									"ItemName":     item.Name,
+									"FromDate":     createdAbo.FromDate.Format("2006-01-02"),
+									"ToDate":       createdAbo.ToDate.Format("2006-01-02"),
+									"Status":       createdAbo.Status,
+								}
+								aboMail, aboMailErr := BuildEmailRequestFromTemplate("abonementConfirmation", []string{dbCustomer.Email}, aboTemplateData)
+								if aboMailErr != nil {
+									log.Error("VerifyOrderAndCreatePayments: failed to build abonement confirmation mail: ", orderID, aboMailErr)
+								} else if aboMail != nil {
+									go func(m *mailer.EmailRequest) {
+										success, sendErr := mailer.Send(m)
+										if sendErr != nil || !success {
+											log.Error("VerifyOrderAndCreatePayments: failed to send abonement confirmation mail: ", orderID, sendErr)
+										}
+									}(aboMail)
+								}
 							}
 							latestIssue, found, issueErr := db.GetLatestPublishedOnlineIssueByLicenseGroup(lg)
 							if issueErr != nil {
