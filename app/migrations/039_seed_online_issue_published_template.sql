@@ -1,11 +1,13 @@
 -- Seed online issue published mail template
+-- Note: {{ "{{" }} and {{ "}}" }} are used to escape Go template delimiters,
+-- because tern processes migration files as Go templates.
 INSERT INTO mail_templates (name, subject, body, created_at, updated_at)
 VALUES (
     'onlineIssuePublished',
-    'New Online Issue Available: {{.IssueName}}',
+    'New Online Issue Available: {{ "{{" }}.IssueName{{ "}}" }}',
     '<p>Hello,</p>
-<p>A new online issue is now available: <strong>{{.IssueName}}</strong>.</p>
-<p><img src="{{.ImageURL}}" alt="{{.IssueName}}" style="max-width:100%;height:auto;" /></p>
+<p>A new online issue is now available: <strong>{{ "{{" }}.IssueName{{ "}}" }}</strong>.</p>
+<p><img src="{{ "{{" }}.ImageURL{{ "}}" }}" alt="{{ "{{" }}.IssueName{{ "}}" }}" style="max-width:100%;height:auto;" /></p>
 <p>Best regards,<br/>The Augustin Team</p>',
     now(),
     now()
