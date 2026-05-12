@@ -196,7 +196,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		// 4. Check: If there is a item that needs a customerEmail, the user has to be given
 
-		if item.LicenseItem.Valid {
+		if item.LicenseItem.Valid || item.Type == "abonement" {
 			if !requestData.CustomerEmail.Valid || requestData.CustomerEmail.String == "" {
 				utils.ErrorJSON(w, errors.New("you are not allowed to purchase this item without a customer email"), http.StatusBadRequest)
 				return
