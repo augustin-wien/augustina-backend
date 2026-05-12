@@ -218,6 +218,30 @@ func (db *Database) GetItemByLicenseID(licenseID int) (item Item, found bool, er
 	return item, true, nil
 }
 
+// GetLatestPublishedOnlineIssueByLicenseGroup returns the most recently
+// published (enabled, non-archived) online_issue that carries the given
+// licenseGroup. "Most recent" is determined by the highest item ID.
+// Returns found=false when no matching issue exists.
+func (db *Database) GetLatestPublishedOnlineIssueByLicenseGroup(licenseGroup string) (item Item, found bool, err error) {
+	e, err := db.EntClient.Item.Query().
+		Where(
+			entitem.TypeEQ("online_issue"),
+			entitem.ArchivedEQ(false),
+			entitem.DisabledEQ(false),
+			entitem.LicenseGroupEQ(licenseGroup),
+		).
+		Order(ent.Desc(entitem.FieldID)).
+		First(context.Background())
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return item, false, nil
+		}
+		return item, false, err
+	}
+	item = convertEntItem(e)
+	return item, true, nil
+}
+
 // CreateItem creates an item in the database
 func (db *Database) CreateItem(item Item) (id int, err error) {
 	ctx := context.Background()

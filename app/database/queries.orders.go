@@ -426,6 +426,27 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							}
 						}
 						processedLicenseGroups[lg] = true
+
+						// When an abonement is sold, also grant access to the currently
+						// published online_issue for the same license group so the customer
+						// can read it immediately without waiting for the next publication.
+						if item.Type == "abonement" && dbCustomer != nil {
+							latestIssue, found, issueErr := db.GetLatestPublishedOnlineIssueByLicenseGroup(lg)
+							if issueErr != nil {
+								log.Error("VerifyOrderAndCreatePayments: failed to look up latest online_issue: ", orderID, issueErr)
+							} else if found && latestIssue.LicenseGroup.Valid && latestIssue.LicenseGroup.String != "" {
+								issueLg := latestIssue.LicenseGroup.String
+								if !processedLicenseGroups[issueLg] {
+									if assignErr := keycloak.KeycloakClient.AssignDigitalLicenseGroup(customerID, issueLg); assignErr != nil {
+										log.Error("VerifyOrderAndCreatePayments: failed to assign online_issue license group: ", orderID, assignErr)
+									}
+									if _, addErr := db.AddLicenseGroupToCustomer(dbCustomer.ID, issueLg); addErr != nil {
+										log.Error("VerifyOrderAndCreatePayments: failed to add online_issue license group to customer: ", orderID, addErr)
+									}
+									processedLicenseGroups[issueLg] = true
+								}
+							}
+						}
 					}
 
 					// Send email with link to the license item once per order
