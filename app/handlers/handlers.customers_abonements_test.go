@@ -40,7 +40,7 @@ func TestCreateCustomerHandler(t *testing.T) {
 		Email:         "create@example.com",
 		FirstName:     "Create",
 		LastName:      "Test",
-		LicenseGroups: "group1",
+		LicenseGroups: []string{"group1"},
 	}
 	b, err := json.Marshal(body)
 	require.NoError(t, err)
@@ -74,7 +74,7 @@ func TestGetCustomerHandler(t *testing.T) {
 		Email:         "get@example.com",
 		FirstName:     "Get",
 		LastName:      "Test",
-		LicenseGroups: "group1",
+		LicenseGroups: []string{"group1"},
 	}
 	createdCustomer, err := dbpkg.Db.CreateCustomer(customer)
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func TestListCustomersHandler(t *testing.T) {
 			Email:         "list" + strconv.Itoa(i) + "@example.com",
 			FirstName:     "List",
 			LastName:      "Test",
-			LicenseGroups: "",
+			LicenseGroups: []string{},
 		}
 		_, err := dbpkg.Db.CreateCustomer(customer)
 		require.NoError(t, err)
@@ -147,7 +147,7 @@ func TestUpdateCustomerHandler(t *testing.T) {
 		Email:         "update@example.com",
 		FirstName:     "Update",
 		LastName:      "Test",
-		LicenseGroups: "group1",
+		LicenseGroups: []string{"group1"},
 	}
 	createdCustomer, err := dbpkg.Db.CreateCustomer(customer)
 	require.NoError(t, err)
@@ -190,7 +190,7 @@ func TestDeleteCustomerHandler(t *testing.T) {
 		Email:         "delete@example.com",
 		FirstName:     "Delete",
 		LastName:      "Test",
-		LicenseGroups: "group1",
+		LicenseGroups: []string{"group1"},
 	}
 	createdCustomer, err := dbpkg.Db.CreateCustomer(customer)
 	require.NoError(t, err)
@@ -224,7 +224,7 @@ func TestCreateAbonementHandler(t *testing.T) {
 		Email:         "aboCreate@example.com",
 		FirstName:     "Abo",
 		LastName:      "Create",
-		LicenseGroups: "",
+		LicenseGroups: []string{},
 	}
 	createdCustomer, err := dbpkg.Db.CreateCustomer(customer)
 	require.NoError(t, err)
@@ -277,7 +277,7 @@ func TestGetAbonementHandler(t *testing.T) {
 		Email:         "aboGet@example.com",
 		FirstName:     "Abo",
 		LastName:      "Get",
-		LicenseGroups: "",
+		LicenseGroups: []string{},
 	}
 	createdCustomer, err := dbpkg.Db.CreateCustomer(customer)
 	require.NoError(t, err)
@@ -332,7 +332,7 @@ func TestListAbonementsByCustomerHandler(t *testing.T) {
 		Email:         "aboList@example.com",
 		FirstName:     "Abo",
 		LastName:      "List",
-		LicenseGroups: "",
+		LicenseGroups: []string{},
 	}
 	createdCustomer, err := dbpkg.Db.CreateCustomer(customer)
 	require.NoError(t, err)
@@ -370,7 +370,7 @@ func TestUpdateAbonementHandler(t *testing.T) {
 		Email:         "aboUpdate@example.com",
 		FirstName:     "Abo",
 		LastName:      "Update",
-		LicenseGroups: "",
+		LicenseGroups: []string{},
 	}
 	createdCustomer, err := dbpkg.Db.CreateCustomer(customer)
 	require.NoError(t, err)
@@ -430,7 +430,7 @@ func TestDeleteAbonementHandler(t *testing.T) {
 		Email:         "aboDelete@example.com",
 		FirstName:     "Abo",
 		LastName:      "Delete",
-		LicenseGroups: "",
+		LicenseGroups: []string{},
 	}
 	createdCustomer, err := dbpkg.Db.CreateCustomer(customer)
 	require.NoError(t, err)
@@ -478,7 +478,7 @@ func TestListMyAbonementsHandler(t *testing.T) {
 		Email:         "my-abo@example.com",
 		FirstName:     "My",
 		LastName:      "Abo",
-		LicenseGroups: "",
+		LicenseGroups: []string{},
 	}
 	createdCustomer, err := dbpkg.Db.CreateCustomer(customer)
 	require.NoError(t, err)
