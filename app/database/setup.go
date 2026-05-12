@@ -35,6 +35,7 @@ func (db *Database) InitiateItems() (err error) {
 		IsLicenseItem: false,
 		IsPDFItem:     false,
 		LicenseGroup:  null.NewString("analog_edition", true),
+		Image:         "img/demo_zeitung.jpg",
 		Type:          "issue",
 	}
 
@@ -68,6 +69,7 @@ func (db *Database) InitiateItems() (err error) {
 		Price:        300,
 		Archived:     false,
 		LicenseGroup: null.NewString("digital_edition", true),
+		Image:        "img/demo_digital.jpg",
 	}
 
 	abonementItem := Item{
@@ -76,6 +78,7 @@ func (db *Database) InitiateItems() (err error) {
 		Price:        2400,
 		Archived:     false,
 		LicenseGroup: null.NewString("digital_edition", true),
+		Image:        "img/demo_abo.jpg",
 	}
 
 	// Create newspaper

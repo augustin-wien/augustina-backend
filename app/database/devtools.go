@@ -175,7 +175,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Price:         50,
 		Archived:      false,
 		IsLicenseItem: true,
-		Image:         "123",
+		Image:         "img/demo_digital.jpg",
 		Type:          "license_item",
 	}
 
@@ -192,7 +192,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		LicenseItem:  null.NewInt(int64(digitalNewspaperLicenseID), true),
 		Archived:     false,
 		LicenseGroup: null.NewString("testedition", true),
-		Image:        "123",
+		Image:        "img/demo_digital.jpg",
 		Type:         "issue",
 	}
 
@@ -201,7 +201,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Description: "Kalender für das Jahr 2024",
 		Price:       800,
 		Archived:    false,
-		Image:       "123",
+		Image:       "img/demo_kalender.jpg",
 		Type:        "normal_item",
 	}
 
@@ -230,7 +230,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Price:         50,
 		Archived:      false,
 		IsLicenseItem: true,
-		Image:         "123",
+		Image:         "img/demo_digital.jpg",
 		Type:          "license_item",
 	}
 
@@ -257,7 +257,7 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		LicenseItem:  null.NewInt(int64(digitalNewspaperLicenseID2), true),
 		Archived:     false,
 		LicenseGroup: null.NewString("testedition", true),
-		Image:        "123",
+		Image:        "img/demo_digital.jpg",
 		PDF:          null.NewInt(int64(pdfID), true),
 		IsPDFItem:    true,
 		Type:         "issue",
