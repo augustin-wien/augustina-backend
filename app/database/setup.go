@@ -124,7 +124,7 @@ func (db *Database) UpdateInitialSettings() (err error) {
 	settings := ent.Settings{
 		Color:     "#F45793",
 		FontColor: "#FFFFFF",
-		Logo:      "img/logo.png",
+		Logo:      "img/demo_logo.png",
 		Edges: ent.SettingsEdges{MainItem: &ent.Item{
 			ID: 1,
 		}},
