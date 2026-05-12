@@ -23,7 +23,8 @@ func (db *Database) InitiateAccounts() (err error) {
 	return err
 }
 
-// InitiateItems creates default item for transaction costs
+// InitiateItems creates default items including newspaper, donation, transaction costs,
+// an online issue with license, and an abonement item with license.
 func (db *Database) InitiateItems() (err error) {
 
 	newspaper := Item{
@@ -34,6 +35,7 @@ func (db *Database) InitiateItems() (err error) {
 		IsLicenseItem: false,
 		IsPDFItem:     false,
 		LicenseGroup:  null.NewString("analog_edition", true),
+		Type:          "issue",
 	}
 
 	if config.Config.DonationName == "" {
@@ -45,6 +47,7 @@ func (db *Database) InitiateItems() (err error) {
 		Description: "Spende pro Einkauf",
 		Price:       1,
 		Archived:    false,
+		Type:        "donation",
 	}
 	if config.Config.TransactionCostsName == "" {
 		log.Error("TransactionCostsName is not set")
@@ -56,6 +59,23 @@ func (db *Database) InitiateItems() (err error) {
 		Description: "Transaktionskosten der Zahlungsanbieter",
 		Price:       1,
 		Archived:    false,
+		Type:        "transaction_costs",
+	}
+
+	onlineIssue := Item{
+		Name:         "Digitale Ausgabe",
+		Description:  "Aktuelle digitale Zeitungsausgabe",
+		Price:        300,
+		Archived:     false,
+		LicenseGroup: null.NewString("digital_edition", true),
+	}
+
+	abonementItem := Item{
+		Name:         "Jahresabonnement",
+		Description:  "Jahresabonnement für die digitale Ausgabe",
+		Price:        2400,
+		Archived:     false,
+		LicenseGroup: null.NewString("digital_edition", true),
 	}
 
 	// Create newspaper
@@ -78,6 +98,21 @@ func (db *Database) InitiateItems() (err error) {
 		log.Error("InitiateItem creation failed for transaction costs ", zap.Error(err))
 		return err
 	}
+
+	// Create online issue with auto-generated license item
+	_, _, err = db.CreateOnlineIssueWithLicense(onlineIssue, 50)
+	if err != nil {
+		log.Error("InitiateItem creation failed for online issue ", zap.Error(err))
+		return err
+	}
+
+	// Create abonement item with auto-generated license item
+	_, _, err = db.CreateAbonementItemWithLicense(abonementItem, 50)
+	if err != nil {
+		log.Error("InitiateItem creation failed for abonement ", zap.Error(err))
+		return err
+	}
+
 	return
 }
 

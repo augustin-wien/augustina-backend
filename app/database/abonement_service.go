@@ -45,6 +45,9 @@ func (as *AbonementService) ProcessAbonementLicenseGroupsForDate(issueDate time.
 		if item.LicenseGroup.Valid {
 			licenseGroup = item.LicenseGroup.String
 		}
+		if licenseGroup == "" {
+			continue
+		}
 		updatedCustomer, err := as.db.AddLicenseGroupToCustomer(abonement.CustomerID, licenseGroup)
 		if err != nil {
 			// Log error but continue processing other abonements

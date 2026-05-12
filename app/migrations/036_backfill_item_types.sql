@@ -8,7 +8,7 @@ UPDATE item SET item_type = 'license_item' WHERE islicenseitem = true;
 -- Items that are PDF items (typically documents, treated as issues/documents)
 UPDATE item SET item_type = 'issue' WHERE ispdfitem = true AND item_type = 'normal_item';
 UPDATE item SET item_type = 'donation' WHERE name = 'donation' AND item_type = 'normal_item';
-UPDATE item SET item_type = 'transaction_cost' WHERE name = 'transactionCosts' AND item_type = 'normal_item';
+UPDATE item SET item_type = 'transaction_costs' WHERE name = 'transactionCosts' AND item_type = 'normal_item';
 
 -- Note: Items with specific names matching donation/transaction costs should be set appropriately
 -- These can be identified by name matching in the application config

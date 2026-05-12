@@ -31,7 +31,7 @@ func TestCustomerCRUD(t *testing.T) {
 		Email:         "test@example.com",
 		FirstName:     "John",
 		LastName:      "Doe",
-		LicenseGroups: "group1,group2",
+		LicenseGroups: []string{"group1", "group2"},
 	}
 
 	createdCustomer, err := Db.CreateCustomer(customer)
@@ -53,11 +53,11 @@ func TestCustomerCRUD(t *testing.T) {
 
 	// Test Update
 	createdCustomer.LastName = "Smith"
-	createdCustomer.LicenseGroups = "group1,group2,group3"
+	createdCustomer.LicenseGroups = []string{"group1", "group2", "group3"}
 	updatedCustomer, err := Db.UpdateCustomer(createdCustomer)
 	require.NoError(t, err)
 	require.Equal(t, "Smith", updatedCustomer.LastName)
-	require.Equal(t, "group1,group2,group3", updatedCustomer.LicenseGroups)
+	require.Equal(t, []string{"group1", "group2", "group3"}, updatedCustomer.LicenseGroups)
 
 	// Test AddLicenseGroupToCustomer
 	result, err := Db.AddLicenseGroupToCustomer(createdCustomer.ID, "newgroup")

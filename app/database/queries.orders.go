@@ -549,19 +549,6 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		}
 	}
 
-	// Process abonements for the order date to assign license groups to customers with active subscriptions
-	// This is done asynchronously to avoid blocking the order verification
-	if !alreadyVerified {
-		// Schedule async processing of abonements for this order's date
-		go func() {
-			abonementService := NewAbonementService(db)
-			err := abonementService.ProcessAbonementLicenseGroupsForDate(o.Timestamp)
-			if err != nil {
-				log.Error("VerifyOrderAndCreatePayments: failed to process abonement license groups: ", err)
-			}
-		}()
-	}
-
 	return tx.Commit()
 }
 

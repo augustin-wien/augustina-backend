@@ -44,22 +44,41 @@ func CreateAbonement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch customer and item details for email
-	customer, err := database.Db.GetCustomerByID(abonement.CustomerID)
-	if err == nil && customer.Email != "" {
-		item, err := database.Db.GetItem(abonement.ItemID)
-		if err == nil {
+	// Fetch customer and item details for email and license group assignment
+	customer, customerErr := database.Db.GetCustomerByID(abonement.CustomerID)
+	if customerErr == nil {
+		item, itemErr := database.Db.GetItem(abonement.ItemID)
+		if itemErr == nil {
 			// Send abonement confirmation email
-			templateData := map[string]interface{}{
-				"CustomerName": customer.FirstName + " " + customer.LastName,
-				"ItemName":     item.Name,
-				"FromDate":     createdAbonement.FromDate.Format("2006-01-02"),
-				"ToDate":       createdAbonement.ToDate.Format("2006-01-02"),
-				"Status":       createdAbonement.Status,
+			if customer.Email != "" {
+				templateData := map[string]interface{}{
+					"CustomerName": customer.FirstName + " " + customer.LastName,
+					"ItemName":     item.Name,
+					"FromDate":     createdAbonement.FromDate.Format("2006-01-02"),
+					"ToDate":       createdAbonement.ToDate.Format("2006-01-02"),
+					"Status":       createdAbonement.Status,
+				}
+				mailReq, mailErr := database.BuildEmailRequestFromTemplate("abonementConfirmation", []string{customer.Email}, templateData)
+				if mailErr == nil && mailReq != nil {
+					_, _ = mailer.Send(mailReq)
+				}
 			}
-			mailReq, err := database.BuildEmailRequestFromTemplate("abonementConfirmation", []string{customer.Email}, templateData)
-			if err == nil {
-				_, _ = mailer.Send(mailReq) // Send async, don't block on email errors
+
+			// Assign license group if the abonement is active right now
+			lg := ""
+			if item.LicenseGroup.Valid {
+				lg = item.LicenseGroup.String
+			}
+			now := time.Now()
+			if lg != "" && createdAbonement.Status == "active" &&
+				createdAbonement.FromDate.Before(now) && createdAbonement.ToDate.After(now) {
+				updatedCustomer, lgErr := database.Db.AddLicenseGroupToCustomer(customer.ID, lg)
+				if lgErr == nil && updatedCustomer.KeycloakID != "" {
+					svc := database.NewAbonementService(&database.Db)
+					if syncErr := svc.SyncAbonementLicensesToKeycloak(updatedCustomer.KeycloakID, []string{lg}); syncErr != nil {
+						log.Error("CreateAbonement: failed to sync license group to Keycloak: ", syncErr)
+					}
+				}
 			}
 		}
 	}

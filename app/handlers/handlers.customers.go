@@ -135,13 +135,9 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if updatedCustomer.KeycloakID != "" {
-		oldGroups := oldCustomer.LicenseGroups
-		newGroups := updatedCustomer.LicenseGroups
-		go func() {
-			if err := keycloak.KeycloakClient.SyncLicenseGroupsDiffToKeycloak(updatedCustomer.KeycloakID, oldGroups, newGroups); err != nil {
-				log.Error("UpdateCustomer: failed to sync license groups to Keycloak: ", err)
-			}
-		}()
+		if err := keycloak.KeycloakClient.SyncLicenseGroupsDiffToKeycloak(updatedCustomer.KeycloakID, oldCustomer.LicenseGroups, updatedCustomer.LicenseGroups); err != nil {
+			log.Error("UpdateCustomer: failed to sync license groups to Keycloak: ", err)
+		}
 	}
 
 	err = utils.WriteJSON(w, http.StatusOK, updatedCustomer)

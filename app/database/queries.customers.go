@@ -120,6 +120,7 @@ func (db *Database) UpdateCustomer(customer *Customer) (*Customer, error) {
 	ctx := context.Background()
 
 	entCustomer, err := db.EntClient.Customer.UpdateOneID(customer.ID).
+		SetKeycloakid(customer.KeycloakID).
 		SetEmail(customer.Email).
 		SetFirstname(customer.FirstName).
 		SetLastname(customer.LastName).
@@ -158,6 +159,7 @@ func (db *Database) GetCustomerByEmail(email string) (*Customer, error) {
 
 // GetOrCreateCustomerByEmail finds a customer by Keycloak ID or email, creating one if needed.
 // keycloakID and email come from the Keycloak GetOrCreateUser call at purchase time.
+// Safe to call concurrently: unique constraint violations on create fall back to a re-fetch.
 func (db *Database) GetOrCreateCustomerByEmail(email, keycloakID string) (*Customer, error) {
 	if keycloakID != "" {
 		c, err := db.GetCustomerByKeycloakID(keycloakID)
@@ -175,6 +177,7 @@ func (db *Database) GetOrCreateCustomerByEmail(email, keycloakID string) (*Custo
 				SetUpdatedAt(time.Now()).
 				Save(context.Background())
 			if updateErr != nil {
+				log.Warnf("GetOrCreateCustomerByEmail: backfill keycloakid failed for customer %d: %v", c.ID, updateErr)
 				return c, nil // non-fatal: return the record we have
 			}
 			result := db.CustomerEntIntoCustomer(updated)
@@ -183,10 +186,24 @@ func (db *Database) GetOrCreateCustomerByEmail(email, keycloakID string) (*Custo
 		return c, nil
 	}
 
-	return db.CreateCustomer(&Customer{
+	created, err := db.CreateCustomer(&Customer{
 		KeycloakID: keycloakID,
 		Email:      email,
 	})
+	if err != nil {
+		// Race condition: another goroutine created the record between our lookup and insert.
+		// Re-fetch instead of surfacing a constraint violation to the caller.
+		if ent.IsConstraintError(err) {
+			if keycloakID != "" {
+				if c, rerr := db.GetCustomerByKeycloakID(keycloakID); rerr == nil {
+					return c, nil
+				}
+			}
+			return db.GetCustomerByEmail(email)
+		}
+		return nil, err
+	}
+	return created, nil
 }
 
 // AddLicenseGroupToCustomer adds a license group to a customer's licensegroups

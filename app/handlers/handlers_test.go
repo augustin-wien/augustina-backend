@@ -390,17 +390,17 @@ func TestUpdateItemHandlerWithLicense(t *testing.T) {
 	}
 
 	// create two license items directly via DB (include Description to satisfy validators)
-	licA := database.Item{Name: "license-A", Description: "License A description", Price: 10, IsLicenseItem: true}
+	licA := database.Item{Name: "license-A", Description: "License A description", Price: 10, IsLicenseItem: true, Type: "license_item"}
 	licAID, err := database.Db.CreateItem(licA)
 	require.NoError(t, err)
 	require.True(t, licAID > 0)
-	licB := database.Item{Name: "license-B", Description: "License B description", Price: 20, IsLicenseItem: true}
+	licB := database.Item{Name: "license-B", Description: "License B description", Price: 20, IsLicenseItem: true, Type: "license_item"}
 	licBID, err := database.Db.CreateItem(licB)
 	require.NoError(t, err)
 	require.True(t, licBID > 0)
 
 	// create an item that references licA also directly via DB
-	item := database.Item{Name: "item-with-license", Description: "Item that requires a license", Price: 100, LicenseItem: null.IntFrom(int64(licAID))}
+	item := database.Item{Name: "item-with-license", Description: "Item that requires a license", Price: 100, LicenseItem: null.IntFrom(int64(licAID)), Type: "normal_item"}
 	itemIDInt, err := database.Db.CreateItem(item)
 	require.NoError(t, err)
 	require.True(t, itemIDInt > 0)
@@ -474,6 +474,114 @@ func TestUpdateItemHandlerWithLicense(t *testing.T) {
 	require.NotZero(t, found3.ID)
 	require.False(t, found3.LicenseItem.Valid)
 	require.Equal(t, "item-without-license", found3.Name)
+}
+
+func TestUpdateOnlineIssueFromDisabledToEnabledSendsAbonementMailWithImage(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	err := database.Db.InitEmptyTestDb()
+	require.NoError(t, err)
+
+	// One active abonement recipient.
+	customer, err := database.Db.CreateCustomer(&database.Customer{
+		KeycloakID: "online-issue-mail-customer",
+		Email:      "online.issue.customer@example.com",
+		FirstName:  "Online",
+		LastName:   "Customer",
+	})
+	require.NoError(t, err)
+
+	items, err := database.Db.ListItemsWithDisabled(false, false)
+	require.NoError(t, err)
+	require.NotEmpty(t, items)
+
+	_, err = database.Db.CreateAbonement(&database.Abonement{
+		CustomerID: customer.ID,
+		ItemID:     items[0].ID,
+		FromDate:   time.Now().AddDate(0, 0, -1),
+		ToDate:     time.Now().AddDate(0, 0, 7),
+		Status:     "active",
+	})
+	require.NoError(t, err)
+
+	onlineIssueID, err := database.Db.CreateItem(database.Item{
+		Name:        "Issue To Publish",
+		Description: "Issue description",
+		Price:       100,
+		Image:       "img/new-issue.jpg",
+		Disabled:    true,
+		Type:        "online_issue",
+	})
+	require.NoError(t, err)
+
+	origBuild := database.BuildEmailRequestFromTemplate
+	origSend := mailer.Send
+	defer func() {
+		database.BuildEmailRequestFromTemplate = origBuild
+		mailer.Send = origSend
+	}()
+
+	config.Config.FrontendURL = "https://frontend.test"
+
+	mailCount := 0
+	var lastMail *mailer.EmailRequest
+	database.BuildEmailRequestFromTemplate = func(name string, to []string, data interface{}) (*mailer.EmailRequest, error) {
+		return nil, fmt.Errorf("template not found")
+	}
+	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
+		mailCount++
+		lastMail = r
+		return true, nil
+	}
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("Name", "Issue To Publish")
+	writer.WriteField("Description", "Issue description")
+	writer.WriteField("Price", strconv.Itoa(100))
+	writer.WriteField("Type", "online_issue")
+	writer.WriteField("Disabled", "false")
+	writer.Close()
+
+	utils.TestRequestMultiPartWithAuth(
+		t,
+		r,
+		"PUT",
+		"/api/items/"+strconv.Itoa(onlineIssueID)+"/",
+		body,
+		writer.FormDataContentType(),
+		200,
+		adminUserToken,
+	)
+
+	require.GreaterOrEqual(t, mailCount, 1)
+	require.NotNil(t, lastMail)
+	require.Contains(t, lastMail.Body(), "<img")
+	require.Contains(t, lastMail.Body(), "https://frontend.test/img/new-issue.jpg")
+
+	// Updating while already enabled should not trigger another notification.
+	secondBody := new(bytes.Buffer)
+	secondWriter := multipart.NewWriter(secondBody)
+	secondWriter.WriteField("Name", "Issue To Publish Updated")
+	secondWriter.WriteField("Description", "Issue description updated")
+	secondWriter.WriteField("Price", strconv.Itoa(100))
+	secondWriter.WriteField("Type", "online_issue")
+	secondWriter.WriteField("Disabled", "false")
+	secondWriter.Close()
+
+	beforeSecondUpdate := mailCount
+	utils.TestRequestMultiPartWithAuth(
+		t,
+		r,
+		"PUT",
+		"/api/items/"+strconv.Itoa(onlineIssueID)+"/",
+		secondBody,
+		secondWriter.FormDataContentType(),
+		200,
+		adminUserToken,
+	)
+	require.Equal(t, beforeSecondUpdate, mailCount)
 }
 
 // TestCreateItemsWithAndWithoutPDFAndLicense tests creating items via the
@@ -564,6 +672,99 @@ func TestCreateItemsWithAndWithoutPDFAndLicense(t *testing.T) {
 	dbLic, err := database.Db.GetItemByName("license-item-handler")
 	require.NoError(t, err)
 	require.True(t, dbLic.IsLicenseItem)
+
+	// 4) Create online_issue and ensure license item is auto-created
+	body = new(bytes.Buffer)
+	writer = multipart.NewWriter(body)
+	writer.WriteField("Name", "online-issue-handler")
+	writer.WriteField("Description", "Online issue via handler")
+	writer.WriteField("Price", strconv.Itoa(700))
+	writer.WriteField("Type", "online_issue")
+	writer.WriteField("license_cost", strconv.Itoa(150))
+	writer.Close()
+	res = utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 200, adminUserToken)
+	idOnline := strings.TrimSpace(res.Body.String())
+	require.NotEmpty(t, idOnline)
+
+	idOnlineInt, err := strconv.Atoi(idOnline)
+	require.NoError(t, err)
+
+	dbOnline, err := database.Db.GetItemIncludingDisabled(idOnlineInt)
+	require.NoError(t, err)
+	require.Equal(t, "online_issue", dbOnline.Type)
+	require.True(t, dbOnline.Disabled)
+	require.True(t, dbOnline.LicenseItem.Valid)
+
+	autoLicenseID := int(dbOnline.LicenseItem.ValueOrZero())
+	dbAutoLicense, err := database.Db.GetItemIncludingDisabled(autoLicenseID)
+	require.NoError(t, err)
+	require.Equal(t, "online-issue-handler license", dbAutoLicense.Name)
+	require.Equal(t, 150, dbAutoLicense.Price)
+	require.True(t, dbAutoLicense.IsLicenseItem)
+	require.Equal(t, "license_item", dbAutoLicense.Type)
+}
+
+// TestCreateOnlineIssueCreatesLicenseItem verifies that POSTing an online_issue
+// item via the HTTP handler automatically creates a companion license item and
+// links it. It also checks that omitting or zeroing license_cost is rejected.
+func TestCreateOnlineIssueCreatesLicenseItem(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	err := database.Db.InitEmptyTestDb()
+	require.NoError(t, err)
+
+	// 1) Missing license_cost → 400
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("Name", "no-cost-issue")
+	writer.WriteField("Description", "Missing license cost")
+	writer.WriteField("Price", "500")
+	writer.WriteField("Type", "online_issue")
+	writer.Close()
+	utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 400, adminUserToken)
+
+	// 2) Zero license_cost → 400
+	body = new(bytes.Buffer)
+	writer = multipart.NewWriter(body)
+	writer.WriteField("Name", "zero-cost-issue")
+	writer.WriteField("Description", "Zero license cost")
+	writer.WriteField("Price", "500")
+	writer.WriteField("Type", "online_issue")
+	writer.WriteField("LicenseCost", "0")
+	writer.Close()
+	utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 400, adminUserToken)
+
+	// 3) Valid online_issue → 200; license item auto-created and linked
+	body = new(bytes.Buffer)
+	writer = multipart.NewWriter(body)
+	writer.WriteField("Name", "test-online-issue")
+	writer.WriteField("Description", "Online issue with license")
+	writer.WriteField("Price", "700")
+	writer.WriteField("Type", "online_issue")
+	writer.WriteField("LicenseCost", "150")
+	writer.WriteField("LicenseGroup", "testgroup")
+	writer.Close()
+	res := utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 200, adminUserToken)
+	idOnline, err := strconv.Atoi(strings.TrimSpace(res.Body.String()))
+	require.NoError(t, err)
+	require.Positive(t, idOnline)
+
+	// Online issue must start as disabled and reference a license item
+	onlineIssue, err := database.Db.GetItemIncludingDisabled(idOnline)
+	require.NoError(t, err)
+	require.Equal(t, "online_issue", onlineIssue.Type)
+	require.True(t, onlineIssue.Disabled, "online_issue should be created as disabled")
+	require.True(t, onlineIssue.LicenseItem.Valid, "online_issue must have a linked license item")
+
+	// Auto-created license item must have correct fields
+	licenseID := int(onlineIssue.LicenseItem.ValueOrZero())
+	licenseItem, err := database.Db.GetItemIncludingDisabled(licenseID)
+	require.NoError(t, err)
+	require.Equal(t, "test-online-issue license", licenseItem.Name)
+	require.Equal(t, 150, licenseItem.Price)
+	require.True(t, licenseItem.IsLicenseItem)
+	require.Equal(t, "license_item", licenseItem.Type)
 }
 
 // TestUpdateItemLicenseConflict reproduces the ent unique constraint when two
@@ -582,19 +783,19 @@ func TestUpdateItemLicenseConflict(t *testing.T) {
 	}
 
 	// create the license item (IsLicenseItem = true)
-	license := database.Item{Name: "conflict-license", Description: "conflict license", Price: 1, IsLicenseItem: true}
+	license := database.Item{Name: "conflict-license", Description: "conflict license", Price: 1, IsLicenseItem: true, Type: "license_item"}
 	licenseID, err := database.Db.CreateItem(license)
 	require.NoError(t, err)
 	require.True(t, licenseID > 0)
 
 	// create itemA that already references the license
-	itemA := database.Item{Name: "item-A", Description: "already has license", Price: 10, LicenseItem: null.IntFrom(int64(licenseID))}
+	itemA := database.Item{Name: "item-A", Description: "already has license", Price: 10, LicenseItem: null.IntFrom(int64(licenseID)), Type: "normal_item"}
 	itemAID, err := database.Db.CreateItem(itemA)
 	require.NoError(t, err)
 	require.True(t, itemAID > 0)
 
 	// create itemB which we'll try to update via handler
-	itemB := database.Item{Name: "item-B", Description: "to be updated", Price: 20}
+	itemB := database.Item{Name: "item-B", Description: "to be updated", Price: 20, Type: "normal_item"}
 	itemBID, err := database.Db.CreateItem(itemB)
 	require.NoError(t, err)
 	require.True(t, itemBID > 0)
@@ -882,7 +1083,7 @@ func TestPayments(t *testing.T) {
 		t.Error(err)
 	}
 
-	itemID, err := database.Db.CreateItem(database.Item{Name: "Test item for payments", Description: "Payment test item description", Price: 314})
+	itemID, err := database.Db.CreateItem(database.Item{Name: "Test item for payments", Description: "Payment test item description", Price: 314, Type: "normal_item"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -1013,12 +1214,12 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 	require.NoError(t, err)
 
 	// create a license item that is a PDF
-	licenseItem := database.Item{Name: "license-pdf", Description: "license pdf", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID)}
+	licenseItem := database.Item{Name: "license-pdf", Description: "license pdf", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID), Type: "license_item"}
 	licenseID, err := database.Db.CreateItem(licenseItem)
 	require.NoError(t, err)
 
 	// create a normal item that references the license
-	item := database.Item{Name: "item-with-license-pdf", Description: "main item", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup")}
+	item := database.Item{Name: "item-with-license-pdf", Description: "main item", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup"), Type: "normal_item"}
 	itemID, err := database.Db.CreateItem(item)
 	require.NoError(t, err)
 
@@ -1155,7 +1356,7 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 	require.NoError(t, err)
 
 	// create a license item that is a PDF (first license)
-	licenseItem := database.Item{Name: "license-pdf", Description: "license pdf", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID)}
+	licenseItem := database.Item{Name: "license-pdf", Description: "license pdf", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID), Type: "license_item"}
 	licenseID, err := database.Db.CreateItem(licenseItem)
 	require.NoError(t, err)
 
@@ -1163,16 +1364,16 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 	pdf2 := database.PDF{Path: "testfile2.pdf", Timestamp: time.Now()}
 	pdfID2, err := database.Db.CreatePDF(pdf2)
 	require.NoError(t, err)
-	licenseItem2 := database.Item{Name: "license-pdf-2", Description: "license pdf 2", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID2)}
+	licenseItem2 := database.Item{Name: "license-pdf-2", Description: "license pdf 2", Price: 1, IsLicenseItem: true, IsPDFItem: true, PDF: null.IntFrom(pdfID2), Type: "license_item"}
 	licenseID2, err := database.Db.CreateItem(licenseItem2)
 	require.NoError(t, err)
 
 	// create two normal items that reference their respective licenses (to test multiple entries)
-	item1 := database.Item{Name: "item-with-license-pdf-1", Description: "main item 1", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup1")}
+	item1 := database.Item{Name: "item-with-license-pdf-1", Description: "main item 1", Price: 200, LicenseItem: null.IntFrom(int64(licenseID)), LicenseGroup: null.StringFrom("pdfgroup1"), Type: "normal_item"}
 	itemID1, err := database.Db.CreateItem(item1)
 	require.NoError(t, err)
 
-	item2 := database.Item{Name: "item-with-license-pdf-2", Description: "main item 2", Price: 150, LicenseItem: null.IntFrom(int64(licenseID2)), LicenseGroup: null.StringFrom("pdfgroup2")}
+	item2 := database.Item{Name: "item-with-license-pdf-2", Description: "main item 2", Price: 150, LicenseItem: null.IntFrom(int64(licenseID2)), LicenseGroup: null.StringFrom("pdfgroup2"), Type: "normal_item"}
 	itemID2, err := database.Db.CreateItem(item2)
 	require.NoError(t, err)
 

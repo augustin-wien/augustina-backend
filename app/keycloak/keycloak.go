@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
@@ -31,6 +32,7 @@ type Keycloak struct {
 	CustomerGroup           string
 	BackofficeGroup         string
 	NewspaperGroup          string
+	mu                      sync.Mutex
 }
 
 // InitializeOauthServer initializes the Keycloak client
@@ -131,6 +133,8 @@ func (k *Keycloak) GetUserGroups(userID string) ([]*gocloak.Group, error) {
 }
 
 func (k *Keycloak) checkAdminToken() {
+	k.mu.Lock()
+	defer k.mu.Unlock()
 	var err error
 	if k.clientToken == nil {
 		k.clientToken, err = k.LoginClient()
@@ -186,6 +190,9 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 
 // Assign group to user
 func (k *Keycloak) AssignGroup(userID string, groupName string) error {
+	if groupName == "" {
+		return fmt.Errorf("AssignGroup: groupName is empty")
+	}
 	k.checkAdminToken()
 	// Groups can only be searched by group paths and not by group names. Group paths have to start with / and if it's not there, we add it.
 	if groupName[0] != '/' {
@@ -260,6 +267,7 @@ func (k *Keycloak) SyncLicenseGroupsDiffToKeycloak(userID string, oldGroups, new
 			if err != nil {
 				continue // group doesn't exist in Keycloak, nothing to remove
 			}
+			k.checkAdminToken()
 			if err := k.Client.DeleteUserFromGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID); err != nil {
 				log.Errorf("SyncLicenseGroupsDiffToKeycloak: remove %s from %s: %v", g, userID, err)
 			}

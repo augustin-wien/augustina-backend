@@ -538,6 +538,15 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 				log.Error("UpdateItem: failed sending online_issue notifications", notifyErr)
 			}
 		}
+
+		// Assign license groups to all customers with active abonements so they
+		// immediately get access to the newly published online issue in Keycloak.
+		go func() {
+			svc := database.NewAbonementService(&database.Db)
+			if processErr := svc.ProcessAbonementLicenseGroupsForDate(time.Now()); processErr != nil {
+				log.Error("UpdateItem: failed to process abonement license groups for online_issue publication: ", processErr)
+			}
+		}()
 	}
 
 	err = utils.WriteJSON(w, http.StatusOK, err)
