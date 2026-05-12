@@ -282,30 +282,29 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 			}
 		}
 
-		// Auth
-		if ok, mech := c.Extension("AUTH"); ok {
-			log.Infof("SendEmail: SMTP server advertised AUTH mechanisms: %s", mech)
-			m := strings.ToUpper(mech)
-			var chosen smtp.Auth
-			if strings.Contains(m, "PLAIN") {
-				chosen = auth
-			} else if strings.Contains(m, "LOGIN") {
-				chosen = LoginAuth(config.Config.SMTPUsername, config.Config.SMTPPassword)
-			} else if strings.Contains(m, "XOAUTH2") {
-				log.Infof("SendEmail: SMTP server requires XOAUTH2; no XOAUTH2 support configured in this build")
-				return false, errors.New("server requires XOAUTH2 authentication")
-			} else {
-				// fallback to client configured auth
-				chosen = auth
-			}
-			if chosen != nil {
-				if err = c.Auth(chosen); err != nil {
-					log.Error("SendEmail: auth failed", err)
-					return false, err
+		// Auth — skip entirely when no credentials are configured (e.g. Mailpit)
+		if config.Config.SMTPUsername != "" {
+			if ok, mech := c.Extension("AUTH"); ok {
+				log.Infof("SendEmail: SMTP server advertised AUTH mechanisms: %s", mech)
+				m := strings.ToUpper(mech)
+				var chosen smtp.Auth
+				if strings.Contains(m, "PLAIN") {
+					chosen = auth
+				} else if strings.Contains(m, "LOGIN") {
+					chosen = LoginAuth(config.Config.SMTPUsername, config.Config.SMTPPassword)
+				} else if strings.Contains(m, "XOAUTH2") {
+					log.Infof("SendEmail: SMTP server requires XOAUTH2; no XOAUTH2 support configured in this build")
+					return false, errors.New("server requires XOAUTH2 authentication")
+				} else {
+					chosen = auth
 				}
-			}
-		} else {
-			if auth != nil {
+				if chosen != nil {
+					if err = c.Auth(chosen); err != nil {
+						log.Error("SendEmail: auth failed", err)
+						return false, err
+					}
+				}
+			} else if auth != nil {
 				if err = c.Auth(auth); err != nil {
 					log.Error("SendEmail: auth failed", err)
 					return false, err
@@ -367,28 +366,29 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 	}
 	defer c.Close()
 
-	if ok, mech := c.Extension("AUTH"); ok {
-		log.Infof("SendEmail: SMTP server advertised AUTH mechanisms: %s", mech)
-		m := strings.ToUpper(mech)
-		var chosen smtp.Auth
-		if strings.Contains(m, "PLAIN") {
-			chosen = auth
-		} else if strings.Contains(m, "LOGIN") {
-			chosen = LoginAuth(config.Config.SMTPUsername, config.Config.SMTPPassword)
-		} else if strings.Contains(m, "XOAUTH2") {
-			log.Infof("SendEmail: SMTP server requires XOAUTH2; no XOAUTH2 support configured in this build")
-			return false, errors.New("server requires XOAUTH2 authentication")
-		} else {
-			chosen = auth
-		}
-		if chosen != nil {
-			if err = c.Auth(chosen); err != nil {
-				log.Error("SendEmail: auth failed", err)
-				return false, err
+	// Auth — skip entirely when no credentials are configured (e.g. Mailpit)
+	if config.Config.SMTPUsername != "" {
+		if ok, mech := c.Extension("AUTH"); ok {
+			log.Infof("SendEmail: SMTP server advertised AUTH mechanisms: %s", mech)
+			m := strings.ToUpper(mech)
+			var chosen smtp.Auth
+			if strings.Contains(m, "PLAIN") {
+				chosen = auth
+			} else if strings.Contains(m, "LOGIN") {
+				chosen = LoginAuth(config.Config.SMTPUsername, config.Config.SMTPPassword)
+			} else if strings.Contains(m, "XOAUTH2") {
+				log.Infof("SendEmail: SMTP server requires XOAUTH2; no XOAUTH2 support configured in this build")
+				return false, errors.New("server requires XOAUTH2 authentication")
+			} else {
+				chosen = auth
 			}
-		}
-	} else {
-		if auth != nil {
+			if chosen != nil {
+				if err = c.Auth(chosen); err != nil {
+					log.Error("SendEmail: auth failed", err)
+					return false, err
+				}
+			}
+		} else if auth != nil {
 			if err = c.Auth(auth); err != nil {
 				log.Error("SendEmail: auth failed", err)
 				return false, err

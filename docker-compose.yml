@@ -59,6 +59,7 @@ services:
       - augustin-db-test
       - keycloak
       - webhook-receiver
+      - mailpit
     ports:
       - "3000:3000"
     healthcheck:
@@ -139,6 +140,8 @@ services:
     command: start-dev --import-realm
     ports:
       - "8080:8080"
+    links:
+      - mailpit
   wordpress-db:
     # We use a mariadb image which supports both amd64 & arm64 architecture
     image: mariadb
@@ -241,6 +244,14 @@ services:
     depends_on:
       wordpress:
         condition: service_healthy
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    ports:
+      - "8025:8025"   # web UI
+      - "1025:1025"   # SMTP
+    restart: unless-stopped
+
   webhook-receiver:
     build:
       context: ./docker/webhook-receiver
