@@ -237,7 +237,7 @@ func TestQueryOrders(t *testing.T) {
 	utils.CheckError(t, err)
 	receiverVendorID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("receiver")})
 	utils.CheckError(t, err)
-	itemID, err := Db.CreateItem(Item{Name: "test-item", Description: "Auto-created test item", Price: 1})
+	itemID, err := Db.CreateItem(Item{Name: "test-item", Description: "Auto-created test item", Price: 1, Type: "normal_item"})
 	utils.CheckError(t, err)
 
 	senderAccount, err := Db.GetAccountByVendorID(senderVendorID)
@@ -384,9 +384,9 @@ func TestVendorTwoPaymentsBalance(t *testing.T) {
 	utils.CheckError(t, err)
 
 	// Create two items with different prices
-	itemA, err := Db.CreateItem(Item{Name: "item-A", Description: "A", Price: 100})
+	itemA, err := Db.CreateItem(Item{Name: "item-A", Description: "A", Price: 100, Type: "normal_item"})
 	utils.CheckError(t, err)
-	itemB, err := Db.CreateItem(Item{Name: "item-B", Description: "B", Price: 200})
+	itemB, err := Db.CreateItem(Item{Name: "item-B", Description: "B", Price: 200, Type: "normal_item"})
 	utils.CheckError(t, err)
 
 	// Create two separate payments (one for each item)

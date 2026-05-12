@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -10,7 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/mitchellh/mapstructure"
@@ -79,6 +82,25 @@ func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListLicenseGroups godoc
+//
+//		@Summary		List distinct license groups from issue items
+//		@Tags			Items
+//		@Produce		json
+//		@Success		200	{array}	string
+//		@Security		KeycloakAuth
+//		@Router			/items/licensegroups/ [get]
+func ListLicenseGroups(w http.ResponseWriter, r *http.Request) {
+	groups, err := database.Db.ListLicenseGroups()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	if err := utils.WriteJSON(w, http.StatusOK, groups); err != nil {
+		log.Error("ListLicenseGroups: ", err)
+	}
+}
+
 // CreateItem godoc
 //
 //	 	@Summary 		Create Item
@@ -127,6 +149,31 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	// handleItemPDF returns -1 when no file was provided; only set PDF when we have a positive id
 	if pdfId > 0 {
 		item.PDF = null.IntFrom(pdfId)
+	}
+
+	if item.Type == "online_issue" || item.Type == "abonement" {
+		licenseCost, err := parseLicenseCost(mForm.Value)
+		if err != nil {
+			log.Error("CreateItem: parse license_cost failed", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		var id int
+		if item.Type == "online_issue" {
+			id, _, err = database.Db.CreateOnlineIssueWithLicense(item, licenseCost)
+		} else {
+			id, _, err = database.Db.CreateAbonementItemWithLicense(item, licenseCost)
+		}
+		if err != nil {
+			log.Error("CreateItem: item with license creation failed", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		err = utils.WriteJSON(w, http.StatusOK, id)
+		if err != nil {
+			log.Error("CreateItem: WriteJSON failed", err)
+		}
+		return
 	}
 
 	// Save item to database
@@ -342,6 +389,26 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 	return
 }
 
+func parseLicenseCost(fields map[string][]string) (licenseCost int, err error) {
+	licenseCostRaw := ""
+	if values, ok := fields["license_cost"]; ok && len(values) > 0 {
+		licenseCostRaw = values[0]
+	} else if values, ok := fields["LicenseCost"]; ok && len(values) > 0 {
+		licenseCostRaw = values[0]
+	}
+	if licenseCostRaw == "" {
+		return 0, errors.New("license_cost is required for online_issue")
+	}
+	licenseCost, err = strconv.Atoi(licenseCostRaw)
+	if err != nil {
+		return 0, errors.New("license_cost must be an integer")
+	}
+	if licenseCost <= 0 {
+		return 0, errors.New("license_cost must be greater than 0")
+	}
+	return licenseCost, nil
+}
+
 // UpdateItem godoc
 //
 //	 	@Summary 		Update Item
@@ -361,6 +428,13 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		log.Error("UpdateItem: Can not read ID ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	existingItem, err := database.Db.GetItemIncludingDisabled(ItemID)
+	if err != nil {
+		log.Error("UpdateItem: failed to load current item", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -399,19 +473,22 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	// preserve existing values from the DB to avoid ent validator failures
 	// on partial updates.
 	if item.Name == "" {
-		if existing, err := database.Db.GetItem(ItemID); err == nil {
-			item.Name = existing.Name
-		}
+		item.Name = existingItem.Name
 	}
 	if item.Description == "" {
-		if existing, err := database.Db.GetItem(ItemID); err == nil {
-			item.Description = existing.Description
-		}
+		item.Description = existingItem.Description
 	}
 	if item.Price == 0 {
-		if existing, err := database.Db.GetItem(ItemID); err == nil {
-			item.Price = existing.Price
-		}
+		item.Price = existingItem.Price
+	}
+	if item.Image == "" {
+		item.Image = existingItem.Image
+	}
+	if _, ok := mForm.Value["Disabled"]; !ok {
+		item.Disabled = existingItem.Disabled
+	}
+	if _, ok := mForm.Value["Type"]; !ok {
+		item.Type = existingItem.Type
 	}
 
 	path, _ := updateItemImage(w, r)
@@ -449,11 +526,98 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("UpdateItem: db update", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
+
+	if existingItem.Type == "online_issue" && existingItem.Disabled && !item.Disabled {
+		updatedItem, getErr := database.Db.GetItemIncludingDisabled(ItemID)
+		if getErr != nil {
+			log.Error("UpdateItem: failed to load updated online_issue for notifications", getErr)
+		} else {
+			if notifyErr := notifyActiveAbonementsOnlineIssue(r, updatedItem); notifyErr != nil {
+				log.Error("UpdateItem: failed sending online_issue notifications", notifyErr)
+			}
+		}
+	}
+
 	err = utils.WriteJSON(w, http.StatusOK, err)
 	if err != nil {
 		log.Error("UpdateItem: ", err)
 	}
+}
+
+func notifyActiveAbonementsOnlineIssue(r *http.Request, issue database.Item) error {
+	abonements, err := database.Db.GetActiveAbonementsByDate(time.Now())
+	if err != nil {
+		return err
+	}
+	if len(abonements) == 0 {
+		return nil
+	}
+
+	recipientSet := make(map[string]struct{})
+	for _, a := range abonements {
+		customer, customerErr := database.Db.GetCustomerByID(a.CustomerID)
+		if customerErr != nil {
+			continue
+		}
+		email := strings.TrimSpace(customer.Email)
+		if email == "" {
+			continue
+		}
+		recipientSet[email] = struct{}{}
+	}
+
+	if len(recipientSet) == 0 {
+		return nil
+	}
+
+	issueImageURL := resolveIssueImageURL(r, issue.Image)
+	for recipient := range recipientSet {
+		templateData := map[string]interface{}{
+			"IssueName": issue.Name,
+			"ImageURL":  issueImageURL,
+		}
+
+		mailReq, reqErr := database.BuildEmailRequestFromTemplate("onlineIssuePublished", []string{recipient}, templateData)
+		if reqErr != nil {
+			fallbackBody := fmt.Sprintf(
+				"<p>Eine neue Online-Ausgabe ist verfügbar: <strong>%s</strong></p><p><img src=\"%s\" alt=\"%s\" style=\"max-width:100%%;height:auto;\"></p>",
+				issue.Name,
+				issueImageURL,
+				issue.Name,
+			)
+			mailReq, reqErr = mailer.NewRequest([]string{recipient}, "Neue Online-Ausgabe verfügbar", fallbackBody)
+			if reqErr != nil {
+				log.Error("notifyActiveAbonementsOnlineIssue: failed to build fallback mail", reqErr)
+				continue
+			}
+		}
+
+		if _, sendErr := mailer.Send(mailReq); sendErr != nil {
+			log.Error("notifyActiveAbonementsOnlineIssue: sending failed", sendErr)
+		}
+	}
+
+	return nil
+}
+
+func resolveIssueImageURL(r *http.Request, imagePath string) string {
+	trimmed := strings.TrimSpace(imagePath)
+	if trimmed == "" {
+		return ""
+	}
+	if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
+		return trimmed
+	}
+	baseURL := strings.TrimRight(strings.TrimSpace(config.Config.FrontendURL), "/")
+	if baseURL == "" && r != nil {
+		baseURL = "http://" + strings.TrimSpace(r.Host)
+	}
+	if baseURL == "" {
+		return trimmed
+	}
+	return baseURL + "/" + strings.TrimLeft(trimmed, "/")
 }
 
 // DeleteItem godoc

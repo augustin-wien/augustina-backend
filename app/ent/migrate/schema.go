@@ -9,6 +9,37 @@ import (
 )
 
 var (
+	// AbonementColumns holds the columns for the "abonement" table.
+	AbonementColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "from_date", Type: field.TypeTime},
+		{Name: "to_date", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeString, Default: "active"},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "abonement_item", Type: field.TypeInt, Nullable: true},
+		{Name: "customer_id", Type: field.TypeInt},
+	}
+	// AbonementTable holds the schema information for the "abonement" table.
+	AbonementTable = &schema.Table{
+		Name:       "abonement",
+		Columns:    AbonementColumns,
+		PrimaryKey: []*schema.Column{AbonementColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "abonement_item_item",
+				Columns:    []*schema.Column{AbonementColumns[6]},
+				RefColumns: []*schema.Column{ItemColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "abonement_customer_abonements",
+				Columns:    []*schema.Column{AbonementColumns[7]},
+				RefColumns: []*schema.Column{CustomerColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// AccountColumns holds the columns for the "account" table.
 	AccountColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -69,6 +100,23 @@ var (
 			},
 		},
 	}
+	// CustomerColumns holds the columns for the "customer" table.
+	CustomerColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "keycloakid", Type: field.TypeString},
+		{Name: "email", Type: field.TypeString, Default: ""},
+		{Name: "firstname", Type: field.TypeString, Default: ""},
+		{Name: "lastname", Type: field.TypeString, Default: ""},
+		{Name: "licensegroups", Type: field.TypeString, Default: ""},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+	}
+	// CustomerTable holds the schema information for the "customer" table.
+	CustomerTable = &schema.Table{
+		Name:       "customer",
+		Columns:    CustomerColumns,
+		PrimaryKey: []*schema.Column{CustomerColumns[0]},
+	}
 	// DbSettingsColumns holds the columns for the "db_settings" table.
 	DbSettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -91,6 +139,7 @@ var (
 		{Name: "disabled", Type: field.TypeBool, Default: false},
 		{Name: "islicenseitem", Type: field.TypeBool, Default: false},
 		{Name: "licensegroup", Type: field.TypeString, Default: "default"},
+		{Name: "item_type", Type: field.TypeString, Default: "normal_item"},
 		{Name: "ispdfitem", Type: field.TypeBool, Default: false},
 		{Name: "itemorder", Type: field.TypeInt, Default: 0},
 		{Name: "itemcolor", Type: field.TypeString, Default: "#FFFFFF"},
@@ -106,13 +155,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "item_item_LicenseItem",
-				Columns:    []*schema.Column{ItemColumns[13]},
+				Columns:    []*schema.Column{ItemColumns[14]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "item_pdf_PDF",
-				Columns:    []*schema.Column{ItemColumns[14]},
+				Columns:    []*schema.Column{ItemColumns[15]},
 				RefColumns: []*schema.Column{PdfColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -357,9 +406,11 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AbonementTable,
 		AccountTable,
 		BlockedIpsTable,
 		CommentsTable,
+		CustomerTable,
 		DbSettingsTable,
 		ItemTable,
 		LocationsTable,
@@ -375,11 +426,19 @@ var (
 )
 
 func init() {
+	AbonementTable.ForeignKeys[0].RefTable = ItemTable
+	AbonementTable.ForeignKeys[1].RefTable = CustomerTable
+	AbonementTable.Annotation = &entsql.Annotation{
+		Table: "abonement",
+	}
 	AccountTable.ForeignKeys[0].RefTable = VendorTable
 	AccountTable.Annotation = &entsql.Annotation{
 		Table: "account",
 	}
 	CommentsTable.ForeignKeys[0].RefTable = VendorTable
+	CustomerTable.Annotation = &entsql.Annotation{
+		Table: "customer",
+	}
 	DbSettingsTable.Annotation = &entsql.Annotation{
 		Table: "db_settings",
 	}

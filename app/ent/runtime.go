@@ -3,8 +3,10 @@
 package ent
 
 import (
+	"github.com/augustin-wien/augustina-backend/ent/abonement"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
+	"github.com/augustin-wien/augustina-backend/ent/customer"
 	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
@@ -22,6 +24,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	abonementFields := schema.Abonement{}.Fields()
+	_ = abonementFields
+	// abonementDescStatus is the schema descriptor for status field.
+	abonementDescStatus := abonementFields[5].Descriptor()
+	// abonement.DefaultStatus holds the default value on creation for the status field.
+	abonement.DefaultStatus = abonementDescStatus.Default.(string)
+	// abonementDescID is the schema descriptor for id field.
+	abonementDescID := abonementFields[0].Descriptor()
+	// abonement.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	abonement.IDValidator = abonementDescID.Validators[0].(func(int) error)
 	accountFields := schema.Account{}.Fields()
 	_ = accountFields
 	// accountDescBalance is the schema descriptor for balance field.
@@ -42,6 +54,28 @@ func init() {
 	blockedipDescStrikes := blockedipFields[1].Descriptor()
 	// blockedip.DefaultStrikes holds the default value on creation for the strikes field.
 	blockedip.DefaultStrikes = blockedipDescStrikes.Default.(int)
+	customerFields := schema.Customer{}.Fields()
+	_ = customerFields
+	// customerDescEmail is the schema descriptor for email field.
+	customerDescEmail := customerFields[2].Descriptor()
+	// customer.DefaultEmail holds the default value on creation for the email field.
+	customer.DefaultEmail = customerDescEmail.Default.(string)
+	// customerDescFirstname is the schema descriptor for firstname field.
+	customerDescFirstname := customerFields[3].Descriptor()
+	// customer.DefaultFirstname holds the default value on creation for the firstname field.
+	customer.DefaultFirstname = customerDescFirstname.Default.(string)
+	// customerDescLastname is the schema descriptor for lastname field.
+	customerDescLastname := customerFields[4].Descriptor()
+	// customer.DefaultLastname holds the default value on creation for the lastname field.
+	customer.DefaultLastname = customerDescLastname.Default.(string)
+	// customerDescLicensegroups is the schema descriptor for licensegroups field.
+	customerDescLicensegroups := customerFields[5].Descriptor()
+	// customer.DefaultLicensegroups holds the default value on creation for the licensegroups field.
+	customer.DefaultLicensegroups = customerDescLicensegroups.Default.(string)
+	// customerDescID is the schema descriptor for id field.
+	customerDescID := customerFields[0].Descriptor()
+	// customer.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	customer.IDValidator = customerDescID.Validators[0].(func(int) error)
 	dbsettingsFields := schema.DBSettings{}.Fields()
 	_ = dbsettingsFields
 	// dbsettingsDescID is the schema descriptor for id field.
@@ -78,20 +112,24 @@ func init() {
 	itemDescLicenseGroup := itemFields[8].Descriptor()
 	// item.DefaultLicenseGroup holds the default value on creation for the LicenseGroup field.
 	item.DefaultLicenseGroup = itemDescLicenseGroup.Default.(string)
+	// itemDescType is the schema descriptor for Type field.
+	itemDescType := itemFields[9].Descriptor()
+	// item.DefaultType holds the default value on creation for the Type field.
+	item.DefaultType = itemDescType.Default.(string)
 	// itemDescIsPDFItem is the schema descriptor for IsPDFItem field.
-	itemDescIsPDFItem := itemFields[9].Descriptor()
+	itemDescIsPDFItem := itemFields[10].Descriptor()
 	// item.DefaultIsPDFItem holds the default value on creation for the IsPDFItem field.
 	item.DefaultIsPDFItem = itemDescIsPDFItem.Default.(bool)
 	// itemDescItemOrder is the schema descriptor for ItemOrder field.
-	itemDescItemOrder := itemFields[10].Descriptor()
+	itemDescItemOrder := itemFields[11].Descriptor()
 	// item.DefaultItemOrder holds the default value on creation for the ItemOrder field.
 	item.DefaultItemOrder = itemDescItemOrder.Default.(int)
 	// itemDescItemColor is the schema descriptor for ItemColor field.
-	itemDescItemColor := itemFields[11].Descriptor()
+	itemDescItemColor := itemFields[12].Descriptor()
 	// item.DefaultItemColor holds the default value on creation for the ItemColor field.
 	item.DefaultItemColor = itemDescItemColor.Default.(string)
 	// itemDescItemTextColor is the schema descriptor for ItemTextColor field.
-	itemDescItemTextColor := itemFields[12].Descriptor()
+	itemDescItemTextColor := itemFields[13].Descriptor()
 	// item.DefaultItemTextColor holds the default value on creation for the ItemTextColor field.
 	item.DefaultItemTextColor = itemDescItemTextColor.Default.(string)
 	// itemDescID is the schema descriptor for id field.

@@ -147,6 +147,20 @@ func (iu *ItemUpdate) SetNillableLicenseGroup(s *string) *ItemUpdate {
 	return iu
 }
 
+// SetType sets the "Type" field.
+func (iu *ItemUpdate) SetType(s string) *ItemUpdate {
+	iu.mutation.SetType(s)
+	return iu
+}
+
+// SetNillableType sets the "Type" field if the given value is not nil.
+func (iu *ItemUpdate) SetNillableType(s *string) *ItemUpdate {
+	if s != nil {
+		iu.SetType(*s)
+	}
+	return iu
+}
+
 // SetIsPDFItem sets the "IsPDFItem" field.
 func (iu *ItemUpdate) SetIsPDFItem(b bool) *ItemUpdate {
 	iu.mutation.SetIsPDFItem(b)
@@ -350,6 +364,9 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := iu.mutation.LicenseGroup(); ok {
 		_spec.SetField(item.FieldLicenseGroup, field.TypeString, value)
+	}
+	if value, ok := iu.mutation.GetType(); ok {
+		_spec.SetField(item.FieldType, field.TypeString, value)
 	}
 	if value, ok := iu.mutation.IsPDFItem(); ok {
 		_spec.SetField(item.FieldIsPDFItem, field.TypeBool, value)
@@ -559,6 +576,20 @@ func (iuo *ItemUpdateOne) SetLicenseGroup(s string) *ItemUpdateOne {
 func (iuo *ItemUpdateOne) SetNillableLicenseGroup(s *string) *ItemUpdateOne {
 	if s != nil {
 		iuo.SetLicenseGroup(*s)
+	}
+	return iuo
+}
+
+// SetType sets the "Type" field.
+func (iuo *ItemUpdateOne) SetType(s string) *ItemUpdateOne {
+	iuo.mutation.SetType(s)
+	return iuo
+}
+
+// SetNillableType sets the "Type" field if the given value is not nil.
+func (iuo *ItemUpdateOne) SetNillableType(s *string) *ItemUpdateOne {
+	if s != nil {
+		iuo.SetType(*s)
 	}
 	return iuo
 }
@@ -796,6 +827,9 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 	}
 	if value, ok := iuo.mutation.LicenseGroup(); ok {
 		_spec.SetField(item.FieldLicenseGroup, field.TypeString, value)
+	}
+	if value, ok := iuo.mutation.GetType(); ok {
+		_spec.SetField(item.FieldType, field.TypeString, value)
 	}
 	if value, ok := iuo.mutation.IsPDFItem(); ok {
 		_spec.SetField(item.FieldIsPDFItem, field.TypeBool, value)

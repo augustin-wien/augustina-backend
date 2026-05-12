@@ -100,6 +100,20 @@ func (ic *ItemCreate) SetNillableLicenseGroup(s *string) *ItemCreate {
 	return ic
 }
 
+// SetType sets the "Type" field.
+func (ic *ItemCreate) SetType(s string) *ItemCreate {
+	ic.mutation.SetType(s)
+	return ic
+}
+
+// SetNillableType sets the "Type" field if the given value is not nil.
+func (ic *ItemCreate) SetNillableType(s *string) *ItemCreate {
+	if s != nil {
+		ic.SetType(*s)
+	}
+	return ic
+}
+
 // SetIsPDFItem sets the "IsPDFItem" field.
 func (ic *ItemCreate) SetIsPDFItem(b bool) *ItemCreate {
 	ic.mutation.SetIsPDFItem(b)
@@ -251,6 +265,10 @@ func (ic *ItemCreate) defaults() {
 		v := item.DefaultLicenseGroup
 		ic.mutation.SetLicenseGroup(v)
 	}
+	if _, ok := ic.mutation.GetType(); !ok {
+		v := item.DefaultType
+		ic.mutation.SetType(v)
+	}
 	if _, ok := ic.mutation.IsPDFItem(); !ok {
 		v := item.DefaultIsPDFItem
 		ic.mutation.SetIsPDFItem(v)
@@ -309,6 +327,9 @@ func (ic *ItemCreate) check() error {
 	}
 	if _, ok := ic.mutation.LicenseGroup(); !ok {
 		return &ValidationError{Name: "LicenseGroup", err: errors.New(`ent: missing required field "Item.LicenseGroup"`)}
+	}
+	if _, ok := ic.mutation.GetType(); !ok {
+		return &ValidationError{Name: "Type", err: errors.New(`ent: missing required field "Item.Type"`)}
 	}
 	if _, ok := ic.mutation.IsPDFItem(); !ok {
 		return &ValidationError{Name: "IsPDFItem", err: errors.New(`ent: missing required field "Item.IsPDFItem"`)}
@@ -390,6 +411,10 @@ func (ic *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
 	if value, ok := ic.mutation.LicenseGroup(); ok {
 		_spec.SetField(item.FieldLicenseGroup, field.TypeString, value)
 		_node.LicenseGroup = value
+	}
+	if value, ok := ic.mutation.GetType(); ok {
+		_spec.SetField(item.FieldType, field.TypeString, value)
+		_node.Type = value
 	}
 	if value, ok := ic.mutation.IsPDFItem(); ok {
 		_spec.SetField(item.FieldIsPDFItem, field.TypeBool, value)

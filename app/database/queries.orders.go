@@ -376,6 +376,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		processedLicenseGroups := make(map[string]bool)
 		var customerID string
 		var newUser bool
+		var dbCustomer *Customer
 		gotCustomer := false
 		customerAssigned := false
 		sentDigitalLicenceEmail := false
@@ -396,6 +397,10 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							log.Error("VerifyOrderAndCreatePayments: failed to create keycloak customer: ", orderID, err)
 						}
 						gotCustomer = true
+						dbCustomer, err = db.GetOrCreateCustomerByEmail(o.CustomerEmail.String, customerID)
+						if err != nil {
+							log.Error("VerifyOrderAndCreatePayments: failed to get/create customer db record: ", orderID, err)
+						}
 					}
 
 					// Assign to top-level customer group once per customer
@@ -413,6 +418,12 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(customerID, lg)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", orderID, err)
+						}
+						if dbCustomer != nil {
+							_, err = db.AddLicenseGroupToCustomer(dbCustomer.ID, lg)
+							if err != nil {
+								log.Error("VerifyOrderAndCreatePayments: failed to add license group to customer db record: ", orderID, err)
+							}
 						}
 						processedLicenseGroups[lg] = true
 					}
@@ -536,6 +547,19 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 			log.Error("VerifyOrderAndCreatePayments: create payments for order entry: ", orderID, err)
 			return err
 		}
+	}
+
+	// Process abonements for the order date to assign license groups to customers with active subscriptions
+	// This is done asynchronously to avoid blocking the order verification
+	if !alreadyVerified {
+		// Schedule async processing of abonements for this order's date
+		go func() {
+			abonementService := NewAbonementService(db)
+			err := abonementService.ProcessAbonementLicenseGroupsForDate(o.Timestamp)
+			if err != nil {
+				log.Error("VerifyOrderAndCreatePayments: failed to process abonement license groups: ", err)
+			}
+		}()
 	}
 
 	return tx.Commit()

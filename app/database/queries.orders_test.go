@@ -27,6 +27,7 @@ func Test_VerifyOrderSetsVerifiedAt(t *testing.T) {
 		Name:        "Test Item",
 		Description: "This is a test item description that is long enough",
 		Price:       100,
+		Type:        "normal_item",
 	}
 	itemID, err := Db.CreateItem(item)
 	utils.CheckError(t, err)

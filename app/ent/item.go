@@ -33,6 +33,8 @@ type Item struct {
 	IsLicenseItem bool `json:"IsLicenseItem"`
 	// LicenseGroup holds the value of the "LicenseGroup" field.
 	LicenseGroup string `json:"LicenseGroup"`
+	// Type holds the value of the "Type" field.
+	Type string `json:"Type"`
 	// IsPDFItem holds the value of the "IsPDFItem" field.
 	IsPDFItem bool `json:"IsPDFItem"`
 	// ItemOrder holds the value of the "ItemOrder" field.
@@ -93,7 +95,7 @@ func (*Item) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case item.FieldID, item.FieldItemOrder:
 			values[i] = new(sql.NullInt64)
-		case item.FieldName, item.FieldDescription, item.FieldImage, item.FieldLicenseGroup, item.FieldItemColor, item.FieldItemTextColor:
+		case item.FieldName, item.FieldDescription, item.FieldImage, item.FieldLicenseGroup, item.FieldType, item.FieldItemColor, item.FieldItemTextColor:
 			values[i] = new(sql.NullString)
 		case item.ForeignKeys[0]: // licenseitem
 			values[i] = new(sql.NullInt64)
@@ -167,6 +169,12 @@ func (i *Item) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field LicenseGroup", values[j])
 			} else if value.Valid {
 				i.LicenseGroup = value.String
+			}
+		case item.FieldType:
+			if value, ok := values[j].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field Type", values[j])
+			} else if value.Valid {
+				i.Type = value.String
 			}
 		case item.FieldIsPDFItem:
 			if value, ok := values[j].(*sql.NullBool); !ok {
@@ -275,6 +283,9 @@ func (i *Item) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("LicenseGroup=")
 	builder.WriteString(i.LicenseGroup)
+	builder.WriteString(", ")
+	builder.WriteString("Type=")
+	builder.WriteString(i.Type)
 	builder.WriteString(", ")
 	builder.WriteString("IsPDFItem=")
 	builder.WriteString(fmt.Sprintf("%v", i.IsPDFItem))

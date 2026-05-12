@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"strings"
 
 	"github.com/augustin-wien/augustina-backend/config"
 	ent "github.com/augustin-wien/augustina-backend/ent"
@@ -20,33 +21,7 @@ func (db *Database) ListItems(skipHiddenItems bool, skipLicenses bool, skipDisab
 		return out, err
 	}
 	for _, e := range ents {
-		var it Item
-		it.ID = e.ID
-		it.Name = e.Name
-		it.Description = e.Description
-		it.Price = int(math.Round(e.Price))
-		it.Image = e.Image
-		it.Archived = e.Archived
-		it.Disabled = e.Disabled
-		it.IsLicenseItem = e.IsLicenseItem
-		if e.LicenseGroup != "" {
-			it.LicenseGroup = null.NewString(e.LicenseGroup, true)
-		}
-		it.IsPDFItem = e.IsPDFItem
-		if e.Edges.PDF != nil {
-			it.PDF = null.IntFrom(int64(e.Edges.PDF.ID))
-		}
-		it.ItemOrder = e.ItemOrder
-		if e.ItemColor != "" {
-			it.ItemColor = null.NewString(e.ItemColor, true)
-		}
-		if e.ItemTextColor != "" {
-			it.ItemTextColor = null.NewString(e.ItemTextColor, true)
-		}
-		if e.Edges.LicenseItem != nil {
-			it.LicenseItem = null.IntFrom(int64(e.Edges.LicenseItem.ID))
-		}
-
+		it := convertEntItem(e)
 		if skipHiddenItems && (it.Name == config.Config.TransactionCostsName || it.Name == config.Config.DonationName) {
 			continue
 		}
@@ -64,37 +39,11 @@ func (db *Database) ListItemsWithDisabled(skipHiddenItems bool, skipLicenses boo
 	ctx := context.Background()
 	ents, err := db.EntClient.Item.Query().Where(entitem.ArchivedEQ(false)).Order(ent.Desc(entitem.FieldItemOrder)).WithLicenseItem().WithPDF().All(ctx)
 	if err != nil {
-		log.Error("ListItems (ent): ", err)
+		log.Error("ListItemsWithDisabled (ent): ", err)
 		return out, err
 	}
 	for _, e := range ents {
-		var it Item
-		it.ID = e.ID
-		it.Name = e.Name
-		it.Description = e.Description
-		it.Price = int(math.Round(e.Price))
-		it.Image = e.Image
-		it.Archived = e.Archived
-		it.Disabled = e.Disabled
-		it.IsLicenseItem = e.IsLicenseItem
-		if e.LicenseGroup != "" {
-			it.LicenseGroup = null.NewString(e.LicenseGroup, true)
-		}
-		it.IsPDFItem = e.IsPDFItem
-		if e.Edges.PDF != nil {
-			it.PDF = null.IntFrom(int64(e.Edges.PDF.ID))
-		}
-		it.ItemOrder = e.ItemOrder
-		if e.ItemColor != "" {
-			it.ItemColor = null.NewString(e.ItemColor, true)
-		}
-		if e.ItemTextColor != "" {
-			it.ItemTextColor = null.NewString(e.ItemTextColor, true)
-		}
-		if e.Edges.LicenseItem != nil {
-			it.LicenseItem = null.IntFrom(int64(e.Edges.LicenseItem.ID))
-		}
-
+		it := convertEntItem(e)
 		if skipHiddenItems && (it.Name == config.Config.TransactionCostsName || it.Name == config.Config.DonationName) {
 			continue
 		}
@@ -106,48 +55,47 @@ func (db *Database) ListItemsWithDisabled(skipHiddenItems bool, skipLicenses boo
 	return out, nil
 }
 
+// ListLicenseGroups returns the distinct non-empty LicenseGroup values from issue and online_issue items.
+func (db *Database) ListLicenseGroups() ([]string, error) {
+	ctx := context.Background()
+	ents, err := db.EntClient.Item.Query().
+		Where(
+			entitem.ArchivedEQ(false),
+			entitem.TypeIn("issue", "online_issue"),
+		).
+		All(ctx)
+	if err != nil {
+		log.Error("ListLicenseGroups (ent): ", err)
+		return nil, err
+	}
+
+	seen := make(map[string]struct{})
+	var out []string
+	for _, e := range ents {
+		if e.LicenseGroup != "" && e.LicenseGroup != "default" {
+			if _, ok := seen[e.LicenseGroup]; !ok {
+				seen[e.LicenseGroup] = struct{}{}
+				out = append(out, e.LicenseGroup)
+			}
+		}
+	}
+	return out, nil
+}
+
 func (db *Database) ListItemsShop() ([]Item, error) {
 	var out []Item
 	ctx := context.Background()
 	ents, err := db.EntClient.Item.Query().Where(entitem.ArchivedEQ(false), entitem.DisabledEQ(false)).Order(ent.Desc(entitem.FieldItemOrder)).WithLicenseItem().WithPDF().All(ctx)
 	if err != nil {
-		log.Error("ListItems (ent): ", err)
+		log.Error("ListItemsShop (ent): ", err)
 		return out, err
 	}
-	skipHiddenItems := true
-	skipLicenses := true
 	for _, e := range ents {
-		var it Item
-		it.ID = e.ID
-		it.Name = e.Name
-		it.Description = e.Description
-		it.Price = int(math.Round(e.Price))
-		it.Image = e.Image
-		it.Archived = e.Archived
-		it.Disabled = e.Disabled
-		it.IsLicenseItem = e.IsLicenseItem
-		if e.LicenseGroup != "" {
-			it.LicenseGroup = null.NewString(e.LicenseGroup, true)
-		}
-		it.IsPDFItem = e.IsPDFItem
-		if e.Edges.PDF != nil {
-			it.PDF = null.IntFrom(int64(e.Edges.PDF.ID))
-		}
-		it.ItemOrder = e.ItemOrder
-		if e.ItemColor != "" {
-			it.ItemColor = null.NewString(e.ItemColor, true)
-		}
-		if e.ItemTextColor != "" {
-			it.ItemTextColor = null.NewString(e.ItemTextColor, true)
-		}
-		if e.Edges.LicenseItem != nil {
-			it.LicenseItem = null.IntFrom(int64(e.Edges.LicenseItem.ID))
-		}
-
-		if skipHiddenItems && (it.Name == config.Config.TransactionCostsName || it.Name == config.Config.DonationName) {
+		it := convertEntItem(e)
+		if it.Name == config.Config.TransactionCostsName || it.Name == config.Config.DonationName {
 			continue
 		}
-		if skipLicenses && it.IsLicenseItem {
+		if it.IsLicenseItem {
 			continue
 		}
 		out = append(out, it)
@@ -163,33 +111,9 @@ func (db *Database) GetItemByName(name string) (item Item, err error) {
 		log.Error("GetItemByName (ent): ", err)
 		return
 	}
-	if e.Disabled {
+	item = convertEntItem(e)
+	if item.Disabled {
 		return item, errors.New("item is disabled")
-	}
-	item.ID = e.ID
-	item.Name = e.Name
-	item.Description = e.Description
-	item.Price = int(math.Round(e.Price))
-	item.Image = e.Image
-	item.Archived = e.Archived
-	item.Disabled = e.Disabled
-	item.IsLicenseItem = e.IsLicenseItem
-	if e.LicenseGroup != "" {
-		item.LicenseGroup = null.NewString(e.LicenseGroup, true)
-	}
-	item.IsPDFItem = e.IsPDFItem
-	if e.Edges.PDF != nil {
-		item.PDF = null.IntFrom(int64(e.Edges.PDF.ID))
-	}
-	item.ItemOrder = e.ItemOrder
-	if e.ItemColor != "" {
-		item.ItemColor = null.NewString(e.ItemColor, true)
-	}
-	if e.ItemTextColor != "" {
-		item.ItemTextColor = null.NewString(e.ItemTextColor, true)
-	}
-	if e.Edges.LicenseItem != nil {
-		item.LicenseItem = null.IntFrom(int64(e.Edges.LicenseItem.ID))
 	}
 	return
 }
@@ -202,34 +126,26 @@ func (db *Database) GetItem(id int) (item Item, err error) {
 		log.Error("GetItem (ent): ", err)
 		return
 	}
-	if e.Disabled {
+	item = convertEntItem(e)
+	if item.Disabled {
 		return item, errors.New("item is disabled")
 	}
-	item.ID = e.ID
-	item.Name = e.Name
-	item.Description = e.Description
-	item.Price = int(math.Round(e.Price))
-	item.Image = e.Image
-	item.Archived = e.Archived
-	item.Disabled = e.Disabled
-	item.IsLicenseItem = e.IsLicenseItem
-	if e.LicenseGroup != "" {
-		item.LicenseGroup = null.NewString(e.LicenseGroup, true)
+	return
+}
+
+// GetItemIncludingDisabled returns the item with the given ID without
+// enforcing disabled checks.
+func (db *Database) GetItemIncludingDisabled(id int) (item Item, err error) {
+	e, err := db.EntClient.Item.Query().
+		Where(entitem.IDEQ(id), entitem.ArchivedEQ(false)).
+		WithLicenseItem().
+		WithPDF().
+		Only(context.Background())
+	if err != nil {
+		log.Error("GetItemIncludingDisabled (ent): ", err)
+		return
 	}
-	item.IsPDFItem = e.IsPDFItem
-	if e.Edges.PDF != nil {
-		item.PDF = null.IntFrom(int64(e.Edges.PDF.ID))
-	}
-	item.ItemOrder = e.ItemOrder
-	if e.ItemColor != "" {
-		item.ItemColor = null.NewString(e.ItemColor, true)
-	}
-	if e.ItemTextColor != "" {
-		item.ItemTextColor = null.NewString(e.ItemTextColor, true)
-	}
-	if e.Edges.LicenseItem != nil {
-		item.LicenseItem = null.IntFrom(int64(e.Edges.LicenseItem.ID))
-	}
+	item = convertEntItem(e)
 	return
 }
 
@@ -262,6 +178,7 @@ func convertEntItem(e *ent.Item) Item {
 	it.Archived = e.Archived
 	it.Disabled = e.Disabled
 	it.IsLicenseItem = e.IsLicenseItem
+	it.Type = e.Type
 	if e.LicenseGroup != "" {
 		it.LicenseGroup = null.NewString(e.LicenseGroup, true)
 	}
@@ -314,7 +231,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 		return 0, errors.New("Item with the same name already exists. Update it or delete it first")
 	}
 
-	builder := db.EntClient.Item.Create().SetName(item.Name).SetDescription(item.Description).SetPrice(float64(item.Price)).SetImage(item.Image).SetArchived(item.Archived).SetDisabled(item.Disabled).SetIsLicenseItem(item.IsLicenseItem).SetLicenseGroup(item.LicenseGroup.String).SetIsPDFItem(item.IsPDFItem).SetItemOrder(item.ItemOrder).SetItemColor(item.ItemColor.String).SetItemTextColor(item.ItemTextColor.String)
+	builder := db.EntClient.Item.Create().SetName(item.Name).SetDescription(item.Description).SetPrice(float64(item.Price)).SetImage(item.Image).SetArchived(item.Archived).SetDisabled(item.Disabled).SetIsLicenseItem(item.IsLicenseItem).SetLicenseGroup(item.LicenseGroup.String).SetIsPDFItem(item.IsPDFItem).SetItemOrder(item.ItemOrder).SetItemColor(item.ItemColor.String).SetItemTextColor(item.ItemTextColor.String).SetType(item.Type)
 	if item.LicenseItem.Valid {
 		v := int(item.LicenseItem.ValueOrZero())
 		builder = builder.SetNillableLicenseItemID(&v)
@@ -329,6 +246,138 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 		return 0, err
 	}
 	return e.ID, nil
+}
+
+// createItemWithLicense is the shared implementation for creating an item with an
+// auto-generated license_item in a single transaction. itemType must be a valid type
+// such as "online_issue" or "abonement". online_issue items are created disabled=true.
+func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType string) (mainID int, licenseID int, err error) {
+	if licenseCost <= 0 {
+		return 0, 0, errors.New("license_cost must be greater than 0")
+	}
+
+	tx, err := db.EntClient.Tx(context.Background())
+	if err != nil {
+		return 0, 0, err
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	baseName := strings.TrimSpace(item.Name)
+	if baseName == "" {
+		return 0, 0, errors.New("item name is required")
+	}
+
+	licenseName := baseName + " license"
+	licenseDesc := item.Description
+	if strings.TrimSpace(licenseDesc) == "" {
+		licenseDesc = "License for " + baseName
+	}
+
+	licenseItem := Item{
+		Name:          licenseName,
+		Description:   licenseDesc,
+		Price:         licenseCost,
+		Image:         item.Image,
+		Archived:      false,
+		Disabled:      false,
+		IsLicenseItem: true,
+		IsPDFItem:     false,
+		ItemOrder:     item.ItemOrder,
+		LicenseGroup:  item.LicenseGroup,
+		Type:          "license_item",
+	}
+
+	licenseExists, err := tx.Item.Query().Where(entitem.NameEQ(licenseItem.Name)).Exist(context.Background())
+	if err != nil {
+		return 0, 0, err
+	}
+	if licenseExists {
+		return 0, 0, errors.New("Item with the same name already exists. Update it or delete it first")
+	}
+
+	licenseEnt, err := tx.Item.Create().
+		SetName(licenseItem.Name).
+		SetDescription(licenseItem.Description).
+		SetPrice(float64(licenseItem.Price)).
+		SetImage(licenseItem.Image).
+		SetArchived(licenseItem.Archived).
+		SetDisabled(licenseItem.Disabled).
+		SetIsLicenseItem(licenseItem.IsLicenseItem).
+		SetLicenseGroup(licenseItem.LicenseGroup.String).
+		SetIsPDFItem(licenseItem.IsPDFItem).
+		SetItemOrder(licenseItem.ItemOrder).
+		SetItemColor(licenseItem.ItemColor.String).
+		SetItemTextColor(licenseItem.ItemTextColor.String).
+		SetType(licenseItem.Type).
+		Save(context.Background())
+	if err != nil {
+		return 0, 0, err
+	}
+
+	item.Type = itemType
+	// both online_issue and abonement items start disabled and are enabled when ready
+	item.Disabled = true
+	item.IsLicenseItem = false
+	item.LicenseItem = null.IntFrom(int64(licenseEnt.ID))
+
+	mainExists, err := tx.Item.Query().Where(entitem.NameEQ(item.Name)).Exist(context.Background())
+	if err != nil {
+		return 0, 0, err
+	}
+	if mainExists {
+		return 0, 0, errors.New("Item with the same name already exists. Update it or delete it first")
+	}
+
+	mainBuilder := tx.Item.Create().
+		SetName(item.Name).
+		SetDescription(item.Description).
+		SetPrice(float64(item.Price)).
+		SetImage(item.Image).
+		SetArchived(item.Archived).
+		SetDisabled(item.Disabled).
+		SetIsLicenseItem(item.IsLicenseItem).
+		SetLicenseGroup(item.LicenseGroup.String).
+		SetIsPDFItem(item.IsPDFItem).
+		SetItemOrder(item.ItemOrder).
+		SetItemColor(item.ItemColor.String).
+		SetItemTextColor(item.ItemTextColor.String).
+		SetType(item.Type)
+
+	if item.LicenseItem.Valid {
+		v := int(item.LicenseItem.ValueOrZero())
+		mainBuilder = mainBuilder.SetNillableLicenseItemID(&v)
+	}
+	if item.PDF.Valid {
+		v := int(item.PDF.ValueOrZero())
+		mainBuilder = mainBuilder.SetNillablePDFID(&v)
+	}
+
+	mainEnt, err := mainBuilder.Save(context.Background())
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return 0, 0, err
+	}
+
+	return mainEnt.ID, licenseEnt.ID, nil
+}
+
+// CreateOnlineIssueWithLicense creates an online_issue item and its required
+// license_item in one transaction. The returned IDs are (onlineIssueID, licenseID).
+func (db *Database) CreateOnlineIssueWithLicense(item Item, licenseCost int) (onlineIssueID int, licenseID int, err error) {
+	return db.createItemWithLicense(item, licenseCost, "online_issue")
+}
+
+// CreateAbonementItemWithLicense creates an abonement item and its required
+// license_item in one transaction. The returned IDs are (abonementID, licenseID).
+func (db *Database) CreateAbonementItemWithLicense(item Item, licenseCost int) (abonementID int, licenseID int, err error) {
+	return db.createItemWithLicense(item, licenseCost, "abonement")
 }
 
 // UpdateItem updates an item in the database
@@ -347,7 +396,8 @@ func (db *Database) UpdateItem(id int, item Item) (err error) {
 		SetIsPDFItem(item.IsPDFItem).
 		SetItemOrder(item.ItemOrder).
 		SetItemColor(item.ItemColor.String).
-		SetItemTextColor(item.ItemTextColor.String)
+		SetItemTextColor(item.ItemTextColor.String).
+		SetType(item.Type)
 	if item.LicenseItem.Valid {
 		v := int(item.LicenseItem.ValueOrZero())
 		// Avoid redundant license-edge update when the item already has this license assigned.

@@ -81,7 +81,8 @@ type Item struct {
 	LicenseGroup  null.String
 	LicenseItem   null.Int // License has to be bought before item
 	PDF           null.Int
-	Price         int // Price in cents
+	Price         int    // Price in cents
+	Type          string // Type of item: normal_item, license_item, issue, online_issue, donation, transaction_costs, abonement
 }
 
 // Order is a struct that is used for the order table
