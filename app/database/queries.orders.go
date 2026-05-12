@@ -387,7 +387,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", orderID, err)
 			}
 
-			if item.LicenseItem.Valid {
+			if item.LicenseItem.Valid || item.Type == "abonement" {
 
 				if !item.IsPDFItem {
 					// Ensure we only call GetOrCreateUser once per order/customer
