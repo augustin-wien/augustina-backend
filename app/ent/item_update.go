@@ -23,270 +23,270 @@ type ItemUpdate struct {
 }
 
 // Where appends a list predicates to the ItemUpdate builder.
-func (iu *ItemUpdate) Where(ps ...predicate.Item) *ItemUpdate {
-	iu.mutation.Where(ps...)
-	return iu
+func (_u *ItemUpdate) Where(ps ...predicate.Item) *ItemUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetName sets the "Name" field.
-func (iu *ItemUpdate) SetName(s string) *ItemUpdate {
-	iu.mutation.SetName(s)
-	return iu
+func (_u *ItemUpdate) SetName(v string) *ItemUpdate {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "Name" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableName(s *string) *ItemUpdate {
-	if s != nil {
-		iu.SetName(*s)
+func (_u *ItemUpdate) SetNillableName(v *string) *ItemUpdate {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetDescription sets the "Description" field.
-func (iu *ItemUpdate) SetDescription(s string) *ItemUpdate {
-	iu.mutation.SetDescription(s)
-	return iu
+func (_u *ItemUpdate) SetDescription(v string) *ItemUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
 }
 
 // SetNillableDescription sets the "Description" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableDescription(s *string) *ItemUpdate {
-	if s != nil {
-		iu.SetDescription(*s)
+func (_u *ItemUpdate) SetNillableDescription(v *string) *ItemUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetPrice sets the "Price" field.
-func (iu *ItemUpdate) SetPrice(f float64) *ItemUpdate {
-	iu.mutation.ResetPrice()
-	iu.mutation.SetPrice(f)
-	return iu
+func (_u *ItemUpdate) SetPrice(v float64) *ItemUpdate {
+	_u.mutation.ResetPrice()
+	_u.mutation.SetPrice(v)
+	return _u
 }
 
 // SetNillablePrice sets the "Price" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillablePrice(f *float64) *ItemUpdate {
-	if f != nil {
-		iu.SetPrice(*f)
+func (_u *ItemUpdate) SetNillablePrice(v *float64) *ItemUpdate {
+	if v != nil {
+		_u.SetPrice(*v)
 	}
-	return iu
+	return _u
 }
 
-// AddPrice adds f to the "Price" field.
-func (iu *ItemUpdate) AddPrice(f float64) *ItemUpdate {
-	iu.mutation.AddPrice(f)
-	return iu
+// AddPrice adds value to the "Price" field.
+func (_u *ItemUpdate) AddPrice(v float64) *ItemUpdate {
+	_u.mutation.AddPrice(v)
+	return _u
 }
 
 // SetImage sets the "Image" field.
-func (iu *ItemUpdate) SetImage(s string) *ItemUpdate {
-	iu.mutation.SetImage(s)
-	return iu
+func (_u *ItemUpdate) SetImage(v string) *ItemUpdate {
+	_u.mutation.SetImage(v)
+	return _u
 }
 
 // SetNillableImage sets the "Image" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableImage(s *string) *ItemUpdate {
-	if s != nil {
-		iu.SetImage(*s)
+func (_u *ItemUpdate) SetNillableImage(v *string) *ItemUpdate {
+	if v != nil {
+		_u.SetImage(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetArchived sets the "Archived" field.
-func (iu *ItemUpdate) SetArchived(b bool) *ItemUpdate {
-	iu.mutation.SetArchived(b)
-	return iu
+func (_u *ItemUpdate) SetArchived(v bool) *ItemUpdate {
+	_u.mutation.SetArchived(v)
+	return _u
 }
 
 // SetNillableArchived sets the "Archived" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableArchived(b *bool) *ItemUpdate {
-	if b != nil {
-		iu.SetArchived(*b)
+func (_u *ItemUpdate) SetNillableArchived(v *bool) *ItemUpdate {
+	if v != nil {
+		_u.SetArchived(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetDisabled sets the "Disabled" field.
-func (iu *ItemUpdate) SetDisabled(b bool) *ItemUpdate {
-	iu.mutation.SetDisabled(b)
-	return iu
+func (_u *ItemUpdate) SetDisabled(v bool) *ItemUpdate {
+	_u.mutation.SetDisabled(v)
+	return _u
 }
 
 // SetNillableDisabled sets the "Disabled" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableDisabled(b *bool) *ItemUpdate {
-	if b != nil {
-		iu.SetDisabled(*b)
+func (_u *ItemUpdate) SetNillableDisabled(v *bool) *ItemUpdate {
+	if v != nil {
+		_u.SetDisabled(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetIsLicenseItem sets the "IsLicenseItem" field.
-func (iu *ItemUpdate) SetIsLicenseItem(b bool) *ItemUpdate {
-	iu.mutation.SetIsLicenseItem(b)
-	return iu
+func (_u *ItemUpdate) SetIsLicenseItem(v bool) *ItemUpdate {
+	_u.mutation.SetIsLicenseItem(v)
+	return _u
 }
 
 // SetNillableIsLicenseItem sets the "IsLicenseItem" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableIsLicenseItem(b *bool) *ItemUpdate {
-	if b != nil {
-		iu.SetIsLicenseItem(*b)
+func (_u *ItemUpdate) SetNillableIsLicenseItem(v *bool) *ItemUpdate {
+	if v != nil {
+		_u.SetIsLicenseItem(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetLicenseGroup sets the "LicenseGroup" field.
-func (iu *ItemUpdate) SetLicenseGroup(s string) *ItemUpdate {
-	iu.mutation.SetLicenseGroup(s)
-	return iu
+func (_u *ItemUpdate) SetLicenseGroup(v string) *ItemUpdate {
+	_u.mutation.SetLicenseGroup(v)
+	return _u
 }
 
 // SetNillableLicenseGroup sets the "LicenseGroup" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableLicenseGroup(s *string) *ItemUpdate {
-	if s != nil {
-		iu.SetLicenseGroup(*s)
+func (_u *ItemUpdate) SetNillableLicenseGroup(v *string) *ItemUpdate {
+	if v != nil {
+		_u.SetLicenseGroup(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetType sets the "Type" field.
-func (iu *ItemUpdate) SetType(s string) *ItemUpdate {
-	iu.mutation.SetType(s)
-	return iu
+func (_u *ItemUpdate) SetType(v string) *ItemUpdate {
+	_u.mutation.SetType(v)
+	return _u
 }
 
 // SetNillableType sets the "Type" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableType(s *string) *ItemUpdate {
-	if s != nil {
-		iu.SetType(*s)
+func (_u *ItemUpdate) SetNillableType(v *string) *ItemUpdate {
+	if v != nil {
+		_u.SetType(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetIsPDFItem sets the "IsPDFItem" field.
-func (iu *ItemUpdate) SetIsPDFItem(b bool) *ItemUpdate {
-	iu.mutation.SetIsPDFItem(b)
-	return iu
+func (_u *ItemUpdate) SetIsPDFItem(v bool) *ItemUpdate {
+	_u.mutation.SetIsPDFItem(v)
+	return _u
 }
 
 // SetNillableIsPDFItem sets the "IsPDFItem" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableIsPDFItem(b *bool) *ItemUpdate {
-	if b != nil {
-		iu.SetIsPDFItem(*b)
+func (_u *ItemUpdate) SetNillableIsPDFItem(v *bool) *ItemUpdate {
+	if v != nil {
+		_u.SetIsPDFItem(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetItemOrder sets the "ItemOrder" field.
-func (iu *ItemUpdate) SetItemOrder(i int) *ItemUpdate {
-	iu.mutation.ResetItemOrder()
-	iu.mutation.SetItemOrder(i)
-	return iu
+func (_u *ItemUpdate) SetItemOrder(v int) *ItemUpdate {
+	_u.mutation.ResetItemOrder()
+	_u.mutation.SetItemOrder(v)
+	return _u
 }
 
 // SetNillableItemOrder sets the "ItemOrder" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableItemOrder(i *int) *ItemUpdate {
-	if i != nil {
-		iu.SetItemOrder(*i)
+func (_u *ItemUpdate) SetNillableItemOrder(v *int) *ItemUpdate {
+	if v != nil {
+		_u.SetItemOrder(*v)
 	}
-	return iu
+	return _u
 }
 
-// AddItemOrder adds i to the "ItemOrder" field.
-func (iu *ItemUpdate) AddItemOrder(i int) *ItemUpdate {
-	iu.mutation.AddItemOrder(i)
-	return iu
+// AddItemOrder adds value to the "ItemOrder" field.
+func (_u *ItemUpdate) AddItemOrder(v int) *ItemUpdate {
+	_u.mutation.AddItemOrder(v)
+	return _u
 }
 
 // SetItemColor sets the "ItemColor" field.
-func (iu *ItemUpdate) SetItemColor(s string) *ItemUpdate {
-	iu.mutation.SetItemColor(s)
-	return iu
+func (_u *ItemUpdate) SetItemColor(v string) *ItemUpdate {
+	_u.mutation.SetItemColor(v)
+	return _u
 }
 
 // SetNillableItemColor sets the "ItemColor" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableItemColor(s *string) *ItemUpdate {
-	if s != nil {
-		iu.SetItemColor(*s)
+func (_u *ItemUpdate) SetNillableItemColor(v *string) *ItemUpdate {
+	if v != nil {
+		_u.SetItemColor(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetItemTextColor sets the "ItemTextColor" field.
-func (iu *ItemUpdate) SetItemTextColor(s string) *ItemUpdate {
-	iu.mutation.SetItemTextColor(s)
-	return iu
+func (_u *ItemUpdate) SetItemTextColor(v string) *ItemUpdate {
+	_u.mutation.SetItemTextColor(v)
+	return _u
 }
 
 // SetNillableItemTextColor sets the "ItemTextColor" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableItemTextColor(s *string) *ItemUpdate {
-	if s != nil {
-		iu.SetItemTextColor(*s)
+func (_u *ItemUpdate) SetNillableItemTextColor(v *string) *ItemUpdate {
+	if v != nil {
+		_u.SetItemTextColor(*v)
 	}
-	return iu
+	return _u
 }
 
 // SetLicenseItemID sets the "LicenseItem" edge to the Item entity by ID.
-func (iu *ItemUpdate) SetLicenseItemID(id int) *ItemUpdate {
-	iu.mutation.SetLicenseItemID(id)
-	return iu
+func (_u *ItemUpdate) SetLicenseItemID(id int) *ItemUpdate {
+	_u.mutation.SetLicenseItemID(id)
+	return _u
 }
 
 // SetNillableLicenseItemID sets the "LicenseItem" edge to the Item entity by ID if the given value is not nil.
-func (iu *ItemUpdate) SetNillableLicenseItemID(id *int) *ItemUpdate {
+func (_u *ItemUpdate) SetNillableLicenseItemID(id *int) *ItemUpdate {
 	if id != nil {
-		iu = iu.SetLicenseItemID(*id)
+		_u = _u.SetLicenseItemID(*id)
 	}
-	return iu
+	return _u
 }
 
 // SetLicenseItem sets the "LicenseItem" edge to the Item entity.
-func (iu *ItemUpdate) SetLicenseItem(i *Item) *ItemUpdate {
-	return iu.SetLicenseItemID(i.ID)
+func (_u *ItemUpdate) SetLicenseItem(v *Item) *ItemUpdate {
+	return _u.SetLicenseItemID(v.ID)
 }
 
 // SetPDFID sets the "PDF" edge to the PDF entity by ID.
-func (iu *ItemUpdate) SetPDFID(id int) *ItemUpdate {
-	iu.mutation.SetPDFID(id)
-	return iu
+func (_u *ItemUpdate) SetPDFID(id int) *ItemUpdate {
+	_u.mutation.SetPDFID(id)
+	return _u
 }
 
 // SetNillablePDFID sets the "PDF" edge to the PDF entity by ID if the given value is not nil.
-func (iu *ItemUpdate) SetNillablePDFID(id *int) *ItemUpdate {
+func (_u *ItemUpdate) SetNillablePDFID(id *int) *ItemUpdate {
 	if id != nil {
-		iu = iu.SetPDFID(*id)
+		_u = _u.SetPDFID(*id)
 	}
-	return iu
+	return _u
 }
 
 // SetPDF sets the "PDF" edge to the PDF entity.
-func (iu *ItemUpdate) SetPDF(p *PDF) *ItemUpdate {
-	return iu.SetPDFID(p.ID)
+func (_u *ItemUpdate) SetPDF(v *PDF) *ItemUpdate {
+	return _u.SetPDFID(v.ID)
 }
 
 // Mutation returns the ItemMutation object of the builder.
-func (iu *ItemUpdate) Mutation() *ItemMutation {
-	return iu.mutation
+func (_u *ItemUpdate) Mutation() *ItemMutation {
+	return _u.mutation
 }
 
 // ClearLicenseItem clears the "LicenseItem" edge to the Item entity.
-func (iu *ItemUpdate) ClearLicenseItem() *ItemUpdate {
-	iu.mutation.ClearLicenseItem()
-	return iu
+func (_u *ItemUpdate) ClearLicenseItem() *ItemUpdate {
+	_u.mutation.ClearLicenseItem()
+	return _u
 }
 
 // ClearPDF clears the "PDF" edge to the PDF entity.
-func (iu *ItemUpdate) ClearPDF() *ItemUpdate {
-	iu.mutation.ClearPDF()
-	return iu
+func (_u *ItemUpdate) ClearPDF() *ItemUpdate {
+	_u.mutation.ClearPDF()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (iu *ItemUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, iu.sqlSave, iu.mutation, iu.hooks)
+func (_u *ItemUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (iu *ItemUpdate) SaveX(ctx context.Context) int {
-	affected, err := iu.Save(ctx)
+func (_u *ItemUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -294,31 +294,31 @@ func (iu *ItemUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (iu *ItemUpdate) Exec(ctx context.Context) error {
-	_, err := iu.Save(ctx)
+func (_u *ItemUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (iu *ItemUpdate) ExecX(ctx context.Context) {
-	if err := iu.Exec(ctx); err != nil {
+func (_u *ItemUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (iu *ItemUpdate) check() error {
-	if v, ok := iu.mutation.Name(); ok {
+func (_u *ItemUpdate) check() error {
+	if v, ok := _u.mutation.Name(); ok {
 		if err := item.NameValidator(v); err != nil {
 			return &ValidationError{Name: "Name", err: fmt.Errorf(`ent: validator failed for field "Item.Name": %w`, err)}
 		}
 	}
-	if v, ok := iu.mutation.Description(); ok {
+	if v, ok := _u.mutation.Description(); ok {
 		if err := item.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "Description", err: fmt.Errorf(`ent: validator failed for field "Item.Description": %w`, err)}
 		}
 	}
-	if v, ok := iu.mutation.Price(); ok {
+	if v, ok := _u.mutation.Price(); ok {
 		if err := item.PriceValidator(v); err != nil {
 			return &ValidationError{Name: "Price", err: fmt.Errorf(`ent: validator failed for field "Item.Price": %w`, err)}
 		}
@@ -326,64 +326,64 @@ func (iu *ItemUpdate) check() error {
 	return nil
 }
 
-func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := iu.check(); err != nil {
-		return n, err
+func (_u *ItemUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(item.Table, item.Columns, sqlgraph.NewFieldSpec(item.FieldID, field.TypeInt))
-	if ps := iu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := iu.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(item.FieldName, field.TypeString, value)
 	}
-	if value, ok := iu.mutation.Description(); ok {
+	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(item.FieldDescription, field.TypeString, value)
 	}
-	if value, ok := iu.mutation.Price(); ok {
+	if value, ok := _u.mutation.Price(); ok {
 		_spec.SetField(item.FieldPrice, field.TypeFloat64, value)
 	}
-	if value, ok := iu.mutation.AddedPrice(); ok {
+	if value, ok := _u.mutation.AddedPrice(); ok {
 		_spec.AddField(item.FieldPrice, field.TypeFloat64, value)
 	}
-	if value, ok := iu.mutation.Image(); ok {
+	if value, ok := _u.mutation.Image(); ok {
 		_spec.SetField(item.FieldImage, field.TypeString, value)
 	}
-	if value, ok := iu.mutation.Archived(); ok {
+	if value, ok := _u.mutation.Archived(); ok {
 		_spec.SetField(item.FieldArchived, field.TypeBool, value)
 	}
-	if value, ok := iu.mutation.Disabled(); ok {
+	if value, ok := _u.mutation.Disabled(); ok {
 		_spec.SetField(item.FieldDisabled, field.TypeBool, value)
 	}
-	if value, ok := iu.mutation.IsLicenseItem(); ok {
+	if value, ok := _u.mutation.IsLicenseItem(); ok {
 		_spec.SetField(item.FieldIsLicenseItem, field.TypeBool, value)
 	}
-	if value, ok := iu.mutation.LicenseGroup(); ok {
+	if value, ok := _u.mutation.LicenseGroup(); ok {
 		_spec.SetField(item.FieldLicenseGroup, field.TypeString, value)
 	}
-	if value, ok := iu.mutation.GetType(); ok {
+	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(item.FieldType, field.TypeString, value)
 	}
-	if value, ok := iu.mutation.IsPDFItem(); ok {
+	if value, ok := _u.mutation.IsPDFItem(); ok {
 		_spec.SetField(item.FieldIsPDFItem, field.TypeBool, value)
 	}
-	if value, ok := iu.mutation.ItemOrder(); ok {
+	if value, ok := _u.mutation.ItemOrder(); ok {
 		_spec.SetField(item.FieldItemOrder, field.TypeInt, value)
 	}
-	if value, ok := iu.mutation.AddedItemOrder(); ok {
+	if value, ok := _u.mutation.AddedItemOrder(); ok {
 		_spec.AddField(item.FieldItemOrder, field.TypeInt, value)
 	}
-	if value, ok := iu.mutation.ItemColor(); ok {
+	if value, ok := _u.mutation.ItemColor(); ok {
 		_spec.SetField(item.FieldItemColor, field.TypeString, value)
 	}
-	if value, ok := iu.mutation.ItemTextColor(); ok {
+	if value, ok := _u.mutation.ItemTextColor(); ok {
 		_spec.SetField(item.FieldItemTextColor, field.TypeString, value)
 	}
-	if iu.mutation.LicenseItemCleared() {
+	if _u.mutation.LicenseItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -396,7 +396,7 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := iu.mutation.LicenseItemIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.LicenseItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -412,7 +412,7 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if iu.mutation.PDFCleared() {
+	if _u.mutation.PDFCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -425,7 +425,7 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := iu.mutation.PDFIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PDFIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -441,7 +441,7 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, iu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{item.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -449,8 +449,8 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	iu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // ItemUpdateOne is the builder for updating a single Item entity.
@@ -462,277 +462,277 @@ type ItemUpdateOne struct {
 }
 
 // SetName sets the "Name" field.
-func (iuo *ItemUpdateOne) SetName(s string) *ItemUpdateOne {
-	iuo.mutation.SetName(s)
-	return iuo
+func (_u *ItemUpdateOne) SetName(v string) *ItemUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "Name" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableName(s *string) *ItemUpdateOne {
-	if s != nil {
-		iuo.SetName(*s)
+func (_u *ItemUpdateOne) SetNillableName(v *string) *ItemUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetDescription sets the "Description" field.
-func (iuo *ItemUpdateOne) SetDescription(s string) *ItemUpdateOne {
-	iuo.mutation.SetDescription(s)
-	return iuo
+func (_u *ItemUpdateOne) SetDescription(v string) *ItemUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
 }
 
 // SetNillableDescription sets the "Description" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableDescription(s *string) *ItemUpdateOne {
-	if s != nil {
-		iuo.SetDescription(*s)
+func (_u *ItemUpdateOne) SetNillableDescription(v *string) *ItemUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetPrice sets the "Price" field.
-func (iuo *ItemUpdateOne) SetPrice(f float64) *ItemUpdateOne {
-	iuo.mutation.ResetPrice()
-	iuo.mutation.SetPrice(f)
-	return iuo
+func (_u *ItemUpdateOne) SetPrice(v float64) *ItemUpdateOne {
+	_u.mutation.ResetPrice()
+	_u.mutation.SetPrice(v)
+	return _u
 }
 
 // SetNillablePrice sets the "Price" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillablePrice(f *float64) *ItemUpdateOne {
-	if f != nil {
-		iuo.SetPrice(*f)
+func (_u *ItemUpdateOne) SetNillablePrice(v *float64) *ItemUpdateOne {
+	if v != nil {
+		_u.SetPrice(*v)
 	}
-	return iuo
+	return _u
 }
 
-// AddPrice adds f to the "Price" field.
-func (iuo *ItemUpdateOne) AddPrice(f float64) *ItemUpdateOne {
-	iuo.mutation.AddPrice(f)
-	return iuo
+// AddPrice adds value to the "Price" field.
+func (_u *ItemUpdateOne) AddPrice(v float64) *ItemUpdateOne {
+	_u.mutation.AddPrice(v)
+	return _u
 }
 
 // SetImage sets the "Image" field.
-func (iuo *ItemUpdateOne) SetImage(s string) *ItemUpdateOne {
-	iuo.mutation.SetImage(s)
-	return iuo
+func (_u *ItemUpdateOne) SetImage(v string) *ItemUpdateOne {
+	_u.mutation.SetImage(v)
+	return _u
 }
 
 // SetNillableImage sets the "Image" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableImage(s *string) *ItemUpdateOne {
-	if s != nil {
-		iuo.SetImage(*s)
+func (_u *ItemUpdateOne) SetNillableImage(v *string) *ItemUpdateOne {
+	if v != nil {
+		_u.SetImage(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetArchived sets the "Archived" field.
-func (iuo *ItemUpdateOne) SetArchived(b bool) *ItemUpdateOne {
-	iuo.mutation.SetArchived(b)
-	return iuo
+func (_u *ItemUpdateOne) SetArchived(v bool) *ItemUpdateOne {
+	_u.mutation.SetArchived(v)
+	return _u
 }
 
 // SetNillableArchived sets the "Archived" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableArchived(b *bool) *ItemUpdateOne {
-	if b != nil {
-		iuo.SetArchived(*b)
+func (_u *ItemUpdateOne) SetNillableArchived(v *bool) *ItemUpdateOne {
+	if v != nil {
+		_u.SetArchived(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetDisabled sets the "Disabled" field.
-func (iuo *ItemUpdateOne) SetDisabled(b bool) *ItemUpdateOne {
-	iuo.mutation.SetDisabled(b)
-	return iuo
+func (_u *ItemUpdateOne) SetDisabled(v bool) *ItemUpdateOne {
+	_u.mutation.SetDisabled(v)
+	return _u
 }
 
 // SetNillableDisabled sets the "Disabled" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableDisabled(b *bool) *ItemUpdateOne {
-	if b != nil {
-		iuo.SetDisabled(*b)
+func (_u *ItemUpdateOne) SetNillableDisabled(v *bool) *ItemUpdateOne {
+	if v != nil {
+		_u.SetDisabled(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetIsLicenseItem sets the "IsLicenseItem" field.
-func (iuo *ItemUpdateOne) SetIsLicenseItem(b bool) *ItemUpdateOne {
-	iuo.mutation.SetIsLicenseItem(b)
-	return iuo
+func (_u *ItemUpdateOne) SetIsLicenseItem(v bool) *ItemUpdateOne {
+	_u.mutation.SetIsLicenseItem(v)
+	return _u
 }
 
 // SetNillableIsLicenseItem sets the "IsLicenseItem" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableIsLicenseItem(b *bool) *ItemUpdateOne {
-	if b != nil {
-		iuo.SetIsLicenseItem(*b)
+func (_u *ItemUpdateOne) SetNillableIsLicenseItem(v *bool) *ItemUpdateOne {
+	if v != nil {
+		_u.SetIsLicenseItem(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetLicenseGroup sets the "LicenseGroup" field.
-func (iuo *ItemUpdateOne) SetLicenseGroup(s string) *ItemUpdateOne {
-	iuo.mutation.SetLicenseGroup(s)
-	return iuo
+func (_u *ItemUpdateOne) SetLicenseGroup(v string) *ItemUpdateOne {
+	_u.mutation.SetLicenseGroup(v)
+	return _u
 }
 
 // SetNillableLicenseGroup sets the "LicenseGroup" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableLicenseGroup(s *string) *ItemUpdateOne {
-	if s != nil {
-		iuo.SetLicenseGroup(*s)
+func (_u *ItemUpdateOne) SetNillableLicenseGroup(v *string) *ItemUpdateOne {
+	if v != nil {
+		_u.SetLicenseGroup(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetType sets the "Type" field.
-func (iuo *ItemUpdateOne) SetType(s string) *ItemUpdateOne {
-	iuo.mutation.SetType(s)
-	return iuo
+func (_u *ItemUpdateOne) SetType(v string) *ItemUpdateOne {
+	_u.mutation.SetType(v)
+	return _u
 }
 
 // SetNillableType sets the "Type" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableType(s *string) *ItemUpdateOne {
-	if s != nil {
-		iuo.SetType(*s)
+func (_u *ItemUpdateOne) SetNillableType(v *string) *ItemUpdateOne {
+	if v != nil {
+		_u.SetType(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetIsPDFItem sets the "IsPDFItem" field.
-func (iuo *ItemUpdateOne) SetIsPDFItem(b bool) *ItemUpdateOne {
-	iuo.mutation.SetIsPDFItem(b)
-	return iuo
+func (_u *ItemUpdateOne) SetIsPDFItem(v bool) *ItemUpdateOne {
+	_u.mutation.SetIsPDFItem(v)
+	return _u
 }
 
 // SetNillableIsPDFItem sets the "IsPDFItem" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableIsPDFItem(b *bool) *ItemUpdateOne {
-	if b != nil {
-		iuo.SetIsPDFItem(*b)
+func (_u *ItemUpdateOne) SetNillableIsPDFItem(v *bool) *ItemUpdateOne {
+	if v != nil {
+		_u.SetIsPDFItem(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetItemOrder sets the "ItemOrder" field.
-func (iuo *ItemUpdateOne) SetItemOrder(i int) *ItemUpdateOne {
-	iuo.mutation.ResetItemOrder()
-	iuo.mutation.SetItemOrder(i)
-	return iuo
+func (_u *ItemUpdateOne) SetItemOrder(v int) *ItemUpdateOne {
+	_u.mutation.ResetItemOrder()
+	_u.mutation.SetItemOrder(v)
+	return _u
 }
 
 // SetNillableItemOrder sets the "ItemOrder" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableItemOrder(i *int) *ItemUpdateOne {
-	if i != nil {
-		iuo.SetItemOrder(*i)
+func (_u *ItemUpdateOne) SetNillableItemOrder(v *int) *ItemUpdateOne {
+	if v != nil {
+		_u.SetItemOrder(*v)
 	}
-	return iuo
+	return _u
 }
 
-// AddItemOrder adds i to the "ItemOrder" field.
-func (iuo *ItemUpdateOne) AddItemOrder(i int) *ItemUpdateOne {
-	iuo.mutation.AddItemOrder(i)
-	return iuo
+// AddItemOrder adds value to the "ItemOrder" field.
+func (_u *ItemUpdateOne) AddItemOrder(v int) *ItemUpdateOne {
+	_u.mutation.AddItemOrder(v)
+	return _u
 }
 
 // SetItemColor sets the "ItemColor" field.
-func (iuo *ItemUpdateOne) SetItemColor(s string) *ItemUpdateOne {
-	iuo.mutation.SetItemColor(s)
-	return iuo
+func (_u *ItemUpdateOne) SetItemColor(v string) *ItemUpdateOne {
+	_u.mutation.SetItemColor(v)
+	return _u
 }
 
 // SetNillableItemColor sets the "ItemColor" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableItemColor(s *string) *ItemUpdateOne {
-	if s != nil {
-		iuo.SetItemColor(*s)
+func (_u *ItemUpdateOne) SetNillableItemColor(v *string) *ItemUpdateOne {
+	if v != nil {
+		_u.SetItemColor(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetItemTextColor sets the "ItemTextColor" field.
-func (iuo *ItemUpdateOne) SetItemTextColor(s string) *ItemUpdateOne {
-	iuo.mutation.SetItemTextColor(s)
-	return iuo
+func (_u *ItemUpdateOne) SetItemTextColor(v string) *ItemUpdateOne {
+	_u.mutation.SetItemTextColor(v)
+	return _u
 }
 
 // SetNillableItemTextColor sets the "ItemTextColor" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableItemTextColor(s *string) *ItemUpdateOne {
-	if s != nil {
-		iuo.SetItemTextColor(*s)
+func (_u *ItemUpdateOne) SetNillableItemTextColor(v *string) *ItemUpdateOne {
+	if v != nil {
+		_u.SetItemTextColor(*v)
 	}
-	return iuo
+	return _u
 }
 
 // SetLicenseItemID sets the "LicenseItem" edge to the Item entity by ID.
-func (iuo *ItemUpdateOne) SetLicenseItemID(id int) *ItemUpdateOne {
-	iuo.mutation.SetLicenseItemID(id)
-	return iuo
+func (_u *ItemUpdateOne) SetLicenseItemID(id int) *ItemUpdateOne {
+	_u.mutation.SetLicenseItemID(id)
+	return _u
 }
 
 // SetNillableLicenseItemID sets the "LicenseItem" edge to the Item entity by ID if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableLicenseItemID(id *int) *ItemUpdateOne {
+func (_u *ItemUpdateOne) SetNillableLicenseItemID(id *int) *ItemUpdateOne {
 	if id != nil {
-		iuo = iuo.SetLicenseItemID(*id)
+		_u = _u.SetLicenseItemID(*id)
 	}
-	return iuo
+	return _u
 }
 
 // SetLicenseItem sets the "LicenseItem" edge to the Item entity.
-func (iuo *ItemUpdateOne) SetLicenseItem(i *Item) *ItemUpdateOne {
-	return iuo.SetLicenseItemID(i.ID)
+func (_u *ItemUpdateOne) SetLicenseItem(v *Item) *ItemUpdateOne {
+	return _u.SetLicenseItemID(v.ID)
 }
 
 // SetPDFID sets the "PDF" edge to the PDF entity by ID.
-func (iuo *ItemUpdateOne) SetPDFID(id int) *ItemUpdateOne {
-	iuo.mutation.SetPDFID(id)
-	return iuo
+func (_u *ItemUpdateOne) SetPDFID(id int) *ItemUpdateOne {
+	_u.mutation.SetPDFID(id)
+	return _u
 }
 
 // SetNillablePDFID sets the "PDF" edge to the PDF entity by ID if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillablePDFID(id *int) *ItemUpdateOne {
+func (_u *ItemUpdateOne) SetNillablePDFID(id *int) *ItemUpdateOne {
 	if id != nil {
-		iuo = iuo.SetPDFID(*id)
+		_u = _u.SetPDFID(*id)
 	}
-	return iuo
+	return _u
 }
 
 // SetPDF sets the "PDF" edge to the PDF entity.
-func (iuo *ItemUpdateOne) SetPDF(p *PDF) *ItemUpdateOne {
-	return iuo.SetPDFID(p.ID)
+func (_u *ItemUpdateOne) SetPDF(v *PDF) *ItemUpdateOne {
+	return _u.SetPDFID(v.ID)
 }
 
 // Mutation returns the ItemMutation object of the builder.
-func (iuo *ItemUpdateOne) Mutation() *ItemMutation {
-	return iuo.mutation
+func (_u *ItemUpdateOne) Mutation() *ItemMutation {
+	return _u.mutation
 }
 
 // ClearLicenseItem clears the "LicenseItem" edge to the Item entity.
-func (iuo *ItemUpdateOne) ClearLicenseItem() *ItemUpdateOne {
-	iuo.mutation.ClearLicenseItem()
-	return iuo
+func (_u *ItemUpdateOne) ClearLicenseItem() *ItemUpdateOne {
+	_u.mutation.ClearLicenseItem()
+	return _u
 }
 
 // ClearPDF clears the "PDF" edge to the PDF entity.
-func (iuo *ItemUpdateOne) ClearPDF() *ItemUpdateOne {
-	iuo.mutation.ClearPDF()
-	return iuo
+func (_u *ItemUpdateOne) ClearPDF() *ItemUpdateOne {
+	_u.mutation.ClearPDF()
+	return _u
 }
 
 // Where appends a list predicates to the ItemUpdate builder.
-func (iuo *ItemUpdateOne) Where(ps ...predicate.Item) *ItemUpdateOne {
-	iuo.mutation.Where(ps...)
-	return iuo
+func (_u *ItemUpdateOne) Where(ps ...predicate.Item) *ItemUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (iuo *ItemUpdateOne) Select(field string, fields ...string) *ItemUpdateOne {
-	iuo.fields = append([]string{field}, fields...)
-	return iuo
+func (_u *ItemUpdateOne) Select(field string, fields ...string) *ItemUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated Item entity.
-func (iuo *ItemUpdateOne) Save(ctx context.Context) (*Item, error) {
-	return withHooks(ctx, iuo.sqlSave, iuo.mutation, iuo.hooks)
+func (_u *ItemUpdateOne) Save(ctx context.Context) (*Item, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (iuo *ItemUpdateOne) SaveX(ctx context.Context) *Item {
-	node, err := iuo.Save(ctx)
+func (_u *ItemUpdateOne) SaveX(ctx context.Context) *Item {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -740,31 +740,31 @@ func (iuo *ItemUpdateOne) SaveX(ctx context.Context) *Item {
 }
 
 // Exec executes the query on the entity.
-func (iuo *ItemUpdateOne) Exec(ctx context.Context) error {
-	_, err := iuo.Save(ctx)
+func (_u *ItemUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (iuo *ItemUpdateOne) ExecX(ctx context.Context) {
-	if err := iuo.Exec(ctx); err != nil {
+func (_u *ItemUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (iuo *ItemUpdateOne) check() error {
-	if v, ok := iuo.mutation.Name(); ok {
+func (_u *ItemUpdateOne) check() error {
+	if v, ok := _u.mutation.Name(); ok {
 		if err := item.NameValidator(v); err != nil {
 			return &ValidationError{Name: "Name", err: fmt.Errorf(`ent: validator failed for field "Item.Name": %w`, err)}
 		}
 	}
-	if v, ok := iuo.mutation.Description(); ok {
+	if v, ok := _u.mutation.Description(); ok {
 		if err := item.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "Description", err: fmt.Errorf(`ent: validator failed for field "Item.Description": %w`, err)}
 		}
 	}
-	if v, ok := iuo.mutation.Price(); ok {
+	if v, ok := _u.mutation.Price(); ok {
 		if err := item.PriceValidator(v); err != nil {
 			return &ValidationError{Name: "Price", err: fmt.Errorf(`ent: validator failed for field "Item.Price": %w`, err)}
 		}
@@ -772,17 +772,17 @@ func (iuo *ItemUpdateOne) check() error {
 	return nil
 }
 
-func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) {
-	if err := iuo.check(); err != nil {
+func (_u *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(item.Table, item.Columns, sqlgraph.NewFieldSpec(item.FieldID, field.TypeInt))
-	id, ok := iuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Item.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := iuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, item.FieldID)
 		for _, f := range fields {
@@ -794,59 +794,59 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 			}
 		}
 	}
-	if ps := iuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := iuo.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(item.FieldName, field.TypeString, value)
 	}
-	if value, ok := iuo.mutation.Description(); ok {
+	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(item.FieldDescription, field.TypeString, value)
 	}
-	if value, ok := iuo.mutation.Price(); ok {
+	if value, ok := _u.mutation.Price(); ok {
 		_spec.SetField(item.FieldPrice, field.TypeFloat64, value)
 	}
-	if value, ok := iuo.mutation.AddedPrice(); ok {
+	if value, ok := _u.mutation.AddedPrice(); ok {
 		_spec.AddField(item.FieldPrice, field.TypeFloat64, value)
 	}
-	if value, ok := iuo.mutation.Image(); ok {
+	if value, ok := _u.mutation.Image(); ok {
 		_spec.SetField(item.FieldImage, field.TypeString, value)
 	}
-	if value, ok := iuo.mutation.Archived(); ok {
+	if value, ok := _u.mutation.Archived(); ok {
 		_spec.SetField(item.FieldArchived, field.TypeBool, value)
 	}
-	if value, ok := iuo.mutation.Disabled(); ok {
+	if value, ok := _u.mutation.Disabled(); ok {
 		_spec.SetField(item.FieldDisabled, field.TypeBool, value)
 	}
-	if value, ok := iuo.mutation.IsLicenseItem(); ok {
+	if value, ok := _u.mutation.IsLicenseItem(); ok {
 		_spec.SetField(item.FieldIsLicenseItem, field.TypeBool, value)
 	}
-	if value, ok := iuo.mutation.LicenseGroup(); ok {
+	if value, ok := _u.mutation.LicenseGroup(); ok {
 		_spec.SetField(item.FieldLicenseGroup, field.TypeString, value)
 	}
-	if value, ok := iuo.mutation.GetType(); ok {
+	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(item.FieldType, field.TypeString, value)
 	}
-	if value, ok := iuo.mutation.IsPDFItem(); ok {
+	if value, ok := _u.mutation.IsPDFItem(); ok {
 		_spec.SetField(item.FieldIsPDFItem, field.TypeBool, value)
 	}
-	if value, ok := iuo.mutation.ItemOrder(); ok {
+	if value, ok := _u.mutation.ItemOrder(); ok {
 		_spec.SetField(item.FieldItemOrder, field.TypeInt, value)
 	}
-	if value, ok := iuo.mutation.AddedItemOrder(); ok {
+	if value, ok := _u.mutation.AddedItemOrder(); ok {
 		_spec.AddField(item.FieldItemOrder, field.TypeInt, value)
 	}
-	if value, ok := iuo.mutation.ItemColor(); ok {
+	if value, ok := _u.mutation.ItemColor(); ok {
 		_spec.SetField(item.FieldItemColor, field.TypeString, value)
 	}
-	if value, ok := iuo.mutation.ItemTextColor(); ok {
+	if value, ok := _u.mutation.ItemTextColor(); ok {
 		_spec.SetField(item.FieldItemTextColor, field.TypeString, value)
 	}
-	if iuo.mutation.LicenseItemCleared() {
+	if _u.mutation.LicenseItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -859,7 +859,7 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := iuo.mutation.LicenseItemIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.LicenseItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -875,7 +875,7 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if iuo.mutation.PDFCleared() {
+	if _u.mutation.PDFCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -888,7 +888,7 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := iuo.mutation.PDFIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PDFIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -904,10 +904,10 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &Item{config: iuo.config}
+	_node = &Item{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, iuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{item.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -915,6 +915,6 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 		}
 		return nil, err
 	}
-	iuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

@@ -75,7 +75,7 @@ func (*Customer) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Customer fields.
-func (c *Customer) assignValues(columns []string, values []any) error {
+func (_m *Customer) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -86,53 +86,53 @@ func (c *Customer) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			c.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case customer.FieldKeycloakid:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field keycloakid", values[i])
 			} else if value.Valid {
-				c.Keycloakid = value.String
+				_m.Keycloakid = value.String
 			}
 		case customer.FieldEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
 			} else if value.Valid {
-				c.Email = value.String
+				_m.Email = value.String
 			}
 		case customer.FieldFirstname:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field firstname", values[i])
 			} else if value.Valid {
-				c.Firstname = value.String
+				_m.Firstname = value.String
 			}
 		case customer.FieldLastname:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field lastname", values[i])
 			} else if value.Valid {
-				c.Lastname = value.String
+				_m.Lastname = value.String
 			}
 		case customer.FieldLicensegroups:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field licensegroups", values[i])
 			} else if value.Valid {
-				c.Licensegroups = value.String
+				_m.Licensegroups = value.String
 			}
 		case customer.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				c.CreatedAt = new(time.Time)
-				*c.CreatedAt = value.Time
+				_m.CreatedAt = new(time.Time)
+				*_m.CreatedAt = value.Time
 			}
 		case customer.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				c.UpdatedAt = new(time.Time)
-				*c.UpdatedAt = value.Time
+				_m.UpdatedAt = new(time.Time)
+				*_m.UpdatedAt = value.Time
 			}
 		default:
-			c.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -140,59 +140,59 @@ func (c *Customer) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Customer.
 // This includes values selected through modifiers, order, etc.
-func (c *Customer) Value(name string) (ent.Value, error) {
-	return c.selectValues.Get(name)
+func (_m *Customer) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryAbonements queries the "abonements" edge of the Customer entity.
-func (c *Customer) QueryAbonements() *AbonementQuery {
-	return NewCustomerClient(c.config).QueryAbonements(c)
+func (_m *Customer) QueryAbonements() *AbonementQuery {
+	return NewCustomerClient(_m.config).QueryAbonements(_m)
 }
 
 // Update returns a builder for updating this Customer.
 // Note that you need to call Customer.Unwrap() before calling this method if this Customer
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (c *Customer) Update() *CustomerUpdateOne {
-	return NewCustomerClient(c.config).UpdateOne(c)
+func (_m *Customer) Update() *CustomerUpdateOne {
+	return NewCustomerClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Customer entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (c *Customer) Unwrap() *Customer {
-	_tx, ok := c.config.driver.(*txDriver)
+func (_m *Customer) Unwrap() *Customer {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Customer is not a transactional entity")
 	}
-	c.config.driver = _tx.drv
-	return c
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (c *Customer) String() string {
+func (_m *Customer) String() string {
 	var builder strings.Builder
 	builder.WriteString("Customer(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", c.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("keycloakid=")
-	builder.WriteString(c.Keycloakid)
+	builder.WriteString(_m.Keycloakid)
 	builder.WriteString(", ")
 	builder.WriteString("email=")
-	builder.WriteString(c.Email)
+	builder.WriteString(_m.Email)
 	builder.WriteString(", ")
 	builder.WriteString("firstname=")
-	builder.WriteString(c.Firstname)
+	builder.WriteString(_m.Firstname)
 	builder.WriteString(", ")
 	builder.WriteString("lastname=")
-	builder.WriteString(c.Lastname)
+	builder.WriteString(_m.Lastname)
 	builder.WriteString(", ")
 	builder.WriteString("licensegroups=")
-	builder.WriteString(c.Licensegroups)
+	builder.WriteString(_m.Licensegroups)
 	builder.WriteString(", ")
-	if v := c.CreatedAt; v != nil {
+	if v := _m.CreatedAt; v != nil {
 		builder.WriteString("created_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	if v := c.UpdatedAt; v != nil {
+	if v := _m.UpdatedAt; v != nil {
 		builder.WriteString("updated_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}

@@ -41,7 +41,7 @@ func (*PDF) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the PDF fields.
-func (pd *PDF) assignValues(columns []string, values []any) error {
+func (_m *PDF) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -52,21 +52,21 @@ func (pd *PDF) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			pd.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case pdf.FieldPath:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field path", values[i])
 			} else if value.Valid {
-				pd.Path = value.String
+				_m.Path = value.String
 			}
 		case pdf.FieldTimestamp:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field timestamp", values[i])
 			} else if value.Valid {
-				pd.Timestamp = value.String
+				_m.Timestamp = value.String
 			}
 		default:
-			pd.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -74,38 +74,38 @@ func (pd *PDF) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the PDF.
 // This includes values selected through modifiers, order, etc.
-func (pd *PDF) Value(name string) (ent.Value, error) {
-	return pd.selectValues.Get(name)
+func (_m *PDF) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this PDF.
 // Note that you need to call PDF.Unwrap() before calling this method if this PDF
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (pd *PDF) Update() *PDFUpdateOne {
-	return NewPDFClient(pd.config).UpdateOne(pd)
+func (_m *PDF) Update() *PDFUpdateOne {
+	return NewPDFClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the PDF entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (pd *PDF) Unwrap() *PDF {
-	_tx, ok := pd.config.driver.(*txDriver)
+func (_m *PDF) Unwrap() *PDF {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: PDF is not a transactional entity")
 	}
-	pd.config.driver = _tx.drv
-	return pd
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (pd *PDF) String() string {
+func (_m *PDF) String() string {
 	var builder strings.Builder
 	builder.WriteString("PDF(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", pd.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("path=")
-	builder.WriteString(pd.Path)
+	builder.WriteString(_m.Path)
 	builder.WriteString(", ")
 	builder.WriteString("timestamp=")
-	builder.WriteString(pd.Timestamp)
+	builder.WriteString(_m.Timestamp)
 	builder.WriteByte(')')
 	return builder.String()
 }

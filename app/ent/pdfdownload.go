@@ -58,7 +58,7 @@ func (*PDFDownload) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the PDFDownload fields.
-func (pd *PDFDownload) assignValues(columns []string, values []any) error {
+func (_m *PDFDownload) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -69,60 +69,60 @@ func (pd *PDFDownload) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			pd.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case pdfdownload.FieldLinkID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field link_id", values[i])
 			} else if value.Valid {
-				pd.LinkID = value.String
+				_m.LinkID = value.String
 			}
 		case pdfdownload.FieldPdfID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field pdf_id", values[i])
 			} else if value.Valid {
-				pd.PdfID = int(value.Int64)
+				_m.PdfID = int(value.Int64)
 			}
 		case pdfdownload.FieldTimestamp:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field timestamp", values[i])
 			} else if value.Valid {
-				pd.Timestamp = value.Time
+				_m.Timestamp = value.Time
 			}
 		case pdfdownload.FieldEmailSent:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field email_sent", values[i])
 			} else if value.Valid {
-				pd.EmailSent = value.Bool
+				_m.EmailSent = value.Bool
 			}
 		case pdfdownload.FieldLastDownload:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field last_download", values[i])
 			} else if value.Valid {
-				pd.LastDownload = new(time.Time)
-				*pd.LastDownload = value.Time
+				_m.LastDownload = new(time.Time)
+				*_m.LastDownload = value.Time
 			}
 		case pdfdownload.FieldDownloadCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field download_count", values[i])
 			} else if value.Valid {
-				pd.DownloadCount = int(value.Int64)
+				_m.DownloadCount = int(value.Int64)
 			}
 		case pdfdownload.FieldOrderID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field order_id", values[i])
 			} else if value.Valid {
-				pd.OrderID = new(int)
-				*pd.OrderID = int(value.Int64)
+				_m.OrderID = new(int)
+				*_m.OrderID = int(value.Int64)
 			}
 		case pdfdownload.FieldItemID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field item_id", values[i])
 			} else if value.Valid {
-				pd.ItemID = new(int)
-				*pd.ItemID = int(value.Int64)
+				_m.ItemID = new(int)
+				*_m.ItemID = int(value.Int64)
 			}
 		default:
-			pd.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -130,59 +130,59 @@ func (pd *PDFDownload) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the PDFDownload.
 // This includes values selected through modifiers, order, etc.
-func (pd *PDFDownload) Value(name string) (ent.Value, error) {
-	return pd.selectValues.Get(name)
+func (_m *PDFDownload) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this PDFDownload.
 // Note that you need to call PDFDownload.Unwrap() before calling this method if this PDFDownload
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (pd *PDFDownload) Update() *PDFDownloadUpdateOne {
-	return NewPDFDownloadClient(pd.config).UpdateOne(pd)
+func (_m *PDFDownload) Update() *PDFDownloadUpdateOne {
+	return NewPDFDownloadClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the PDFDownload entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (pd *PDFDownload) Unwrap() *PDFDownload {
-	_tx, ok := pd.config.driver.(*txDriver)
+func (_m *PDFDownload) Unwrap() *PDFDownload {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: PDFDownload is not a transactional entity")
 	}
-	pd.config.driver = _tx.drv
-	return pd
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (pd *PDFDownload) String() string {
+func (_m *PDFDownload) String() string {
 	var builder strings.Builder
 	builder.WriteString("PDFDownload(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", pd.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("link_id=")
-	builder.WriteString(pd.LinkID)
+	builder.WriteString(_m.LinkID)
 	builder.WriteString(", ")
 	builder.WriteString("pdf_id=")
-	builder.WriteString(fmt.Sprintf("%v", pd.PdfID))
+	builder.WriteString(fmt.Sprintf("%v", _m.PdfID))
 	builder.WriteString(", ")
 	builder.WriteString("timestamp=")
-	builder.WriteString(pd.Timestamp.Format(time.ANSIC))
+	builder.WriteString(_m.Timestamp.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("email_sent=")
-	builder.WriteString(fmt.Sprintf("%v", pd.EmailSent))
+	builder.WriteString(fmt.Sprintf("%v", _m.EmailSent))
 	builder.WriteString(", ")
-	if v := pd.LastDownload; v != nil {
+	if v := _m.LastDownload; v != nil {
 		builder.WriteString("last_download=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("download_count=")
-	builder.WriteString(fmt.Sprintf("%v", pd.DownloadCount))
+	builder.WriteString(fmt.Sprintf("%v", _m.DownloadCount))
 	builder.WriteString(", ")
-	if v := pd.OrderID; v != nil {
+	if v := _m.OrderID; v != nil {
 		builder.WriteString("order_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
-	if v := pd.ItemID; v != nil {
+	if v := _m.ItemID; v != nil {
 		builder.WriteString("item_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}

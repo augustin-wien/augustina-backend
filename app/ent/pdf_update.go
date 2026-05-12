@@ -22,52 +22,52 @@ type PDFUpdate struct {
 }
 
 // Where appends a list predicates to the PDFUpdate builder.
-func (pu *PDFUpdate) Where(ps ...predicate.PDF) *PDFUpdate {
-	pu.mutation.Where(ps...)
-	return pu
+func (_u *PDFUpdate) Where(ps ...predicate.PDF) *PDFUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetPath sets the "path" field.
-func (pu *PDFUpdate) SetPath(s string) *PDFUpdate {
-	pu.mutation.SetPath(s)
-	return pu
+func (_u *PDFUpdate) SetPath(v string) *PDFUpdate {
+	_u.mutation.SetPath(v)
+	return _u
 }
 
 // SetNillablePath sets the "path" field if the given value is not nil.
-func (pu *PDFUpdate) SetNillablePath(s *string) *PDFUpdate {
-	if s != nil {
-		pu.SetPath(*s)
+func (_u *PDFUpdate) SetNillablePath(v *string) *PDFUpdate {
+	if v != nil {
+		_u.SetPath(*v)
 	}
-	return pu
+	return _u
 }
 
 // SetTimestamp sets the "timestamp" field.
-func (pu *PDFUpdate) SetTimestamp(s string) *PDFUpdate {
-	pu.mutation.SetTimestamp(s)
-	return pu
+func (_u *PDFUpdate) SetTimestamp(v string) *PDFUpdate {
+	_u.mutation.SetTimestamp(v)
+	return _u
 }
 
 // SetNillableTimestamp sets the "timestamp" field if the given value is not nil.
-func (pu *PDFUpdate) SetNillableTimestamp(s *string) *PDFUpdate {
-	if s != nil {
-		pu.SetTimestamp(*s)
+func (_u *PDFUpdate) SetNillableTimestamp(v *string) *PDFUpdate {
+	if v != nil {
+		_u.SetTimestamp(*v)
 	}
-	return pu
+	return _u
 }
 
 // Mutation returns the PDFMutation object of the builder.
-func (pu *PDFUpdate) Mutation() *PDFMutation {
-	return pu.mutation
+func (_u *PDFUpdate) Mutation() *PDFMutation {
+	return _u.mutation
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (pu *PDFUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, pu.sqlSave, pu.mutation, pu.hooks)
+func (_u *PDFUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (pu *PDFUpdate) SaveX(ctx context.Context) int {
-	affected, err := pu.Save(ctx)
+func (_u *PDFUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -75,34 +75,34 @@ func (pu *PDFUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (pu *PDFUpdate) Exec(ctx context.Context) error {
-	_, err := pu.Save(ctx)
+func (_u *PDFUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (pu *PDFUpdate) ExecX(ctx context.Context) {
-	if err := pu.Exec(ctx); err != nil {
+func (_u *PDFUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (pu *PDFUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *PDFUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(pdf.Table, pdf.Columns, sqlgraph.NewFieldSpec(pdf.FieldID, field.TypeInt))
-	if ps := pu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := pu.mutation.Path(); ok {
+	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(pdf.FieldPath, field.TypeString, value)
 	}
-	if value, ok := pu.mutation.Timestamp(); ok {
+	if value, ok := _u.mutation.Timestamp(); ok {
 		_spec.SetField(pdf.FieldTimestamp, field.TypeString, value)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{pdf.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -110,8 +110,8 @@ func (pu *PDFUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	pu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // PDFUpdateOne is the builder for updating a single PDF entity.
@@ -123,59 +123,59 @@ type PDFUpdateOne struct {
 }
 
 // SetPath sets the "path" field.
-func (puo *PDFUpdateOne) SetPath(s string) *PDFUpdateOne {
-	puo.mutation.SetPath(s)
-	return puo
+func (_u *PDFUpdateOne) SetPath(v string) *PDFUpdateOne {
+	_u.mutation.SetPath(v)
+	return _u
 }
 
 // SetNillablePath sets the "path" field if the given value is not nil.
-func (puo *PDFUpdateOne) SetNillablePath(s *string) *PDFUpdateOne {
-	if s != nil {
-		puo.SetPath(*s)
+func (_u *PDFUpdateOne) SetNillablePath(v *string) *PDFUpdateOne {
+	if v != nil {
+		_u.SetPath(*v)
 	}
-	return puo
+	return _u
 }
 
 // SetTimestamp sets the "timestamp" field.
-func (puo *PDFUpdateOne) SetTimestamp(s string) *PDFUpdateOne {
-	puo.mutation.SetTimestamp(s)
-	return puo
+func (_u *PDFUpdateOne) SetTimestamp(v string) *PDFUpdateOne {
+	_u.mutation.SetTimestamp(v)
+	return _u
 }
 
 // SetNillableTimestamp sets the "timestamp" field if the given value is not nil.
-func (puo *PDFUpdateOne) SetNillableTimestamp(s *string) *PDFUpdateOne {
-	if s != nil {
-		puo.SetTimestamp(*s)
+func (_u *PDFUpdateOne) SetNillableTimestamp(v *string) *PDFUpdateOne {
+	if v != nil {
+		_u.SetTimestamp(*v)
 	}
-	return puo
+	return _u
 }
 
 // Mutation returns the PDFMutation object of the builder.
-func (puo *PDFUpdateOne) Mutation() *PDFMutation {
-	return puo.mutation
+func (_u *PDFUpdateOne) Mutation() *PDFMutation {
+	return _u.mutation
 }
 
 // Where appends a list predicates to the PDFUpdate builder.
-func (puo *PDFUpdateOne) Where(ps ...predicate.PDF) *PDFUpdateOne {
-	puo.mutation.Where(ps...)
-	return puo
+func (_u *PDFUpdateOne) Where(ps ...predicate.PDF) *PDFUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (puo *PDFUpdateOne) Select(field string, fields ...string) *PDFUpdateOne {
-	puo.fields = append([]string{field}, fields...)
-	return puo
+func (_u *PDFUpdateOne) Select(field string, fields ...string) *PDFUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated PDF entity.
-func (puo *PDFUpdateOne) Save(ctx context.Context) (*PDF, error) {
-	return withHooks(ctx, puo.sqlSave, puo.mutation, puo.hooks)
+func (_u *PDFUpdateOne) Save(ctx context.Context) (*PDF, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (puo *PDFUpdateOne) SaveX(ctx context.Context) *PDF {
-	node, err := puo.Save(ctx)
+func (_u *PDFUpdateOne) SaveX(ctx context.Context) *PDF {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -183,26 +183,26 @@ func (puo *PDFUpdateOne) SaveX(ctx context.Context) *PDF {
 }
 
 // Exec executes the query on the entity.
-func (puo *PDFUpdateOne) Exec(ctx context.Context) error {
-	_, err := puo.Save(ctx)
+func (_u *PDFUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (puo *PDFUpdateOne) ExecX(ctx context.Context) {
-	if err := puo.Exec(ctx); err != nil {
+func (_u *PDFUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (puo *PDFUpdateOne) sqlSave(ctx context.Context) (_node *PDF, err error) {
+func (_u *PDFUpdateOne) sqlSave(ctx context.Context) (_node *PDF, err error) {
 	_spec := sqlgraph.NewUpdateSpec(pdf.Table, pdf.Columns, sqlgraph.NewFieldSpec(pdf.FieldID, field.TypeInt))
-	id, ok := puo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "PDF.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := puo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, pdf.FieldID)
 		for _, f := range fields {
@@ -214,23 +214,23 @@ func (puo *PDFUpdateOne) sqlSave(ctx context.Context) (_node *PDF, err error) {
 			}
 		}
 	}
-	if ps := puo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := puo.mutation.Path(); ok {
+	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(pdf.FieldPath, field.TypeString, value)
 	}
-	if value, ok := puo.mutation.Timestamp(); ok {
+	if value, ok := _u.mutation.Timestamp(); ok {
 		_spec.SetField(pdf.FieldTimestamp, field.TypeString, value)
 	}
-	_node = &PDF{config: puo.config}
+	_node = &PDF{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, puo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{pdf.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -238,6 +238,6 @@ func (puo *PDFUpdateOne) sqlSave(ctx context.Context) (_node *PDF, err error) {
 		}
 		return nil, err
 	}
-	puo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

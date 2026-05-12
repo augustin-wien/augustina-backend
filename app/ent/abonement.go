@@ -92,7 +92,7 @@ func (*Abonement) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Abonement fields.
-func (a *Abonement) assignValues(columns []string, values []any) error {
+func (_m *Abonement) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -103,54 +103,54 @@ func (a *Abonement) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			a.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case abonement.FieldCustomerID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field customer_id", values[i])
 			} else if value.Valid {
-				a.CustomerID = int(value.Int64)
+				_m.CustomerID = int(value.Int64)
 			}
 		case abonement.FieldItemID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field item_id", values[i])
 			} else if value.Valid {
-				a.ItemID = new(int)
-				*a.ItemID = int(value.Int64)
+				_m.ItemID = new(int)
+				*_m.ItemID = int(value.Int64)
 			}
 		case abonement.FieldFromDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field from_date", values[i])
 			} else if value.Valid {
-				a.FromDate = value.Time
+				_m.FromDate = value.Time
 			}
 		case abonement.FieldToDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field to_date", values[i])
 			} else if value.Valid {
-				a.ToDate = value.Time
+				_m.ToDate = value.Time
 			}
 		case abonement.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				a.Status = value.String
+				_m.Status = value.String
 			}
 		case abonement.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				a.CreatedAt = new(time.Time)
-				*a.CreatedAt = value.Time
+				_m.CreatedAt = new(time.Time)
+				*_m.CreatedAt = value.Time
 			}
 		case abonement.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				a.UpdatedAt = new(time.Time)
-				*a.UpdatedAt = value.Time
+				_m.UpdatedAt = new(time.Time)
+				*_m.UpdatedAt = value.Time
 			}
 		default:
-			a.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -158,66 +158,66 @@ func (a *Abonement) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Abonement.
 // This includes values selected through modifiers, order, etc.
-func (a *Abonement) Value(name string) (ent.Value, error) {
-	return a.selectValues.Get(name)
+func (_m *Abonement) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryCustomer queries the "customer" edge of the Abonement entity.
-func (a *Abonement) QueryCustomer() *CustomerQuery {
-	return NewAbonementClient(a.config).QueryCustomer(a)
+func (_m *Abonement) QueryCustomer() *CustomerQuery {
+	return NewAbonementClient(_m.config).QueryCustomer(_m)
 }
 
 // QueryItem queries the "item" edge of the Abonement entity.
-func (a *Abonement) QueryItem() *ItemQuery {
-	return NewAbonementClient(a.config).QueryItem(a)
+func (_m *Abonement) QueryItem() *ItemQuery {
+	return NewAbonementClient(_m.config).QueryItem(_m)
 }
 
 // Update returns a builder for updating this Abonement.
 // Note that you need to call Abonement.Unwrap() before calling this method if this Abonement
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (a *Abonement) Update() *AbonementUpdateOne {
-	return NewAbonementClient(a.config).UpdateOne(a)
+func (_m *Abonement) Update() *AbonementUpdateOne {
+	return NewAbonementClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Abonement entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (a *Abonement) Unwrap() *Abonement {
-	_tx, ok := a.config.driver.(*txDriver)
+func (_m *Abonement) Unwrap() *Abonement {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Abonement is not a transactional entity")
 	}
-	a.config.driver = _tx.drv
-	return a
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (a *Abonement) String() string {
+func (_m *Abonement) String() string {
 	var builder strings.Builder
 	builder.WriteString("Abonement(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", a.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("customer_id=")
-	builder.WriteString(fmt.Sprintf("%v", a.CustomerID))
+	builder.WriteString(fmt.Sprintf("%v", _m.CustomerID))
 	builder.WriteString(", ")
-	if v := a.ItemID; v != nil {
+	if v := _m.ItemID; v != nil {
 		builder.WriteString("item_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("from_date=")
-	builder.WriteString(a.FromDate.Format(time.ANSIC))
+	builder.WriteString(_m.FromDate.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("to_date=")
-	builder.WriteString(a.ToDate.Format(time.ANSIC))
+	builder.WriteString(_m.ToDate.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
-	builder.WriteString(a.Status)
+	builder.WriteString(_m.Status)
 	builder.WriteString(", ")
-	if v := a.CreatedAt; v != nil {
+	if v := _m.CreatedAt; v != nil {
 		builder.WriteString("created_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
-	if v := a.UpdatedAt; v != nil {
+	if v := _m.UpdatedAt; v != nil {
 		builder.WriteString("updated_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}

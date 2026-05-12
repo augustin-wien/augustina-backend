@@ -25,162 +25,162 @@ type AbonementUpdate struct {
 }
 
 // Where appends a list predicates to the AbonementUpdate builder.
-func (au *AbonementUpdate) Where(ps ...predicate.Abonement) *AbonementUpdate {
-	au.mutation.Where(ps...)
-	return au
+func (_u *AbonementUpdate) Where(ps ...predicate.Abonement) *AbonementUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetCustomerID sets the "customer_id" field.
-func (au *AbonementUpdate) SetCustomerID(i int) *AbonementUpdate {
-	au.mutation.SetCustomerID(i)
-	return au
+func (_u *AbonementUpdate) SetCustomerID(v int) *AbonementUpdate {
+	_u.mutation.SetCustomerID(v)
+	return _u
 }
 
 // SetNillableCustomerID sets the "customer_id" field if the given value is not nil.
-func (au *AbonementUpdate) SetNillableCustomerID(i *int) *AbonementUpdate {
-	if i != nil {
-		au.SetCustomerID(*i)
+func (_u *AbonementUpdate) SetNillableCustomerID(v *int) *AbonementUpdate {
+	if v != nil {
+		_u.SetCustomerID(*v)
 	}
-	return au
+	return _u
 }
 
 // SetItemID sets the "item_id" field.
-func (au *AbonementUpdate) SetItemID(i int) *AbonementUpdate {
-	au.mutation.SetItemID(i)
-	return au
+func (_u *AbonementUpdate) SetItemID(v int) *AbonementUpdate {
+	_u.mutation.SetItemID(v)
+	return _u
 }
 
 // SetNillableItemID sets the "item_id" field if the given value is not nil.
-func (au *AbonementUpdate) SetNillableItemID(i *int) *AbonementUpdate {
-	if i != nil {
-		au.SetItemID(*i)
+func (_u *AbonementUpdate) SetNillableItemID(v *int) *AbonementUpdate {
+	if v != nil {
+		_u.SetItemID(*v)
 	}
-	return au
+	return _u
 }
 
 // ClearItemID clears the value of the "item_id" field.
-func (au *AbonementUpdate) ClearItemID() *AbonementUpdate {
-	au.mutation.ClearItemID()
-	return au
+func (_u *AbonementUpdate) ClearItemID() *AbonementUpdate {
+	_u.mutation.ClearItemID()
+	return _u
 }
 
 // SetFromDate sets the "from_date" field.
-func (au *AbonementUpdate) SetFromDate(t time.Time) *AbonementUpdate {
-	au.mutation.SetFromDate(t)
-	return au
+func (_u *AbonementUpdate) SetFromDate(v time.Time) *AbonementUpdate {
+	_u.mutation.SetFromDate(v)
+	return _u
 }
 
 // SetNillableFromDate sets the "from_date" field if the given value is not nil.
-func (au *AbonementUpdate) SetNillableFromDate(t *time.Time) *AbonementUpdate {
-	if t != nil {
-		au.SetFromDate(*t)
+func (_u *AbonementUpdate) SetNillableFromDate(v *time.Time) *AbonementUpdate {
+	if v != nil {
+		_u.SetFromDate(*v)
 	}
-	return au
+	return _u
 }
 
 // SetToDate sets the "to_date" field.
-func (au *AbonementUpdate) SetToDate(t time.Time) *AbonementUpdate {
-	au.mutation.SetToDate(t)
-	return au
+func (_u *AbonementUpdate) SetToDate(v time.Time) *AbonementUpdate {
+	_u.mutation.SetToDate(v)
+	return _u
 }
 
 // SetNillableToDate sets the "to_date" field if the given value is not nil.
-func (au *AbonementUpdate) SetNillableToDate(t *time.Time) *AbonementUpdate {
-	if t != nil {
-		au.SetToDate(*t)
+func (_u *AbonementUpdate) SetNillableToDate(v *time.Time) *AbonementUpdate {
+	if v != nil {
+		_u.SetToDate(*v)
 	}
-	return au
+	return _u
 }
 
 // SetStatus sets the "status" field.
-func (au *AbonementUpdate) SetStatus(s string) *AbonementUpdate {
-	au.mutation.SetStatus(s)
-	return au
+func (_u *AbonementUpdate) SetStatus(v string) *AbonementUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (au *AbonementUpdate) SetNillableStatus(s *string) *AbonementUpdate {
-	if s != nil {
-		au.SetStatus(*s)
+func (_u *AbonementUpdate) SetNillableStatus(v *string) *AbonementUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
 	}
-	return au
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (au *AbonementUpdate) SetCreatedAt(t time.Time) *AbonementUpdate {
-	au.mutation.SetCreatedAt(t)
-	return au
+func (_u *AbonementUpdate) SetCreatedAt(v time.Time) *AbonementUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (au *AbonementUpdate) SetNillableCreatedAt(t *time.Time) *AbonementUpdate {
-	if t != nil {
-		au.SetCreatedAt(*t)
+func (_u *AbonementUpdate) SetNillableCreatedAt(v *time.Time) *AbonementUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return au
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (au *AbonementUpdate) ClearCreatedAt() *AbonementUpdate {
-	au.mutation.ClearCreatedAt()
-	return au
+func (_u *AbonementUpdate) ClearCreatedAt() *AbonementUpdate {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (au *AbonementUpdate) SetUpdatedAt(t time.Time) *AbonementUpdate {
-	au.mutation.SetUpdatedAt(t)
-	return au
+func (_u *AbonementUpdate) SetUpdatedAt(v time.Time) *AbonementUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (au *AbonementUpdate) SetNillableUpdatedAt(t *time.Time) *AbonementUpdate {
-	if t != nil {
-		au.SetUpdatedAt(*t)
+func (_u *AbonementUpdate) SetNillableUpdatedAt(v *time.Time) *AbonementUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return au
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (au *AbonementUpdate) ClearUpdatedAt() *AbonementUpdate {
-	au.mutation.ClearUpdatedAt()
-	return au
+func (_u *AbonementUpdate) ClearUpdatedAt() *AbonementUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetCustomer sets the "customer" edge to the Customer entity.
-func (au *AbonementUpdate) SetCustomer(c *Customer) *AbonementUpdate {
-	return au.SetCustomerID(c.ID)
+func (_u *AbonementUpdate) SetCustomer(v *Customer) *AbonementUpdate {
+	return _u.SetCustomerID(v.ID)
 }
 
 // SetItem sets the "item" edge to the Item entity.
-func (au *AbonementUpdate) SetItem(i *Item) *AbonementUpdate {
-	return au.SetItemID(i.ID)
+func (_u *AbonementUpdate) SetItem(v *Item) *AbonementUpdate {
+	return _u.SetItemID(v.ID)
 }
 
 // Mutation returns the AbonementMutation object of the builder.
-func (au *AbonementUpdate) Mutation() *AbonementMutation {
-	return au.mutation
+func (_u *AbonementUpdate) Mutation() *AbonementMutation {
+	return _u.mutation
 }
 
 // ClearCustomer clears the "customer" edge to the Customer entity.
-func (au *AbonementUpdate) ClearCustomer() *AbonementUpdate {
-	au.mutation.ClearCustomer()
-	return au
+func (_u *AbonementUpdate) ClearCustomer() *AbonementUpdate {
+	_u.mutation.ClearCustomer()
+	return _u
 }
 
 // ClearItem clears the "item" edge to the Item entity.
-func (au *AbonementUpdate) ClearItem() *AbonementUpdate {
-	au.mutation.ClearItem()
-	return au
+func (_u *AbonementUpdate) ClearItem() *AbonementUpdate {
+	_u.mutation.ClearItem()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (au *AbonementUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, au.sqlSave, au.mutation, au.hooks)
+func (_u *AbonementUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (au *AbonementUpdate) SaveX(ctx context.Context) int {
-	affected, err := au.Save(ctx)
+func (_u *AbonementUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -188,60 +188,60 @@ func (au *AbonementUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (au *AbonementUpdate) Exec(ctx context.Context) error {
-	_, err := au.Save(ctx)
+func (_u *AbonementUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (au *AbonementUpdate) ExecX(ctx context.Context) {
-	if err := au.Exec(ctx); err != nil {
+func (_u *AbonementUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (au *AbonementUpdate) check() error {
-	if au.mutation.CustomerCleared() && len(au.mutation.CustomerIDs()) > 0 {
+func (_u *AbonementUpdate) check() error {
+	if _u.mutation.CustomerCleared() && len(_u.mutation.CustomerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Abonement.customer"`)
 	}
 	return nil
 }
 
-func (au *AbonementUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := au.check(); err != nil {
-		return n, err
+func (_u *AbonementUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(abonement.Table, abonement.Columns, sqlgraph.NewFieldSpec(abonement.FieldID, field.TypeInt))
-	if ps := au.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := au.mutation.FromDate(); ok {
+	if value, ok := _u.mutation.FromDate(); ok {
 		_spec.SetField(abonement.FieldFromDate, field.TypeTime, value)
 	}
-	if value, ok := au.mutation.ToDate(); ok {
+	if value, ok := _u.mutation.ToDate(); ok {
 		_spec.SetField(abonement.FieldToDate, field.TypeTime, value)
 	}
-	if value, ok := au.mutation.Status(); ok {
+	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(abonement.FieldStatus, field.TypeString, value)
 	}
-	if value, ok := au.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(abonement.FieldCreatedAt, field.TypeTime, value)
 	}
-	if au.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(abonement.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := au.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(abonement.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if au.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(abonement.FieldUpdatedAt, field.TypeTime)
 	}
-	if au.mutation.CustomerCleared() {
+	if _u.mutation.CustomerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -254,7 +254,7 @@ func (au *AbonementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.CustomerIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.CustomerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -270,7 +270,7 @@ func (au *AbonementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if au.mutation.ItemCleared() {
+	if _u.mutation.ItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -283,7 +283,7 @@ func (au *AbonementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.mutation.ItemIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -299,7 +299,7 @@ func (au *AbonementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{abonement.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -307,8 +307,8 @@ func (au *AbonementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	au.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // AbonementUpdateOne is the builder for updating a single Abonement entity.
@@ -320,169 +320,169 @@ type AbonementUpdateOne struct {
 }
 
 // SetCustomerID sets the "customer_id" field.
-func (auo *AbonementUpdateOne) SetCustomerID(i int) *AbonementUpdateOne {
-	auo.mutation.SetCustomerID(i)
-	return auo
+func (_u *AbonementUpdateOne) SetCustomerID(v int) *AbonementUpdateOne {
+	_u.mutation.SetCustomerID(v)
+	return _u
 }
 
 // SetNillableCustomerID sets the "customer_id" field if the given value is not nil.
-func (auo *AbonementUpdateOne) SetNillableCustomerID(i *int) *AbonementUpdateOne {
-	if i != nil {
-		auo.SetCustomerID(*i)
+func (_u *AbonementUpdateOne) SetNillableCustomerID(v *int) *AbonementUpdateOne {
+	if v != nil {
+		_u.SetCustomerID(*v)
 	}
-	return auo
+	return _u
 }
 
 // SetItemID sets the "item_id" field.
-func (auo *AbonementUpdateOne) SetItemID(i int) *AbonementUpdateOne {
-	auo.mutation.SetItemID(i)
-	return auo
+func (_u *AbonementUpdateOne) SetItemID(v int) *AbonementUpdateOne {
+	_u.mutation.SetItemID(v)
+	return _u
 }
 
 // SetNillableItemID sets the "item_id" field if the given value is not nil.
-func (auo *AbonementUpdateOne) SetNillableItemID(i *int) *AbonementUpdateOne {
-	if i != nil {
-		auo.SetItemID(*i)
+func (_u *AbonementUpdateOne) SetNillableItemID(v *int) *AbonementUpdateOne {
+	if v != nil {
+		_u.SetItemID(*v)
 	}
-	return auo
+	return _u
 }
 
 // ClearItemID clears the value of the "item_id" field.
-func (auo *AbonementUpdateOne) ClearItemID() *AbonementUpdateOne {
-	auo.mutation.ClearItemID()
-	return auo
+func (_u *AbonementUpdateOne) ClearItemID() *AbonementUpdateOne {
+	_u.mutation.ClearItemID()
+	return _u
 }
 
 // SetFromDate sets the "from_date" field.
-func (auo *AbonementUpdateOne) SetFromDate(t time.Time) *AbonementUpdateOne {
-	auo.mutation.SetFromDate(t)
-	return auo
+func (_u *AbonementUpdateOne) SetFromDate(v time.Time) *AbonementUpdateOne {
+	_u.mutation.SetFromDate(v)
+	return _u
 }
 
 // SetNillableFromDate sets the "from_date" field if the given value is not nil.
-func (auo *AbonementUpdateOne) SetNillableFromDate(t *time.Time) *AbonementUpdateOne {
-	if t != nil {
-		auo.SetFromDate(*t)
+func (_u *AbonementUpdateOne) SetNillableFromDate(v *time.Time) *AbonementUpdateOne {
+	if v != nil {
+		_u.SetFromDate(*v)
 	}
-	return auo
+	return _u
 }
 
 // SetToDate sets the "to_date" field.
-func (auo *AbonementUpdateOne) SetToDate(t time.Time) *AbonementUpdateOne {
-	auo.mutation.SetToDate(t)
-	return auo
+func (_u *AbonementUpdateOne) SetToDate(v time.Time) *AbonementUpdateOne {
+	_u.mutation.SetToDate(v)
+	return _u
 }
 
 // SetNillableToDate sets the "to_date" field if the given value is not nil.
-func (auo *AbonementUpdateOne) SetNillableToDate(t *time.Time) *AbonementUpdateOne {
-	if t != nil {
-		auo.SetToDate(*t)
+func (_u *AbonementUpdateOne) SetNillableToDate(v *time.Time) *AbonementUpdateOne {
+	if v != nil {
+		_u.SetToDate(*v)
 	}
-	return auo
+	return _u
 }
 
 // SetStatus sets the "status" field.
-func (auo *AbonementUpdateOne) SetStatus(s string) *AbonementUpdateOne {
-	auo.mutation.SetStatus(s)
-	return auo
+func (_u *AbonementUpdateOne) SetStatus(v string) *AbonementUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (auo *AbonementUpdateOne) SetNillableStatus(s *string) *AbonementUpdateOne {
-	if s != nil {
-		auo.SetStatus(*s)
+func (_u *AbonementUpdateOne) SetNillableStatus(v *string) *AbonementUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
 	}
-	return auo
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (auo *AbonementUpdateOne) SetCreatedAt(t time.Time) *AbonementUpdateOne {
-	auo.mutation.SetCreatedAt(t)
-	return auo
+func (_u *AbonementUpdateOne) SetCreatedAt(v time.Time) *AbonementUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (auo *AbonementUpdateOne) SetNillableCreatedAt(t *time.Time) *AbonementUpdateOne {
-	if t != nil {
-		auo.SetCreatedAt(*t)
+func (_u *AbonementUpdateOne) SetNillableCreatedAt(v *time.Time) *AbonementUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return auo
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (auo *AbonementUpdateOne) ClearCreatedAt() *AbonementUpdateOne {
-	auo.mutation.ClearCreatedAt()
-	return auo
+func (_u *AbonementUpdateOne) ClearCreatedAt() *AbonementUpdateOne {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (auo *AbonementUpdateOne) SetUpdatedAt(t time.Time) *AbonementUpdateOne {
-	auo.mutation.SetUpdatedAt(t)
-	return auo
+func (_u *AbonementUpdateOne) SetUpdatedAt(v time.Time) *AbonementUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (auo *AbonementUpdateOne) SetNillableUpdatedAt(t *time.Time) *AbonementUpdateOne {
-	if t != nil {
-		auo.SetUpdatedAt(*t)
+func (_u *AbonementUpdateOne) SetNillableUpdatedAt(v *time.Time) *AbonementUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return auo
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (auo *AbonementUpdateOne) ClearUpdatedAt() *AbonementUpdateOne {
-	auo.mutation.ClearUpdatedAt()
-	return auo
+func (_u *AbonementUpdateOne) ClearUpdatedAt() *AbonementUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetCustomer sets the "customer" edge to the Customer entity.
-func (auo *AbonementUpdateOne) SetCustomer(c *Customer) *AbonementUpdateOne {
-	return auo.SetCustomerID(c.ID)
+func (_u *AbonementUpdateOne) SetCustomer(v *Customer) *AbonementUpdateOne {
+	return _u.SetCustomerID(v.ID)
 }
 
 // SetItem sets the "item" edge to the Item entity.
-func (auo *AbonementUpdateOne) SetItem(i *Item) *AbonementUpdateOne {
-	return auo.SetItemID(i.ID)
+func (_u *AbonementUpdateOne) SetItem(v *Item) *AbonementUpdateOne {
+	return _u.SetItemID(v.ID)
 }
 
 // Mutation returns the AbonementMutation object of the builder.
-func (auo *AbonementUpdateOne) Mutation() *AbonementMutation {
-	return auo.mutation
+func (_u *AbonementUpdateOne) Mutation() *AbonementMutation {
+	return _u.mutation
 }
 
 // ClearCustomer clears the "customer" edge to the Customer entity.
-func (auo *AbonementUpdateOne) ClearCustomer() *AbonementUpdateOne {
-	auo.mutation.ClearCustomer()
-	return auo
+func (_u *AbonementUpdateOne) ClearCustomer() *AbonementUpdateOne {
+	_u.mutation.ClearCustomer()
+	return _u
 }
 
 // ClearItem clears the "item" edge to the Item entity.
-func (auo *AbonementUpdateOne) ClearItem() *AbonementUpdateOne {
-	auo.mutation.ClearItem()
-	return auo
+func (_u *AbonementUpdateOne) ClearItem() *AbonementUpdateOne {
+	_u.mutation.ClearItem()
+	return _u
 }
 
 // Where appends a list predicates to the AbonementUpdate builder.
-func (auo *AbonementUpdateOne) Where(ps ...predicate.Abonement) *AbonementUpdateOne {
-	auo.mutation.Where(ps...)
-	return auo
+func (_u *AbonementUpdateOne) Where(ps ...predicate.Abonement) *AbonementUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (auo *AbonementUpdateOne) Select(field string, fields ...string) *AbonementUpdateOne {
-	auo.fields = append([]string{field}, fields...)
-	return auo
+func (_u *AbonementUpdateOne) Select(field string, fields ...string) *AbonementUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated Abonement entity.
-func (auo *AbonementUpdateOne) Save(ctx context.Context) (*Abonement, error) {
-	return withHooks(ctx, auo.sqlSave, auo.mutation, auo.hooks)
+func (_u *AbonementUpdateOne) Save(ctx context.Context) (*Abonement, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (auo *AbonementUpdateOne) SaveX(ctx context.Context) *Abonement {
-	node, err := auo.Save(ctx)
+func (_u *AbonementUpdateOne) SaveX(ctx context.Context) *Abonement {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -490,37 +490,37 @@ func (auo *AbonementUpdateOne) SaveX(ctx context.Context) *Abonement {
 }
 
 // Exec executes the query on the entity.
-func (auo *AbonementUpdateOne) Exec(ctx context.Context) error {
-	_, err := auo.Save(ctx)
+func (_u *AbonementUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (auo *AbonementUpdateOne) ExecX(ctx context.Context) {
-	if err := auo.Exec(ctx); err != nil {
+func (_u *AbonementUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (auo *AbonementUpdateOne) check() error {
-	if auo.mutation.CustomerCleared() && len(auo.mutation.CustomerIDs()) > 0 {
+func (_u *AbonementUpdateOne) check() error {
+	if _u.mutation.CustomerCleared() && len(_u.mutation.CustomerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Abonement.customer"`)
 	}
 	return nil
 }
 
-func (auo *AbonementUpdateOne) sqlSave(ctx context.Context) (_node *Abonement, err error) {
-	if err := auo.check(); err != nil {
+func (_u *AbonementUpdateOne) sqlSave(ctx context.Context) (_node *Abonement, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(abonement.Table, abonement.Columns, sqlgraph.NewFieldSpec(abonement.FieldID, field.TypeInt))
-	id, ok := auo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Abonement.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := auo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, abonement.FieldID)
 		for _, f := range fields {
@@ -532,35 +532,35 @@ func (auo *AbonementUpdateOne) sqlSave(ctx context.Context) (_node *Abonement, e
 			}
 		}
 	}
-	if ps := auo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := auo.mutation.FromDate(); ok {
+	if value, ok := _u.mutation.FromDate(); ok {
 		_spec.SetField(abonement.FieldFromDate, field.TypeTime, value)
 	}
-	if value, ok := auo.mutation.ToDate(); ok {
+	if value, ok := _u.mutation.ToDate(); ok {
 		_spec.SetField(abonement.FieldToDate, field.TypeTime, value)
 	}
-	if value, ok := auo.mutation.Status(); ok {
+	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(abonement.FieldStatus, field.TypeString, value)
 	}
-	if value, ok := auo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(abonement.FieldCreatedAt, field.TypeTime, value)
 	}
-	if auo.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(abonement.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := auo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(abonement.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if auo.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(abonement.FieldUpdatedAt, field.TypeTime)
 	}
-	if auo.mutation.CustomerCleared() {
+	if _u.mutation.CustomerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -573,7 +573,7 @@ func (auo *AbonementUpdateOne) sqlSave(ctx context.Context) (_node *Abonement, e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.CustomerIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.CustomerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -589,7 +589,7 @@ func (auo *AbonementUpdateOne) sqlSave(ctx context.Context) (_node *Abonement, e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if auo.mutation.ItemCleared() {
+	if _u.mutation.ItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -602,7 +602,7 @@ func (auo *AbonementUpdateOne) sqlSave(ctx context.Context) (_node *Abonement, e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.mutation.ItemIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -618,10 +618,10 @@ func (auo *AbonementUpdateOne) sqlSave(ctx context.Context) (_node *Abonement, e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &Abonement{config: auo.config}
+	_node = &Abonement{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, auo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{abonement.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -629,6 +629,6 @@ func (auo *AbonementUpdateOne) sqlSave(ctx context.Context) (_node *Abonement, e
 		}
 		return nil, err
 	}
-	auo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

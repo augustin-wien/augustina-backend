@@ -20,36 +20,36 @@ type PDFCreate struct {
 }
 
 // SetPath sets the "path" field.
-func (pc *PDFCreate) SetPath(s string) *PDFCreate {
-	pc.mutation.SetPath(s)
-	return pc
+func (_c *PDFCreate) SetPath(v string) *PDFCreate {
+	_c.mutation.SetPath(v)
+	return _c
 }
 
 // SetTimestamp sets the "timestamp" field.
-func (pc *PDFCreate) SetTimestamp(s string) *PDFCreate {
-	pc.mutation.SetTimestamp(s)
-	return pc
+func (_c *PDFCreate) SetTimestamp(v string) *PDFCreate {
+	_c.mutation.SetTimestamp(v)
+	return _c
 }
 
 // SetID sets the "id" field.
-func (pc *PDFCreate) SetID(i int) *PDFCreate {
-	pc.mutation.SetID(i)
-	return pc
+func (_c *PDFCreate) SetID(v int) *PDFCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // Mutation returns the PDFMutation object of the builder.
-func (pc *PDFCreate) Mutation() *PDFMutation {
-	return pc.mutation
+func (_c *PDFCreate) Mutation() *PDFMutation {
+	return _c.mutation
 }
 
 // Save creates the PDF in the database.
-func (pc *PDFCreate) Save(ctx context.Context) (*PDF, error) {
-	return withHooks(ctx, pc.sqlSave, pc.mutation, pc.hooks)
+func (_c *PDFCreate) Save(ctx context.Context) (*PDF, error) {
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (pc *PDFCreate) SaveX(ctx context.Context) *PDF {
-	v, err := pc.Save(ctx)
+func (_c *PDFCreate) SaveX(ctx context.Context) *PDF {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -57,27 +57,27 @@ func (pc *PDFCreate) SaveX(ctx context.Context) *PDF {
 }
 
 // Exec executes the query.
-func (pc *PDFCreate) Exec(ctx context.Context) error {
-	_, err := pc.Save(ctx)
+func (_c *PDFCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (pc *PDFCreate) ExecX(ctx context.Context) {
-	if err := pc.Exec(ctx); err != nil {
+func (_c *PDFCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (pc *PDFCreate) check() error {
-	if _, ok := pc.mutation.Path(); !ok {
+func (_c *PDFCreate) check() error {
+	if _, ok := _c.mutation.Path(); !ok {
 		return &ValidationError{Name: "path", err: errors.New(`ent: missing required field "PDF.path"`)}
 	}
-	if _, ok := pc.mutation.Timestamp(); !ok {
+	if _, ok := _c.mutation.Timestamp(); !ok {
 		return &ValidationError{Name: "timestamp", err: errors.New(`ent: missing required field "PDF.timestamp"`)}
 	}
-	if v, ok := pc.mutation.ID(); ok {
+	if v, ok := _c.mutation.ID(); ok {
 		if err := pdf.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "PDF.id": %w`, err)}
 		}
@@ -85,12 +85,12 @@ func (pc *PDFCreate) check() error {
 	return nil
 }
 
-func (pc *PDFCreate) sqlSave(ctx context.Context) (*PDF, error) {
-	if err := pc.check(); err != nil {
+func (_c *PDFCreate) sqlSave(ctx context.Context) (*PDF, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := pc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, pc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -100,25 +100,25 @@ func (pc *PDFCreate) sqlSave(ctx context.Context) (*PDF, error) {
 		id := _spec.ID.Value.(int64)
 		_node.ID = int(id)
 	}
-	pc.mutation.id = &_node.ID
-	pc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (pc *PDFCreate) createSpec() (*PDF, *sqlgraph.CreateSpec) {
+func (_c *PDFCreate) createSpec() (*PDF, *sqlgraph.CreateSpec) {
 	var (
-		_node = &PDF{config: pc.config}
+		_node = &PDF{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(pdf.Table, sqlgraph.NewFieldSpec(pdf.FieldID, field.TypeInt))
 	)
-	if id, ok := pc.mutation.ID(); ok {
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := pc.mutation.Path(); ok {
+	if value, ok := _c.mutation.Path(); ok {
 		_spec.SetField(pdf.FieldPath, field.TypeString, value)
 		_node.Path = value
 	}
-	if value, ok := pc.mutation.Timestamp(); ok {
+	if value, ok := _c.mutation.Timestamp(); ok {
 		_spec.SetField(pdf.FieldTimestamp, field.TypeString, value)
 		_node.Timestamp = value
 	}
@@ -133,16 +133,16 @@ type PDFCreateBulk struct {
 }
 
 // Save creates the PDF entities in the database.
-func (pcb *PDFCreateBulk) Save(ctx context.Context) ([]*PDF, error) {
-	if pcb.err != nil {
-		return nil, pcb.err
+func (_c *PDFCreateBulk) Save(ctx context.Context) ([]*PDF, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(pcb.builders))
-	nodes := make([]*PDF, len(pcb.builders))
-	mutators := make([]Mutator, len(pcb.builders))
-	for i := range pcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*PDF, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := pcb.builders[i]
+			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PDFMutation)
 				if !ok {
@@ -155,11 +155,11 @@ func (pcb *PDFCreateBulk) Save(ctx context.Context) ([]*PDF, error) {
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, pcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, pcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -183,7 +183,7 @@ func (pcb *PDFCreateBulk) Save(ctx context.Context) ([]*PDF, error) {
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, pcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -191,8 +191,8 @@ func (pcb *PDFCreateBulk) Save(ctx context.Context) ([]*PDF, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (pcb *PDFCreateBulk) SaveX(ctx context.Context) []*PDF {
-	v, err := pcb.Save(ctx)
+func (_c *PDFCreateBulk) SaveX(ctx context.Context) []*PDF {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -200,14 +200,14 @@ func (pcb *PDFCreateBulk) SaveX(ctx context.Context) []*PDF {
 }
 
 // Exec executes the query.
-func (pcb *PDFCreateBulk) Exec(ctx context.Context) error {
-	_, err := pcb.Save(ctx)
+func (_c *PDFCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (pcb *PDFCreateBulk) ExecX(ctx context.Context) {
-	if err := pcb.Exec(ctx); err != nil {
+func (_c *PDFCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

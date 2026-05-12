@@ -121,7 +121,7 @@ func (*Vendor) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Vendor fields.
-func (v *Vendor) assignValues(columns []string, values []any) error {
+func (_m *Vendor) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -132,117 +132,117 @@ func (v *Vendor) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			v.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case vendor.FieldKeycloakid:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field keycloakid", values[i])
 			} else if value.Valid {
-				v.Keycloakid = value.String
+				_m.Keycloakid = value.String
 			}
 		case vendor.FieldUrlid:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field urlid", values[i])
 			} else if value.Valid {
-				v.Urlid = value.String
+				_m.Urlid = value.String
 			}
 		case vendor.FieldLicenseid:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field licenseid", values[i])
 			} else if value.Valid {
-				v.Licenseid = value.String
+				_m.Licenseid = value.String
 			}
 		case vendor.FieldFirstname:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field firstname", values[i])
 			} else if value.Valid {
-				v.Firstname = value.String
+				_m.Firstname = value.String
 			}
 		case vendor.FieldLastname:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field lastname", values[i])
 			} else if value.Valid {
-				v.Lastname = value.String
+				_m.Lastname = value.String
 			}
 		case vendor.FieldEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
 			} else if value.Valid {
-				v.Email = value.String
+				_m.Email = value.String
 			}
 		case vendor.FieldLastpayout:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field lastpayout", values[i])
 			} else if value.Valid {
-				v.Lastpayout = value.Time
+				_m.Lastpayout = value.Time
 			}
 		case vendor.FieldIsdisabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field isdisabled", values[i])
 			} else if value.Valid {
-				v.Isdisabled = value.Bool
+				_m.Isdisabled = value.Bool
 			}
 		case vendor.FieldLanguage:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field language", values[i])
 			} else if value.Valid {
-				v.Language = value.String
+				_m.Language = value.String
 			}
 		case vendor.FieldTelephone:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field telephone", values[i])
 			} else if value.Valid {
-				v.Telephone = value.String
+				_m.Telephone = value.String
 			}
 		case vendor.FieldRegistrationdate:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field registrationdate", values[i])
 			} else if value.Valid {
-				v.Registrationdate = value.String
+				_m.Registrationdate = value.String
 			}
 		case vendor.FieldVendorsince:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field vendorsince", values[i])
 			} else if value.Valid {
-				v.Vendorsince = value.String
+				_m.Vendorsince = value.String
 			}
 		case vendor.FieldOnlinemap:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field onlinemap", values[i])
 			} else if value.Valid {
-				v.Onlinemap = value.Bool
+				_m.Onlinemap = value.Bool
 			}
 		case vendor.FieldHassmartphone:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field hassmartphone", values[i])
 			} else if value.Valid {
-				v.Hassmartphone = value.Bool
+				_m.Hassmartphone = value.Bool
 			}
 		case vendor.FieldHasbankaccount:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field hasbankaccount", values[i])
 			} else if value.Valid {
-				v.Hasbankaccount = value.Bool
+				_m.Hasbankaccount = value.Bool
 			}
 		case vendor.FieldIsdeleted:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field isdeleted", values[i])
 			} else if value.Valid {
-				v.Isdeleted = value.Bool
+				_m.Isdeleted = value.Bool
 			}
 		case vendor.FieldAccountproofurl:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field accountproofurl", values[i])
 			} else if value.Valid {
-				v.Accountproofurl = value.String
+				_m.Accountproofurl = value.String
 			}
 		case vendor.FieldDebt:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field debt", values[i])
 			} else if value.Valid {
-				v.Debt = value.String
+				_m.Debt = value.String
 			}
 		default:
-			v.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -250,101 +250,101 @@ func (v *Vendor) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Vendor.
 // This includes values selected through modifiers, order, etc.
-func (v *Vendor) Value(name string) (ent.Value, error) {
-	return v.selectValues.Get(name)
+func (_m *Vendor) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryLocations queries the "locations" edge of the Vendor entity.
-func (v *Vendor) QueryLocations() *LocationQuery {
-	return NewVendorClient(v.config).QueryLocations(v)
+func (_m *Vendor) QueryLocations() *LocationQuery {
+	return NewVendorClient(_m.config).QueryLocations(_m)
 }
 
 // QueryComments queries the "comments" edge of the Vendor entity.
-func (v *Vendor) QueryComments() *CommentQuery {
-	return NewVendorClient(v.config).QueryComments(v)
+func (_m *Vendor) QueryComments() *CommentQuery {
+	return NewVendorClient(_m.config).QueryComments(_m)
 }
 
 // QueryAccounts queries the "accounts" edge of the Vendor entity.
-func (v *Vendor) QueryAccounts() *AccountQuery {
-	return NewVendorClient(v.config).QueryAccounts(v)
+func (_m *Vendor) QueryAccounts() *AccountQuery {
+	return NewVendorClient(_m.config).QueryAccounts(_m)
 }
 
 // Update returns a builder for updating this Vendor.
 // Note that you need to call Vendor.Unwrap() before calling this method if this Vendor
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (v *Vendor) Update() *VendorUpdateOne {
-	return NewVendorClient(v.config).UpdateOne(v)
+func (_m *Vendor) Update() *VendorUpdateOne {
+	return NewVendorClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Vendor entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (v *Vendor) Unwrap() *Vendor {
-	_tx, ok := v.config.driver.(*txDriver)
+func (_m *Vendor) Unwrap() *Vendor {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Vendor is not a transactional entity")
 	}
-	v.config.driver = _tx.drv
-	return v
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (v *Vendor) String() string {
+func (_m *Vendor) String() string {
 	var builder strings.Builder
 	builder.WriteString("Vendor(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", v.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("keycloakid=")
-	builder.WriteString(v.Keycloakid)
+	builder.WriteString(_m.Keycloakid)
 	builder.WriteString(", ")
 	builder.WriteString("urlid=")
-	builder.WriteString(v.Urlid)
+	builder.WriteString(_m.Urlid)
 	builder.WriteString(", ")
 	builder.WriteString("licenseid=")
-	builder.WriteString(v.Licenseid)
+	builder.WriteString(_m.Licenseid)
 	builder.WriteString(", ")
 	builder.WriteString("firstname=")
-	builder.WriteString(v.Firstname)
+	builder.WriteString(_m.Firstname)
 	builder.WriteString(", ")
 	builder.WriteString("lastname=")
-	builder.WriteString(v.Lastname)
+	builder.WriteString(_m.Lastname)
 	builder.WriteString(", ")
 	builder.WriteString("email=")
-	builder.WriteString(v.Email)
+	builder.WriteString(_m.Email)
 	builder.WriteString(", ")
 	builder.WriteString("lastpayout=")
-	builder.WriteString(v.Lastpayout.Format(time.ANSIC))
+	builder.WriteString(_m.Lastpayout.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("isdisabled=")
-	builder.WriteString(fmt.Sprintf("%v", v.Isdisabled))
+	builder.WriteString(fmt.Sprintf("%v", _m.Isdisabled))
 	builder.WriteString(", ")
 	builder.WriteString("language=")
-	builder.WriteString(v.Language)
+	builder.WriteString(_m.Language)
 	builder.WriteString(", ")
 	builder.WriteString("telephone=")
-	builder.WriteString(v.Telephone)
+	builder.WriteString(_m.Telephone)
 	builder.WriteString(", ")
 	builder.WriteString("registrationdate=")
-	builder.WriteString(v.Registrationdate)
+	builder.WriteString(_m.Registrationdate)
 	builder.WriteString(", ")
 	builder.WriteString("vendorsince=")
-	builder.WriteString(v.Vendorsince)
+	builder.WriteString(_m.Vendorsince)
 	builder.WriteString(", ")
 	builder.WriteString("onlinemap=")
-	builder.WriteString(fmt.Sprintf("%v", v.Onlinemap))
+	builder.WriteString(fmt.Sprintf("%v", _m.Onlinemap))
 	builder.WriteString(", ")
 	builder.WriteString("hassmartphone=")
-	builder.WriteString(fmt.Sprintf("%v", v.Hassmartphone))
+	builder.WriteString(fmt.Sprintf("%v", _m.Hassmartphone))
 	builder.WriteString(", ")
 	builder.WriteString("hasbankaccount=")
-	builder.WriteString(fmt.Sprintf("%v", v.Hasbankaccount))
+	builder.WriteString(fmt.Sprintf("%v", _m.Hasbankaccount))
 	builder.WriteString(", ")
 	builder.WriteString("isdeleted=")
-	builder.WriteString(fmt.Sprintf("%v", v.Isdeleted))
+	builder.WriteString(fmt.Sprintf("%v", _m.Isdeleted))
 	builder.WriteString(", ")
 	builder.WriteString("accountproofurl=")
-	builder.WriteString(v.Accountproofurl)
+	builder.WriteString(_m.Accountproofurl)
 	builder.WriteString(", ")
 	builder.WriteString("debt=")
-	builder.WriteString(v.Debt)
+	builder.WriteString(_m.Debt)
 	builder.WriteByte(')')
 	return builder.String()
 }

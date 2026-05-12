@@ -28,40 +28,40 @@ type MailTemplateQuery struct {
 }
 
 // Where adds a new predicate for the MailTemplateQuery builder.
-func (mtq *MailTemplateQuery) Where(ps ...predicate.MailTemplate) *MailTemplateQuery {
-	mtq.predicates = append(mtq.predicates, ps...)
-	return mtq
+func (_q *MailTemplateQuery) Where(ps ...predicate.MailTemplate) *MailTemplateQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (mtq *MailTemplateQuery) Limit(limit int) *MailTemplateQuery {
-	mtq.ctx.Limit = &limit
-	return mtq
+func (_q *MailTemplateQuery) Limit(limit int) *MailTemplateQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (mtq *MailTemplateQuery) Offset(offset int) *MailTemplateQuery {
-	mtq.ctx.Offset = &offset
-	return mtq
+func (_q *MailTemplateQuery) Offset(offset int) *MailTemplateQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (mtq *MailTemplateQuery) Unique(unique bool) *MailTemplateQuery {
-	mtq.ctx.Unique = &unique
-	return mtq
+func (_q *MailTemplateQuery) Unique(unique bool) *MailTemplateQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (mtq *MailTemplateQuery) Order(o ...mailtemplate.OrderOption) *MailTemplateQuery {
-	mtq.order = append(mtq.order, o...)
-	return mtq
+func (_q *MailTemplateQuery) Order(o ...mailtemplate.OrderOption) *MailTemplateQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // First returns the first MailTemplate entity from the query.
 // Returns a *NotFoundError when no MailTemplate was found.
-func (mtq *MailTemplateQuery) First(ctx context.Context) (*MailTemplate, error) {
-	nodes, err := mtq.Limit(1).All(setContextOp(ctx, mtq.ctx, ent.OpQueryFirst))
+func (_q *MailTemplateQuery) First(ctx context.Context) (*MailTemplate, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -72,8 +72,8 @@ func (mtq *MailTemplateQuery) First(ctx context.Context) (*MailTemplate, error) 
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (mtq *MailTemplateQuery) FirstX(ctx context.Context) *MailTemplate {
-	node, err := mtq.First(ctx)
+func (_q *MailTemplateQuery) FirstX(ctx context.Context) *MailTemplate {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -82,9 +82,9 @@ func (mtq *MailTemplateQuery) FirstX(ctx context.Context) *MailTemplate {
 
 // FirstID returns the first MailTemplate ID from the query.
 // Returns a *NotFoundError when no MailTemplate ID was found.
-func (mtq *MailTemplateQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *MailTemplateQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mtq.Limit(1).IDs(setContextOp(ctx, mtq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -95,8 +95,8 @@ func (mtq *MailTemplateQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (mtq *MailTemplateQuery) FirstIDX(ctx context.Context) int {
-	id, err := mtq.FirstID(ctx)
+func (_q *MailTemplateQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -106,8 +106,8 @@ func (mtq *MailTemplateQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single MailTemplate entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one MailTemplate entity is found.
 // Returns a *NotFoundError when no MailTemplate entities are found.
-func (mtq *MailTemplateQuery) Only(ctx context.Context) (*MailTemplate, error) {
-	nodes, err := mtq.Limit(2).All(setContextOp(ctx, mtq.ctx, ent.OpQueryOnly))
+func (_q *MailTemplateQuery) Only(ctx context.Context) (*MailTemplate, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +122,8 @@ func (mtq *MailTemplateQuery) Only(ctx context.Context) (*MailTemplate, error) {
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (mtq *MailTemplateQuery) OnlyX(ctx context.Context) *MailTemplate {
-	node, err := mtq.Only(ctx)
+func (_q *MailTemplateQuery) OnlyX(ctx context.Context) *MailTemplate {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -133,9 +133,9 @@ func (mtq *MailTemplateQuery) OnlyX(ctx context.Context) *MailTemplate {
 // OnlyID is like Only, but returns the only MailTemplate ID in the query.
 // Returns a *NotSingularError when more than one MailTemplate ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (mtq *MailTemplateQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *MailTemplateQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = mtq.Limit(2).IDs(setContextOp(ctx, mtq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -150,8 +150,8 @@ func (mtq *MailTemplateQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (mtq *MailTemplateQuery) OnlyIDX(ctx context.Context) int {
-	id, err := mtq.OnlyID(ctx)
+func (_q *MailTemplateQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -159,18 +159,18 @@ func (mtq *MailTemplateQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of MailTemplates.
-func (mtq *MailTemplateQuery) All(ctx context.Context) ([]*MailTemplate, error) {
-	ctx = setContextOp(ctx, mtq.ctx, ent.OpQueryAll)
-	if err := mtq.prepareQuery(ctx); err != nil {
+func (_q *MailTemplateQuery) All(ctx context.Context) ([]*MailTemplate, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*MailTemplate, *MailTemplateQuery]()
-	return withInterceptors[[]*MailTemplate](ctx, mtq, qr, mtq.inters)
+	return withInterceptors[[]*MailTemplate](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (mtq *MailTemplateQuery) AllX(ctx context.Context) []*MailTemplate {
-	nodes, err := mtq.All(ctx)
+func (_q *MailTemplateQuery) AllX(ctx context.Context) []*MailTemplate {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -178,20 +178,20 @@ func (mtq *MailTemplateQuery) AllX(ctx context.Context) []*MailTemplate {
 }
 
 // IDs executes the query and returns a list of MailTemplate IDs.
-func (mtq *MailTemplateQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if mtq.ctx.Unique == nil && mtq.path != nil {
-		mtq.Unique(true)
+func (_q *MailTemplateQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, mtq.ctx, ent.OpQueryIDs)
-	if err = mtq.Select(mailtemplate.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(mailtemplate.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (mtq *MailTemplateQuery) IDsX(ctx context.Context) []int {
-	ids, err := mtq.IDs(ctx)
+func (_q *MailTemplateQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -199,17 +199,17 @@ func (mtq *MailTemplateQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (mtq *MailTemplateQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, mtq.ctx, ent.OpQueryCount)
-	if err := mtq.prepareQuery(ctx); err != nil {
+func (_q *MailTemplateQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, mtq, querierCount[*MailTemplateQuery](), mtq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*MailTemplateQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (mtq *MailTemplateQuery) CountX(ctx context.Context) int {
-	count, err := mtq.Count(ctx)
+func (_q *MailTemplateQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -217,9 +217,9 @@ func (mtq *MailTemplateQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (mtq *MailTemplateQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, mtq.ctx, ent.OpQueryExist)
-	switch _, err := mtq.FirstID(ctx); {
+func (_q *MailTemplateQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -230,8 +230,8 @@ func (mtq *MailTemplateQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (mtq *MailTemplateQuery) ExistX(ctx context.Context) bool {
-	exist, err := mtq.Exist(ctx)
+func (_q *MailTemplateQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -240,19 +240,19 @@ func (mtq *MailTemplateQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the MailTemplateQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (mtq *MailTemplateQuery) Clone() *MailTemplateQuery {
-	if mtq == nil {
+func (_q *MailTemplateQuery) Clone() *MailTemplateQuery {
+	if _q == nil {
 		return nil
 	}
 	return &MailTemplateQuery{
-		config:     mtq.config,
-		ctx:        mtq.ctx.Clone(),
-		order:      append([]mailtemplate.OrderOption{}, mtq.order...),
-		inters:     append([]Interceptor{}, mtq.inters...),
-		predicates: append([]predicate.MailTemplate{}, mtq.predicates...),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]mailtemplate.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.MailTemplate{}, _q.predicates...),
 		// clone intermediate query.
-		sql:  mtq.sql.Clone(),
-		path: mtq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
@@ -270,10 +270,10 @@ func (mtq *MailTemplateQuery) Clone() *MailTemplateQuery {
 //		GroupBy(mailtemplate.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (mtq *MailTemplateQuery) GroupBy(field string, fields ...string) *MailTemplateGroupBy {
-	mtq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &MailTemplateGroupBy{build: mtq}
-	grbuild.flds = &mtq.ctx.Fields
+func (_q *MailTemplateQuery) GroupBy(field string, fields ...string) *MailTemplateGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &MailTemplateGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = mailtemplate.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -291,62 +291,62 @@ func (mtq *MailTemplateQuery) GroupBy(field string, fields ...string) *MailTempl
 //	client.MailTemplate.Query().
 //		Select(mailtemplate.FieldName).
 //		Scan(ctx, &v)
-func (mtq *MailTemplateQuery) Select(fields ...string) *MailTemplateSelect {
-	mtq.ctx.Fields = append(mtq.ctx.Fields, fields...)
-	sbuild := &MailTemplateSelect{MailTemplateQuery: mtq}
+func (_q *MailTemplateQuery) Select(fields ...string) *MailTemplateSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &MailTemplateSelect{MailTemplateQuery: _q}
 	sbuild.label = mailtemplate.Label
-	sbuild.flds, sbuild.scan = &mtq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a MailTemplateSelect configured with the given aggregations.
-func (mtq *MailTemplateQuery) Aggregate(fns ...AggregateFunc) *MailTemplateSelect {
-	return mtq.Select().Aggregate(fns...)
+func (_q *MailTemplateQuery) Aggregate(fns ...AggregateFunc) *MailTemplateSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (mtq *MailTemplateQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range mtq.inters {
+func (_q *MailTemplateQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, mtq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range mtq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !mailtemplate.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if mtq.path != nil {
-		prev, err := mtq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		mtq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (mtq *MailTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MailTemplate, error) {
+func (_q *MailTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MailTemplate, error) {
 	var (
 		nodes = []*MailTemplate{}
-		_spec = mtq.querySpec()
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MailTemplate).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &MailTemplate{config: mtq.config}
+		node := &MailTemplate{config: _q.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, mtq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
@@ -355,24 +355,24 @@ func (mtq *MailTemplateQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	return nodes, nil
 }
 
-func (mtq *MailTemplateQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := mtq.querySpec()
-	_spec.Node.Columns = mtq.ctx.Fields
-	if len(mtq.ctx.Fields) > 0 {
-		_spec.Unique = mtq.ctx.Unique != nil && *mtq.ctx.Unique
+func (_q *MailTemplateQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, mtq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (mtq *MailTemplateQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *MailTemplateQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(mailtemplate.Table, mailtemplate.Columns, sqlgraph.NewFieldSpec(mailtemplate.FieldID, field.TypeInt))
-	_spec.From = mtq.sql
-	if unique := mtq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if mtq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := mtq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, mailtemplate.FieldID)
 		for i := range fields {
@@ -381,20 +381,20 @@ func (mtq *MailTemplateQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := mtq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := mtq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := mtq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := mtq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -404,33 +404,33 @@ func (mtq *MailTemplateQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (mtq *MailTemplateQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(mtq.driver.Dialect())
+func (_q *MailTemplateQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(mailtemplate.Table)
-	columns := mtq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = mailtemplate.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if mtq.sql != nil {
-		selector = mtq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if mtq.ctx.Unique != nil && *mtq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range mtq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range mtq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := mtq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := mtq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -443,41 +443,41 @@ type MailTemplateGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (mtgb *MailTemplateGroupBy) Aggregate(fns ...AggregateFunc) *MailTemplateGroupBy {
-	mtgb.fns = append(mtgb.fns, fns...)
-	return mtgb
+func (_g *MailTemplateGroupBy) Aggregate(fns ...AggregateFunc) *MailTemplateGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (mtgb *MailTemplateGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mtgb.build.ctx, ent.OpQueryGroupBy)
-	if err := mtgb.build.prepareQuery(ctx); err != nil {
+func (_g *MailTemplateGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*MailTemplateQuery, *MailTemplateGroupBy](ctx, mtgb.build, mtgb, mtgb.build.inters, v)
+	return scanWithInterceptors[*MailTemplateQuery, *MailTemplateGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (mtgb *MailTemplateGroupBy) sqlScan(ctx context.Context, root *MailTemplateQuery, v any) error {
+func (_g *MailTemplateGroupBy) sqlScan(ctx context.Context, root *MailTemplateQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(mtgb.fns))
-	for _, fn := range mtgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*mtgb.flds)+len(mtgb.fns))
-		for _, f := range *mtgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*mtgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := mtgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -491,27 +491,27 @@ type MailTemplateSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (mts *MailTemplateSelect) Aggregate(fns ...AggregateFunc) *MailTemplateSelect {
-	mts.fns = append(mts.fns, fns...)
-	return mts
+func (_s *MailTemplateSelect) Aggregate(fns ...AggregateFunc) *MailTemplateSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (mts *MailTemplateSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, mts.ctx, ent.OpQuerySelect)
-	if err := mts.prepareQuery(ctx); err != nil {
+func (_s *MailTemplateSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*MailTemplateQuery, *MailTemplateSelect](ctx, mts.MailTemplateQuery, mts, mts.inters, v)
+	return scanWithInterceptors[*MailTemplateQuery, *MailTemplateSelect](ctx, _s.MailTemplateQuery, _s, _s.inters, v)
 }
 
-func (mts *MailTemplateSelect) sqlScan(ctx context.Context, root *MailTemplateQuery, v any) error {
+func (_s *MailTemplateSelect) sqlScan(ctx context.Context, root *MailTemplateQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(mts.fns))
-	for _, fn := range mts.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*mts.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -519,7 +519,7 @@ func (mts *MailTemplateSelect) sqlScan(ctx context.Context, root *MailTemplateQu
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := mts.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

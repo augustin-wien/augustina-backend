@@ -24,170 +24,170 @@ type CustomerUpdate struct {
 }
 
 // Where appends a list predicates to the CustomerUpdate builder.
-func (cu *CustomerUpdate) Where(ps ...predicate.Customer) *CustomerUpdate {
-	cu.mutation.Where(ps...)
-	return cu
+func (_u *CustomerUpdate) Where(ps ...predicate.Customer) *CustomerUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetKeycloakid sets the "keycloakid" field.
-func (cu *CustomerUpdate) SetKeycloakid(s string) *CustomerUpdate {
-	cu.mutation.SetKeycloakid(s)
-	return cu
+func (_u *CustomerUpdate) SetKeycloakid(v string) *CustomerUpdate {
+	_u.mutation.SetKeycloakid(v)
+	return _u
 }
 
 // SetNillableKeycloakid sets the "keycloakid" field if the given value is not nil.
-func (cu *CustomerUpdate) SetNillableKeycloakid(s *string) *CustomerUpdate {
-	if s != nil {
-		cu.SetKeycloakid(*s)
+func (_u *CustomerUpdate) SetNillableKeycloakid(v *string) *CustomerUpdate {
+	if v != nil {
+		_u.SetKeycloakid(*v)
 	}
-	return cu
+	return _u
 }
 
 // SetEmail sets the "email" field.
-func (cu *CustomerUpdate) SetEmail(s string) *CustomerUpdate {
-	cu.mutation.SetEmail(s)
-	return cu
+func (_u *CustomerUpdate) SetEmail(v string) *CustomerUpdate {
+	_u.mutation.SetEmail(v)
+	return _u
 }
 
 // SetNillableEmail sets the "email" field if the given value is not nil.
-func (cu *CustomerUpdate) SetNillableEmail(s *string) *CustomerUpdate {
-	if s != nil {
-		cu.SetEmail(*s)
+func (_u *CustomerUpdate) SetNillableEmail(v *string) *CustomerUpdate {
+	if v != nil {
+		_u.SetEmail(*v)
 	}
-	return cu
+	return _u
 }
 
 // SetFirstname sets the "firstname" field.
-func (cu *CustomerUpdate) SetFirstname(s string) *CustomerUpdate {
-	cu.mutation.SetFirstname(s)
-	return cu
+func (_u *CustomerUpdate) SetFirstname(v string) *CustomerUpdate {
+	_u.mutation.SetFirstname(v)
+	return _u
 }
 
 // SetNillableFirstname sets the "firstname" field if the given value is not nil.
-func (cu *CustomerUpdate) SetNillableFirstname(s *string) *CustomerUpdate {
-	if s != nil {
-		cu.SetFirstname(*s)
+func (_u *CustomerUpdate) SetNillableFirstname(v *string) *CustomerUpdate {
+	if v != nil {
+		_u.SetFirstname(*v)
 	}
-	return cu
+	return _u
 }
 
 // SetLastname sets the "lastname" field.
-func (cu *CustomerUpdate) SetLastname(s string) *CustomerUpdate {
-	cu.mutation.SetLastname(s)
-	return cu
+func (_u *CustomerUpdate) SetLastname(v string) *CustomerUpdate {
+	_u.mutation.SetLastname(v)
+	return _u
 }
 
 // SetNillableLastname sets the "lastname" field if the given value is not nil.
-func (cu *CustomerUpdate) SetNillableLastname(s *string) *CustomerUpdate {
-	if s != nil {
-		cu.SetLastname(*s)
+func (_u *CustomerUpdate) SetNillableLastname(v *string) *CustomerUpdate {
+	if v != nil {
+		_u.SetLastname(*v)
 	}
-	return cu
+	return _u
 }
 
 // SetLicensegroups sets the "licensegroups" field.
-func (cu *CustomerUpdate) SetLicensegroups(s string) *CustomerUpdate {
-	cu.mutation.SetLicensegroups(s)
-	return cu
+func (_u *CustomerUpdate) SetLicensegroups(v string) *CustomerUpdate {
+	_u.mutation.SetLicensegroups(v)
+	return _u
 }
 
 // SetNillableLicensegroups sets the "licensegroups" field if the given value is not nil.
-func (cu *CustomerUpdate) SetNillableLicensegroups(s *string) *CustomerUpdate {
-	if s != nil {
-		cu.SetLicensegroups(*s)
+func (_u *CustomerUpdate) SetNillableLicensegroups(v *string) *CustomerUpdate {
+	if v != nil {
+		_u.SetLicensegroups(*v)
 	}
-	return cu
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (cu *CustomerUpdate) SetCreatedAt(t time.Time) *CustomerUpdate {
-	cu.mutation.SetCreatedAt(t)
-	return cu
+func (_u *CustomerUpdate) SetCreatedAt(v time.Time) *CustomerUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (cu *CustomerUpdate) SetNillableCreatedAt(t *time.Time) *CustomerUpdate {
-	if t != nil {
-		cu.SetCreatedAt(*t)
+func (_u *CustomerUpdate) SetNillableCreatedAt(v *time.Time) *CustomerUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return cu
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (cu *CustomerUpdate) ClearCreatedAt() *CustomerUpdate {
-	cu.mutation.ClearCreatedAt()
-	return cu
+func (_u *CustomerUpdate) ClearCreatedAt() *CustomerUpdate {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (cu *CustomerUpdate) SetUpdatedAt(t time.Time) *CustomerUpdate {
-	cu.mutation.SetUpdatedAt(t)
-	return cu
+func (_u *CustomerUpdate) SetUpdatedAt(v time.Time) *CustomerUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (cu *CustomerUpdate) SetNillableUpdatedAt(t *time.Time) *CustomerUpdate {
-	if t != nil {
-		cu.SetUpdatedAt(*t)
+func (_u *CustomerUpdate) SetNillableUpdatedAt(v *time.Time) *CustomerUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return cu
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (cu *CustomerUpdate) ClearUpdatedAt() *CustomerUpdate {
-	cu.mutation.ClearUpdatedAt()
-	return cu
+func (_u *CustomerUpdate) ClearUpdatedAt() *CustomerUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // AddAbonementIDs adds the "abonements" edge to the Abonement entity by IDs.
-func (cu *CustomerUpdate) AddAbonementIDs(ids ...int) *CustomerUpdate {
-	cu.mutation.AddAbonementIDs(ids...)
-	return cu
+func (_u *CustomerUpdate) AddAbonementIDs(ids ...int) *CustomerUpdate {
+	_u.mutation.AddAbonementIDs(ids...)
+	return _u
 }
 
 // AddAbonements adds the "abonements" edges to the Abonement entity.
-func (cu *CustomerUpdate) AddAbonements(a ...*Abonement) *CustomerUpdate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+func (_u *CustomerUpdate) AddAbonements(v ...*Abonement) *CustomerUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return cu.AddAbonementIDs(ids...)
+	return _u.AddAbonementIDs(ids...)
 }
 
 // Mutation returns the CustomerMutation object of the builder.
-func (cu *CustomerUpdate) Mutation() *CustomerMutation {
-	return cu.mutation
+func (_u *CustomerUpdate) Mutation() *CustomerMutation {
+	return _u.mutation
 }
 
 // ClearAbonements clears all "abonements" edges to the Abonement entity.
-func (cu *CustomerUpdate) ClearAbonements() *CustomerUpdate {
-	cu.mutation.ClearAbonements()
-	return cu
+func (_u *CustomerUpdate) ClearAbonements() *CustomerUpdate {
+	_u.mutation.ClearAbonements()
+	return _u
 }
 
 // RemoveAbonementIDs removes the "abonements" edge to Abonement entities by IDs.
-func (cu *CustomerUpdate) RemoveAbonementIDs(ids ...int) *CustomerUpdate {
-	cu.mutation.RemoveAbonementIDs(ids...)
-	return cu
+func (_u *CustomerUpdate) RemoveAbonementIDs(ids ...int) *CustomerUpdate {
+	_u.mutation.RemoveAbonementIDs(ids...)
+	return _u
 }
 
 // RemoveAbonements removes "abonements" edges to Abonement entities.
-func (cu *CustomerUpdate) RemoveAbonements(a ...*Abonement) *CustomerUpdate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+func (_u *CustomerUpdate) RemoveAbonements(v ...*Abonement) *CustomerUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return cu.RemoveAbonementIDs(ids...)
+	return _u.RemoveAbonementIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (cu *CustomerUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, cu.sqlSave, cu.mutation, cu.hooks)
+func (_u *CustomerUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (cu *CustomerUpdate) SaveX(ctx context.Context) int {
-	affected, err := cu.Save(ctx)
+func (_u *CustomerUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -195,55 +195,55 @@ func (cu *CustomerUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (cu *CustomerUpdate) Exec(ctx context.Context) error {
-	_, err := cu.Save(ctx)
+func (_u *CustomerUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (cu *CustomerUpdate) ExecX(ctx context.Context) {
-	if err := cu.Exec(ctx); err != nil {
+func (_u *CustomerUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *CustomerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(customer.Table, customer.Columns, sqlgraph.NewFieldSpec(customer.FieldID, field.TypeInt))
-	if ps := cu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := cu.mutation.Keycloakid(); ok {
+	if value, ok := _u.mutation.Keycloakid(); ok {
 		_spec.SetField(customer.FieldKeycloakid, field.TypeString, value)
 	}
-	if value, ok := cu.mutation.Email(); ok {
+	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(customer.FieldEmail, field.TypeString, value)
 	}
-	if value, ok := cu.mutation.Firstname(); ok {
+	if value, ok := _u.mutation.Firstname(); ok {
 		_spec.SetField(customer.FieldFirstname, field.TypeString, value)
 	}
-	if value, ok := cu.mutation.Lastname(); ok {
+	if value, ok := _u.mutation.Lastname(); ok {
 		_spec.SetField(customer.FieldLastname, field.TypeString, value)
 	}
-	if value, ok := cu.mutation.Licensegroups(); ok {
+	if value, ok := _u.mutation.Licensegroups(); ok {
 		_spec.SetField(customer.FieldLicensegroups, field.TypeString, value)
 	}
-	if value, ok := cu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(customer.FieldCreatedAt, field.TypeTime, value)
 	}
-	if cu.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(customer.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := cu.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(customer.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if cu.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(customer.FieldUpdatedAt, field.TypeTime)
 	}
-	if cu.mutation.AbonementsCleared() {
+	if _u.mutation.AbonementsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -256,7 +256,7 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.RemovedAbonementsIDs(); len(nodes) > 0 && !cu.mutation.AbonementsCleared() {
+	if nodes := _u.mutation.RemovedAbonementsIDs(); len(nodes) > 0 && !_u.mutation.AbonementsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -272,7 +272,7 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.AbonementsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.AbonementsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -288,7 +288,7 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{customer.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -296,8 +296,8 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	cu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // CustomerUpdateOne is the builder for updating a single Customer entity.
@@ -309,177 +309,177 @@ type CustomerUpdateOne struct {
 }
 
 // SetKeycloakid sets the "keycloakid" field.
-func (cuo *CustomerUpdateOne) SetKeycloakid(s string) *CustomerUpdateOne {
-	cuo.mutation.SetKeycloakid(s)
-	return cuo
+func (_u *CustomerUpdateOne) SetKeycloakid(v string) *CustomerUpdateOne {
+	_u.mutation.SetKeycloakid(v)
+	return _u
 }
 
 // SetNillableKeycloakid sets the "keycloakid" field if the given value is not nil.
-func (cuo *CustomerUpdateOne) SetNillableKeycloakid(s *string) *CustomerUpdateOne {
-	if s != nil {
-		cuo.SetKeycloakid(*s)
+func (_u *CustomerUpdateOne) SetNillableKeycloakid(v *string) *CustomerUpdateOne {
+	if v != nil {
+		_u.SetKeycloakid(*v)
 	}
-	return cuo
+	return _u
 }
 
 // SetEmail sets the "email" field.
-func (cuo *CustomerUpdateOne) SetEmail(s string) *CustomerUpdateOne {
-	cuo.mutation.SetEmail(s)
-	return cuo
+func (_u *CustomerUpdateOne) SetEmail(v string) *CustomerUpdateOne {
+	_u.mutation.SetEmail(v)
+	return _u
 }
 
 // SetNillableEmail sets the "email" field if the given value is not nil.
-func (cuo *CustomerUpdateOne) SetNillableEmail(s *string) *CustomerUpdateOne {
-	if s != nil {
-		cuo.SetEmail(*s)
+func (_u *CustomerUpdateOne) SetNillableEmail(v *string) *CustomerUpdateOne {
+	if v != nil {
+		_u.SetEmail(*v)
 	}
-	return cuo
+	return _u
 }
 
 // SetFirstname sets the "firstname" field.
-func (cuo *CustomerUpdateOne) SetFirstname(s string) *CustomerUpdateOne {
-	cuo.mutation.SetFirstname(s)
-	return cuo
+func (_u *CustomerUpdateOne) SetFirstname(v string) *CustomerUpdateOne {
+	_u.mutation.SetFirstname(v)
+	return _u
 }
 
 // SetNillableFirstname sets the "firstname" field if the given value is not nil.
-func (cuo *CustomerUpdateOne) SetNillableFirstname(s *string) *CustomerUpdateOne {
-	if s != nil {
-		cuo.SetFirstname(*s)
+func (_u *CustomerUpdateOne) SetNillableFirstname(v *string) *CustomerUpdateOne {
+	if v != nil {
+		_u.SetFirstname(*v)
 	}
-	return cuo
+	return _u
 }
 
 // SetLastname sets the "lastname" field.
-func (cuo *CustomerUpdateOne) SetLastname(s string) *CustomerUpdateOne {
-	cuo.mutation.SetLastname(s)
-	return cuo
+func (_u *CustomerUpdateOne) SetLastname(v string) *CustomerUpdateOne {
+	_u.mutation.SetLastname(v)
+	return _u
 }
 
 // SetNillableLastname sets the "lastname" field if the given value is not nil.
-func (cuo *CustomerUpdateOne) SetNillableLastname(s *string) *CustomerUpdateOne {
-	if s != nil {
-		cuo.SetLastname(*s)
+func (_u *CustomerUpdateOne) SetNillableLastname(v *string) *CustomerUpdateOne {
+	if v != nil {
+		_u.SetLastname(*v)
 	}
-	return cuo
+	return _u
 }
 
 // SetLicensegroups sets the "licensegroups" field.
-func (cuo *CustomerUpdateOne) SetLicensegroups(s string) *CustomerUpdateOne {
-	cuo.mutation.SetLicensegroups(s)
-	return cuo
+func (_u *CustomerUpdateOne) SetLicensegroups(v string) *CustomerUpdateOne {
+	_u.mutation.SetLicensegroups(v)
+	return _u
 }
 
 // SetNillableLicensegroups sets the "licensegroups" field if the given value is not nil.
-func (cuo *CustomerUpdateOne) SetNillableLicensegroups(s *string) *CustomerUpdateOne {
-	if s != nil {
-		cuo.SetLicensegroups(*s)
+func (_u *CustomerUpdateOne) SetNillableLicensegroups(v *string) *CustomerUpdateOne {
+	if v != nil {
+		_u.SetLicensegroups(*v)
 	}
-	return cuo
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (cuo *CustomerUpdateOne) SetCreatedAt(t time.Time) *CustomerUpdateOne {
-	cuo.mutation.SetCreatedAt(t)
-	return cuo
+func (_u *CustomerUpdateOne) SetCreatedAt(v time.Time) *CustomerUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (cuo *CustomerUpdateOne) SetNillableCreatedAt(t *time.Time) *CustomerUpdateOne {
-	if t != nil {
-		cuo.SetCreatedAt(*t)
+func (_u *CustomerUpdateOne) SetNillableCreatedAt(v *time.Time) *CustomerUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return cuo
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (cuo *CustomerUpdateOne) ClearCreatedAt() *CustomerUpdateOne {
-	cuo.mutation.ClearCreatedAt()
-	return cuo
+func (_u *CustomerUpdateOne) ClearCreatedAt() *CustomerUpdateOne {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (cuo *CustomerUpdateOne) SetUpdatedAt(t time.Time) *CustomerUpdateOne {
-	cuo.mutation.SetUpdatedAt(t)
-	return cuo
+func (_u *CustomerUpdateOne) SetUpdatedAt(v time.Time) *CustomerUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (cuo *CustomerUpdateOne) SetNillableUpdatedAt(t *time.Time) *CustomerUpdateOne {
-	if t != nil {
-		cuo.SetUpdatedAt(*t)
+func (_u *CustomerUpdateOne) SetNillableUpdatedAt(v *time.Time) *CustomerUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return cuo
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (cuo *CustomerUpdateOne) ClearUpdatedAt() *CustomerUpdateOne {
-	cuo.mutation.ClearUpdatedAt()
-	return cuo
+func (_u *CustomerUpdateOne) ClearUpdatedAt() *CustomerUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // AddAbonementIDs adds the "abonements" edge to the Abonement entity by IDs.
-func (cuo *CustomerUpdateOne) AddAbonementIDs(ids ...int) *CustomerUpdateOne {
-	cuo.mutation.AddAbonementIDs(ids...)
-	return cuo
+func (_u *CustomerUpdateOne) AddAbonementIDs(ids ...int) *CustomerUpdateOne {
+	_u.mutation.AddAbonementIDs(ids...)
+	return _u
 }
 
 // AddAbonements adds the "abonements" edges to the Abonement entity.
-func (cuo *CustomerUpdateOne) AddAbonements(a ...*Abonement) *CustomerUpdateOne {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+func (_u *CustomerUpdateOne) AddAbonements(v ...*Abonement) *CustomerUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return cuo.AddAbonementIDs(ids...)
+	return _u.AddAbonementIDs(ids...)
 }
 
 // Mutation returns the CustomerMutation object of the builder.
-func (cuo *CustomerUpdateOne) Mutation() *CustomerMutation {
-	return cuo.mutation
+func (_u *CustomerUpdateOne) Mutation() *CustomerMutation {
+	return _u.mutation
 }
 
 // ClearAbonements clears all "abonements" edges to the Abonement entity.
-func (cuo *CustomerUpdateOne) ClearAbonements() *CustomerUpdateOne {
-	cuo.mutation.ClearAbonements()
-	return cuo
+func (_u *CustomerUpdateOne) ClearAbonements() *CustomerUpdateOne {
+	_u.mutation.ClearAbonements()
+	return _u
 }
 
 // RemoveAbonementIDs removes the "abonements" edge to Abonement entities by IDs.
-func (cuo *CustomerUpdateOne) RemoveAbonementIDs(ids ...int) *CustomerUpdateOne {
-	cuo.mutation.RemoveAbonementIDs(ids...)
-	return cuo
+func (_u *CustomerUpdateOne) RemoveAbonementIDs(ids ...int) *CustomerUpdateOne {
+	_u.mutation.RemoveAbonementIDs(ids...)
+	return _u
 }
 
 // RemoveAbonements removes "abonements" edges to Abonement entities.
-func (cuo *CustomerUpdateOne) RemoveAbonements(a ...*Abonement) *CustomerUpdateOne {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+func (_u *CustomerUpdateOne) RemoveAbonements(v ...*Abonement) *CustomerUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return cuo.RemoveAbonementIDs(ids...)
+	return _u.RemoveAbonementIDs(ids...)
 }
 
 // Where appends a list predicates to the CustomerUpdate builder.
-func (cuo *CustomerUpdateOne) Where(ps ...predicate.Customer) *CustomerUpdateOne {
-	cuo.mutation.Where(ps...)
-	return cuo
+func (_u *CustomerUpdateOne) Where(ps ...predicate.Customer) *CustomerUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (cuo *CustomerUpdateOne) Select(field string, fields ...string) *CustomerUpdateOne {
-	cuo.fields = append([]string{field}, fields...)
-	return cuo
+func (_u *CustomerUpdateOne) Select(field string, fields ...string) *CustomerUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated Customer entity.
-func (cuo *CustomerUpdateOne) Save(ctx context.Context) (*Customer, error) {
-	return withHooks(ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
+func (_u *CustomerUpdateOne) Save(ctx context.Context) (*Customer, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (cuo *CustomerUpdateOne) SaveX(ctx context.Context) *Customer {
-	node, err := cuo.Save(ctx)
+func (_u *CustomerUpdateOne) SaveX(ctx context.Context) *Customer {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -487,26 +487,26 @@ func (cuo *CustomerUpdateOne) SaveX(ctx context.Context) *Customer {
 }
 
 // Exec executes the query on the entity.
-func (cuo *CustomerUpdateOne) Exec(ctx context.Context) error {
-	_, err := cuo.Save(ctx)
+func (_u *CustomerUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (cuo *CustomerUpdateOne) ExecX(ctx context.Context) {
-	if err := cuo.Exec(ctx); err != nil {
+func (_u *CustomerUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err error) {
+func (_u *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err error) {
 	_spec := sqlgraph.NewUpdateSpec(customer.Table, customer.Columns, sqlgraph.NewFieldSpec(customer.FieldID, field.TypeInt))
-	id, ok := cuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Customer.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := cuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, customer.FieldID)
 		for _, f := range fields {
@@ -518,41 +518,41 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err
 			}
 		}
 	}
-	if ps := cuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := cuo.mutation.Keycloakid(); ok {
+	if value, ok := _u.mutation.Keycloakid(); ok {
 		_spec.SetField(customer.FieldKeycloakid, field.TypeString, value)
 	}
-	if value, ok := cuo.mutation.Email(); ok {
+	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(customer.FieldEmail, field.TypeString, value)
 	}
-	if value, ok := cuo.mutation.Firstname(); ok {
+	if value, ok := _u.mutation.Firstname(); ok {
 		_spec.SetField(customer.FieldFirstname, field.TypeString, value)
 	}
-	if value, ok := cuo.mutation.Lastname(); ok {
+	if value, ok := _u.mutation.Lastname(); ok {
 		_spec.SetField(customer.FieldLastname, field.TypeString, value)
 	}
-	if value, ok := cuo.mutation.Licensegroups(); ok {
+	if value, ok := _u.mutation.Licensegroups(); ok {
 		_spec.SetField(customer.FieldLicensegroups, field.TypeString, value)
 	}
-	if value, ok := cuo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(customer.FieldCreatedAt, field.TypeTime, value)
 	}
-	if cuo.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(customer.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := cuo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(customer.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if cuo.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(customer.FieldUpdatedAt, field.TypeTime)
 	}
-	if cuo.mutation.AbonementsCleared() {
+	if _u.mutation.AbonementsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -565,7 +565,7 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.RemovedAbonementsIDs(); len(nodes) > 0 && !cuo.mutation.AbonementsCleared() {
+	if nodes := _u.mutation.RemovedAbonementsIDs(); len(nodes) > 0 && !_u.mutation.AbonementsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -581,7 +581,7 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.AbonementsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.AbonementsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -597,10 +597,10 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &Customer{config: cuo.config}
+	_node = &Customer{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, cuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{customer.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -608,6 +608,6 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err
 		}
 		return nil, err
 	}
-	cuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

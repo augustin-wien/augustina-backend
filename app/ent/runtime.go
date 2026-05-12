@@ -278,6 +278,10 @@ func init() {
 	settingsDescDigitalItemsUrl := settingsFields[22].Descriptor()
 	// settings.DefaultDigitalItemsUrl holds the default value on creation for the DigitalItemsUrl field.
 	settings.DefaultDigitalItemsUrl = settingsDescDigitalItemsUrl.Default.(string)
+	// settingsDescAbonementUrl is the schema descriptor for AbonementUrl field.
+	settingsDescAbonementUrl := settingsFields[23].Descriptor()
+	// settings.DefaultAbonementUrl holds the default value on creation for the AbonementUrl field.
+	settings.DefaultAbonementUrl = settingsDescAbonementUrl.Default.(string)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

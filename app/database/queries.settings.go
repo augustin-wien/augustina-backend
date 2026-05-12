@@ -81,7 +81,8 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetQRCodeEnableLogo(settings.QRCodeEnableLogo).
 		SetUseTipInsteadOfDonation(settings.UseTipInsteadOfDonation).
 		SetShopLanding(settings.ShopLanding).
-		SetDigitalItemsUrl(settings.DigitalItemsUrl)
+		SetDigitalItemsUrl(settings.DigitalItemsUrl).
+		SetAbonementUrl(settings.AbonementUrl)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {

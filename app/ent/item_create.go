@@ -21,213 +21,213 @@ type ItemCreate struct {
 }
 
 // SetName sets the "Name" field.
-func (ic *ItemCreate) SetName(s string) *ItemCreate {
-	ic.mutation.SetName(s)
-	return ic
+func (_c *ItemCreate) SetName(v string) *ItemCreate {
+	_c.mutation.SetName(v)
+	return _c
 }
 
 // SetDescription sets the "Description" field.
-func (ic *ItemCreate) SetDescription(s string) *ItemCreate {
-	ic.mutation.SetDescription(s)
-	return ic
+func (_c *ItemCreate) SetDescription(v string) *ItemCreate {
+	_c.mutation.SetDescription(v)
+	return _c
 }
 
 // SetPrice sets the "Price" field.
-func (ic *ItemCreate) SetPrice(f float64) *ItemCreate {
-	ic.mutation.SetPrice(f)
-	return ic
+func (_c *ItemCreate) SetPrice(v float64) *ItemCreate {
+	_c.mutation.SetPrice(v)
+	return _c
 }
 
 // SetImage sets the "Image" field.
-func (ic *ItemCreate) SetImage(s string) *ItemCreate {
-	ic.mutation.SetImage(s)
-	return ic
+func (_c *ItemCreate) SetImage(v string) *ItemCreate {
+	_c.mutation.SetImage(v)
+	return _c
 }
 
 // SetArchived sets the "Archived" field.
-func (ic *ItemCreate) SetArchived(b bool) *ItemCreate {
-	ic.mutation.SetArchived(b)
-	return ic
+func (_c *ItemCreate) SetArchived(v bool) *ItemCreate {
+	_c.mutation.SetArchived(v)
+	return _c
 }
 
 // SetNillableArchived sets the "Archived" field if the given value is not nil.
-func (ic *ItemCreate) SetNillableArchived(b *bool) *ItemCreate {
-	if b != nil {
-		ic.SetArchived(*b)
+func (_c *ItemCreate) SetNillableArchived(v *bool) *ItemCreate {
+	if v != nil {
+		_c.SetArchived(*v)
 	}
-	return ic
+	return _c
 }
 
 // SetDisabled sets the "Disabled" field.
-func (ic *ItemCreate) SetDisabled(b bool) *ItemCreate {
-	ic.mutation.SetDisabled(b)
-	return ic
+func (_c *ItemCreate) SetDisabled(v bool) *ItemCreate {
+	_c.mutation.SetDisabled(v)
+	return _c
 }
 
 // SetNillableDisabled sets the "Disabled" field if the given value is not nil.
-func (ic *ItemCreate) SetNillableDisabled(b *bool) *ItemCreate {
-	if b != nil {
-		ic.SetDisabled(*b)
+func (_c *ItemCreate) SetNillableDisabled(v *bool) *ItemCreate {
+	if v != nil {
+		_c.SetDisabled(*v)
 	}
-	return ic
+	return _c
 }
 
 // SetIsLicenseItem sets the "IsLicenseItem" field.
-func (ic *ItemCreate) SetIsLicenseItem(b bool) *ItemCreate {
-	ic.mutation.SetIsLicenseItem(b)
-	return ic
+func (_c *ItemCreate) SetIsLicenseItem(v bool) *ItemCreate {
+	_c.mutation.SetIsLicenseItem(v)
+	return _c
 }
 
 // SetNillableIsLicenseItem sets the "IsLicenseItem" field if the given value is not nil.
-func (ic *ItemCreate) SetNillableIsLicenseItem(b *bool) *ItemCreate {
-	if b != nil {
-		ic.SetIsLicenseItem(*b)
+func (_c *ItemCreate) SetNillableIsLicenseItem(v *bool) *ItemCreate {
+	if v != nil {
+		_c.SetIsLicenseItem(*v)
 	}
-	return ic
+	return _c
 }
 
 // SetLicenseGroup sets the "LicenseGroup" field.
-func (ic *ItemCreate) SetLicenseGroup(s string) *ItemCreate {
-	ic.mutation.SetLicenseGroup(s)
-	return ic
+func (_c *ItemCreate) SetLicenseGroup(v string) *ItemCreate {
+	_c.mutation.SetLicenseGroup(v)
+	return _c
 }
 
 // SetNillableLicenseGroup sets the "LicenseGroup" field if the given value is not nil.
-func (ic *ItemCreate) SetNillableLicenseGroup(s *string) *ItemCreate {
-	if s != nil {
-		ic.SetLicenseGroup(*s)
+func (_c *ItemCreate) SetNillableLicenseGroup(v *string) *ItemCreate {
+	if v != nil {
+		_c.SetLicenseGroup(*v)
 	}
-	return ic
+	return _c
 }
 
 // SetType sets the "Type" field.
-func (ic *ItemCreate) SetType(s string) *ItemCreate {
-	ic.mutation.SetType(s)
-	return ic
+func (_c *ItemCreate) SetType(v string) *ItemCreate {
+	_c.mutation.SetType(v)
+	return _c
 }
 
 // SetNillableType sets the "Type" field if the given value is not nil.
-func (ic *ItemCreate) SetNillableType(s *string) *ItemCreate {
-	if s != nil {
-		ic.SetType(*s)
+func (_c *ItemCreate) SetNillableType(v *string) *ItemCreate {
+	if v != nil {
+		_c.SetType(*v)
 	}
-	return ic
+	return _c
 }
 
 // SetIsPDFItem sets the "IsPDFItem" field.
-func (ic *ItemCreate) SetIsPDFItem(b bool) *ItemCreate {
-	ic.mutation.SetIsPDFItem(b)
-	return ic
+func (_c *ItemCreate) SetIsPDFItem(v bool) *ItemCreate {
+	_c.mutation.SetIsPDFItem(v)
+	return _c
 }
 
 // SetNillableIsPDFItem sets the "IsPDFItem" field if the given value is not nil.
-func (ic *ItemCreate) SetNillableIsPDFItem(b *bool) *ItemCreate {
-	if b != nil {
-		ic.SetIsPDFItem(*b)
+func (_c *ItemCreate) SetNillableIsPDFItem(v *bool) *ItemCreate {
+	if v != nil {
+		_c.SetIsPDFItem(*v)
 	}
-	return ic
+	return _c
 }
 
 // SetItemOrder sets the "ItemOrder" field.
-func (ic *ItemCreate) SetItemOrder(i int) *ItemCreate {
-	ic.mutation.SetItemOrder(i)
-	return ic
+func (_c *ItemCreate) SetItemOrder(v int) *ItemCreate {
+	_c.mutation.SetItemOrder(v)
+	return _c
 }
 
 // SetNillableItemOrder sets the "ItemOrder" field if the given value is not nil.
-func (ic *ItemCreate) SetNillableItemOrder(i *int) *ItemCreate {
-	if i != nil {
-		ic.SetItemOrder(*i)
+func (_c *ItemCreate) SetNillableItemOrder(v *int) *ItemCreate {
+	if v != nil {
+		_c.SetItemOrder(*v)
 	}
-	return ic
+	return _c
 }
 
 // SetItemColor sets the "ItemColor" field.
-func (ic *ItemCreate) SetItemColor(s string) *ItemCreate {
-	ic.mutation.SetItemColor(s)
-	return ic
+func (_c *ItemCreate) SetItemColor(v string) *ItemCreate {
+	_c.mutation.SetItemColor(v)
+	return _c
 }
 
 // SetNillableItemColor sets the "ItemColor" field if the given value is not nil.
-func (ic *ItemCreate) SetNillableItemColor(s *string) *ItemCreate {
-	if s != nil {
-		ic.SetItemColor(*s)
+func (_c *ItemCreate) SetNillableItemColor(v *string) *ItemCreate {
+	if v != nil {
+		_c.SetItemColor(*v)
 	}
-	return ic
+	return _c
 }
 
 // SetItemTextColor sets the "ItemTextColor" field.
-func (ic *ItemCreate) SetItemTextColor(s string) *ItemCreate {
-	ic.mutation.SetItemTextColor(s)
-	return ic
+func (_c *ItemCreate) SetItemTextColor(v string) *ItemCreate {
+	_c.mutation.SetItemTextColor(v)
+	return _c
 }
 
 // SetNillableItemTextColor sets the "ItemTextColor" field if the given value is not nil.
-func (ic *ItemCreate) SetNillableItemTextColor(s *string) *ItemCreate {
-	if s != nil {
-		ic.SetItemTextColor(*s)
+func (_c *ItemCreate) SetNillableItemTextColor(v *string) *ItemCreate {
+	if v != nil {
+		_c.SetItemTextColor(*v)
 	}
-	return ic
+	return _c
 }
 
 // SetID sets the "id" field.
-func (ic *ItemCreate) SetID(i int) *ItemCreate {
-	ic.mutation.SetID(i)
-	return ic
+func (_c *ItemCreate) SetID(v int) *ItemCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // SetLicenseItemID sets the "LicenseItem" edge to the Item entity by ID.
-func (ic *ItemCreate) SetLicenseItemID(id int) *ItemCreate {
-	ic.mutation.SetLicenseItemID(id)
-	return ic
+func (_c *ItemCreate) SetLicenseItemID(id int) *ItemCreate {
+	_c.mutation.SetLicenseItemID(id)
+	return _c
 }
 
 // SetNillableLicenseItemID sets the "LicenseItem" edge to the Item entity by ID if the given value is not nil.
-func (ic *ItemCreate) SetNillableLicenseItemID(id *int) *ItemCreate {
+func (_c *ItemCreate) SetNillableLicenseItemID(id *int) *ItemCreate {
 	if id != nil {
-		ic = ic.SetLicenseItemID(*id)
+		_c = _c.SetLicenseItemID(*id)
 	}
-	return ic
+	return _c
 }
 
 // SetLicenseItem sets the "LicenseItem" edge to the Item entity.
-func (ic *ItemCreate) SetLicenseItem(i *Item) *ItemCreate {
-	return ic.SetLicenseItemID(i.ID)
+func (_c *ItemCreate) SetLicenseItem(v *Item) *ItemCreate {
+	return _c.SetLicenseItemID(v.ID)
 }
 
 // SetPDFID sets the "PDF" edge to the PDF entity by ID.
-func (ic *ItemCreate) SetPDFID(id int) *ItemCreate {
-	ic.mutation.SetPDFID(id)
-	return ic
+func (_c *ItemCreate) SetPDFID(id int) *ItemCreate {
+	_c.mutation.SetPDFID(id)
+	return _c
 }
 
 // SetNillablePDFID sets the "PDF" edge to the PDF entity by ID if the given value is not nil.
-func (ic *ItemCreate) SetNillablePDFID(id *int) *ItemCreate {
+func (_c *ItemCreate) SetNillablePDFID(id *int) *ItemCreate {
 	if id != nil {
-		ic = ic.SetPDFID(*id)
+		_c = _c.SetPDFID(*id)
 	}
-	return ic
+	return _c
 }
 
 // SetPDF sets the "PDF" edge to the PDF entity.
-func (ic *ItemCreate) SetPDF(p *PDF) *ItemCreate {
-	return ic.SetPDFID(p.ID)
+func (_c *ItemCreate) SetPDF(v *PDF) *ItemCreate {
+	return _c.SetPDFID(v.ID)
 }
 
 // Mutation returns the ItemMutation object of the builder.
-func (ic *ItemCreate) Mutation() *ItemMutation {
-	return ic.mutation
+func (_c *ItemCreate) Mutation() *ItemMutation {
+	return _c.mutation
 }
 
 // Save creates the Item in the database.
-func (ic *ItemCreate) Save(ctx context.Context) (*Item, error) {
-	ic.defaults()
-	return withHooks(ctx, ic.sqlSave, ic.mutation, ic.hooks)
+func (_c *ItemCreate) Save(ctx context.Context) (*Item, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (ic *ItemCreate) SaveX(ctx context.Context) *Item {
-	v, err := ic.Save(ctx)
+func (_c *ItemCreate) SaveX(ctx context.Context) *Item {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -235,115 +235,115 @@ func (ic *ItemCreate) SaveX(ctx context.Context) *Item {
 }
 
 // Exec executes the query.
-func (ic *ItemCreate) Exec(ctx context.Context) error {
-	_, err := ic.Save(ctx)
+func (_c *ItemCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (ic *ItemCreate) ExecX(ctx context.Context) {
-	if err := ic.Exec(ctx); err != nil {
+func (_c *ItemCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (ic *ItemCreate) defaults() {
-	if _, ok := ic.mutation.Archived(); !ok {
+func (_c *ItemCreate) defaults() {
+	if _, ok := _c.mutation.Archived(); !ok {
 		v := item.DefaultArchived
-		ic.mutation.SetArchived(v)
+		_c.mutation.SetArchived(v)
 	}
-	if _, ok := ic.mutation.Disabled(); !ok {
+	if _, ok := _c.mutation.Disabled(); !ok {
 		v := item.DefaultDisabled
-		ic.mutation.SetDisabled(v)
+		_c.mutation.SetDisabled(v)
 	}
-	if _, ok := ic.mutation.IsLicenseItem(); !ok {
+	if _, ok := _c.mutation.IsLicenseItem(); !ok {
 		v := item.DefaultIsLicenseItem
-		ic.mutation.SetIsLicenseItem(v)
+		_c.mutation.SetIsLicenseItem(v)
 	}
-	if _, ok := ic.mutation.LicenseGroup(); !ok {
+	if _, ok := _c.mutation.LicenseGroup(); !ok {
 		v := item.DefaultLicenseGroup
-		ic.mutation.SetLicenseGroup(v)
+		_c.mutation.SetLicenseGroup(v)
 	}
-	if _, ok := ic.mutation.GetType(); !ok {
+	if _, ok := _c.mutation.GetType(); !ok {
 		v := item.DefaultType
-		ic.mutation.SetType(v)
+		_c.mutation.SetType(v)
 	}
-	if _, ok := ic.mutation.IsPDFItem(); !ok {
+	if _, ok := _c.mutation.IsPDFItem(); !ok {
 		v := item.DefaultIsPDFItem
-		ic.mutation.SetIsPDFItem(v)
+		_c.mutation.SetIsPDFItem(v)
 	}
-	if _, ok := ic.mutation.ItemOrder(); !ok {
+	if _, ok := _c.mutation.ItemOrder(); !ok {
 		v := item.DefaultItemOrder
-		ic.mutation.SetItemOrder(v)
+		_c.mutation.SetItemOrder(v)
 	}
-	if _, ok := ic.mutation.ItemColor(); !ok {
+	if _, ok := _c.mutation.ItemColor(); !ok {
 		v := item.DefaultItemColor
-		ic.mutation.SetItemColor(v)
+		_c.mutation.SetItemColor(v)
 	}
-	if _, ok := ic.mutation.ItemTextColor(); !ok {
+	if _, ok := _c.mutation.ItemTextColor(); !ok {
 		v := item.DefaultItemTextColor
-		ic.mutation.SetItemTextColor(v)
+		_c.mutation.SetItemTextColor(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (ic *ItemCreate) check() error {
-	if _, ok := ic.mutation.Name(); !ok {
+func (_c *ItemCreate) check() error {
+	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "Name", err: errors.New(`ent: missing required field "Item.Name"`)}
 	}
-	if v, ok := ic.mutation.Name(); ok {
+	if v, ok := _c.mutation.Name(); ok {
 		if err := item.NameValidator(v); err != nil {
 			return &ValidationError{Name: "Name", err: fmt.Errorf(`ent: validator failed for field "Item.Name": %w`, err)}
 		}
 	}
-	if _, ok := ic.mutation.Description(); !ok {
+	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "Description", err: errors.New(`ent: missing required field "Item.Description"`)}
 	}
-	if v, ok := ic.mutation.Description(); ok {
+	if v, ok := _c.mutation.Description(); ok {
 		if err := item.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "Description", err: fmt.Errorf(`ent: validator failed for field "Item.Description": %w`, err)}
 		}
 	}
-	if _, ok := ic.mutation.Price(); !ok {
+	if _, ok := _c.mutation.Price(); !ok {
 		return &ValidationError{Name: "Price", err: errors.New(`ent: missing required field "Item.Price"`)}
 	}
-	if v, ok := ic.mutation.Price(); ok {
+	if v, ok := _c.mutation.Price(); ok {
 		if err := item.PriceValidator(v); err != nil {
 			return &ValidationError{Name: "Price", err: fmt.Errorf(`ent: validator failed for field "Item.Price": %w`, err)}
 		}
 	}
-	if _, ok := ic.mutation.Image(); !ok {
+	if _, ok := _c.mutation.Image(); !ok {
 		return &ValidationError{Name: "Image", err: errors.New(`ent: missing required field "Item.Image"`)}
 	}
-	if _, ok := ic.mutation.Archived(); !ok {
+	if _, ok := _c.mutation.Archived(); !ok {
 		return &ValidationError{Name: "Archived", err: errors.New(`ent: missing required field "Item.Archived"`)}
 	}
-	if _, ok := ic.mutation.Disabled(); !ok {
+	if _, ok := _c.mutation.Disabled(); !ok {
 		return &ValidationError{Name: "Disabled", err: errors.New(`ent: missing required field "Item.Disabled"`)}
 	}
-	if _, ok := ic.mutation.IsLicenseItem(); !ok {
+	if _, ok := _c.mutation.IsLicenseItem(); !ok {
 		return &ValidationError{Name: "IsLicenseItem", err: errors.New(`ent: missing required field "Item.IsLicenseItem"`)}
 	}
-	if _, ok := ic.mutation.LicenseGroup(); !ok {
+	if _, ok := _c.mutation.LicenseGroup(); !ok {
 		return &ValidationError{Name: "LicenseGroup", err: errors.New(`ent: missing required field "Item.LicenseGroup"`)}
 	}
-	if _, ok := ic.mutation.GetType(); !ok {
+	if _, ok := _c.mutation.GetType(); !ok {
 		return &ValidationError{Name: "Type", err: errors.New(`ent: missing required field "Item.Type"`)}
 	}
-	if _, ok := ic.mutation.IsPDFItem(); !ok {
+	if _, ok := _c.mutation.IsPDFItem(); !ok {
 		return &ValidationError{Name: "IsPDFItem", err: errors.New(`ent: missing required field "Item.IsPDFItem"`)}
 	}
-	if _, ok := ic.mutation.ItemOrder(); !ok {
+	if _, ok := _c.mutation.ItemOrder(); !ok {
 		return &ValidationError{Name: "ItemOrder", err: errors.New(`ent: missing required field "Item.ItemOrder"`)}
 	}
-	if _, ok := ic.mutation.ItemColor(); !ok {
+	if _, ok := _c.mutation.ItemColor(); !ok {
 		return &ValidationError{Name: "ItemColor", err: errors.New(`ent: missing required field "Item.ItemColor"`)}
 	}
-	if _, ok := ic.mutation.ItemTextColor(); !ok {
+	if _, ok := _c.mutation.ItemTextColor(); !ok {
 		return &ValidationError{Name: "ItemTextColor", err: errors.New(`ent: missing required field "Item.ItemTextColor"`)}
 	}
-	if v, ok := ic.mutation.ID(); ok {
+	if v, ok := _c.mutation.ID(); ok {
 		if err := item.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Item.id": %w`, err)}
 		}
@@ -351,12 +351,12 @@ func (ic *ItemCreate) check() error {
 	return nil
 }
 
-func (ic *ItemCreate) sqlSave(ctx context.Context) (*Item, error) {
-	if err := ic.check(); err != nil {
+func (_c *ItemCreate) sqlSave(ctx context.Context) (*Item, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := ic.createSpec()
-	if err := sqlgraph.CreateNode(ctx, ic.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -366,73 +366,73 @@ func (ic *ItemCreate) sqlSave(ctx context.Context) (*Item, error) {
 		id := _spec.ID.Value.(int64)
 		_node.ID = int(id)
 	}
-	ic.mutation.id = &_node.ID
-	ic.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (ic *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
+func (_c *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
 	var (
-		_node = &Item{config: ic.config}
+		_node = &Item{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(item.Table, sqlgraph.NewFieldSpec(item.FieldID, field.TypeInt))
 	)
-	if id, ok := ic.mutation.ID(); ok {
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := ic.mutation.Name(); ok {
+	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(item.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := ic.mutation.Description(); ok {
+	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(item.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := ic.mutation.Price(); ok {
+	if value, ok := _c.mutation.Price(); ok {
 		_spec.SetField(item.FieldPrice, field.TypeFloat64, value)
 		_node.Price = value
 	}
-	if value, ok := ic.mutation.Image(); ok {
+	if value, ok := _c.mutation.Image(); ok {
 		_spec.SetField(item.FieldImage, field.TypeString, value)
 		_node.Image = value
 	}
-	if value, ok := ic.mutation.Archived(); ok {
+	if value, ok := _c.mutation.Archived(); ok {
 		_spec.SetField(item.FieldArchived, field.TypeBool, value)
 		_node.Archived = value
 	}
-	if value, ok := ic.mutation.Disabled(); ok {
+	if value, ok := _c.mutation.Disabled(); ok {
 		_spec.SetField(item.FieldDisabled, field.TypeBool, value)
 		_node.Disabled = value
 	}
-	if value, ok := ic.mutation.IsLicenseItem(); ok {
+	if value, ok := _c.mutation.IsLicenseItem(); ok {
 		_spec.SetField(item.FieldIsLicenseItem, field.TypeBool, value)
 		_node.IsLicenseItem = value
 	}
-	if value, ok := ic.mutation.LicenseGroup(); ok {
+	if value, ok := _c.mutation.LicenseGroup(); ok {
 		_spec.SetField(item.FieldLicenseGroup, field.TypeString, value)
 		_node.LicenseGroup = value
 	}
-	if value, ok := ic.mutation.GetType(); ok {
+	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(item.FieldType, field.TypeString, value)
 		_node.Type = value
 	}
-	if value, ok := ic.mutation.IsPDFItem(); ok {
+	if value, ok := _c.mutation.IsPDFItem(); ok {
 		_spec.SetField(item.FieldIsPDFItem, field.TypeBool, value)
 		_node.IsPDFItem = value
 	}
-	if value, ok := ic.mutation.ItemOrder(); ok {
+	if value, ok := _c.mutation.ItemOrder(); ok {
 		_spec.SetField(item.FieldItemOrder, field.TypeInt, value)
 		_node.ItemOrder = value
 	}
-	if value, ok := ic.mutation.ItemColor(); ok {
+	if value, ok := _c.mutation.ItemColor(); ok {
 		_spec.SetField(item.FieldItemColor, field.TypeString, value)
 		_node.ItemColor = value
 	}
-	if value, ok := ic.mutation.ItemTextColor(); ok {
+	if value, ok := _c.mutation.ItemTextColor(); ok {
 		_spec.SetField(item.FieldItemTextColor, field.TypeString, value)
 		_node.ItemTextColor = value
 	}
-	if nodes := ic.mutation.LicenseItemIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.LicenseItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -449,7 +449,7 @@ func (ic *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
 		_node.licenseitem = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ic.mutation.PDFIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.PDFIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -477,16 +477,16 @@ type ItemCreateBulk struct {
 }
 
 // Save creates the Item entities in the database.
-func (icb *ItemCreateBulk) Save(ctx context.Context) ([]*Item, error) {
-	if icb.err != nil {
-		return nil, icb.err
+func (_c *ItemCreateBulk) Save(ctx context.Context) ([]*Item, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(icb.builders))
-	nodes := make([]*Item, len(icb.builders))
-	mutators := make([]Mutator, len(icb.builders))
-	for i := range icb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*Item, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := icb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ItemMutation)
@@ -500,11 +500,11 @@ func (icb *ItemCreateBulk) Save(ctx context.Context) ([]*Item, error) {
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, icb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, icb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -528,7 +528,7 @@ func (icb *ItemCreateBulk) Save(ctx context.Context) ([]*Item, error) {
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, icb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -536,8 +536,8 @@ func (icb *ItemCreateBulk) Save(ctx context.Context) ([]*Item, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (icb *ItemCreateBulk) SaveX(ctx context.Context) []*Item {
-	v, err := icb.Save(ctx)
+func (_c *ItemCreateBulk) SaveX(ctx context.Context) []*Item {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -545,14 +545,14 @@ func (icb *ItemCreateBulk) SaveX(ctx context.Context) []*Item {
 }
 
 // Exec executes the query.
-func (icb *ItemCreateBulk) Exec(ctx context.Context) error {
-	_, err := icb.Save(ctx)
+func (_c *ItemCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (icb *ItemCreateBulk) ExecX(ctx context.Context) {
-	if err := icb.Exec(ctx); err != nil {
+func (_c *ItemCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

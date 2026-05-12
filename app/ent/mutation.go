@@ -11074,6 +11074,7 @@ type SettingsMutation struct {
 	_UseTipInsteadOfDonation    *bool
 	_ShopLanding                *bool
 	_DigitalItemsUrl            *string
+	_AbonementUrl               *string
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -12038,6 +12039,42 @@ func (m *SettingsMutation) ResetDigitalItemsUrl() {
 	m._DigitalItemsUrl = nil
 }
 
+// SetAbonementUrl sets the "AbonementUrl" field.
+func (m *SettingsMutation) SetAbonementUrl(s string) {
+	m._AbonementUrl = &s
+}
+
+// AbonementUrl returns the value of the "AbonementUrl" field in the mutation.
+func (m *SettingsMutation) AbonementUrl() (r string, exists bool) {
+	v := m._AbonementUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAbonementUrl returns the old "AbonementUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldAbonementUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAbonementUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAbonementUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAbonementUrl: %w", err)
+	}
+	return oldValue.AbonementUrl, nil
+}
+
+// ResetAbonementUrl resets all changes to the "AbonementUrl" field.
+func (m *SettingsMutation) ResetAbonementUrl() {
+	m._AbonementUrl = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -12111,7 +12148,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 23)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -12178,6 +12215,9 @@ func (m *SettingsMutation) Fields() []string {
 	if m._DigitalItemsUrl != nil {
 		fields = append(fields, settings.FieldDigitalItemsUrl)
 	}
+	if m._AbonementUrl != nil {
+		fields = append(fields, settings.FieldAbonementUrl)
+	}
 	return fields
 }
 
@@ -12230,6 +12270,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.ShopLanding()
 	case settings.FieldDigitalItemsUrl:
 		return m.DigitalItemsUrl()
+	case settings.FieldAbonementUrl:
+		return m.AbonementUrl()
 	}
 	return nil, false
 }
@@ -12283,6 +12325,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldShopLanding(ctx)
 	case settings.FieldDigitalItemsUrl:
 		return m.OldDigitalItemsUrl(ctx)
+	case settings.FieldAbonementUrl:
+		return m.OldAbonementUrl(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -12446,6 +12490,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDigitalItemsUrl(v)
 		return nil
+	case settings.FieldAbonementUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAbonementUrl(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -12599,6 +12650,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldDigitalItemsUrl:
 		m.ResetDigitalItemsUrl()
+		return nil
+	case settings.FieldAbonementUrl:
+		m.ResetAbonementUrl()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

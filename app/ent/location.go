@@ -82,7 +82,7 @@ func (*Location) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Location fields.
-func (l *Location) assignValues(columns []string, values []any) error {
+func (_m *Location) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -93,42 +93,42 @@ func (l *Location) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			l.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case location.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				l.Name = value.String
+				_m.Name = value.String
 			}
 		case location.FieldAddress:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field address", values[i])
 			} else if value.Valid {
-				l.Address = value.String
+				_m.Address = value.String
 			}
 		case location.FieldLongitude:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field longitude", values[i])
 			} else if value.Valid {
-				l.Longitude = value.Float64
+				_m.Longitude = value.Float64
 			}
 		case location.FieldLatitude:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field latitude", values[i])
 			} else if value.Valid {
-				l.Latitude = value.Float64
+				_m.Latitude = value.Float64
 			}
 		case location.FieldZip:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field zip", values[i])
 			} else if value.Valid {
-				l.Zip = value.String
+				_m.Zip = value.String
 			}
 		case location.FieldWorkingTime:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field working_time", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &l.WorkingTime); err != nil {
+				if err := json.Unmarshal(*value, &_m.WorkingTime); err != nil {
 					return fmt.Errorf("unmarshal field working_time: %w", err)
 				}
 			}
@@ -136,11 +136,11 @@ func (l *Location) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field vendor_locations", value)
 			} else if value.Valid {
-				l.vendor_locations = new(int)
-				*l.vendor_locations = int(value.Int64)
+				_m.vendor_locations = new(int)
+				*_m.vendor_locations = int(value.Int64)
 			}
 		default:
-			l.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -148,55 +148,55 @@ func (l *Location) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Location.
 // This includes values selected through modifiers, order, etc.
-func (l *Location) Value(name string) (ent.Value, error) {
-	return l.selectValues.Get(name)
+func (_m *Location) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryVendor queries the "vendor" edge of the Location entity.
-func (l *Location) QueryVendor() *VendorQuery {
-	return NewLocationClient(l.config).QueryVendor(l)
+func (_m *Location) QueryVendor() *VendorQuery {
+	return NewLocationClient(_m.config).QueryVendor(_m)
 }
 
 // Update returns a builder for updating this Location.
 // Note that you need to call Location.Unwrap() before calling this method if this Location
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (l *Location) Update() *LocationUpdateOne {
-	return NewLocationClient(l.config).UpdateOne(l)
+func (_m *Location) Update() *LocationUpdateOne {
+	return NewLocationClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Location entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (l *Location) Unwrap() *Location {
-	_tx, ok := l.config.driver.(*txDriver)
+func (_m *Location) Unwrap() *Location {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Location is not a transactional entity")
 	}
-	l.config.driver = _tx.drv
-	return l
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (l *Location) String() string {
+func (_m *Location) String() string {
 	var builder strings.Builder
 	builder.WriteString("Location(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", l.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
-	builder.WriteString(l.Name)
+	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
 	builder.WriteString("address=")
-	builder.WriteString(l.Address)
+	builder.WriteString(_m.Address)
 	builder.WriteString(", ")
 	builder.WriteString("longitude=")
-	builder.WriteString(fmt.Sprintf("%v", l.Longitude))
+	builder.WriteString(fmt.Sprintf("%v", _m.Longitude))
 	builder.WriteString(", ")
 	builder.WriteString("latitude=")
-	builder.WriteString(fmt.Sprintf("%v", l.Latitude))
+	builder.WriteString(fmt.Sprintf("%v", _m.Latitude))
 	builder.WriteString(", ")
 	builder.WriteString("zip=")
-	builder.WriteString(l.Zip)
+	builder.WriteString(_m.Zip)
 	builder.WriteString(", ")
 	builder.WriteString("working_time=")
-	builder.WriteString(fmt.Sprintf("%v", l.WorkingTime))
+	builder.WriteString(fmt.Sprintf("%v", _m.WorkingTime))
 	builder.WriteByte(')')
 	return builder.String()
 }

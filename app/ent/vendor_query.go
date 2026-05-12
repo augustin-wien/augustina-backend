@@ -35,44 +35,44 @@ type VendorQuery struct {
 }
 
 // Where adds a new predicate for the VendorQuery builder.
-func (vq *VendorQuery) Where(ps ...predicate.Vendor) *VendorQuery {
-	vq.predicates = append(vq.predicates, ps...)
-	return vq
+func (_q *VendorQuery) Where(ps ...predicate.Vendor) *VendorQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (vq *VendorQuery) Limit(limit int) *VendorQuery {
-	vq.ctx.Limit = &limit
-	return vq
+func (_q *VendorQuery) Limit(limit int) *VendorQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (vq *VendorQuery) Offset(offset int) *VendorQuery {
-	vq.ctx.Offset = &offset
-	return vq
+func (_q *VendorQuery) Offset(offset int) *VendorQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (vq *VendorQuery) Unique(unique bool) *VendorQuery {
-	vq.ctx.Unique = &unique
-	return vq
+func (_q *VendorQuery) Unique(unique bool) *VendorQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (vq *VendorQuery) Order(o ...vendor.OrderOption) *VendorQuery {
-	vq.order = append(vq.order, o...)
-	return vq
+func (_q *VendorQuery) Order(o ...vendor.OrderOption) *VendorQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // QueryLocations chains the current query on the "locations" edge.
-func (vq *VendorQuery) QueryLocations() *LocationQuery {
-	query := (&LocationClient{config: vq.config}).Query()
+func (_q *VendorQuery) QueryLocations() *LocationQuery {
+	query := (&LocationClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := vq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := vq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -81,20 +81,20 @@ func (vq *VendorQuery) QueryLocations() *LocationQuery {
 			sqlgraph.To(location.Table, location.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, vendor.LocationsTable, vendor.LocationsColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryComments chains the current query on the "comments" edge.
-func (vq *VendorQuery) QueryComments() *CommentQuery {
-	query := (&CommentClient{config: vq.config}).Query()
+func (_q *VendorQuery) QueryComments() *CommentQuery {
+	query := (&CommentClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := vq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := vq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -103,20 +103,20 @@ func (vq *VendorQuery) QueryComments() *CommentQuery {
 			sqlgraph.To(comment.Table, comment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, vendor.CommentsTable, vendor.CommentsColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryAccounts chains the current query on the "accounts" edge.
-func (vq *VendorQuery) QueryAccounts() *AccountQuery {
-	query := (&AccountClient{config: vq.config}).Query()
+func (_q *VendorQuery) QueryAccounts() *AccountQuery {
+	query := (&AccountClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := vq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := vq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -125,7 +125,7 @@ func (vq *VendorQuery) QueryAccounts() *AccountQuery {
 			sqlgraph.To(account.Table, account.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, vendor.AccountsTable, vendor.AccountsColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(vq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
@@ -133,8 +133,8 @@ func (vq *VendorQuery) QueryAccounts() *AccountQuery {
 
 // First returns the first Vendor entity from the query.
 // Returns a *NotFoundError when no Vendor was found.
-func (vq *VendorQuery) First(ctx context.Context) (*Vendor, error) {
-	nodes, err := vq.Limit(1).All(setContextOp(ctx, vq.ctx, ent.OpQueryFirst))
+func (_q *VendorQuery) First(ctx context.Context) (*Vendor, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +145,8 @@ func (vq *VendorQuery) First(ctx context.Context) (*Vendor, error) {
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (vq *VendorQuery) FirstX(ctx context.Context) *Vendor {
-	node, err := vq.First(ctx)
+func (_q *VendorQuery) FirstX(ctx context.Context) *Vendor {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -155,9 +155,9 @@ func (vq *VendorQuery) FirstX(ctx context.Context) *Vendor {
 
 // FirstID returns the first Vendor ID from the query.
 // Returns a *NotFoundError when no Vendor ID was found.
-func (vq *VendorQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *VendorQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = vq.Limit(1).IDs(setContextOp(ctx, vq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -168,8 +168,8 @@ func (vq *VendorQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (vq *VendorQuery) FirstIDX(ctx context.Context) int {
-	id, err := vq.FirstID(ctx)
+func (_q *VendorQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -179,8 +179,8 @@ func (vq *VendorQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single Vendor entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one Vendor entity is found.
 // Returns a *NotFoundError when no Vendor entities are found.
-func (vq *VendorQuery) Only(ctx context.Context) (*Vendor, error) {
-	nodes, err := vq.Limit(2).All(setContextOp(ctx, vq.ctx, ent.OpQueryOnly))
+func (_q *VendorQuery) Only(ctx context.Context) (*Vendor, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -195,8 +195,8 @@ func (vq *VendorQuery) Only(ctx context.Context) (*Vendor, error) {
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (vq *VendorQuery) OnlyX(ctx context.Context) *Vendor {
-	node, err := vq.Only(ctx)
+func (_q *VendorQuery) OnlyX(ctx context.Context) *Vendor {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -206,9 +206,9 @@ func (vq *VendorQuery) OnlyX(ctx context.Context) *Vendor {
 // OnlyID is like Only, but returns the only Vendor ID in the query.
 // Returns a *NotSingularError when more than one Vendor ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (vq *VendorQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *VendorQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = vq.Limit(2).IDs(setContextOp(ctx, vq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -223,8 +223,8 @@ func (vq *VendorQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (vq *VendorQuery) OnlyIDX(ctx context.Context) int {
-	id, err := vq.OnlyID(ctx)
+func (_q *VendorQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -232,18 +232,18 @@ func (vq *VendorQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of Vendors.
-func (vq *VendorQuery) All(ctx context.Context) ([]*Vendor, error) {
-	ctx = setContextOp(ctx, vq.ctx, ent.OpQueryAll)
-	if err := vq.prepareQuery(ctx); err != nil {
+func (_q *VendorQuery) All(ctx context.Context) ([]*Vendor, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*Vendor, *VendorQuery]()
-	return withInterceptors[[]*Vendor](ctx, vq, qr, vq.inters)
+	return withInterceptors[[]*Vendor](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (vq *VendorQuery) AllX(ctx context.Context) []*Vendor {
-	nodes, err := vq.All(ctx)
+func (_q *VendorQuery) AllX(ctx context.Context) []*Vendor {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -251,20 +251,20 @@ func (vq *VendorQuery) AllX(ctx context.Context) []*Vendor {
 }
 
 // IDs executes the query and returns a list of Vendor IDs.
-func (vq *VendorQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if vq.ctx.Unique == nil && vq.path != nil {
-		vq.Unique(true)
+func (_q *VendorQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, vq.ctx, ent.OpQueryIDs)
-	if err = vq.Select(vendor.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(vendor.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (vq *VendorQuery) IDsX(ctx context.Context) []int {
-	ids, err := vq.IDs(ctx)
+func (_q *VendorQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -272,17 +272,17 @@ func (vq *VendorQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (vq *VendorQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, vq.ctx, ent.OpQueryCount)
-	if err := vq.prepareQuery(ctx); err != nil {
+func (_q *VendorQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, vq, querierCount[*VendorQuery](), vq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*VendorQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (vq *VendorQuery) CountX(ctx context.Context) int {
-	count, err := vq.Count(ctx)
+func (_q *VendorQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -290,9 +290,9 @@ func (vq *VendorQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (vq *VendorQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, vq.ctx, ent.OpQueryExist)
-	switch _, err := vq.FirstID(ctx); {
+func (_q *VendorQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -303,8 +303,8 @@ func (vq *VendorQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (vq *VendorQuery) ExistX(ctx context.Context) bool {
-	exist, err := vq.Exist(ctx)
+func (_q *VendorQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -313,56 +313,56 @@ func (vq *VendorQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the VendorQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (vq *VendorQuery) Clone() *VendorQuery {
-	if vq == nil {
+func (_q *VendorQuery) Clone() *VendorQuery {
+	if _q == nil {
 		return nil
 	}
 	return &VendorQuery{
-		config:        vq.config,
-		ctx:           vq.ctx.Clone(),
-		order:         append([]vendor.OrderOption{}, vq.order...),
-		inters:        append([]Interceptor{}, vq.inters...),
-		predicates:    append([]predicate.Vendor{}, vq.predicates...),
-		withLocations: vq.withLocations.Clone(),
-		withComments:  vq.withComments.Clone(),
-		withAccounts:  vq.withAccounts.Clone(),
+		config:        _q.config,
+		ctx:           _q.ctx.Clone(),
+		order:         append([]vendor.OrderOption{}, _q.order...),
+		inters:        append([]Interceptor{}, _q.inters...),
+		predicates:    append([]predicate.Vendor{}, _q.predicates...),
+		withLocations: _q.withLocations.Clone(),
+		withComments:  _q.withComments.Clone(),
+		withAccounts:  _q.withAccounts.Clone(),
 		// clone intermediate query.
-		sql:  vq.sql.Clone(),
-		path: vq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
 // WithLocations tells the query-builder to eager-load the nodes that are connected to
 // the "locations" edge. The optional arguments are used to configure the query builder of the edge.
-func (vq *VendorQuery) WithLocations(opts ...func(*LocationQuery)) *VendorQuery {
-	query := (&LocationClient{config: vq.config}).Query()
+func (_q *VendorQuery) WithLocations(opts ...func(*LocationQuery)) *VendorQuery {
+	query := (&LocationClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	vq.withLocations = query
-	return vq
+	_q.withLocations = query
+	return _q
 }
 
 // WithComments tells the query-builder to eager-load the nodes that are connected to
 // the "comments" edge. The optional arguments are used to configure the query builder of the edge.
-func (vq *VendorQuery) WithComments(opts ...func(*CommentQuery)) *VendorQuery {
-	query := (&CommentClient{config: vq.config}).Query()
+func (_q *VendorQuery) WithComments(opts ...func(*CommentQuery)) *VendorQuery {
+	query := (&CommentClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	vq.withComments = query
-	return vq
+	_q.withComments = query
+	return _q
 }
 
 // WithAccounts tells the query-builder to eager-load the nodes that are connected to
 // the "accounts" edge. The optional arguments are used to configure the query builder of the edge.
-func (vq *VendorQuery) WithAccounts(opts ...func(*AccountQuery)) *VendorQuery {
-	query := (&AccountClient{config: vq.config}).Query()
+func (_q *VendorQuery) WithAccounts(opts ...func(*AccountQuery)) *VendorQuery {
+	query := (&AccountClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	vq.withAccounts = query
-	return vq
+	_q.withAccounts = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -379,10 +379,10 @@ func (vq *VendorQuery) WithAccounts(opts ...func(*AccountQuery)) *VendorQuery {
 //		GroupBy(vendor.FieldKeycloakid).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (vq *VendorQuery) GroupBy(field string, fields ...string) *VendorGroupBy {
-	vq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &VendorGroupBy{build: vq}
-	grbuild.flds = &vq.ctx.Fields
+func (_q *VendorQuery) GroupBy(field string, fields ...string) *VendorGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &VendorGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = vendor.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -400,60 +400,60 @@ func (vq *VendorQuery) GroupBy(field string, fields ...string) *VendorGroupBy {
 //	client.Vendor.Query().
 //		Select(vendor.FieldKeycloakid).
 //		Scan(ctx, &v)
-func (vq *VendorQuery) Select(fields ...string) *VendorSelect {
-	vq.ctx.Fields = append(vq.ctx.Fields, fields...)
-	sbuild := &VendorSelect{VendorQuery: vq}
+func (_q *VendorQuery) Select(fields ...string) *VendorSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &VendorSelect{VendorQuery: _q}
 	sbuild.label = vendor.Label
-	sbuild.flds, sbuild.scan = &vq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a VendorSelect configured with the given aggregations.
-func (vq *VendorQuery) Aggregate(fns ...AggregateFunc) *VendorSelect {
-	return vq.Select().Aggregate(fns...)
+func (_q *VendorQuery) Aggregate(fns ...AggregateFunc) *VendorSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (vq *VendorQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range vq.inters {
+func (_q *VendorQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, vq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range vq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !vendor.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if vq.path != nil {
-		prev, err := vq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		vq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (vq *VendorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vendor, error) {
+func (_q *VendorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vendor, error) {
 	var (
 		nodes       = []*Vendor{}
-		_spec       = vq.querySpec()
+		_spec       = _q.querySpec()
 		loadedTypes = [3]bool{
-			vq.withLocations != nil,
-			vq.withComments != nil,
-			vq.withAccounts != nil,
+			_q.withLocations != nil,
+			_q.withComments != nil,
+			_q.withAccounts != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Vendor).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &Vendor{config: vq.config}
+		node := &Vendor{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -461,28 +461,28 @@ func (vq *VendorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vendo
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, vq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := vq.withLocations; query != nil {
-		if err := vq.loadLocations(ctx, query, nodes,
+	if query := _q.withLocations; query != nil {
+		if err := _q.loadLocations(ctx, query, nodes,
 			func(n *Vendor) { n.Edges.Locations = []*Location{} },
 			func(n *Vendor, e *Location) { n.Edges.Locations = append(n.Edges.Locations, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := vq.withComments; query != nil {
-		if err := vq.loadComments(ctx, query, nodes,
+	if query := _q.withComments; query != nil {
+		if err := _q.loadComments(ctx, query, nodes,
 			func(n *Vendor) { n.Edges.Comments = []*Comment{} },
 			func(n *Vendor, e *Comment) { n.Edges.Comments = append(n.Edges.Comments, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := vq.withAccounts; query != nil {
-		if err := vq.loadAccounts(ctx, query, nodes,
+	if query := _q.withAccounts; query != nil {
+		if err := _q.loadAccounts(ctx, query, nodes,
 			func(n *Vendor) { n.Edges.Accounts = []*Account{} },
 			func(n *Vendor, e *Account) { n.Edges.Accounts = append(n.Edges.Accounts, e) }); err != nil {
 			return nil, err
@@ -491,7 +491,7 @@ func (vq *VendorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vendo
 	return nodes, nil
 }
 
-func (vq *VendorQuery) loadLocations(ctx context.Context, query *LocationQuery, nodes []*Vendor, init func(*Vendor), assign func(*Vendor, *Location)) error {
+func (_q *VendorQuery) loadLocations(ctx context.Context, query *LocationQuery, nodes []*Vendor, init func(*Vendor), assign func(*Vendor, *Location)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Vendor)
 	for i := range nodes {
@@ -522,7 +522,7 @@ func (vq *VendorQuery) loadLocations(ctx context.Context, query *LocationQuery, 
 	}
 	return nil
 }
-func (vq *VendorQuery) loadComments(ctx context.Context, query *CommentQuery, nodes []*Vendor, init func(*Vendor), assign func(*Vendor, *Comment)) error {
+func (_q *VendorQuery) loadComments(ctx context.Context, query *CommentQuery, nodes []*Vendor, init func(*Vendor), assign func(*Vendor, *Comment)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Vendor)
 	for i := range nodes {
@@ -553,7 +553,7 @@ func (vq *VendorQuery) loadComments(ctx context.Context, query *CommentQuery, no
 	}
 	return nil
 }
-func (vq *VendorQuery) loadAccounts(ctx context.Context, query *AccountQuery, nodes []*Vendor, init func(*Vendor), assign func(*Vendor, *Account)) error {
+func (_q *VendorQuery) loadAccounts(ctx context.Context, query *AccountQuery, nodes []*Vendor, init func(*Vendor), assign func(*Vendor, *Account)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Vendor)
 	for i := range nodes {
@@ -584,24 +584,24 @@ func (vq *VendorQuery) loadAccounts(ctx context.Context, query *AccountQuery, no
 	return nil
 }
 
-func (vq *VendorQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := vq.querySpec()
-	_spec.Node.Columns = vq.ctx.Fields
-	if len(vq.ctx.Fields) > 0 {
-		_spec.Unique = vq.ctx.Unique != nil && *vq.ctx.Unique
+func (_q *VendorQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, vq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (vq *VendorQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *VendorQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(vendor.Table, vendor.Columns, sqlgraph.NewFieldSpec(vendor.FieldID, field.TypeInt))
-	_spec.From = vq.sql
-	if unique := vq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if vq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := vq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, vendor.FieldID)
 		for i := range fields {
@@ -610,20 +610,20 @@ func (vq *VendorQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := vq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := vq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := vq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := vq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -633,33 +633,33 @@ func (vq *VendorQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (vq *VendorQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(vq.driver.Dialect())
+func (_q *VendorQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(vendor.Table)
-	columns := vq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = vendor.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if vq.sql != nil {
-		selector = vq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if vq.ctx.Unique != nil && *vq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range vq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range vq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := vq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := vq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -672,41 +672,41 @@ type VendorGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (vgb *VendorGroupBy) Aggregate(fns ...AggregateFunc) *VendorGroupBy {
-	vgb.fns = append(vgb.fns, fns...)
-	return vgb
+func (_g *VendorGroupBy) Aggregate(fns ...AggregateFunc) *VendorGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (vgb *VendorGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, vgb.build.ctx, ent.OpQueryGroupBy)
-	if err := vgb.build.prepareQuery(ctx); err != nil {
+func (_g *VendorGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*VendorQuery, *VendorGroupBy](ctx, vgb.build, vgb, vgb.build.inters, v)
+	return scanWithInterceptors[*VendorQuery, *VendorGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (vgb *VendorGroupBy) sqlScan(ctx context.Context, root *VendorQuery, v any) error {
+func (_g *VendorGroupBy) sqlScan(ctx context.Context, root *VendorQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(vgb.fns))
-	for _, fn := range vgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*vgb.flds)+len(vgb.fns))
-		for _, f := range *vgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*vgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := vgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -720,27 +720,27 @@ type VendorSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (vs *VendorSelect) Aggregate(fns ...AggregateFunc) *VendorSelect {
-	vs.fns = append(vs.fns, fns...)
-	return vs
+func (_s *VendorSelect) Aggregate(fns ...AggregateFunc) *VendorSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (vs *VendorSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, vs.ctx, ent.OpQuerySelect)
-	if err := vs.prepareQuery(ctx); err != nil {
+func (_s *VendorSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*VendorQuery, *VendorSelect](ctx, vs.VendorQuery, vs, vs.inters, v)
+	return scanWithInterceptors[*VendorQuery, *VendorSelect](ctx, _s.VendorQuery, _s, _s.inters, v)
 }
 
-func (vs *VendorSelect) sqlScan(ctx context.Context, root *VendorQuery, v any) error {
+func (_s *VendorSelect) sqlScan(ctx context.Context, root *VendorQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(vs.fns))
-	for _, fn := range vs.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*vs.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -748,7 +748,7 @@ func (vs *VendorSelect) sqlScan(ctx context.Context, root *VendorQuery, v any) e
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := vs.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

@@ -116,7 +116,7 @@ func (*OrderEntry) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the OrderEntry fields.
-func (oe *OrderEntry) assignValues(columns []string, values []any) error {
+func (_m *OrderEntry) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -127,51 +127,51 @@ func (oe *OrderEntry) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			oe.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case orderentry.FieldQuantity:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field quantity", values[i])
 			} else if value.Valid {
-				oe.Quantity = int(value.Int64)
+				_m.Quantity = int(value.Int64)
 			}
 		case orderentry.FieldPrice:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field price", values[i])
 			} else if value.Valid {
-				oe.Price = int(value.Int64)
+				_m.Price = int(value.Int64)
 			}
 		case orderentry.FieldIsSale:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_sale", values[i])
 			} else if value.Valid {
-				oe.IsSale = value.Bool
+				_m.IsSale = value.Bool
 			}
 		case orderentry.FieldItemID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field item_id", values[i])
 			} else if value.Valid {
-				oe.ItemID = int(value.Int64)
+				_m.ItemID = int(value.Int64)
 			}
 		case orderentry.FieldSenderID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field sender_id", values[i])
 			} else if value.Valid {
-				oe.SenderID = int(value.Int64)
+				_m.SenderID = int(value.Int64)
 			}
 		case orderentry.FieldReceiverID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field receiver_id", values[i])
 			} else if value.Valid {
-				oe.ReceiverID = int(value.Int64)
+				_m.ReceiverID = int(value.Int64)
 			}
 		case orderentry.FieldOrderID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field order_id", values[i])
 			} else if value.Valid {
-				oe.OrderID = int(value.Int64)
+				_m.OrderID = int(value.Int64)
 			}
 		default:
-			oe.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -179,73 +179,73 @@ func (oe *OrderEntry) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the OrderEntry.
 // This includes values selected through modifiers, order, etc.
-func (oe *OrderEntry) Value(name string) (ent.Value, error) {
-	return oe.selectValues.Get(name)
+func (_m *OrderEntry) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryOrder queries the "order" edge of the OrderEntry entity.
-func (oe *OrderEntry) QueryOrder() *OrderQuery {
-	return NewOrderEntryClient(oe.config).QueryOrder(oe)
+func (_m *OrderEntry) QueryOrder() *OrderQuery {
+	return NewOrderEntryClient(_m.config).QueryOrder(_m)
 }
 
 // QueryItem queries the "item" edge of the OrderEntry entity.
-func (oe *OrderEntry) QueryItem() *ItemQuery {
-	return NewOrderEntryClient(oe.config).QueryItem(oe)
+func (_m *OrderEntry) QueryItem() *ItemQuery {
+	return NewOrderEntryClient(_m.config).QueryItem(_m)
 }
 
 // QuerySender queries the "sender" edge of the OrderEntry entity.
-func (oe *OrderEntry) QuerySender() *AccountQuery {
-	return NewOrderEntryClient(oe.config).QuerySender(oe)
+func (_m *OrderEntry) QuerySender() *AccountQuery {
+	return NewOrderEntryClient(_m.config).QuerySender(_m)
 }
 
 // QueryReceiver queries the "receiver" edge of the OrderEntry entity.
-func (oe *OrderEntry) QueryReceiver() *AccountQuery {
-	return NewOrderEntryClient(oe.config).QueryReceiver(oe)
+func (_m *OrderEntry) QueryReceiver() *AccountQuery {
+	return NewOrderEntryClient(_m.config).QueryReceiver(_m)
 }
 
 // Update returns a builder for updating this OrderEntry.
 // Note that you need to call OrderEntry.Unwrap() before calling this method if this OrderEntry
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (oe *OrderEntry) Update() *OrderEntryUpdateOne {
-	return NewOrderEntryClient(oe.config).UpdateOne(oe)
+func (_m *OrderEntry) Update() *OrderEntryUpdateOne {
+	return NewOrderEntryClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the OrderEntry entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (oe *OrderEntry) Unwrap() *OrderEntry {
-	_tx, ok := oe.config.driver.(*txDriver)
+func (_m *OrderEntry) Unwrap() *OrderEntry {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: OrderEntry is not a transactional entity")
 	}
-	oe.config.driver = _tx.drv
-	return oe
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (oe *OrderEntry) String() string {
+func (_m *OrderEntry) String() string {
 	var builder strings.Builder
 	builder.WriteString("OrderEntry(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", oe.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("quantity=")
-	builder.WriteString(fmt.Sprintf("%v", oe.Quantity))
+	builder.WriteString(fmt.Sprintf("%v", _m.Quantity))
 	builder.WriteString(", ")
 	builder.WriteString("price=")
-	builder.WriteString(fmt.Sprintf("%v", oe.Price))
+	builder.WriteString(fmt.Sprintf("%v", _m.Price))
 	builder.WriteString(", ")
 	builder.WriteString("is_sale=")
-	builder.WriteString(fmt.Sprintf("%v", oe.IsSale))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsSale))
 	builder.WriteString(", ")
 	builder.WriteString("item_id=")
-	builder.WriteString(fmt.Sprintf("%v", oe.ItemID))
+	builder.WriteString(fmt.Sprintf("%v", _m.ItemID))
 	builder.WriteString(", ")
 	builder.WriteString("sender_id=")
-	builder.WriteString(fmt.Sprintf("%v", oe.SenderID))
+	builder.WriteString(fmt.Sprintf("%v", _m.SenderID))
 	builder.WriteString(", ")
 	builder.WriteString("receiver_id=")
-	builder.WriteString(fmt.Sprintf("%v", oe.ReceiverID))
+	builder.WriteString(fmt.Sprintf("%v", _m.ReceiverID))
 	builder.WriteString(", ")
 	builder.WriteString("order_id=")
-	builder.WriteString(fmt.Sprintf("%v", oe.OrderID))
+	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
 	builder.WriteByte(')')
 	return builder.String()
 }

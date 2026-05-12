@@ -114,7 +114,7 @@ func (*Payment) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Payment fields.
-func (pa *Payment) assignValues(columns []string, values []any) error {
+func (_m *Payment) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -125,85 +125,85 @@ func (pa *Payment) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			pa.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case payment.FieldTimestamp:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field timestamp", values[i])
 			} else if value.Valid {
-				pa.Timestamp = value.Time
+				_m.Timestamp = value.Time
 			}
 		case payment.FieldAmount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field amount", values[i])
 			} else if value.Valid {
-				pa.Amount = int(value.Int64)
+				_m.Amount = int(value.Int64)
 			}
 		case payment.FieldAuthorizedBy:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field authorized_by", values[i])
 			} else if value.Valid {
-				pa.AuthorizedBy = value.String
+				_m.AuthorizedBy = value.String
 			}
 		case payment.FieldIsSale:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_sale", values[i])
 			} else if value.Valid {
-				pa.IsSale = value.Bool
+				_m.IsSale = value.Bool
 			}
 		case payment.FieldQuantity:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field quantity", values[i])
 			} else if value.Valid {
-				pa.Quantity = int(value.Int64)
+				_m.Quantity = int(value.Int64)
 			}
 		case payment.FieldPrice:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field price", values[i])
 			} else if value.Valid {
-				pa.Price = int(value.Int64)
+				_m.Price = int(value.Int64)
 			}
 		case payment.FieldSenderID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field sender_id", values[i])
 			} else if value.Valid {
-				pa.SenderID = int(value.Int64)
+				_m.SenderID = int(value.Int64)
 			}
 		case payment.FieldReceiverID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field receiver_id", values[i])
 			} else if value.Valid {
-				pa.ReceiverID = int(value.Int64)
+				_m.ReceiverID = int(value.Int64)
 			}
 		case payment.FieldOrderID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field order_id", values[i])
 			} else if value.Valid {
-				pa.OrderID = new(int)
-				*pa.OrderID = int(value.Int64)
+				_m.OrderID = new(int)
+				*_m.OrderID = int(value.Int64)
 			}
 		case payment.FieldOrderEntryID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field order_entry_id", values[i])
 			} else if value.Valid {
-				pa.OrderEntryID = new(int)
-				*pa.OrderEntryID = int(value.Int64)
+				_m.OrderEntryID = new(int)
+				*_m.OrderEntryID = int(value.Int64)
 			}
 		case payment.FieldItemID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field item_id", values[i])
 			} else if value.Valid {
-				pa.ItemID = new(int)
-				*pa.ItemID = int(value.Int64)
+				_m.ItemID = new(int)
+				*_m.ItemID = int(value.Int64)
 			}
 		case payment.FieldPayoutID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field payout_id", values[i])
 			} else if value.Valid {
-				pa.PayoutID = new(int)
-				*pa.PayoutID = int(value.Int64)
+				_m.PayoutID = new(int)
+				*_m.PayoutID = int(value.Int64)
 			}
 		default:
-			pa.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -211,88 +211,88 @@ func (pa *Payment) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Payment.
 // This includes values selected through modifiers, order, etc.
-func (pa *Payment) Value(name string) (ent.Value, error) {
-	return pa.selectValues.Get(name)
+func (_m *Payment) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryOrder queries the "order" edge of the Payment entity.
-func (pa *Payment) QueryOrder() *OrderQuery {
-	return NewPaymentClient(pa.config).QueryOrder(pa)
+func (_m *Payment) QueryOrder() *OrderQuery {
+	return NewPaymentClient(_m.config).QueryOrder(_m)
 }
 
 // QueryParent queries the "parent" edge of the Payment entity.
-func (pa *Payment) QueryParent() *PaymentQuery {
-	return NewPaymentClient(pa.config).QueryParent(pa)
+func (_m *Payment) QueryParent() *PaymentQuery {
+	return NewPaymentClient(_m.config).QueryParent(_m)
 }
 
 // QueryChildren queries the "children" edge of the Payment entity.
-func (pa *Payment) QueryChildren() *PaymentQuery {
-	return NewPaymentClient(pa.config).QueryChildren(pa)
+func (_m *Payment) QueryChildren() *PaymentQuery {
+	return NewPaymentClient(_m.config).QueryChildren(_m)
 }
 
 // Update returns a builder for updating this Payment.
 // Note that you need to call Payment.Unwrap() before calling this method if this Payment
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (pa *Payment) Update() *PaymentUpdateOne {
-	return NewPaymentClient(pa.config).UpdateOne(pa)
+func (_m *Payment) Update() *PaymentUpdateOne {
+	return NewPaymentClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Payment entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (pa *Payment) Unwrap() *Payment {
-	_tx, ok := pa.config.driver.(*txDriver)
+func (_m *Payment) Unwrap() *Payment {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Payment is not a transactional entity")
 	}
-	pa.config.driver = _tx.drv
-	return pa
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (pa *Payment) String() string {
+func (_m *Payment) String() string {
 	var builder strings.Builder
 	builder.WriteString("Payment(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", pa.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("timestamp=")
-	builder.WriteString(pa.Timestamp.Format(time.ANSIC))
+	builder.WriteString(_m.Timestamp.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("amount=")
-	builder.WriteString(fmt.Sprintf("%v", pa.Amount))
+	builder.WriteString(fmt.Sprintf("%v", _m.Amount))
 	builder.WriteString(", ")
 	builder.WriteString("authorized_by=")
-	builder.WriteString(pa.AuthorizedBy)
+	builder.WriteString(_m.AuthorizedBy)
 	builder.WriteString(", ")
 	builder.WriteString("is_sale=")
-	builder.WriteString(fmt.Sprintf("%v", pa.IsSale))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsSale))
 	builder.WriteString(", ")
 	builder.WriteString("quantity=")
-	builder.WriteString(fmt.Sprintf("%v", pa.Quantity))
+	builder.WriteString(fmt.Sprintf("%v", _m.Quantity))
 	builder.WriteString(", ")
 	builder.WriteString("price=")
-	builder.WriteString(fmt.Sprintf("%v", pa.Price))
+	builder.WriteString(fmt.Sprintf("%v", _m.Price))
 	builder.WriteString(", ")
 	builder.WriteString("sender_id=")
-	builder.WriteString(fmt.Sprintf("%v", pa.SenderID))
+	builder.WriteString(fmt.Sprintf("%v", _m.SenderID))
 	builder.WriteString(", ")
 	builder.WriteString("receiver_id=")
-	builder.WriteString(fmt.Sprintf("%v", pa.ReceiverID))
+	builder.WriteString(fmt.Sprintf("%v", _m.ReceiverID))
 	builder.WriteString(", ")
-	if v := pa.OrderID; v != nil {
+	if v := _m.OrderID; v != nil {
 		builder.WriteString("order_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
-	if v := pa.OrderEntryID; v != nil {
+	if v := _m.OrderEntryID; v != nil {
 		builder.WriteString("order_entry_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
-	if v := pa.ItemID; v != nil {
+	if v := _m.ItemID; v != nil {
 		builder.WriteString("item_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
-	if v := pa.PayoutID; v != nil {
+	if v := _m.PayoutID; v != nil {
 		builder.WriteString("payout_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}

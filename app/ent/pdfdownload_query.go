@@ -28,40 +28,40 @@ type PDFDownloadQuery struct {
 }
 
 // Where adds a new predicate for the PDFDownloadQuery builder.
-func (pdq *PDFDownloadQuery) Where(ps ...predicate.PDFDownload) *PDFDownloadQuery {
-	pdq.predicates = append(pdq.predicates, ps...)
-	return pdq
+func (_q *PDFDownloadQuery) Where(ps ...predicate.PDFDownload) *PDFDownloadQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (pdq *PDFDownloadQuery) Limit(limit int) *PDFDownloadQuery {
-	pdq.ctx.Limit = &limit
-	return pdq
+func (_q *PDFDownloadQuery) Limit(limit int) *PDFDownloadQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (pdq *PDFDownloadQuery) Offset(offset int) *PDFDownloadQuery {
-	pdq.ctx.Offset = &offset
-	return pdq
+func (_q *PDFDownloadQuery) Offset(offset int) *PDFDownloadQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (pdq *PDFDownloadQuery) Unique(unique bool) *PDFDownloadQuery {
-	pdq.ctx.Unique = &unique
-	return pdq
+func (_q *PDFDownloadQuery) Unique(unique bool) *PDFDownloadQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (pdq *PDFDownloadQuery) Order(o ...pdfdownload.OrderOption) *PDFDownloadQuery {
-	pdq.order = append(pdq.order, o...)
-	return pdq
+func (_q *PDFDownloadQuery) Order(o ...pdfdownload.OrderOption) *PDFDownloadQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // First returns the first PDFDownload entity from the query.
 // Returns a *NotFoundError when no PDFDownload was found.
-func (pdq *PDFDownloadQuery) First(ctx context.Context) (*PDFDownload, error) {
-	nodes, err := pdq.Limit(1).All(setContextOp(ctx, pdq.ctx, ent.OpQueryFirst))
+func (_q *PDFDownloadQuery) First(ctx context.Context) (*PDFDownload, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -72,8 +72,8 @@ func (pdq *PDFDownloadQuery) First(ctx context.Context) (*PDFDownload, error) {
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (pdq *PDFDownloadQuery) FirstX(ctx context.Context) *PDFDownload {
-	node, err := pdq.First(ctx)
+func (_q *PDFDownloadQuery) FirstX(ctx context.Context) *PDFDownload {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -82,9 +82,9 @@ func (pdq *PDFDownloadQuery) FirstX(ctx context.Context) *PDFDownload {
 
 // FirstID returns the first PDFDownload ID from the query.
 // Returns a *NotFoundError when no PDFDownload ID was found.
-func (pdq *PDFDownloadQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *PDFDownloadQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pdq.Limit(1).IDs(setContextOp(ctx, pdq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -95,8 +95,8 @@ func (pdq *PDFDownloadQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (pdq *PDFDownloadQuery) FirstIDX(ctx context.Context) int {
-	id, err := pdq.FirstID(ctx)
+func (_q *PDFDownloadQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -106,8 +106,8 @@ func (pdq *PDFDownloadQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single PDFDownload entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one PDFDownload entity is found.
 // Returns a *NotFoundError when no PDFDownload entities are found.
-func (pdq *PDFDownloadQuery) Only(ctx context.Context) (*PDFDownload, error) {
-	nodes, err := pdq.Limit(2).All(setContextOp(ctx, pdq.ctx, ent.OpQueryOnly))
+func (_q *PDFDownloadQuery) Only(ctx context.Context) (*PDFDownload, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +122,8 @@ func (pdq *PDFDownloadQuery) Only(ctx context.Context) (*PDFDownload, error) {
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (pdq *PDFDownloadQuery) OnlyX(ctx context.Context) *PDFDownload {
-	node, err := pdq.Only(ctx)
+func (_q *PDFDownloadQuery) OnlyX(ctx context.Context) *PDFDownload {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -133,9 +133,9 @@ func (pdq *PDFDownloadQuery) OnlyX(ctx context.Context) *PDFDownload {
 // OnlyID is like Only, but returns the only PDFDownload ID in the query.
 // Returns a *NotSingularError when more than one PDFDownload ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (pdq *PDFDownloadQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *PDFDownloadQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pdq.Limit(2).IDs(setContextOp(ctx, pdq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -150,8 +150,8 @@ func (pdq *PDFDownloadQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (pdq *PDFDownloadQuery) OnlyIDX(ctx context.Context) int {
-	id, err := pdq.OnlyID(ctx)
+func (_q *PDFDownloadQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -159,18 +159,18 @@ func (pdq *PDFDownloadQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of PDFDownloads.
-func (pdq *PDFDownloadQuery) All(ctx context.Context) ([]*PDFDownload, error) {
-	ctx = setContextOp(ctx, pdq.ctx, ent.OpQueryAll)
-	if err := pdq.prepareQuery(ctx); err != nil {
+func (_q *PDFDownloadQuery) All(ctx context.Context) ([]*PDFDownload, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*PDFDownload, *PDFDownloadQuery]()
-	return withInterceptors[[]*PDFDownload](ctx, pdq, qr, pdq.inters)
+	return withInterceptors[[]*PDFDownload](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (pdq *PDFDownloadQuery) AllX(ctx context.Context) []*PDFDownload {
-	nodes, err := pdq.All(ctx)
+func (_q *PDFDownloadQuery) AllX(ctx context.Context) []*PDFDownload {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -178,20 +178,20 @@ func (pdq *PDFDownloadQuery) AllX(ctx context.Context) []*PDFDownload {
 }
 
 // IDs executes the query and returns a list of PDFDownload IDs.
-func (pdq *PDFDownloadQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if pdq.ctx.Unique == nil && pdq.path != nil {
-		pdq.Unique(true)
+func (_q *PDFDownloadQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, pdq.ctx, ent.OpQueryIDs)
-	if err = pdq.Select(pdfdownload.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(pdfdownload.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (pdq *PDFDownloadQuery) IDsX(ctx context.Context) []int {
-	ids, err := pdq.IDs(ctx)
+func (_q *PDFDownloadQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -199,17 +199,17 @@ func (pdq *PDFDownloadQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (pdq *PDFDownloadQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, pdq.ctx, ent.OpQueryCount)
-	if err := pdq.prepareQuery(ctx); err != nil {
+func (_q *PDFDownloadQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, pdq, querierCount[*PDFDownloadQuery](), pdq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*PDFDownloadQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (pdq *PDFDownloadQuery) CountX(ctx context.Context) int {
-	count, err := pdq.Count(ctx)
+func (_q *PDFDownloadQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -217,9 +217,9 @@ func (pdq *PDFDownloadQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (pdq *PDFDownloadQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, pdq.ctx, ent.OpQueryExist)
-	switch _, err := pdq.FirstID(ctx); {
+func (_q *PDFDownloadQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -230,8 +230,8 @@ func (pdq *PDFDownloadQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (pdq *PDFDownloadQuery) ExistX(ctx context.Context) bool {
-	exist, err := pdq.Exist(ctx)
+func (_q *PDFDownloadQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -240,19 +240,19 @@ func (pdq *PDFDownloadQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the PDFDownloadQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (pdq *PDFDownloadQuery) Clone() *PDFDownloadQuery {
-	if pdq == nil {
+func (_q *PDFDownloadQuery) Clone() *PDFDownloadQuery {
+	if _q == nil {
 		return nil
 	}
 	return &PDFDownloadQuery{
-		config:     pdq.config,
-		ctx:        pdq.ctx.Clone(),
-		order:      append([]pdfdownload.OrderOption{}, pdq.order...),
-		inters:     append([]Interceptor{}, pdq.inters...),
-		predicates: append([]predicate.PDFDownload{}, pdq.predicates...),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]pdfdownload.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.PDFDownload{}, _q.predicates...),
 		// clone intermediate query.
-		sql:  pdq.sql.Clone(),
-		path: pdq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
@@ -270,10 +270,10 @@ func (pdq *PDFDownloadQuery) Clone() *PDFDownloadQuery {
 //		GroupBy(pdfdownload.FieldLinkID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (pdq *PDFDownloadQuery) GroupBy(field string, fields ...string) *PDFDownloadGroupBy {
-	pdq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &PDFDownloadGroupBy{build: pdq}
-	grbuild.flds = &pdq.ctx.Fields
+func (_q *PDFDownloadQuery) GroupBy(field string, fields ...string) *PDFDownloadGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &PDFDownloadGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = pdfdownload.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -291,62 +291,62 @@ func (pdq *PDFDownloadQuery) GroupBy(field string, fields ...string) *PDFDownloa
 //	client.PDFDownload.Query().
 //		Select(pdfdownload.FieldLinkID).
 //		Scan(ctx, &v)
-func (pdq *PDFDownloadQuery) Select(fields ...string) *PDFDownloadSelect {
-	pdq.ctx.Fields = append(pdq.ctx.Fields, fields...)
-	sbuild := &PDFDownloadSelect{PDFDownloadQuery: pdq}
+func (_q *PDFDownloadQuery) Select(fields ...string) *PDFDownloadSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &PDFDownloadSelect{PDFDownloadQuery: _q}
 	sbuild.label = pdfdownload.Label
-	sbuild.flds, sbuild.scan = &pdq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a PDFDownloadSelect configured with the given aggregations.
-func (pdq *PDFDownloadQuery) Aggregate(fns ...AggregateFunc) *PDFDownloadSelect {
-	return pdq.Select().Aggregate(fns...)
+func (_q *PDFDownloadQuery) Aggregate(fns ...AggregateFunc) *PDFDownloadSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (pdq *PDFDownloadQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range pdq.inters {
+func (_q *PDFDownloadQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, pdq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range pdq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !pdfdownload.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if pdq.path != nil {
-		prev, err := pdq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		pdq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (pdq *PDFDownloadQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PDFDownload, error) {
+func (_q *PDFDownloadQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PDFDownload, error) {
 	var (
 		nodes = []*PDFDownload{}
-		_spec = pdq.querySpec()
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*PDFDownload).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &PDFDownload{config: pdq.config}
+		node := &PDFDownload{config: _q.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, pdq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
@@ -355,24 +355,24 @@ func (pdq *PDFDownloadQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	return nodes, nil
 }
 
-func (pdq *PDFDownloadQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := pdq.querySpec()
-	_spec.Node.Columns = pdq.ctx.Fields
-	if len(pdq.ctx.Fields) > 0 {
-		_spec.Unique = pdq.ctx.Unique != nil && *pdq.ctx.Unique
+func (_q *PDFDownloadQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, pdq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (pdq *PDFDownloadQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *PDFDownloadQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(pdfdownload.Table, pdfdownload.Columns, sqlgraph.NewFieldSpec(pdfdownload.FieldID, field.TypeInt))
-	_spec.From = pdq.sql
-	if unique := pdq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if pdq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := pdq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, pdfdownload.FieldID)
 		for i := range fields {
@@ -381,20 +381,20 @@ func (pdq *PDFDownloadQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := pdq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := pdq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := pdq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := pdq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -404,33 +404,33 @@ func (pdq *PDFDownloadQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (pdq *PDFDownloadQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(pdq.driver.Dialect())
+func (_q *PDFDownloadQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(pdfdownload.Table)
-	columns := pdq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = pdfdownload.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if pdq.sql != nil {
-		selector = pdq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if pdq.ctx.Unique != nil && *pdq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range pdq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range pdq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := pdq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := pdq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -443,41 +443,41 @@ type PDFDownloadGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (pdgb *PDFDownloadGroupBy) Aggregate(fns ...AggregateFunc) *PDFDownloadGroupBy {
-	pdgb.fns = append(pdgb.fns, fns...)
-	return pdgb
+func (_g *PDFDownloadGroupBy) Aggregate(fns ...AggregateFunc) *PDFDownloadGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (pdgb *PDFDownloadGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, pdgb.build.ctx, ent.OpQueryGroupBy)
-	if err := pdgb.build.prepareQuery(ctx); err != nil {
+func (_g *PDFDownloadGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*PDFDownloadQuery, *PDFDownloadGroupBy](ctx, pdgb.build, pdgb, pdgb.build.inters, v)
+	return scanWithInterceptors[*PDFDownloadQuery, *PDFDownloadGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (pdgb *PDFDownloadGroupBy) sqlScan(ctx context.Context, root *PDFDownloadQuery, v any) error {
+func (_g *PDFDownloadGroupBy) sqlScan(ctx context.Context, root *PDFDownloadQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(pdgb.fns))
-	for _, fn := range pdgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*pdgb.flds)+len(pdgb.fns))
-		for _, f := range *pdgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*pdgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := pdgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -491,27 +491,27 @@ type PDFDownloadSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (pds *PDFDownloadSelect) Aggregate(fns ...AggregateFunc) *PDFDownloadSelect {
-	pds.fns = append(pds.fns, fns...)
-	return pds
+func (_s *PDFDownloadSelect) Aggregate(fns ...AggregateFunc) *PDFDownloadSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (pds *PDFDownloadSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, pds.ctx, ent.OpQuerySelect)
-	if err := pds.prepareQuery(ctx); err != nil {
+func (_s *PDFDownloadSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*PDFDownloadQuery, *PDFDownloadSelect](ctx, pds.PDFDownloadQuery, pds, pds.inters, v)
+	return scanWithInterceptors[*PDFDownloadQuery, *PDFDownloadSelect](ctx, _s.PDFDownloadQuery, _s, _s.inters, v)
 }
 
-func (pds *PDFDownloadSelect) sqlScan(ctx context.Context, root *PDFDownloadQuery, v any) error {
+func (_s *PDFDownloadSelect) sqlScan(ctx context.Context, root *PDFDownloadQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(pds.fns))
-	for _, fn := range pds.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*pds.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -519,7 +519,7 @@ func (pds *PDFDownloadSelect) sqlScan(ctx context.Context, root *PDFDownloadQuer
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := pds.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

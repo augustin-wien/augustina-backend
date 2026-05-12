@@ -39,7 +39,7 @@ func (*DBSettings) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the DBSettings fields.
-func (ds *DBSettings) assignValues(columns []string, values []any) error {
+func (_m *DBSettings) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -50,15 +50,15 @@ func (ds *DBSettings) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			ds.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case dbsettings.FieldIsInitialized:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_initialized", values[i])
 			} else if value.Valid {
-				ds.IsInitialized = value.Bool
+				_m.IsInitialized = value.Bool
 			}
 		default:
-			ds.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -66,35 +66,35 @@ func (ds *DBSettings) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the DBSettings.
 // This includes values selected through modifiers, order, etc.
-func (ds *DBSettings) Value(name string) (ent.Value, error) {
-	return ds.selectValues.Get(name)
+func (_m *DBSettings) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this DBSettings.
 // Note that you need to call DBSettings.Unwrap() before calling this method if this DBSettings
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (ds *DBSettings) Update() *DBSettingsUpdateOne {
-	return NewDBSettingsClient(ds.config).UpdateOne(ds)
+func (_m *DBSettings) Update() *DBSettingsUpdateOne {
+	return NewDBSettingsClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the DBSettings entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (ds *DBSettings) Unwrap() *DBSettings {
-	_tx, ok := ds.config.driver.(*txDriver)
+func (_m *DBSettings) Unwrap() *DBSettings {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: DBSettings is not a transactional entity")
 	}
-	ds.config.driver = _tx.drv
-	return ds
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (ds *DBSettings) String() string {
+func (_m *DBSettings) String() string {
 	var builder strings.Builder
 	builder.WriteString("DBSettings(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", ds.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("is_initialized=")
-	builder.WriteString(fmt.Sprintf("%v", ds.IsInitialized))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsInitialized))
 	builder.WriteByte(')')
 	return builder.String()
 }

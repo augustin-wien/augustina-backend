@@ -22,38 +22,38 @@ type DBSettingsUpdate struct {
 }
 
 // Where appends a list predicates to the DBSettingsUpdate builder.
-func (dsu *DBSettingsUpdate) Where(ps ...predicate.DBSettings) *DBSettingsUpdate {
-	dsu.mutation.Where(ps...)
-	return dsu
+func (_u *DBSettingsUpdate) Where(ps ...predicate.DBSettings) *DBSettingsUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetIsInitialized sets the "is_initialized" field.
-func (dsu *DBSettingsUpdate) SetIsInitialized(b bool) *DBSettingsUpdate {
-	dsu.mutation.SetIsInitialized(b)
-	return dsu
+func (_u *DBSettingsUpdate) SetIsInitialized(v bool) *DBSettingsUpdate {
+	_u.mutation.SetIsInitialized(v)
+	return _u
 }
 
 // SetNillableIsInitialized sets the "is_initialized" field if the given value is not nil.
-func (dsu *DBSettingsUpdate) SetNillableIsInitialized(b *bool) *DBSettingsUpdate {
-	if b != nil {
-		dsu.SetIsInitialized(*b)
+func (_u *DBSettingsUpdate) SetNillableIsInitialized(v *bool) *DBSettingsUpdate {
+	if v != nil {
+		_u.SetIsInitialized(*v)
 	}
-	return dsu
+	return _u
 }
 
 // Mutation returns the DBSettingsMutation object of the builder.
-func (dsu *DBSettingsUpdate) Mutation() *DBSettingsMutation {
-	return dsu.mutation
+func (_u *DBSettingsUpdate) Mutation() *DBSettingsMutation {
+	return _u.mutation
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (dsu *DBSettingsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, dsu.sqlSave, dsu.mutation, dsu.hooks)
+func (_u *DBSettingsUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (dsu *DBSettingsUpdate) SaveX(ctx context.Context) int {
-	affected, err := dsu.Save(ctx)
+func (_u *DBSettingsUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -61,31 +61,31 @@ func (dsu *DBSettingsUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (dsu *DBSettingsUpdate) Exec(ctx context.Context) error {
-	_, err := dsu.Save(ctx)
+func (_u *DBSettingsUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (dsu *DBSettingsUpdate) ExecX(ctx context.Context) {
-	if err := dsu.Exec(ctx); err != nil {
+func (_u *DBSettingsUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (dsu *DBSettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *DBSettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(dbsettings.Table, dbsettings.Columns, sqlgraph.NewFieldSpec(dbsettings.FieldID, field.TypeInt))
-	if ps := dsu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := dsu.mutation.IsInitialized(); ok {
+	if value, ok := _u.mutation.IsInitialized(); ok {
 		_spec.SetField(dbsettings.FieldIsInitialized, field.TypeBool, value)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, dsu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{dbsettings.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -93,8 +93,8 @@ func (dsu *DBSettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	dsu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // DBSettingsUpdateOne is the builder for updating a single DBSettings entity.
@@ -106,45 +106,45 @@ type DBSettingsUpdateOne struct {
 }
 
 // SetIsInitialized sets the "is_initialized" field.
-func (dsuo *DBSettingsUpdateOne) SetIsInitialized(b bool) *DBSettingsUpdateOne {
-	dsuo.mutation.SetIsInitialized(b)
-	return dsuo
+func (_u *DBSettingsUpdateOne) SetIsInitialized(v bool) *DBSettingsUpdateOne {
+	_u.mutation.SetIsInitialized(v)
+	return _u
 }
 
 // SetNillableIsInitialized sets the "is_initialized" field if the given value is not nil.
-func (dsuo *DBSettingsUpdateOne) SetNillableIsInitialized(b *bool) *DBSettingsUpdateOne {
-	if b != nil {
-		dsuo.SetIsInitialized(*b)
+func (_u *DBSettingsUpdateOne) SetNillableIsInitialized(v *bool) *DBSettingsUpdateOne {
+	if v != nil {
+		_u.SetIsInitialized(*v)
 	}
-	return dsuo
+	return _u
 }
 
 // Mutation returns the DBSettingsMutation object of the builder.
-func (dsuo *DBSettingsUpdateOne) Mutation() *DBSettingsMutation {
-	return dsuo.mutation
+func (_u *DBSettingsUpdateOne) Mutation() *DBSettingsMutation {
+	return _u.mutation
 }
 
 // Where appends a list predicates to the DBSettingsUpdate builder.
-func (dsuo *DBSettingsUpdateOne) Where(ps ...predicate.DBSettings) *DBSettingsUpdateOne {
-	dsuo.mutation.Where(ps...)
-	return dsuo
+func (_u *DBSettingsUpdateOne) Where(ps ...predicate.DBSettings) *DBSettingsUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (dsuo *DBSettingsUpdateOne) Select(field string, fields ...string) *DBSettingsUpdateOne {
-	dsuo.fields = append([]string{field}, fields...)
-	return dsuo
+func (_u *DBSettingsUpdateOne) Select(field string, fields ...string) *DBSettingsUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated DBSettings entity.
-func (dsuo *DBSettingsUpdateOne) Save(ctx context.Context) (*DBSettings, error) {
-	return withHooks(ctx, dsuo.sqlSave, dsuo.mutation, dsuo.hooks)
+func (_u *DBSettingsUpdateOne) Save(ctx context.Context) (*DBSettings, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (dsuo *DBSettingsUpdateOne) SaveX(ctx context.Context) *DBSettings {
-	node, err := dsuo.Save(ctx)
+func (_u *DBSettingsUpdateOne) SaveX(ctx context.Context) *DBSettings {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -152,26 +152,26 @@ func (dsuo *DBSettingsUpdateOne) SaveX(ctx context.Context) *DBSettings {
 }
 
 // Exec executes the query on the entity.
-func (dsuo *DBSettingsUpdateOne) Exec(ctx context.Context) error {
-	_, err := dsuo.Save(ctx)
+func (_u *DBSettingsUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (dsuo *DBSettingsUpdateOne) ExecX(ctx context.Context) {
-	if err := dsuo.Exec(ctx); err != nil {
+func (_u *DBSettingsUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (dsuo *DBSettingsUpdateOne) sqlSave(ctx context.Context) (_node *DBSettings, err error) {
+func (_u *DBSettingsUpdateOne) sqlSave(ctx context.Context) (_node *DBSettings, err error) {
 	_spec := sqlgraph.NewUpdateSpec(dbsettings.Table, dbsettings.Columns, sqlgraph.NewFieldSpec(dbsettings.FieldID, field.TypeInt))
-	id, ok := dsuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "DBSettings.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := dsuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, dbsettings.FieldID)
 		for _, f := range fields {
@@ -183,20 +183,20 @@ func (dsuo *DBSettingsUpdateOne) sqlSave(ctx context.Context) (_node *DBSettings
 			}
 		}
 	}
-	if ps := dsuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := dsuo.mutation.IsInitialized(); ok {
+	if value, ok := _u.mutation.IsInitialized(); ok {
 		_spec.SetField(dbsettings.FieldIsInitialized, field.TypeBool, value)
 	}
-	_node = &DBSettings{config: dsuo.config}
+	_node = &DBSettings{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, dsuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{dbsettings.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -204,6 +204,6 @@ func (dsuo *DBSettingsUpdateOne) sqlSave(ctx context.Context) (_node *DBSettings
 		}
 		return nil, err
 	}
-	dsuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

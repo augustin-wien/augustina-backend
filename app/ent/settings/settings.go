@@ -56,6 +56,8 @@ const (
 	FieldShopLanding = "shoplanding"
 	// FieldDigitalItemsUrl holds the string denoting the digitalitemsurl field in the database.
 	FieldDigitalItemsUrl = "digitalitemsurl"
+	// FieldAbonementUrl holds the string denoting the abonementurl field in the database.
+	FieldAbonementUrl = "abonementurl"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -94,6 +96,7 @@ var Columns = []string{
 	FieldUseTipInsteadOfDonation,
 	FieldShopLanding,
 	FieldDigitalItemsUrl,
+	FieldAbonementUrl,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -162,6 +165,8 @@ var (
 	DefaultShopLanding bool
 	// DefaultDigitalItemsUrl holds the default value on creation for the "DigitalItemsUrl" field.
 	DefaultDigitalItemsUrl string
+	// DefaultAbonementUrl holds the default value on creation for the "AbonementUrl" field.
+	DefaultAbonementUrl string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -282,6 +287,11 @@ func ByShopLanding(opts ...sql.OrderTermOption) OrderOption {
 // ByDigitalItemsUrl orders the results by the DigitalItemsUrl field.
 func ByDigitalItemsUrl(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDigitalItemsUrl, opts...).ToFunc()
+}
+
+// ByAbonementUrl orders the results by the AbonementUrl field.
+func ByAbonementUrl(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAbonementUrl, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

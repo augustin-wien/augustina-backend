@@ -23,94 +23,94 @@ type OrderEntryCreate struct {
 }
 
 // SetQuantity sets the "quantity" field.
-func (oec *OrderEntryCreate) SetQuantity(i int) *OrderEntryCreate {
-	oec.mutation.SetQuantity(i)
-	return oec
+func (_c *OrderEntryCreate) SetQuantity(v int) *OrderEntryCreate {
+	_c.mutation.SetQuantity(v)
+	return _c
 }
 
 // SetPrice sets the "price" field.
-func (oec *OrderEntryCreate) SetPrice(i int) *OrderEntryCreate {
-	oec.mutation.SetPrice(i)
-	return oec
+func (_c *OrderEntryCreate) SetPrice(v int) *OrderEntryCreate {
+	_c.mutation.SetPrice(v)
+	return _c
 }
 
 // SetIsSale sets the "is_sale" field.
-func (oec *OrderEntryCreate) SetIsSale(b bool) *OrderEntryCreate {
-	oec.mutation.SetIsSale(b)
-	return oec
+func (_c *OrderEntryCreate) SetIsSale(v bool) *OrderEntryCreate {
+	_c.mutation.SetIsSale(v)
+	return _c
 }
 
 // SetItemID sets the "item_id" field.
-func (oec *OrderEntryCreate) SetItemID(i int) *OrderEntryCreate {
-	oec.mutation.SetItemID(i)
-	return oec
+func (_c *OrderEntryCreate) SetItemID(v int) *OrderEntryCreate {
+	_c.mutation.SetItemID(v)
+	return _c
 }
 
 // SetSenderID sets the "sender_id" field.
-func (oec *OrderEntryCreate) SetSenderID(i int) *OrderEntryCreate {
-	oec.mutation.SetSenderID(i)
-	return oec
+func (_c *OrderEntryCreate) SetSenderID(v int) *OrderEntryCreate {
+	_c.mutation.SetSenderID(v)
+	return _c
 }
 
 // SetReceiverID sets the "receiver_id" field.
-func (oec *OrderEntryCreate) SetReceiverID(i int) *OrderEntryCreate {
-	oec.mutation.SetReceiverID(i)
-	return oec
+func (_c *OrderEntryCreate) SetReceiverID(v int) *OrderEntryCreate {
+	_c.mutation.SetReceiverID(v)
+	return _c
 }
 
 // SetOrderID sets the "order_id" field.
-func (oec *OrderEntryCreate) SetOrderID(i int) *OrderEntryCreate {
-	oec.mutation.SetOrderID(i)
-	return oec
+func (_c *OrderEntryCreate) SetOrderID(v int) *OrderEntryCreate {
+	_c.mutation.SetOrderID(v)
+	return _c
 }
 
 // SetNillableOrderID sets the "order_id" field if the given value is not nil.
-func (oec *OrderEntryCreate) SetNillableOrderID(i *int) *OrderEntryCreate {
-	if i != nil {
-		oec.SetOrderID(*i)
+func (_c *OrderEntryCreate) SetNillableOrderID(v *int) *OrderEntryCreate {
+	if v != nil {
+		_c.SetOrderID(*v)
 	}
-	return oec
+	return _c
 }
 
 // SetID sets the "id" field.
-func (oec *OrderEntryCreate) SetID(i int) *OrderEntryCreate {
-	oec.mutation.SetID(i)
-	return oec
+func (_c *OrderEntryCreate) SetID(v int) *OrderEntryCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // SetOrder sets the "order" edge to the Order entity.
-func (oec *OrderEntryCreate) SetOrder(o *Order) *OrderEntryCreate {
-	return oec.SetOrderID(o.ID)
+func (_c *OrderEntryCreate) SetOrder(v *Order) *OrderEntryCreate {
+	return _c.SetOrderID(v.ID)
 }
 
 // SetItem sets the "item" edge to the Item entity.
-func (oec *OrderEntryCreate) SetItem(i *Item) *OrderEntryCreate {
-	return oec.SetItemID(i.ID)
+func (_c *OrderEntryCreate) SetItem(v *Item) *OrderEntryCreate {
+	return _c.SetItemID(v.ID)
 }
 
 // SetSender sets the "sender" edge to the Account entity.
-func (oec *OrderEntryCreate) SetSender(a *Account) *OrderEntryCreate {
-	return oec.SetSenderID(a.ID)
+func (_c *OrderEntryCreate) SetSender(v *Account) *OrderEntryCreate {
+	return _c.SetSenderID(v.ID)
 }
 
 // SetReceiver sets the "receiver" edge to the Account entity.
-func (oec *OrderEntryCreate) SetReceiver(a *Account) *OrderEntryCreate {
-	return oec.SetReceiverID(a.ID)
+func (_c *OrderEntryCreate) SetReceiver(v *Account) *OrderEntryCreate {
+	return _c.SetReceiverID(v.ID)
 }
 
 // Mutation returns the OrderEntryMutation object of the builder.
-func (oec *OrderEntryCreate) Mutation() *OrderEntryMutation {
-	return oec.mutation
+func (_c *OrderEntryCreate) Mutation() *OrderEntryMutation {
+	return _c.mutation
 }
 
 // Save creates the OrderEntry in the database.
-func (oec *OrderEntryCreate) Save(ctx context.Context) (*OrderEntry, error) {
-	return withHooks(ctx, oec.sqlSave, oec.mutation, oec.hooks)
+func (_c *OrderEntryCreate) Save(ctx context.Context) (*OrderEntry, error) {
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (oec *OrderEntryCreate) SaveX(ctx context.Context) *OrderEntry {
-	v, err := oec.Save(ctx)
+func (_c *OrderEntryCreate) SaveX(ctx context.Context) *OrderEntry {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -118,61 +118,61 @@ func (oec *OrderEntryCreate) SaveX(ctx context.Context) *OrderEntry {
 }
 
 // Exec executes the query.
-func (oec *OrderEntryCreate) Exec(ctx context.Context) error {
-	_, err := oec.Save(ctx)
+func (_c *OrderEntryCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (oec *OrderEntryCreate) ExecX(ctx context.Context) {
-	if err := oec.Exec(ctx); err != nil {
+func (_c *OrderEntryCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (oec *OrderEntryCreate) check() error {
-	if _, ok := oec.mutation.Quantity(); !ok {
+func (_c *OrderEntryCreate) check() error {
+	if _, ok := _c.mutation.Quantity(); !ok {
 		return &ValidationError{Name: "quantity", err: errors.New(`ent: missing required field "OrderEntry.quantity"`)}
 	}
-	if _, ok := oec.mutation.Price(); !ok {
+	if _, ok := _c.mutation.Price(); !ok {
 		return &ValidationError{Name: "price", err: errors.New(`ent: missing required field "OrderEntry.price"`)}
 	}
-	if _, ok := oec.mutation.IsSale(); !ok {
+	if _, ok := _c.mutation.IsSale(); !ok {
 		return &ValidationError{Name: "is_sale", err: errors.New(`ent: missing required field "OrderEntry.is_sale"`)}
 	}
-	if _, ok := oec.mutation.ItemID(); !ok {
+	if _, ok := _c.mutation.ItemID(); !ok {
 		return &ValidationError{Name: "item_id", err: errors.New(`ent: missing required field "OrderEntry.item_id"`)}
 	}
-	if _, ok := oec.mutation.SenderID(); !ok {
+	if _, ok := _c.mutation.SenderID(); !ok {
 		return &ValidationError{Name: "sender_id", err: errors.New(`ent: missing required field "OrderEntry.sender_id"`)}
 	}
-	if _, ok := oec.mutation.ReceiverID(); !ok {
+	if _, ok := _c.mutation.ReceiverID(); !ok {
 		return &ValidationError{Name: "receiver_id", err: errors.New(`ent: missing required field "OrderEntry.receiver_id"`)}
 	}
-	if v, ok := oec.mutation.ID(); ok {
+	if v, ok := _c.mutation.ID(); ok {
 		if err := orderentry.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "OrderEntry.id": %w`, err)}
 		}
 	}
-	if len(oec.mutation.ItemIDs()) == 0 {
+	if len(_c.mutation.ItemIDs()) == 0 {
 		return &ValidationError{Name: "item", err: errors.New(`ent: missing required edge "OrderEntry.item"`)}
 	}
-	if len(oec.mutation.SenderIDs()) == 0 {
+	if len(_c.mutation.SenderIDs()) == 0 {
 		return &ValidationError{Name: "sender", err: errors.New(`ent: missing required edge "OrderEntry.sender"`)}
 	}
-	if len(oec.mutation.ReceiverIDs()) == 0 {
+	if len(_c.mutation.ReceiverIDs()) == 0 {
 		return &ValidationError{Name: "receiver", err: errors.New(`ent: missing required edge "OrderEntry.receiver"`)}
 	}
 	return nil
 }
 
-func (oec *OrderEntryCreate) sqlSave(ctx context.Context) (*OrderEntry, error) {
-	if err := oec.check(); err != nil {
+func (_c *OrderEntryCreate) sqlSave(ctx context.Context) (*OrderEntry, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := oec.createSpec()
-	if err := sqlgraph.CreateNode(ctx, oec.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -182,33 +182,33 @@ func (oec *OrderEntryCreate) sqlSave(ctx context.Context) (*OrderEntry, error) {
 		id := _spec.ID.Value.(int64)
 		_node.ID = int(id)
 	}
-	oec.mutation.id = &_node.ID
-	oec.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (oec *OrderEntryCreate) createSpec() (*OrderEntry, *sqlgraph.CreateSpec) {
+func (_c *OrderEntryCreate) createSpec() (*OrderEntry, *sqlgraph.CreateSpec) {
 	var (
-		_node = &OrderEntry{config: oec.config}
+		_node = &OrderEntry{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(orderentry.Table, sqlgraph.NewFieldSpec(orderentry.FieldID, field.TypeInt))
 	)
-	if id, ok := oec.mutation.ID(); ok {
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := oec.mutation.Quantity(); ok {
+	if value, ok := _c.mutation.Quantity(); ok {
 		_spec.SetField(orderentry.FieldQuantity, field.TypeInt, value)
 		_node.Quantity = value
 	}
-	if value, ok := oec.mutation.Price(); ok {
+	if value, ok := _c.mutation.Price(); ok {
 		_spec.SetField(orderentry.FieldPrice, field.TypeInt, value)
 		_node.Price = value
 	}
-	if value, ok := oec.mutation.IsSale(); ok {
+	if value, ok := _c.mutation.IsSale(); ok {
 		_spec.SetField(orderentry.FieldIsSale, field.TypeBool, value)
 		_node.IsSale = value
 	}
-	if nodes := oec.mutation.OrderIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -225,7 +225,7 @@ func (oec *OrderEntryCreate) createSpec() (*OrderEntry, *sqlgraph.CreateSpec) {
 		_node.OrderID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := oec.mutation.ItemIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -242,7 +242,7 @@ func (oec *OrderEntryCreate) createSpec() (*OrderEntry, *sqlgraph.CreateSpec) {
 		_node.ItemID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := oec.mutation.SenderIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.SenderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -259,7 +259,7 @@ func (oec *OrderEntryCreate) createSpec() (*OrderEntry, *sqlgraph.CreateSpec) {
 		_node.SenderID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := oec.mutation.ReceiverIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ReceiverIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -287,16 +287,16 @@ type OrderEntryCreateBulk struct {
 }
 
 // Save creates the OrderEntry entities in the database.
-func (oecb *OrderEntryCreateBulk) Save(ctx context.Context) ([]*OrderEntry, error) {
-	if oecb.err != nil {
-		return nil, oecb.err
+func (_c *OrderEntryCreateBulk) Save(ctx context.Context) ([]*OrderEntry, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(oecb.builders))
-	nodes := make([]*OrderEntry, len(oecb.builders))
-	mutators := make([]Mutator, len(oecb.builders))
-	for i := range oecb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*OrderEntry, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := oecb.builders[i]
+			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*OrderEntryMutation)
 				if !ok {
@@ -309,11 +309,11 @@ func (oecb *OrderEntryCreateBulk) Save(ctx context.Context) ([]*OrderEntry, erro
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, oecb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, oecb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -337,7 +337,7 @@ func (oecb *OrderEntryCreateBulk) Save(ctx context.Context) ([]*OrderEntry, erro
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, oecb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -345,8 +345,8 @@ func (oecb *OrderEntryCreateBulk) Save(ctx context.Context) ([]*OrderEntry, erro
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (oecb *OrderEntryCreateBulk) SaveX(ctx context.Context) []*OrderEntry {
-	v, err := oecb.Save(ctx)
+func (_c *OrderEntryCreateBulk) SaveX(ctx context.Context) []*OrderEntry {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -354,14 +354,14 @@ func (oecb *OrderEntryCreateBulk) SaveX(ctx context.Context) []*OrderEntry {
 }
 
 // Exec executes the query.
-func (oecb *OrderEntryCreateBulk) Exec(ctx context.Context) error {
-	_, err := oecb.Save(ctx)
+func (_c *OrderEntryCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (oecb *OrderEntryCreateBulk) ExecX(ctx context.Context) {
-	if err := oecb.Exec(ctx); err != nil {
+func (_c *OrderEntryCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
