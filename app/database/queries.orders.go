@@ -427,10 +427,20 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						}
 						processedLicenseGroups[lg] = true
 
-						// When an abonement is sold, also grant access to the currently
-						// published online_issue for the same license group so the customer
-						// can read it immediately without waiting for the next publication.
+						// When an abonement is sold, create an Abonement DB record and also
+						// grant access to the currently published online_issue for the same
+						// license group so the customer can read it immediately.
 						if item.Type == "abonement" && dbCustomer != nil {
+							_, createAboErr := db.CreateAbonement(&Abonement{
+								CustomerID: dbCustomer.ID,
+								ItemID:     item.ID,
+								FromDate:   o.Timestamp,
+								ToDate:     o.Timestamp.AddDate(1, 0, 0),
+								Status:     "active",
+							})
+							if createAboErr != nil {
+								log.Error("VerifyOrderAndCreatePayments: failed to create abonement record: ", orderID, createAboErr)
+							}
 							latestIssue, found, issueErr := db.GetLatestPublishedOnlineIssueByLicenseGroup(lg)
 							if issueErr != nil {
 								log.Error("VerifyOrderAndCreatePayments: failed to look up latest online_issue: ", orderID, issueErr)

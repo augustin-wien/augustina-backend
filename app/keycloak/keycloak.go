@@ -190,6 +190,9 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 
 // Assign group to user
 func (k *Keycloak) AssignGroup(userID string, groupName string) error {
+	if k.Client == nil {
+		return fmt.Errorf("AssignGroup: keycloak client not initialized")
+	}
 	if groupName == "" {
 		return fmt.Errorf("AssignGroup: groupName is empty")
 	}
@@ -208,6 +211,9 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 }
 
 func (k *Keycloak) AssignDigitalLicenseGroup(userID string, licenseGroup string) error {
+	if k.Client == nil {
+		return fmt.Errorf("AssignDigitalLicenseGroup: keycloak client not initialized")
+	}
 	k.checkAdminToken()
 	licenseGroupPath := "/" + k.CustomerGroup + "/" + k.NewspaperGroup + "/" + licenseGroup
 	// Check if group exists
@@ -666,6 +672,9 @@ func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
 }
 
 func (k *Keycloak) GetOrCreateUser(email string) (userID string, newUser bool, err error) {
+	if k.Client == nil {
+		return "", false, fmt.Errorf("GetOrCreateUser: keycloak client not initialized")
+	}
 	if email == "" {
 		return "", false, fmt.Errorf("GetOrCreateUser: email is empty")
 	}
