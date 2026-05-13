@@ -21,92 +21,92 @@ type AccountCreate struct {
 }
 
 // SetName sets the "name" field.
-func (ac *AccountCreate) SetName(s string) *AccountCreate {
-	ac.mutation.SetName(s)
-	return ac
+func (_c *AccountCreate) SetName(v string) *AccountCreate {
+	_c.mutation.SetName(v)
+	return _c
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (ac *AccountCreate) SetNillableName(s *string) *AccountCreate {
-	if s != nil {
-		ac.SetName(*s)
+func (_c *AccountCreate) SetNillableName(v *string) *AccountCreate {
+	if v != nil {
+		_c.SetName(*v)
 	}
-	return ac
+	return _c
 }
 
 // SetBalance sets the "balance" field.
-func (ac *AccountCreate) SetBalance(f float64) *AccountCreate {
-	ac.mutation.SetBalance(f)
-	return ac
+func (_c *AccountCreate) SetBalance(v float64) *AccountCreate {
+	_c.mutation.SetBalance(v)
+	return _c
 }
 
 // SetNillableBalance sets the "balance" field if the given value is not nil.
-func (ac *AccountCreate) SetNillableBalance(f *float64) *AccountCreate {
-	if f != nil {
-		ac.SetBalance(*f)
+func (_c *AccountCreate) SetNillableBalance(v *float64) *AccountCreate {
+	if v != nil {
+		_c.SetBalance(*v)
 	}
-	return ac
+	return _c
 }
 
 // SetType sets the "type" field.
-func (ac *AccountCreate) SetType(s string) *AccountCreate {
-	ac.mutation.SetType(s)
-	return ac
+func (_c *AccountCreate) SetType(v string) *AccountCreate {
+	_c.mutation.SetType(v)
+	return _c
 }
 
 // SetUserID sets the "user_id" field.
-func (ac *AccountCreate) SetUserID(s string) *AccountCreate {
-	ac.mutation.SetUserID(s)
-	return ac
+func (_c *AccountCreate) SetUserID(v string) *AccountCreate {
+	_c.mutation.SetUserID(v)
+	return _c
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (ac *AccountCreate) SetNillableUserID(s *string) *AccountCreate {
-	if s != nil {
-		ac.SetUserID(*s)
+func (_c *AccountCreate) SetNillableUserID(v *string) *AccountCreate {
+	if v != nil {
+		_c.SetUserID(*v)
 	}
-	return ac
+	return _c
 }
 
 // SetVendorID sets the "vendor_id" field.
-func (ac *AccountCreate) SetVendorID(i int) *AccountCreate {
-	ac.mutation.SetVendorID(i)
-	return ac
+func (_c *AccountCreate) SetVendorID(v int) *AccountCreate {
+	_c.mutation.SetVendorID(v)
+	return _c
 }
 
 // SetNillableVendorID sets the "vendor_id" field if the given value is not nil.
-func (ac *AccountCreate) SetNillableVendorID(i *int) *AccountCreate {
-	if i != nil {
-		ac.SetVendorID(*i)
+func (_c *AccountCreate) SetNillableVendorID(v *int) *AccountCreate {
+	if v != nil {
+		_c.SetVendorID(*v)
 	}
-	return ac
+	return _c
 }
 
 // SetID sets the "id" field.
-func (ac *AccountCreate) SetID(i int) *AccountCreate {
-	ac.mutation.SetID(i)
-	return ac
+func (_c *AccountCreate) SetID(v int) *AccountCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // SetVendor sets the "vendor" edge to the Vendor entity.
-func (ac *AccountCreate) SetVendor(v *Vendor) *AccountCreate {
-	return ac.SetVendorID(v.ID)
+func (_c *AccountCreate) SetVendor(v *Vendor) *AccountCreate {
+	return _c.SetVendorID(v.ID)
 }
 
 // Mutation returns the AccountMutation object of the builder.
-func (ac *AccountCreate) Mutation() *AccountMutation {
-	return ac.mutation
+func (_c *AccountCreate) Mutation() *AccountMutation {
+	return _c.mutation
 }
 
 // Save creates the Account in the database.
-func (ac *AccountCreate) Save(ctx context.Context) (*Account, error) {
-	ac.defaults()
-	return withHooks(ctx, ac.sqlSave, ac.mutation, ac.hooks)
+func (_c *AccountCreate) Save(ctx context.Context) (*Account, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (ac *AccountCreate) SaveX(ctx context.Context) *Account {
-	v, err := ac.Save(ctx)
+func (_c *AccountCreate) SaveX(ctx context.Context) *Account {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -114,35 +114,35 @@ func (ac *AccountCreate) SaveX(ctx context.Context) *Account {
 }
 
 // Exec executes the query.
-func (ac *AccountCreate) Exec(ctx context.Context) error {
-	_, err := ac.Save(ctx)
+func (_c *AccountCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (ac *AccountCreate) ExecX(ctx context.Context) {
-	if err := ac.Exec(ctx); err != nil {
+func (_c *AccountCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (ac *AccountCreate) defaults() {
-	if _, ok := ac.mutation.Balance(); !ok {
+func (_c *AccountCreate) defaults() {
+	if _, ok := _c.mutation.Balance(); !ok {
 		v := account.DefaultBalance
-		ac.mutation.SetBalance(v)
+		_c.mutation.SetBalance(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (ac *AccountCreate) check() error {
-	if _, ok := ac.mutation.Balance(); !ok {
+func (_c *AccountCreate) check() error {
+	if _, ok := _c.mutation.Balance(); !ok {
 		return &ValidationError{Name: "balance", err: errors.New(`ent: missing required field "Account.balance"`)}
 	}
-	if _, ok := ac.mutation.GetType(); !ok {
+	if _, ok := _c.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Account.type"`)}
 	}
-	if v, ok := ac.mutation.ID(); ok {
+	if v, ok := _c.mutation.ID(); ok {
 		if err := account.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Account.id": %w`, err)}
 		}
@@ -150,12 +150,12 @@ func (ac *AccountCreate) check() error {
 	return nil
 }
 
-func (ac *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
-	if err := ac.check(); err != nil {
+func (_c *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := ac.createSpec()
-	if err := sqlgraph.CreateNode(ctx, ac.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -165,37 +165,37 @@ func (ac *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
 		id := _spec.ID.Value.(int64)
 		_node.ID = int(id)
 	}
-	ac.mutation.id = &_node.ID
-	ac.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (ac *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
+func (_c *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	var (
-		_node = &Account{config: ac.config}
+		_node = &Account{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(account.Table, sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt))
 	)
-	if id, ok := ac.mutation.ID(); ok {
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := ac.mutation.Name(); ok {
+	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(account.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := ac.mutation.Balance(); ok {
+	if value, ok := _c.mutation.Balance(); ok {
 		_spec.SetField(account.FieldBalance, field.TypeFloat64, value)
 		_node.Balance = value
 	}
-	if value, ok := ac.mutation.GetType(); ok {
+	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(account.FieldType, field.TypeString, value)
 		_node.Type = value
 	}
-	if value, ok := ac.mutation.UserID(); ok {
+	if value, ok := _c.mutation.UserID(); ok {
 		_spec.SetField(account.FieldUserID, field.TypeString, value)
 		_node.UserID = value
 	}
-	if nodes := ac.mutation.VendorIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.VendorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -223,16 +223,16 @@ type AccountCreateBulk struct {
 }
 
 // Save creates the Account entities in the database.
-func (acb *AccountCreateBulk) Save(ctx context.Context) ([]*Account, error) {
-	if acb.err != nil {
-		return nil, acb.err
+func (_c *AccountCreateBulk) Save(ctx context.Context) ([]*Account, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(acb.builders))
-	nodes := make([]*Account, len(acb.builders))
-	mutators := make([]Mutator, len(acb.builders))
-	for i := range acb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*Account, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := acb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*AccountMutation)
@@ -246,11 +246,11 @@ func (acb *AccountCreateBulk) Save(ctx context.Context) ([]*Account, error) {
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, acb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, acb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -274,7 +274,7 @@ func (acb *AccountCreateBulk) Save(ctx context.Context) ([]*Account, error) {
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, acb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -282,8 +282,8 @@ func (acb *AccountCreateBulk) Save(ctx context.Context) ([]*Account, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (acb *AccountCreateBulk) SaveX(ctx context.Context) []*Account {
-	v, err := acb.Save(ctx)
+func (_c *AccountCreateBulk) SaveX(ctx context.Context) []*Account {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -291,14 +291,14 @@ func (acb *AccountCreateBulk) SaveX(ctx context.Context) []*Account {
 }
 
 // Exec executes the query.
-func (acb *AccountCreateBulk) Exec(ctx context.Context) error {
-	_, err := acb.Save(ctx)
+func (_c *AccountCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (acb *AccountCreateBulk) ExecX(ctx context.Context) {
-	if err := acb.Exec(ctx); err != nil {
+func (_c *AccountCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

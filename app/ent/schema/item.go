@@ -36,6 +36,9 @@ func (Item) Fields() []ent.Field {
 		field.String("LicenseGroup").
 			StorageKey("licensegroup").
 			Default("default"),
+		field.String("Type").
+			StorageKey("item_type").
+			Default("normal_item"),
 		field.Bool("IsPDFItem").
 			StorageKey("ispdfitem").
 			Default(false),

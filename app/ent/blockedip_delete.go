@@ -20,56 +20,56 @@ type BlockedIPDelete struct {
 }
 
 // Where appends a list predicates to the BlockedIPDelete builder.
-func (bid *BlockedIPDelete) Where(ps ...predicate.BlockedIP) *BlockedIPDelete {
-	bid.mutation.Where(ps...)
-	return bid
+func (_d *BlockedIPDelete) Where(ps ...predicate.BlockedIP) *BlockedIPDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (bid *BlockedIPDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, bid.sqlExec, bid.mutation, bid.hooks)
+func (_d *BlockedIPDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (bid *BlockedIPDelete) ExecX(ctx context.Context) int {
-	n, err := bid.Exec(ctx)
+func (_d *BlockedIPDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (bid *BlockedIPDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *BlockedIPDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(blockedip.Table, sqlgraph.NewFieldSpec(blockedip.FieldID, field.TypeInt))
-	if ps := bid.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, bid.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	bid.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // BlockedIPDeleteOne is the builder for deleting a single BlockedIP entity.
 type BlockedIPDeleteOne struct {
-	bid *BlockedIPDelete
+	_d *BlockedIPDelete
 }
 
 // Where appends a list predicates to the BlockedIPDelete builder.
-func (bido *BlockedIPDeleteOne) Where(ps ...predicate.BlockedIP) *BlockedIPDeleteOne {
-	bido.bid.mutation.Where(ps...)
-	return bido
+func (_d *BlockedIPDeleteOne) Where(ps ...predicate.BlockedIP) *BlockedIPDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (bido *BlockedIPDeleteOne) Exec(ctx context.Context) error {
-	n, err := bido.bid.Exec(ctx)
+func (_d *BlockedIPDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (bido *BlockedIPDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (bido *BlockedIPDeleteOne) ExecX(ctx context.Context) {
-	if err := bido.Exec(ctx); err != nil {
+func (_d *BlockedIPDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -23,378 +23,392 @@ type SettingsUpdate struct {
 }
 
 // Where appends a list predicates to the SettingsUpdate builder.
-func (su *SettingsUpdate) Where(ps ...predicate.Settings) *SettingsUpdate {
-	su.mutation.Where(ps...)
-	return su
+func (_u *SettingsUpdate) Where(ps ...predicate.Settings) *SettingsUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetAGBUrl sets the "AGBUrl" field.
-func (su *SettingsUpdate) SetAGBUrl(s string) *SettingsUpdate {
-	su.mutation.SetAGBUrl(s)
-	return su
+func (_u *SettingsUpdate) SetAGBUrl(v string) *SettingsUpdate {
+	_u.mutation.SetAGBUrl(v)
+	return _u
 }
 
 // SetNillableAGBUrl sets the "AGBUrl" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableAGBUrl(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetAGBUrl(*s)
+func (_u *SettingsUpdate) SetNillableAGBUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetAGBUrl(*v)
 	}
-	return su
+	return _u
 }
 
 // SetColor sets the "Color" field.
-func (su *SettingsUpdate) SetColor(s string) *SettingsUpdate {
-	su.mutation.SetColor(s)
-	return su
+func (_u *SettingsUpdate) SetColor(v string) *SettingsUpdate {
+	_u.mutation.SetColor(v)
+	return _u
 }
 
 // SetNillableColor sets the "Color" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableColor(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetColor(*s)
+func (_u *SettingsUpdate) SetNillableColor(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetColor(*v)
 	}
-	return su
+	return _u
 }
 
 // SetFontColor sets the "FontColor" field.
-func (su *SettingsUpdate) SetFontColor(s string) *SettingsUpdate {
-	su.mutation.SetFontColor(s)
-	return su
+func (_u *SettingsUpdate) SetFontColor(v string) *SettingsUpdate {
+	_u.mutation.SetFontColor(v)
+	return _u
 }
 
 // SetNillableFontColor sets the "FontColor" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableFontColor(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetFontColor(*s)
+func (_u *SettingsUpdate) SetNillableFontColor(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetFontColor(*v)
 	}
-	return su
+	return _u
 }
 
 // SetLogo sets the "Logo" field.
-func (su *SettingsUpdate) SetLogo(s string) *SettingsUpdate {
-	su.mutation.SetLogo(s)
-	return su
+func (_u *SettingsUpdate) SetLogo(v string) *SettingsUpdate {
+	_u.mutation.SetLogo(v)
+	return _u
 }
 
 // SetNillableLogo sets the "Logo" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableLogo(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetLogo(*s)
+func (_u *SettingsUpdate) SetNillableLogo(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetLogo(*v)
 	}
-	return su
+	return _u
 }
 
 // SetMaxOrderAmount sets the "MaxOrderAmount" field.
-func (su *SettingsUpdate) SetMaxOrderAmount(i int) *SettingsUpdate {
-	su.mutation.ResetMaxOrderAmount()
-	su.mutation.SetMaxOrderAmount(i)
-	return su
+func (_u *SettingsUpdate) SetMaxOrderAmount(v int) *SettingsUpdate {
+	_u.mutation.ResetMaxOrderAmount()
+	_u.mutation.SetMaxOrderAmount(v)
+	return _u
 }
 
 // SetNillableMaxOrderAmount sets the "MaxOrderAmount" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableMaxOrderAmount(i *int) *SettingsUpdate {
-	if i != nil {
-		su.SetMaxOrderAmount(*i)
+func (_u *SettingsUpdate) SetNillableMaxOrderAmount(v *int) *SettingsUpdate {
+	if v != nil {
+		_u.SetMaxOrderAmount(*v)
 	}
-	return su
+	return _u
 }
 
-// AddMaxOrderAmount adds i to the "MaxOrderAmount" field.
-func (su *SettingsUpdate) AddMaxOrderAmount(i int) *SettingsUpdate {
-	su.mutation.AddMaxOrderAmount(i)
-	return su
+// AddMaxOrderAmount adds value to the "MaxOrderAmount" field.
+func (_u *SettingsUpdate) AddMaxOrderAmount(v int) *SettingsUpdate {
+	_u.mutation.AddMaxOrderAmount(v)
+	return _u
 }
 
 // SetOrgaCoversTransactionCosts sets the "OrgaCoversTransactionCosts" field.
-func (su *SettingsUpdate) SetOrgaCoversTransactionCosts(b bool) *SettingsUpdate {
-	su.mutation.SetOrgaCoversTransactionCosts(b)
-	return su
+func (_u *SettingsUpdate) SetOrgaCoversTransactionCosts(v bool) *SettingsUpdate {
+	_u.mutation.SetOrgaCoversTransactionCosts(v)
+	return _u
 }
 
 // SetNillableOrgaCoversTransactionCosts sets the "OrgaCoversTransactionCosts" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableOrgaCoversTransactionCosts(b *bool) *SettingsUpdate {
-	if b != nil {
-		su.SetOrgaCoversTransactionCosts(*b)
+func (_u *SettingsUpdate) SetNillableOrgaCoversTransactionCosts(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetOrgaCoversTransactionCosts(*v)
 	}
-	return su
+	return _u
 }
 
 // SetWebshopIsClosed sets the "WebshopIsClosed" field.
-func (su *SettingsUpdate) SetWebshopIsClosed(b bool) *SettingsUpdate {
-	su.mutation.SetWebshopIsClosed(b)
-	return su
+func (_u *SettingsUpdate) SetWebshopIsClosed(v bool) *SettingsUpdate {
+	_u.mutation.SetWebshopIsClosed(v)
+	return _u
 }
 
 // SetNillableWebshopIsClosed sets the "WebshopIsClosed" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableWebshopIsClosed(b *bool) *SettingsUpdate {
-	if b != nil {
-		su.SetWebshopIsClosed(*b)
+func (_u *SettingsUpdate) SetNillableWebshopIsClosed(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetWebshopIsClosed(*v)
 	}
-	return su
+	return _u
 }
 
 // SetVendorNotFoundHelpUrl sets the "VendorNotFoundHelpUrl" field.
-func (su *SettingsUpdate) SetVendorNotFoundHelpUrl(s string) *SettingsUpdate {
-	su.mutation.SetVendorNotFoundHelpUrl(s)
-	return su
+func (_u *SettingsUpdate) SetVendorNotFoundHelpUrl(v string) *SettingsUpdate {
+	_u.mutation.SetVendorNotFoundHelpUrl(v)
+	return _u
 }
 
 // SetNillableVendorNotFoundHelpUrl sets the "VendorNotFoundHelpUrl" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableVendorNotFoundHelpUrl(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetVendorNotFoundHelpUrl(*s)
+func (_u *SettingsUpdate) SetNillableVendorNotFoundHelpUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetVendorNotFoundHelpUrl(*v)
 	}
-	return su
+	return _u
 }
 
 // SetMaintainanceModeHelpUrl sets the "MaintainanceModeHelpUrl" field.
-func (su *SettingsUpdate) SetMaintainanceModeHelpUrl(s string) *SettingsUpdate {
-	su.mutation.SetMaintainanceModeHelpUrl(s)
-	return su
+func (_u *SettingsUpdate) SetMaintainanceModeHelpUrl(v string) *SettingsUpdate {
+	_u.mutation.SetMaintainanceModeHelpUrl(v)
+	return _u
 }
 
 // SetNillableMaintainanceModeHelpUrl sets the "MaintainanceModeHelpUrl" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableMaintainanceModeHelpUrl(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetMaintainanceModeHelpUrl(*s)
+func (_u *SettingsUpdate) SetNillableMaintainanceModeHelpUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetMaintainanceModeHelpUrl(*v)
 	}
-	return su
+	return _u
 }
 
 // SetVendorEmailPostfix sets the "VendorEmailPostfix" field.
-func (su *SettingsUpdate) SetVendorEmailPostfix(s string) *SettingsUpdate {
-	su.mutation.SetVendorEmailPostfix(s)
-	return su
+func (_u *SettingsUpdate) SetVendorEmailPostfix(v string) *SettingsUpdate {
+	_u.mutation.SetVendorEmailPostfix(v)
+	return _u
 }
 
 // SetNillableVendorEmailPostfix sets the "VendorEmailPostfix" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableVendorEmailPostfix(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetVendorEmailPostfix(*s)
+func (_u *SettingsUpdate) SetNillableVendorEmailPostfix(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetVendorEmailPostfix(*v)
 	}
-	return su
+	return _u
 }
 
 // SetNewspaperName sets the "NewspaperName" field.
-func (su *SettingsUpdate) SetNewspaperName(s string) *SettingsUpdate {
-	su.mutation.SetNewspaperName(s)
-	return su
+func (_u *SettingsUpdate) SetNewspaperName(v string) *SettingsUpdate {
+	_u.mutation.SetNewspaperName(v)
+	return _u
 }
 
 // SetNillableNewspaperName sets the "NewspaperName" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableNewspaperName(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetNewspaperName(*s)
+func (_u *SettingsUpdate) SetNillableNewspaperName(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetNewspaperName(*v)
 	}
-	return su
+	return _u
 }
 
 // SetQRCodeUrl sets the "QRCodeUrl" field.
-func (su *SettingsUpdate) SetQRCodeUrl(s string) *SettingsUpdate {
-	su.mutation.SetQRCodeUrl(s)
-	return su
+func (_u *SettingsUpdate) SetQRCodeUrl(v string) *SettingsUpdate {
+	_u.mutation.SetQRCodeUrl(v)
+	return _u
 }
 
 // SetNillableQRCodeUrl sets the "QRCodeUrl" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableQRCodeUrl(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetQRCodeUrl(*s)
+func (_u *SettingsUpdate) SetNillableQRCodeUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetQRCodeUrl(*v)
 	}
-	return su
+	return _u
 }
 
 // SetQRCodeLogoImgUrl sets the "QRCodeLogoImgUrl" field.
-func (su *SettingsUpdate) SetQRCodeLogoImgUrl(s string) *SettingsUpdate {
-	su.mutation.SetQRCodeLogoImgUrl(s)
-	return su
+func (_u *SettingsUpdate) SetQRCodeLogoImgUrl(v string) *SettingsUpdate {
+	_u.mutation.SetQRCodeLogoImgUrl(v)
+	return _u
 }
 
 // SetNillableQRCodeLogoImgUrl sets the "QRCodeLogoImgUrl" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableQRCodeLogoImgUrl(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetQRCodeLogoImgUrl(*s)
+func (_u *SettingsUpdate) SetNillableQRCodeLogoImgUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetQRCodeLogoImgUrl(*v)
 	}
-	return su
+	return _u
 }
 
 // SetMapCenterLat sets the "MapCenterLat" field.
-func (su *SettingsUpdate) SetMapCenterLat(f float64) *SettingsUpdate {
-	su.mutation.ResetMapCenterLat()
-	su.mutation.SetMapCenterLat(f)
-	return su
+func (_u *SettingsUpdate) SetMapCenterLat(v float64) *SettingsUpdate {
+	_u.mutation.ResetMapCenterLat()
+	_u.mutation.SetMapCenterLat(v)
+	return _u
 }
 
 // SetNillableMapCenterLat sets the "MapCenterLat" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableMapCenterLat(f *float64) *SettingsUpdate {
-	if f != nil {
-		su.SetMapCenterLat(*f)
+func (_u *SettingsUpdate) SetNillableMapCenterLat(v *float64) *SettingsUpdate {
+	if v != nil {
+		_u.SetMapCenterLat(*v)
 	}
-	return su
+	return _u
 }
 
-// AddMapCenterLat adds f to the "MapCenterLat" field.
-func (su *SettingsUpdate) AddMapCenterLat(f float64) *SettingsUpdate {
-	su.mutation.AddMapCenterLat(f)
-	return su
+// AddMapCenterLat adds value to the "MapCenterLat" field.
+func (_u *SettingsUpdate) AddMapCenterLat(v float64) *SettingsUpdate {
+	_u.mutation.AddMapCenterLat(v)
+	return _u
 }
 
 // SetMapCenterLong sets the "MapCenterLong" field.
-func (su *SettingsUpdate) SetMapCenterLong(f float64) *SettingsUpdate {
-	su.mutation.ResetMapCenterLong()
-	su.mutation.SetMapCenterLong(f)
-	return su
+func (_u *SettingsUpdate) SetMapCenterLong(v float64) *SettingsUpdate {
+	_u.mutation.ResetMapCenterLong()
+	_u.mutation.SetMapCenterLong(v)
+	return _u
 }
 
 // SetNillableMapCenterLong sets the "MapCenterLong" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableMapCenterLong(f *float64) *SettingsUpdate {
-	if f != nil {
-		su.SetMapCenterLong(*f)
+func (_u *SettingsUpdate) SetNillableMapCenterLong(v *float64) *SettingsUpdate {
+	if v != nil {
+		_u.SetMapCenterLong(*v)
 	}
-	return su
+	return _u
 }
 
-// AddMapCenterLong adds f to the "MapCenterLong" field.
-func (su *SettingsUpdate) AddMapCenterLong(f float64) *SettingsUpdate {
-	su.mutation.AddMapCenterLong(f)
-	return su
+// AddMapCenterLong adds value to the "MapCenterLong" field.
+func (_u *SettingsUpdate) AddMapCenterLong(v float64) *SettingsUpdate {
+	_u.mutation.AddMapCenterLong(v)
+	return _u
 }
 
 // SetUseVendorLicenseIdInShop sets the "UseVendorLicenseIdInShop" field.
-func (su *SettingsUpdate) SetUseVendorLicenseIdInShop(b bool) *SettingsUpdate {
-	su.mutation.SetUseVendorLicenseIdInShop(b)
-	return su
+func (_u *SettingsUpdate) SetUseVendorLicenseIdInShop(v bool) *SettingsUpdate {
+	_u.mutation.SetUseVendorLicenseIdInShop(v)
+	return _u
 }
 
 // SetNillableUseVendorLicenseIdInShop sets the "UseVendorLicenseIdInShop" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableUseVendorLicenseIdInShop(b *bool) *SettingsUpdate {
-	if b != nil {
-		su.SetUseVendorLicenseIdInShop(*b)
+func (_u *SettingsUpdate) SetNillableUseVendorLicenseIdInShop(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetUseVendorLicenseIdInShop(*v)
 	}
-	return su
+	return _u
 }
 
 // SetFavicon sets the "Favicon" field.
-func (su *SettingsUpdate) SetFavicon(s string) *SettingsUpdate {
-	su.mutation.SetFavicon(s)
-	return su
+func (_u *SettingsUpdate) SetFavicon(v string) *SettingsUpdate {
+	_u.mutation.SetFavicon(v)
+	return _u
 }
 
 // SetNillableFavicon sets the "Favicon" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableFavicon(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetFavicon(*s)
+func (_u *SettingsUpdate) SetNillableFavicon(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetFavicon(*v)
 	}
-	return su
+	return _u
 }
 
 // SetQRCodeSettings sets the "QRCodeSettings" field.
-func (su *SettingsUpdate) SetQRCodeSettings(s string) *SettingsUpdate {
-	su.mutation.SetQRCodeSettings(s)
-	return su
+func (_u *SettingsUpdate) SetQRCodeSettings(v string) *SettingsUpdate {
+	_u.mutation.SetQRCodeSettings(v)
+	return _u
 }
 
 // SetNillableQRCodeSettings sets the "QRCodeSettings" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableQRCodeSettings(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetQRCodeSettings(*s)
+func (_u *SettingsUpdate) SetNillableQRCodeSettings(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetQRCodeSettings(*v)
 	}
-	return su
+	return _u
 }
 
 // SetQRCodeEnableLogo sets the "QRCodeEnableLogo" field.
-func (su *SettingsUpdate) SetQRCodeEnableLogo(b bool) *SettingsUpdate {
-	su.mutation.SetQRCodeEnableLogo(b)
-	return su
+func (_u *SettingsUpdate) SetQRCodeEnableLogo(v bool) *SettingsUpdate {
+	_u.mutation.SetQRCodeEnableLogo(v)
+	return _u
 }
 
 // SetNillableQRCodeEnableLogo sets the "QRCodeEnableLogo" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableQRCodeEnableLogo(b *bool) *SettingsUpdate {
-	if b != nil {
-		su.SetQRCodeEnableLogo(*b)
+func (_u *SettingsUpdate) SetNillableQRCodeEnableLogo(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetQRCodeEnableLogo(*v)
 	}
-	return su
+	return _u
 }
 
 // SetUseTipInsteadOfDonation sets the "UseTipInsteadOfDonation" field.
-func (su *SettingsUpdate) SetUseTipInsteadOfDonation(b bool) *SettingsUpdate {
-	su.mutation.SetUseTipInsteadOfDonation(b)
-	return su
+func (_u *SettingsUpdate) SetUseTipInsteadOfDonation(v bool) *SettingsUpdate {
+	_u.mutation.SetUseTipInsteadOfDonation(v)
+	return _u
 }
 
 // SetNillableUseTipInsteadOfDonation sets the "UseTipInsteadOfDonation" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableUseTipInsteadOfDonation(b *bool) *SettingsUpdate {
-	if b != nil {
-		su.SetUseTipInsteadOfDonation(*b)
+func (_u *SettingsUpdate) SetNillableUseTipInsteadOfDonation(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetUseTipInsteadOfDonation(*v)
 	}
-	return su
+	return _u
 }
 
 // SetShopLanding sets the "ShopLanding" field.
-func (su *SettingsUpdate) SetShopLanding(b bool) *SettingsUpdate {
-	su.mutation.SetShopLanding(b)
-	return su
+func (_u *SettingsUpdate) SetShopLanding(v bool) *SettingsUpdate {
+	_u.mutation.SetShopLanding(v)
+	return _u
 }
 
 // SetNillableShopLanding sets the "ShopLanding" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableShopLanding(b *bool) *SettingsUpdate {
-	if b != nil {
-		su.SetShopLanding(*b)
+func (_u *SettingsUpdate) SetNillableShopLanding(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetShopLanding(*v)
 	}
-	return su
+	return _u
 }
 
 // SetDigitalItemsUrl sets the "DigitalItemsUrl" field.
-func (su *SettingsUpdate) SetDigitalItemsUrl(s string) *SettingsUpdate {
-	su.mutation.SetDigitalItemsUrl(s)
-	return su
+func (_u *SettingsUpdate) SetDigitalItemsUrl(v string) *SettingsUpdate {
+	_u.mutation.SetDigitalItemsUrl(v)
+	return _u
 }
 
 // SetNillableDigitalItemsUrl sets the "DigitalItemsUrl" field if the given value is not nil.
-func (su *SettingsUpdate) SetNillableDigitalItemsUrl(s *string) *SettingsUpdate {
-	if s != nil {
-		su.SetDigitalItemsUrl(*s)
+func (_u *SettingsUpdate) SetNillableDigitalItemsUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetDigitalItemsUrl(*v)
 	}
-	return su
+	return _u
+}
+
+// SetAbonementUrl sets the "AbonementUrl" field.
+func (_u *SettingsUpdate) SetAbonementUrl(v string) *SettingsUpdate {
+	_u.mutation.SetAbonementUrl(v)
+	return _u
+}
+
+// SetNillableAbonementUrl sets the "AbonementUrl" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableAbonementUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetAbonementUrl(*v)
+	}
+	return _u
 }
 
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
-func (su *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
-	su.mutation.SetMainItemID(id)
-	return su
+func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
+	_u.mutation.SetMainItemID(id)
+	return _u
 }
 
 // SetNillableMainItemID sets the "MainItem" edge to the Item entity by ID if the given value is not nil.
-func (su *SettingsUpdate) SetNillableMainItemID(id *int) *SettingsUpdate {
+func (_u *SettingsUpdate) SetNillableMainItemID(id *int) *SettingsUpdate {
 	if id != nil {
-		su = su.SetMainItemID(*id)
+		_u = _u.SetMainItemID(*id)
 	}
-	return su
+	return _u
 }
 
 // SetMainItem sets the "MainItem" edge to the Item entity.
-func (su *SettingsUpdate) SetMainItem(i *Item) *SettingsUpdate {
-	return su.SetMainItemID(i.ID)
+func (_u *SettingsUpdate) SetMainItem(v *Item) *SettingsUpdate {
+	return _u.SetMainItemID(v.ID)
 }
 
 // Mutation returns the SettingsMutation object of the builder.
-func (su *SettingsUpdate) Mutation() *SettingsMutation {
-	return su.mutation
+func (_u *SettingsUpdate) Mutation() *SettingsMutation {
+	return _u.mutation
 }
 
 // ClearMainItem clears the "MainItem" edge to the Item entity.
-func (su *SettingsUpdate) ClearMainItem() *SettingsUpdate {
-	su.mutation.ClearMainItem()
-	return su
+func (_u *SettingsUpdate) ClearMainItem() *SettingsUpdate {
+	_u.mutation.ClearMainItem()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (su *SettingsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, su.sqlSave, su.mutation, su.hooks)
+func (_u *SettingsUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (su *SettingsUpdate) SaveX(ctx context.Context) int {
-	affected, err := su.Save(ctx)
+func (_u *SettingsUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -402,103 +416,106 @@ func (su *SettingsUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (su *SettingsUpdate) Exec(ctx context.Context) error {
-	_, err := su.Save(ctx)
+func (_u *SettingsUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (su *SettingsUpdate) ExecX(ctx context.Context) {
-	if err := su.Exec(ctx); err != nil {
+func (_u *SettingsUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (su *SettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(settings.Table, settings.Columns, sqlgraph.NewFieldSpec(settings.FieldID, field.TypeInt))
-	if ps := su.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := su.mutation.AGBUrl(); ok {
+	if value, ok := _u.mutation.AGBUrl(); ok {
 		_spec.SetField(settings.FieldAGBUrl, field.TypeString, value)
 	}
-	if value, ok := su.mutation.Color(); ok {
+	if value, ok := _u.mutation.Color(); ok {
 		_spec.SetField(settings.FieldColor, field.TypeString, value)
 	}
-	if value, ok := su.mutation.FontColor(); ok {
+	if value, ok := _u.mutation.FontColor(); ok {
 		_spec.SetField(settings.FieldFontColor, field.TypeString, value)
 	}
-	if value, ok := su.mutation.Logo(); ok {
+	if value, ok := _u.mutation.Logo(); ok {
 		_spec.SetField(settings.FieldLogo, field.TypeString, value)
 	}
-	if value, ok := su.mutation.MaxOrderAmount(); ok {
+	if value, ok := _u.mutation.MaxOrderAmount(); ok {
 		_spec.SetField(settings.FieldMaxOrderAmount, field.TypeInt, value)
 	}
-	if value, ok := su.mutation.AddedMaxOrderAmount(); ok {
+	if value, ok := _u.mutation.AddedMaxOrderAmount(); ok {
 		_spec.AddField(settings.FieldMaxOrderAmount, field.TypeInt, value)
 	}
-	if value, ok := su.mutation.OrgaCoversTransactionCosts(); ok {
+	if value, ok := _u.mutation.OrgaCoversTransactionCosts(); ok {
 		_spec.SetField(settings.FieldOrgaCoversTransactionCosts, field.TypeBool, value)
 	}
-	if value, ok := su.mutation.WebshopIsClosed(); ok {
+	if value, ok := _u.mutation.WebshopIsClosed(); ok {
 		_spec.SetField(settings.FieldWebshopIsClosed, field.TypeBool, value)
 	}
-	if value, ok := su.mutation.VendorNotFoundHelpUrl(); ok {
+	if value, ok := _u.mutation.VendorNotFoundHelpUrl(); ok {
 		_spec.SetField(settings.FieldVendorNotFoundHelpUrl, field.TypeString, value)
 	}
-	if value, ok := su.mutation.MaintainanceModeHelpUrl(); ok {
+	if value, ok := _u.mutation.MaintainanceModeHelpUrl(); ok {
 		_spec.SetField(settings.FieldMaintainanceModeHelpUrl, field.TypeString, value)
 	}
-	if value, ok := su.mutation.VendorEmailPostfix(); ok {
+	if value, ok := _u.mutation.VendorEmailPostfix(); ok {
 		_spec.SetField(settings.FieldVendorEmailPostfix, field.TypeString, value)
 	}
-	if value, ok := su.mutation.NewspaperName(); ok {
+	if value, ok := _u.mutation.NewspaperName(); ok {
 		_spec.SetField(settings.FieldNewspaperName, field.TypeString, value)
 	}
-	if value, ok := su.mutation.QRCodeUrl(); ok {
+	if value, ok := _u.mutation.QRCodeUrl(); ok {
 		_spec.SetField(settings.FieldQRCodeUrl, field.TypeString, value)
 	}
-	if value, ok := su.mutation.QRCodeLogoImgUrl(); ok {
+	if value, ok := _u.mutation.QRCodeLogoImgUrl(); ok {
 		_spec.SetField(settings.FieldQRCodeLogoImgUrl, field.TypeString, value)
 	}
-	if value, ok := su.mutation.MapCenterLat(); ok {
+	if value, ok := _u.mutation.MapCenterLat(); ok {
 		_spec.SetField(settings.FieldMapCenterLat, field.TypeFloat64, value)
 	}
-	if value, ok := su.mutation.AddedMapCenterLat(); ok {
+	if value, ok := _u.mutation.AddedMapCenterLat(); ok {
 		_spec.AddField(settings.FieldMapCenterLat, field.TypeFloat64, value)
 	}
-	if value, ok := su.mutation.MapCenterLong(); ok {
+	if value, ok := _u.mutation.MapCenterLong(); ok {
 		_spec.SetField(settings.FieldMapCenterLong, field.TypeFloat64, value)
 	}
-	if value, ok := su.mutation.AddedMapCenterLong(); ok {
+	if value, ok := _u.mutation.AddedMapCenterLong(); ok {
 		_spec.AddField(settings.FieldMapCenterLong, field.TypeFloat64, value)
 	}
-	if value, ok := su.mutation.UseVendorLicenseIdInShop(); ok {
+	if value, ok := _u.mutation.UseVendorLicenseIdInShop(); ok {
 		_spec.SetField(settings.FieldUseVendorLicenseIdInShop, field.TypeBool, value)
 	}
-	if value, ok := su.mutation.Favicon(); ok {
+	if value, ok := _u.mutation.Favicon(); ok {
 		_spec.SetField(settings.FieldFavicon, field.TypeString, value)
 	}
-	if value, ok := su.mutation.QRCodeSettings(); ok {
+	if value, ok := _u.mutation.QRCodeSettings(); ok {
 		_spec.SetField(settings.FieldQRCodeSettings, field.TypeString, value)
 	}
-	if value, ok := su.mutation.QRCodeEnableLogo(); ok {
+	if value, ok := _u.mutation.QRCodeEnableLogo(); ok {
 		_spec.SetField(settings.FieldQRCodeEnableLogo, field.TypeBool, value)
 	}
-	if value, ok := su.mutation.UseTipInsteadOfDonation(); ok {
+	if value, ok := _u.mutation.UseTipInsteadOfDonation(); ok {
 		_spec.SetField(settings.FieldUseTipInsteadOfDonation, field.TypeBool, value)
 	}
-	if value, ok := su.mutation.ShopLanding(); ok {
+	if value, ok := _u.mutation.ShopLanding(); ok {
 		_spec.SetField(settings.FieldShopLanding, field.TypeBool, value)
 	}
-	if value, ok := su.mutation.DigitalItemsUrl(); ok {
+	if value, ok := _u.mutation.DigitalItemsUrl(); ok {
 		_spec.SetField(settings.FieldDigitalItemsUrl, field.TypeString, value)
 	}
-	if su.mutation.MainItemCleared() {
+	if value, ok := _u.mutation.AbonementUrl(); ok {
+		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
+	}
+	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -511,7 +528,7 @@ func (su *SettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.mutation.MainItemIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -527,7 +544,7 @@ func (su *SettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{settings.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -535,8 +552,8 @@ func (su *SettingsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	su.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // SettingsUpdateOne is the builder for updating a single Settings entity.
@@ -548,385 +565,399 @@ type SettingsUpdateOne struct {
 }
 
 // SetAGBUrl sets the "AGBUrl" field.
-func (suo *SettingsUpdateOne) SetAGBUrl(s string) *SettingsUpdateOne {
-	suo.mutation.SetAGBUrl(s)
-	return suo
+func (_u *SettingsUpdateOne) SetAGBUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetAGBUrl(v)
+	return _u
 }
 
 // SetNillableAGBUrl sets the "AGBUrl" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableAGBUrl(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetAGBUrl(*s)
+func (_u *SettingsUpdateOne) SetNillableAGBUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetAGBUrl(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetColor sets the "Color" field.
-func (suo *SettingsUpdateOne) SetColor(s string) *SettingsUpdateOne {
-	suo.mutation.SetColor(s)
-	return suo
+func (_u *SettingsUpdateOne) SetColor(v string) *SettingsUpdateOne {
+	_u.mutation.SetColor(v)
+	return _u
 }
 
 // SetNillableColor sets the "Color" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableColor(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetColor(*s)
+func (_u *SettingsUpdateOne) SetNillableColor(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetColor(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetFontColor sets the "FontColor" field.
-func (suo *SettingsUpdateOne) SetFontColor(s string) *SettingsUpdateOne {
-	suo.mutation.SetFontColor(s)
-	return suo
+func (_u *SettingsUpdateOne) SetFontColor(v string) *SettingsUpdateOne {
+	_u.mutation.SetFontColor(v)
+	return _u
 }
 
 // SetNillableFontColor sets the "FontColor" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableFontColor(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetFontColor(*s)
+func (_u *SettingsUpdateOne) SetNillableFontColor(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetFontColor(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetLogo sets the "Logo" field.
-func (suo *SettingsUpdateOne) SetLogo(s string) *SettingsUpdateOne {
-	suo.mutation.SetLogo(s)
-	return suo
+func (_u *SettingsUpdateOne) SetLogo(v string) *SettingsUpdateOne {
+	_u.mutation.SetLogo(v)
+	return _u
 }
 
 // SetNillableLogo sets the "Logo" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableLogo(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetLogo(*s)
+func (_u *SettingsUpdateOne) SetNillableLogo(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetLogo(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetMaxOrderAmount sets the "MaxOrderAmount" field.
-func (suo *SettingsUpdateOne) SetMaxOrderAmount(i int) *SettingsUpdateOne {
-	suo.mutation.ResetMaxOrderAmount()
-	suo.mutation.SetMaxOrderAmount(i)
-	return suo
+func (_u *SettingsUpdateOne) SetMaxOrderAmount(v int) *SettingsUpdateOne {
+	_u.mutation.ResetMaxOrderAmount()
+	_u.mutation.SetMaxOrderAmount(v)
+	return _u
 }
 
 // SetNillableMaxOrderAmount sets the "MaxOrderAmount" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableMaxOrderAmount(i *int) *SettingsUpdateOne {
-	if i != nil {
-		suo.SetMaxOrderAmount(*i)
+func (_u *SettingsUpdateOne) SetNillableMaxOrderAmount(v *int) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetMaxOrderAmount(*v)
 	}
-	return suo
+	return _u
 }
 
-// AddMaxOrderAmount adds i to the "MaxOrderAmount" field.
-func (suo *SettingsUpdateOne) AddMaxOrderAmount(i int) *SettingsUpdateOne {
-	suo.mutation.AddMaxOrderAmount(i)
-	return suo
+// AddMaxOrderAmount adds value to the "MaxOrderAmount" field.
+func (_u *SettingsUpdateOne) AddMaxOrderAmount(v int) *SettingsUpdateOne {
+	_u.mutation.AddMaxOrderAmount(v)
+	return _u
 }
 
 // SetOrgaCoversTransactionCosts sets the "OrgaCoversTransactionCosts" field.
-func (suo *SettingsUpdateOne) SetOrgaCoversTransactionCosts(b bool) *SettingsUpdateOne {
-	suo.mutation.SetOrgaCoversTransactionCosts(b)
-	return suo
+func (_u *SettingsUpdateOne) SetOrgaCoversTransactionCosts(v bool) *SettingsUpdateOne {
+	_u.mutation.SetOrgaCoversTransactionCosts(v)
+	return _u
 }
 
 // SetNillableOrgaCoversTransactionCosts sets the "OrgaCoversTransactionCosts" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableOrgaCoversTransactionCosts(b *bool) *SettingsUpdateOne {
-	if b != nil {
-		suo.SetOrgaCoversTransactionCosts(*b)
+func (_u *SettingsUpdateOne) SetNillableOrgaCoversTransactionCosts(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetOrgaCoversTransactionCosts(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetWebshopIsClosed sets the "WebshopIsClosed" field.
-func (suo *SettingsUpdateOne) SetWebshopIsClosed(b bool) *SettingsUpdateOne {
-	suo.mutation.SetWebshopIsClosed(b)
-	return suo
+func (_u *SettingsUpdateOne) SetWebshopIsClosed(v bool) *SettingsUpdateOne {
+	_u.mutation.SetWebshopIsClosed(v)
+	return _u
 }
 
 // SetNillableWebshopIsClosed sets the "WebshopIsClosed" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableWebshopIsClosed(b *bool) *SettingsUpdateOne {
-	if b != nil {
-		suo.SetWebshopIsClosed(*b)
+func (_u *SettingsUpdateOne) SetNillableWebshopIsClosed(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetWebshopIsClosed(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetVendorNotFoundHelpUrl sets the "VendorNotFoundHelpUrl" field.
-func (suo *SettingsUpdateOne) SetVendorNotFoundHelpUrl(s string) *SettingsUpdateOne {
-	suo.mutation.SetVendorNotFoundHelpUrl(s)
-	return suo
+func (_u *SettingsUpdateOne) SetVendorNotFoundHelpUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetVendorNotFoundHelpUrl(v)
+	return _u
 }
 
 // SetNillableVendorNotFoundHelpUrl sets the "VendorNotFoundHelpUrl" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableVendorNotFoundHelpUrl(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetVendorNotFoundHelpUrl(*s)
+func (_u *SettingsUpdateOne) SetNillableVendorNotFoundHelpUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetVendorNotFoundHelpUrl(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetMaintainanceModeHelpUrl sets the "MaintainanceModeHelpUrl" field.
-func (suo *SettingsUpdateOne) SetMaintainanceModeHelpUrl(s string) *SettingsUpdateOne {
-	suo.mutation.SetMaintainanceModeHelpUrl(s)
-	return suo
+func (_u *SettingsUpdateOne) SetMaintainanceModeHelpUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetMaintainanceModeHelpUrl(v)
+	return _u
 }
 
 // SetNillableMaintainanceModeHelpUrl sets the "MaintainanceModeHelpUrl" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableMaintainanceModeHelpUrl(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetMaintainanceModeHelpUrl(*s)
+func (_u *SettingsUpdateOne) SetNillableMaintainanceModeHelpUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetMaintainanceModeHelpUrl(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetVendorEmailPostfix sets the "VendorEmailPostfix" field.
-func (suo *SettingsUpdateOne) SetVendorEmailPostfix(s string) *SettingsUpdateOne {
-	suo.mutation.SetVendorEmailPostfix(s)
-	return suo
+func (_u *SettingsUpdateOne) SetVendorEmailPostfix(v string) *SettingsUpdateOne {
+	_u.mutation.SetVendorEmailPostfix(v)
+	return _u
 }
 
 // SetNillableVendorEmailPostfix sets the "VendorEmailPostfix" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableVendorEmailPostfix(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetVendorEmailPostfix(*s)
+func (_u *SettingsUpdateOne) SetNillableVendorEmailPostfix(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetVendorEmailPostfix(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetNewspaperName sets the "NewspaperName" field.
-func (suo *SettingsUpdateOne) SetNewspaperName(s string) *SettingsUpdateOne {
-	suo.mutation.SetNewspaperName(s)
-	return suo
+func (_u *SettingsUpdateOne) SetNewspaperName(v string) *SettingsUpdateOne {
+	_u.mutation.SetNewspaperName(v)
+	return _u
 }
 
 // SetNillableNewspaperName sets the "NewspaperName" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableNewspaperName(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetNewspaperName(*s)
+func (_u *SettingsUpdateOne) SetNillableNewspaperName(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetNewspaperName(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetQRCodeUrl sets the "QRCodeUrl" field.
-func (suo *SettingsUpdateOne) SetQRCodeUrl(s string) *SettingsUpdateOne {
-	suo.mutation.SetQRCodeUrl(s)
-	return suo
+func (_u *SettingsUpdateOne) SetQRCodeUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetQRCodeUrl(v)
+	return _u
 }
 
 // SetNillableQRCodeUrl sets the "QRCodeUrl" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableQRCodeUrl(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetQRCodeUrl(*s)
+func (_u *SettingsUpdateOne) SetNillableQRCodeUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetQRCodeUrl(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetQRCodeLogoImgUrl sets the "QRCodeLogoImgUrl" field.
-func (suo *SettingsUpdateOne) SetQRCodeLogoImgUrl(s string) *SettingsUpdateOne {
-	suo.mutation.SetQRCodeLogoImgUrl(s)
-	return suo
+func (_u *SettingsUpdateOne) SetQRCodeLogoImgUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetQRCodeLogoImgUrl(v)
+	return _u
 }
 
 // SetNillableQRCodeLogoImgUrl sets the "QRCodeLogoImgUrl" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableQRCodeLogoImgUrl(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetQRCodeLogoImgUrl(*s)
+func (_u *SettingsUpdateOne) SetNillableQRCodeLogoImgUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetQRCodeLogoImgUrl(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetMapCenterLat sets the "MapCenterLat" field.
-func (suo *SettingsUpdateOne) SetMapCenterLat(f float64) *SettingsUpdateOne {
-	suo.mutation.ResetMapCenterLat()
-	suo.mutation.SetMapCenterLat(f)
-	return suo
+func (_u *SettingsUpdateOne) SetMapCenterLat(v float64) *SettingsUpdateOne {
+	_u.mutation.ResetMapCenterLat()
+	_u.mutation.SetMapCenterLat(v)
+	return _u
 }
 
 // SetNillableMapCenterLat sets the "MapCenterLat" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableMapCenterLat(f *float64) *SettingsUpdateOne {
-	if f != nil {
-		suo.SetMapCenterLat(*f)
+func (_u *SettingsUpdateOne) SetNillableMapCenterLat(v *float64) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetMapCenterLat(*v)
 	}
-	return suo
+	return _u
 }
 
-// AddMapCenterLat adds f to the "MapCenterLat" field.
-func (suo *SettingsUpdateOne) AddMapCenterLat(f float64) *SettingsUpdateOne {
-	suo.mutation.AddMapCenterLat(f)
-	return suo
+// AddMapCenterLat adds value to the "MapCenterLat" field.
+func (_u *SettingsUpdateOne) AddMapCenterLat(v float64) *SettingsUpdateOne {
+	_u.mutation.AddMapCenterLat(v)
+	return _u
 }
 
 // SetMapCenterLong sets the "MapCenterLong" field.
-func (suo *SettingsUpdateOne) SetMapCenterLong(f float64) *SettingsUpdateOne {
-	suo.mutation.ResetMapCenterLong()
-	suo.mutation.SetMapCenterLong(f)
-	return suo
+func (_u *SettingsUpdateOne) SetMapCenterLong(v float64) *SettingsUpdateOne {
+	_u.mutation.ResetMapCenterLong()
+	_u.mutation.SetMapCenterLong(v)
+	return _u
 }
 
 // SetNillableMapCenterLong sets the "MapCenterLong" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableMapCenterLong(f *float64) *SettingsUpdateOne {
-	if f != nil {
-		suo.SetMapCenterLong(*f)
+func (_u *SettingsUpdateOne) SetNillableMapCenterLong(v *float64) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetMapCenterLong(*v)
 	}
-	return suo
+	return _u
 }
 
-// AddMapCenterLong adds f to the "MapCenterLong" field.
-func (suo *SettingsUpdateOne) AddMapCenterLong(f float64) *SettingsUpdateOne {
-	suo.mutation.AddMapCenterLong(f)
-	return suo
+// AddMapCenterLong adds value to the "MapCenterLong" field.
+func (_u *SettingsUpdateOne) AddMapCenterLong(v float64) *SettingsUpdateOne {
+	_u.mutation.AddMapCenterLong(v)
+	return _u
 }
 
 // SetUseVendorLicenseIdInShop sets the "UseVendorLicenseIdInShop" field.
-func (suo *SettingsUpdateOne) SetUseVendorLicenseIdInShop(b bool) *SettingsUpdateOne {
-	suo.mutation.SetUseVendorLicenseIdInShop(b)
-	return suo
+func (_u *SettingsUpdateOne) SetUseVendorLicenseIdInShop(v bool) *SettingsUpdateOne {
+	_u.mutation.SetUseVendorLicenseIdInShop(v)
+	return _u
 }
 
 // SetNillableUseVendorLicenseIdInShop sets the "UseVendorLicenseIdInShop" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableUseVendorLicenseIdInShop(b *bool) *SettingsUpdateOne {
-	if b != nil {
-		suo.SetUseVendorLicenseIdInShop(*b)
+func (_u *SettingsUpdateOne) SetNillableUseVendorLicenseIdInShop(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetUseVendorLicenseIdInShop(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetFavicon sets the "Favicon" field.
-func (suo *SettingsUpdateOne) SetFavicon(s string) *SettingsUpdateOne {
-	suo.mutation.SetFavicon(s)
-	return suo
+func (_u *SettingsUpdateOne) SetFavicon(v string) *SettingsUpdateOne {
+	_u.mutation.SetFavicon(v)
+	return _u
 }
 
 // SetNillableFavicon sets the "Favicon" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableFavicon(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetFavicon(*s)
+func (_u *SettingsUpdateOne) SetNillableFavicon(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetFavicon(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetQRCodeSettings sets the "QRCodeSettings" field.
-func (suo *SettingsUpdateOne) SetQRCodeSettings(s string) *SettingsUpdateOne {
-	suo.mutation.SetQRCodeSettings(s)
-	return suo
+func (_u *SettingsUpdateOne) SetQRCodeSettings(v string) *SettingsUpdateOne {
+	_u.mutation.SetQRCodeSettings(v)
+	return _u
 }
 
 // SetNillableQRCodeSettings sets the "QRCodeSettings" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableQRCodeSettings(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetQRCodeSettings(*s)
+func (_u *SettingsUpdateOne) SetNillableQRCodeSettings(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetQRCodeSettings(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetQRCodeEnableLogo sets the "QRCodeEnableLogo" field.
-func (suo *SettingsUpdateOne) SetQRCodeEnableLogo(b bool) *SettingsUpdateOne {
-	suo.mutation.SetQRCodeEnableLogo(b)
-	return suo
+func (_u *SettingsUpdateOne) SetQRCodeEnableLogo(v bool) *SettingsUpdateOne {
+	_u.mutation.SetQRCodeEnableLogo(v)
+	return _u
 }
 
 // SetNillableQRCodeEnableLogo sets the "QRCodeEnableLogo" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableQRCodeEnableLogo(b *bool) *SettingsUpdateOne {
-	if b != nil {
-		suo.SetQRCodeEnableLogo(*b)
+func (_u *SettingsUpdateOne) SetNillableQRCodeEnableLogo(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetQRCodeEnableLogo(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetUseTipInsteadOfDonation sets the "UseTipInsteadOfDonation" field.
-func (suo *SettingsUpdateOne) SetUseTipInsteadOfDonation(b bool) *SettingsUpdateOne {
-	suo.mutation.SetUseTipInsteadOfDonation(b)
-	return suo
+func (_u *SettingsUpdateOne) SetUseTipInsteadOfDonation(v bool) *SettingsUpdateOne {
+	_u.mutation.SetUseTipInsteadOfDonation(v)
+	return _u
 }
 
 // SetNillableUseTipInsteadOfDonation sets the "UseTipInsteadOfDonation" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableUseTipInsteadOfDonation(b *bool) *SettingsUpdateOne {
-	if b != nil {
-		suo.SetUseTipInsteadOfDonation(*b)
+func (_u *SettingsUpdateOne) SetNillableUseTipInsteadOfDonation(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetUseTipInsteadOfDonation(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetShopLanding sets the "ShopLanding" field.
-func (suo *SettingsUpdateOne) SetShopLanding(b bool) *SettingsUpdateOne {
-	suo.mutation.SetShopLanding(b)
-	return suo
+func (_u *SettingsUpdateOne) SetShopLanding(v bool) *SettingsUpdateOne {
+	_u.mutation.SetShopLanding(v)
+	return _u
 }
 
 // SetNillableShopLanding sets the "ShopLanding" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableShopLanding(b *bool) *SettingsUpdateOne {
-	if b != nil {
-		suo.SetShopLanding(*b)
+func (_u *SettingsUpdateOne) SetNillableShopLanding(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetShopLanding(*v)
 	}
-	return suo
+	return _u
 }
 
 // SetDigitalItemsUrl sets the "DigitalItemsUrl" field.
-func (suo *SettingsUpdateOne) SetDigitalItemsUrl(s string) *SettingsUpdateOne {
-	suo.mutation.SetDigitalItemsUrl(s)
-	return suo
+func (_u *SettingsUpdateOne) SetDigitalItemsUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetDigitalItemsUrl(v)
+	return _u
 }
 
 // SetNillableDigitalItemsUrl sets the "DigitalItemsUrl" field if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableDigitalItemsUrl(s *string) *SettingsUpdateOne {
-	if s != nil {
-		suo.SetDigitalItemsUrl(*s)
+func (_u *SettingsUpdateOne) SetNillableDigitalItemsUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetDigitalItemsUrl(*v)
 	}
-	return suo
+	return _u
+}
+
+// SetAbonementUrl sets the "AbonementUrl" field.
+func (_u *SettingsUpdateOne) SetAbonementUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetAbonementUrl(v)
+	return _u
+}
+
+// SetNillableAbonementUrl sets the "AbonementUrl" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableAbonementUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetAbonementUrl(*v)
+	}
+	return _u
 }
 
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
-func (suo *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
-	suo.mutation.SetMainItemID(id)
-	return suo
+func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
+	_u.mutation.SetMainItemID(id)
+	return _u
 }
 
 // SetNillableMainItemID sets the "MainItem" edge to the Item entity by ID if the given value is not nil.
-func (suo *SettingsUpdateOne) SetNillableMainItemID(id *int) *SettingsUpdateOne {
+func (_u *SettingsUpdateOne) SetNillableMainItemID(id *int) *SettingsUpdateOne {
 	if id != nil {
-		suo = suo.SetMainItemID(*id)
+		_u = _u.SetMainItemID(*id)
 	}
-	return suo
+	return _u
 }
 
 // SetMainItem sets the "MainItem" edge to the Item entity.
-func (suo *SettingsUpdateOne) SetMainItem(i *Item) *SettingsUpdateOne {
-	return suo.SetMainItemID(i.ID)
+func (_u *SettingsUpdateOne) SetMainItem(v *Item) *SettingsUpdateOne {
+	return _u.SetMainItemID(v.ID)
 }
 
 // Mutation returns the SettingsMutation object of the builder.
-func (suo *SettingsUpdateOne) Mutation() *SettingsMutation {
-	return suo.mutation
+func (_u *SettingsUpdateOne) Mutation() *SettingsMutation {
+	return _u.mutation
 }
 
 // ClearMainItem clears the "MainItem" edge to the Item entity.
-func (suo *SettingsUpdateOne) ClearMainItem() *SettingsUpdateOne {
-	suo.mutation.ClearMainItem()
-	return suo
+func (_u *SettingsUpdateOne) ClearMainItem() *SettingsUpdateOne {
+	_u.mutation.ClearMainItem()
+	return _u
 }
 
 // Where appends a list predicates to the SettingsUpdate builder.
-func (suo *SettingsUpdateOne) Where(ps ...predicate.Settings) *SettingsUpdateOne {
-	suo.mutation.Where(ps...)
-	return suo
+func (_u *SettingsUpdateOne) Where(ps ...predicate.Settings) *SettingsUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (suo *SettingsUpdateOne) Select(field string, fields ...string) *SettingsUpdateOne {
-	suo.fields = append([]string{field}, fields...)
-	return suo
+func (_u *SettingsUpdateOne) Select(field string, fields ...string) *SettingsUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated Settings entity.
-func (suo *SettingsUpdateOne) Save(ctx context.Context) (*Settings, error) {
-	return withHooks(ctx, suo.sqlSave, suo.mutation, suo.hooks)
+func (_u *SettingsUpdateOne) Save(ctx context.Context) (*Settings, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (suo *SettingsUpdateOne) SaveX(ctx context.Context) *Settings {
-	node, err := suo.Save(ctx)
+func (_u *SettingsUpdateOne) SaveX(ctx context.Context) *Settings {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -934,26 +965,26 @@ func (suo *SettingsUpdateOne) SaveX(ctx context.Context) *Settings {
 }
 
 // Exec executes the query on the entity.
-func (suo *SettingsUpdateOne) Exec(ctx context.Context) error {
-	_, err := suo.Save(ctx)
+func (_u *SettingsUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (suo *SettingsUpdateOne) ExecX(ctx context.Context) {
-	if err := suo.Exec(ctx); err != nil {
+func (_u *SettingsUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (suo *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err error) {
+func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err error) {
 	_spec := sqlgraph.NewUpdateSpec(settings.Table, settings.Columns, sqlgraph.NewFieldSpec(settings.FieldID, field.TypeInt))
-	id, ok := suo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Settings.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := suo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, settings.FieldID)
 		for _, f := range fields {
@@ -965,89 +996,92 @@ func (suo *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err
 			}
 		}
 	}
-	if ps := suo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := suo.mutation.AGBUrl(); ok {
+	if value, ok := _u.mutation.AGBUrl(); ok {
 		_spec.SetField(settings.FieldAGBUrl, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.Color(); ok {
+	if value, ok := _u.mutation.Color(); ok {
 		_spec.SetField(settings.FieldColor, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.FontColor(); ok {
+	if value, ok := _u.mutation.FontColor(); ok {
 		_spec.SetField(settings.FieldFontColor, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.Logo(); ok {
+	if value, ok := _u.mutation.Logo(); ok {
 		_spec.SetField(settings.FieldLogo, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.MaxOrderAmount(); ok {
+	if value, ok := _u.mutation.MaxOrderAmount(); ok {
 		_spec.SetField(settings.FieldMaxOrderAmount, field.TypeInt, value)
 	}
-	if value, ok := suo.mutation.AddedMaxOrderAmount(); ok {
+	if value, ok := _u.mutation.AddedMaxOrderAmount(); ok {
 		_spec.AddField(settings.FieldMaxOrderAmount, field.TypeInt, value)
 	}
-	if value, ok := suo.mutation.OrgaCoversTransactionCosts(); ok {
+	if value, ok := _u.mutation.OrgaCoversTransactionCosts(); ok {
 		_spec.SetField(settings.FieldOrgaCoversTransactionCosts, field.TypeBool, value)
 	}
-	if value, ok := suo.mutation.WebshopIsClosed(); ok {
+	if value, ok := _u.mutation.WebshopIsClosed(); ok {
 		_spec.SetField(settings.FieldWebshopIsClosed, field.TypeBool, value)
 	}
-	if value, ok := suo.mutation.VendorNotFoundHelpUrl(); ok {
+	if value, ok := _u.mutation.VendorNotFoundHelpUrl(); ok {
 		_spec.SetField(settings.FieldVendorNotFoundHelpUrl, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.MaintainanceModeHelpUrl(); ok {
+	if value, ok := _u.mutation.MaintainanceModeHelpUrl(); ok {
 		_spec.SetField(settings.FieldMaintainanceModeHelpUrl, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.VendorEmailPostfix(); ok {
+	if value, ok := _u.mutation.VendorEmailPostfix(); ok {
 		_spec.SetField(settings.FieldVendorEmailPostfix, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.NewspaperName(); ok {
+	if value, ok := _u.mutation.NewspaperName(); ok {
 		_spec.SetField(settings.FieldNewspaperName, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.QRCodeUrl(); ok {
+	if value, ok := _u.mutation.QRCodeUrl(); ok {
 		_spec.SetField(settings.FieldQRCodeUrl, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.QRCodeLogoImgUrl(); ok {
+	if value, ok := _u.mutation.QRCodeLogoImgUrl(); ok {
 		_spec.SetField(settings.FieldQRCodeLogoImgUrl, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.MapCenterLat(); ok {
+	if value, ok := _u.mutation.MapCenterLat(); ok {
 		_spec.SetField(settings.FieldMapCenterLat, field.TypeFloat64, value)
 	}
-	if value, ok := suo.mutation.AddedMapCenterLat(); ok {
+	if value, ok := _u.mutation.AddedMapCenterLat(); ok {
 		_spec.AddField(settings.FieldMapCenterLat, field.TypeFloat64, value)
 	}
-	if value, ok := suo.mutation.MapCenterLong(); ok {
+	if value, ok := _u.mutation.MapCenterLong(); ok {
 		_spec.SetField(settings.FieldMapCenterLong, field.TypeFloat64, value)
 	}
-	if value, ok := suo.mutation.AddedMapCenterLong(); ok {
+	if value, ok := _u.mutation.AddedMapCenterLong(); ok {
 		_spec.AddField(settings.FieldMapCenterLong, field.TypeFloat64, value)
 	}
-	if value, ok := suo.mutation.UseVendorLicenseIdInShop(); ok {
+	if value, ok := _u.mutation.UseVendorLicenseIdInShop(); ok {
 		_spec.SetField(settings.FieldUseVendorLicenseIdInShop, field.TypeBool, value)
 	}
-	if value, ok := suo.mutation.Favicon(); ok {
+	if value, ok := _u.mutation.Favicon(); ok {
 		_spec.SetField(settings.FieldFavicon, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.QRCodeSettings(); ok {
+	if value, ok := _u.mutation.QRCodeSettings(); ok {
 		_spec.SetField(settings.FieldQRCodeSettings, field.TypeString, value)
 	}
-	if value, ok := suo.mutation.QRCodeEnableLogo(); ok {
+	if value, ok := _u.mutation.QRCodeEnableLogo(); ok {
 		_spec.SetField(settings.FieldQRCodeEnableLogo, field.TypeBool, value)
 	}
-	if value, ok := suo.mutation.UseTipInsteadOfDonation(); ok {
+	if value, ok := _u.mutation.UseTipInsteadOfDonation(); ok {
 		_spec.SetField(settings.FieldUseTipInsteadOfDonation, field.TypeBool, value)
 	}
-	if value, ok := suo.mutation.ShopLanding(); ok {
+	if value, ok := _u.mutation.ShopLanding(); ok {
 		_spec.SetField(settings.FieldShopLanding, field.TypeBool, value)
 	}
-	if value, ok := suo.mutation.DigitalItemsUrl(); ok {
+	if value, ok := _u.mutation.DigitalItemsUrl(); ok {
 		_spec.SetField(settings.FieldDigitalItemsUrl, field.TypeString, value)
 	}
-	if suo.mutation.MainItemCleared() {
+	if value, ok := _u.mutation.AbonementUrl(); ok {
+		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
+	}
+	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1060,7 +1094,7 @@ func (suo *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.mutation.MainItemIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1076,10 +1110,10 @@ func (suo *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &Settings{config: suo.config}
+	_node = &Settings{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, suo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{settings.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -1087,6 +1121,6 @@ func (suo *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err
 		}
 		return nil, err
 	}
-	suo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

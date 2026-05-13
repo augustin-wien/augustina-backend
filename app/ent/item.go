@@ -33,6 +33,8 @@ type Item struct {
 	IsLicenseItem bool `json:"IsLicenseItem"`
 	// LicenseGroup holds the value of the "LicenseGroup" field.
 	LicenseGroup string `json:"LicenseGroup"`
+	// Type holds the value of the "Type" field.
+	Type string `json:"Type"`
 	// IsPDFItem holds the value of the "IsPDFItem" field.
 	IsPDFItem bool `json:"IsPDFItem"`
 	// ItemOrder holds the value of the "ItemOrder" field.
@@ -93,7 +95,7 @@ func (*Item) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case item.FieldID, item.FieldItemOrder:
 			values[i] = new(sql.NullInt64)
-		case item.FieldName, item.FieldDescription, item.FieldImage, item.FieldLicenseGroup, item.FieldItemColor, item.FieldItemTextColor:
+		case item.FieldName, item.FieldDescription, item.FieldImage, item.FieldLicenseGroup, item.FieldType, item.FieldItemColor, item.FieldItemTextColor:
 			values[i] = new(sql.NullString)
 		case item.ForeignKeys[0]: // licenseitem
 			values[i] = new(sql.NullInt64)
@@ -108,106 +110,112 @@ func (*Item) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Item fields.
-func (i *Item) assignValues(columns []string, values []any) error {
+func (_m *Item) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	for j := range columns {
-		switch columns[j] {
+	for i := range columns {
+		switch columns[i] {
 		case item.FieldID:
-			value, ok := values[j].(*sql.NullInt64)
+			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			i.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case item.FieldName:
-			if value, ok := values[j].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field Name", values[j])
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field Name", values[i])
 			} else if value.Valid {
-				i.Name = value.String
+				_m.Name = value.String
 			}
 		case item.FieldDescription:
-			if value, ok := values[j].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field Description", values[j])
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field Description", values[i])
 			} else if value.Valid {
-				i.Description = value.String
+				_m.Description = value.String
 			}
 		case item.FieldPrice:
-			if value, ok := values[j].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field Price", values[j])
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field Price", values[i])
 			} else if value.Valid {
-				i.Price = value.Float64
+				_m.Price = value.Float64
 			}
 		case item.FieldImage:
-			if value, ok := values[j].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field Image", values[j])
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field Image", values[i])
 			} else if value.Valid {
-				i.Image = value.String
+				_m.Image = value.String
 			}
 		case item.FieldArchived:
-			if value, ok := values[j].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field Archived", values[j])
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field Archived", values[i])
 			} else if value.Valid {
-				i.Archived = value.Bool
+				_m.Archived = value.Bool
 			}
 		case item.FieldDisabled:
-			if value, ok := values[j].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field Disabled", values[j])
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field Disabled", values[i])
 			} else if value.Valid {
-				i.Disabled = value.Bool
+				_m.Disabled = value.Bool
 			}
 		case item.FieldIsLicenseItem:
-			if value, ok := values[j].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field IsLicenseItem", values[j])
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field IsLicenseItem", values[i])
 			} else if value.Valid {
-				i.IsLicenseItem = value.Bool
+				_m.IsLicenseItem = value.Bool
 			}
 		case item.FieldLicenseGroup:
-			if value, ok := values[j].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field LicenseGroup", values[j])
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field LicenseGroup", values[i])
 			} else if value.Valid {
-				i.LicenseGroup = value.String
+				_m.LicenseGroup = value.String
+			}
+		case item.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field Type", values[i])
+			} else if value.Valid {
+				_m.Type = value.String
 			}
 		case item.FieldIsPDFItem:
-			if value, ok := values[j].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field IsPDFItem", values[j])
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field IsPDFItem", values[i])
 			} else if value.Valid {
-				i.IsPDFItem = value.Bool
+				_m.IsPDFItem = value.Bool
 			}
 		case item.FieldItemOrder:
-			if value, ok := values[j].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field ItemOrder", values[j])
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field ItemOrder", values[i])
 			} else if value.Valid {
-				i.ItemOrder = int(value.Int64)
+				_m.ItemOrder = int(value.Int64)
 			}
 		case item.FieldItemColor:
-			if value, ok := values[j].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field ItemColor", values[j])
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ItemColor", values[i])
 			} else if value.Valid {
-				i.ItemColor = value.String
+				_m.ItemColor = value.String
 			}
 		case item.FieldItemTextColor:
-			if value, ok := values[j].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field ItemTextColor", values[j])
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ItemTextColor", values[i])
 			} else if value.Valid {
-				i.ItemTextColor = value.String
+				_m.ItemTextColor = value.String
 			}
 		case item.ForeignKeys[0]:
-			if value, ok := values[j].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field licenseitem", value)
 			} else if value.Valid {
-				i.licenseitem = new(int)
-				*i.licenseitem = int(value.Int64)
+				_m.licenseitem = new(int)
+				*_m.licenseitem = int(value.Int64)
 			}
 		case item.ForeignKeys[1]:
-			if value, ok := values[j].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field pdf", value)
 			} else if value.Valid {
-				i.pdf = new(int)
-				*i.pdf = int(value.Int64)
+				_m.pdf = new(int)
+				*_m.pdf = int(value.Int64)
 			}
 		default:
-			i.selectValues.Set(columns[j], values[j])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -215,78 +223,81 @@ func (i *Item) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Item.
 // This includes values selected through modifiers, order, etc.
-func (i *Item) Value(name string) (ent.Value, error) {
-	return i.selectValues.Get(name)
+func (_m *Item) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryLicenseItem queries the "LicenseItem" edge of the Item entity.
-func (i *Item) QueryLicenseItem() *ItemQuery {
-	return NewItemClient(i.config).QueryLicenseItem(i)
+func (_m *Item) QueryLicenseItem() *ItemQuery {
+	return NewItemClient(_m.config).QueryLicenseItem(_m)
 }
 
 // QueryPDF queries the "PDF" edge of the Item entity.
-func (i *Item) QueryPDF() *PDFQuery {
-	return NewItemClient(i.config).QueryPDF(i)
+func (_m *Item) QueryPDF() *PDFQuery {
+	return NewItemClient(_m.config).QueryPDF(_m)
 }
 
 // Update returns a builder for updating this Item.
 // Note that you need to call Item.Unwrap() before calling this method if this Item
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (i *Item) Update() *ItemUpdateOne {
-	return NewItemClient(i.config).UpdateOne(i)
+func (_m *Item) Update() *ItemUpdateOne {
+	return NewItemClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Item entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (i *Item) Unwrap() *Item {
-	_tx, ok := i.config.driver.(*txDriver)
+func (_m *Item) Unwrap() *Item {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Item is not a transactional entity")
 	}
-	i.config.driver = _tx.drv
-	return i
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (i *Item) String() string {
+func (_m *Item) String() string {
 	var builder strings.Builder
 	builder.WriteString("Item(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", i.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("Name=")
-	builder.WriteString(i.Name)
+	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
 	builder.WriteString("Description=")
-	builder.WriteString(i.Description)
+	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
 	builder.WriteString("Price=")
-	builder.WriteString(fmt.Sprintf("%v", i.Price))
+	builder.WriteString(fmt.Sprintf("%v", _m.Price))
 	builder.WriteString(", ")
 	builder.WriteString("Image=")
-	builder.WriteString(i.Image)
+	builder.WriteString(_m.Image)
 	builder.WriteString(", ")
 	builder.WriteString("Archived=")
-	builder.WriteString(fmt.Sprintf("%v", i.Archived))
+	builder.WriteString(fmt.Sprintf("%v", _m.Archived))
 	builder.WriteString(", ")
 	builder.WriteString("Disabled=")
-	builder.WriteString(fmt.Sprintf("%v", i.Disabled))
+	builder.WriteString(fmt.Sprintf("%v", _m.Disabled))
 	builder.WriteString(", ")
 	builder.WriteString("IsLicenseItem=")
-	builder.WriteString(fmt.Sprintf("%v", i.IsLicenseItem))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsLicenseItem))
 	builder.WriteString(", ")
 	builder.WriteString("LicenseGroup=")
-	builder.WriteString(i.LicenseGroup)
+	builder.WriteString(_m.LicenseGroup)
+	builder.WriteString(", ")
+	builder.WriteString("Type=")
+	builder.WriteString(_m.Type)
 	builder.WriteString(", ")
 	builder.WriteString("IsPDFItem=")
-	builder.WriteString(fmt.Sprintf("%v", i.IsPDFItem))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsPDFItem))
 	builder.WriteString(", ")
 	builder.WriteString("ItemOrder=")
-	builder.WriteString(fmt.Sprintf("%v", i.ItemOrder))
+	builder.WriteString(fmt.Sprintf("%v", _m.ItemOrder))
 	builder.WriteString(", ")
 	builder.WriteString("ItemColor=")
-	builder.WriteString(i.ItemColor)
+	builder.WriteString(_m.ItemColor)
 	builder.WriteString(", ")
 	builder.WriteString("ItemTextColor=")
-	builder.WriteString(i.ItemTextColor)
+	builder.WriteString(_m.ItemTextColor)
 	builder.WriteByte(')')
 	return builder.String()
 }

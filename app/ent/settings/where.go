@@ -163,6 +163,11 @@ func DigitalItemsUrl(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldDigitalItemsUrl, v))
 }
 
+// AbonementUrl applies equality check predicate on the "AbonementUrl" field. It's identical to AbonementUrlEQ.
+func AbonementUrl(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAbonementUrl, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1186,6 +1191,71 @@ func DigitalItemsUrlEqualFold(v string) predicate.Settings {
 // DigitalItemsUrlContainsFold applies the ContainsFold predicate on the "DigitalItemsUrl" field.
 func DigitalItemsUrlContainsFold(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldContainsFold(FieldDigitalItemsUrl, v))
+}
+
+// AbonementUrlEQ applies the EQ predicate on the "AbonementUrl" field.
+func AbonementUrlEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAbonementUrl, v))
+}
+
+// AbonementUrlNEQ applies the NEQ predicate on the "AbonementUrl" field.
+func AbonementUrlNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldAbonementUrl, v))
+}
+
+// AbonementUrlIn applies the In predicate on the "AbonementUrl" field.
+func AbonementUrlIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldAbonementUrl, vs...))
+}
+
+// AbonementUrlNotIn applies the NotIn predicate on the "AbonementUrl" field.
+func AbonementUrlNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldAbonementUrl, vs...))
+}
+
+// AbonementUrlGT applies the GT predicate on the "AbonementUrl" field.
+func AbonementUrlGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldAbonementUrl, v))
+}
+
+// AbonementUrlGTE applies the GTE predicate on the "AbonementUrl" field.
+func AbonementUrlGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldAbonementUrl, v))
+}
+
+// AbonementUrlLT applies the LT predicate on the "AbonementUrl" field.
+func AbonementUrlLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldAbonementUrl, v))
+}
+
+// AbonementUrlLTE applies the LTE predicate on the "AbonementUrl" field.
+func AbonementUrlLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldAbonementUrl, v))
+}
+
+// AbonementUrlContains applies the Contains predicate on the "AbonementUrl" field.
+func AbonementUrlContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldAbonementUrl, v))
+}
+
+// AbonementUrlHasPrefix applies the HasPrefix predicate on the "AbonementUrl" field.
+func AbonementUrlHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldAbonementUrl, v))
+}
+
+// AbonementUrlHasSuffix applies the HasSuffix predicate on the "AbonementUrl" field.
+func AbonementUrlHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldAbonementUrl, v))
+}
+
+// AbonementUrlEqualFold applies the EqualFold predicate on the "AbonementUrl" field.
+func AbonementUrlEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldAbonementUrl, v))
+}
+
+// AbonementUrlContainsFold applies the ContainsFold predicate on the "AbonementUrl" field.
+func AbonementUrlContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldAbonementUrl, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

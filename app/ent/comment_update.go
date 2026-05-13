@@ -24,105 +24,105 @@ type CommentUpdate struct {
 }
 
 // Where appends a list predicates to the CommentUpdate builder.
-func (cu *CommentUpdate) Where(ps ...predicate.Comment) *CommentUpdate {
-	cu.mutation.Where(ps...)
-	return cu
+func (_u *CommentUpdate) Where(ps ...predicate.Comment) *CommentUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetComment sets the "comment" field.
-func (cu *CommentUpdate) SetComment(s string) *CommentUpdate {
-	cu.mutation.SetComment(s)
-	return cu
+func (_u *CommentUpdate) SetComment(v string) *CommentUpdate {
+	_u.mutation.SetComment(v)
+	return _u
 }
 
 // SetNillableComment sets the "comment" field if the given value is not nil.
-func (cu *CommentUpdate) SetNillableComment(s *string) *CommentUpdate {
-	if s != nil {
-		cu.SetComment(*s)
+func (_u *CommentUpdate) SetNillableComment(v *string) *CommentUpdate {
+	if v != nil {
+		_u.SetComment(*v)
 	}
-	return cu
+	return _u
 }
 
 // SetWarning sets the "warning" field.
-func (cu *CommentUpdate) SetWarning(b bool) *CommentUpdate {
-	cu.mutation.SetWarning(b)
-	return cu
+func (_u *CommentUpdate) SetWarning(v bool) *CommentUpdate {
+	_u.mutation.SetWarning(v)
+	return _u
 }
 
 // SetNillableWarning sets the "warning" field if the given value is not nil.
-func (cu *CommentUpdate) SetNillableWarning(b *bool) *CommentUpdate {
-	if b != nil {
-		cu.SetWarning(*b)
+func (_u *CommentUpdate) SetNillableWarning(v *bool) *CommentUpdate {
+	if v != nil {
+		_u.SetWarning(*v)
 	}
-	return cu
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (cu *CommentUpdate) SetCreatedAt(t time.Time) *CommentUpdate {
-	cu.mutation.SetCreatedAt(t)
-	return cu
+func (_u *CommentUpdate) SetCreatedAt(v time.Time) *CommentUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (cu *CommentUpdate) SetNillableCreatedAt(t *time.Time) *CommentUpdate {
-	if t != nil {
-		cu.SetCreatedAt(*t)
+func (_u *CommentUpdate) SetNillableCreatedAt(v *time.Time) *CommentUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return cu
+	return _u
 }
 
 // SetResolvedAt sets the "resolved_at" field.
-func (cu *CommentUpdate) SetResolvedAt(t time.Time) *CommentUpdate {
-	cu.mutation.SetResolvedAt(t)
-	return cu
+func (_u *CommentUpdate) SetResolvedAt(v time.Time) *CommentUpdate {
+	_u.mutation.SetResolvedAt(v)
+	return _u
 }
 
 // SetNillableResolvedAt sets the "resolved_at" field if the given value is not nil.
-func (cu *CommentUpdate) SetNillableResolvedAt(t *time.Time) *CommentUpdate {
-	if t != nil {
-		cu.SetResolvedAt(*t)
+func (_u *CommentUpdate) SetNillableResolvedAt(v *time.Time) *CommentUpdate {
+	if v != nil {
+		_u.SetResolvedAt(*v)
 	}
-	return cu
+	return _u
 }
 
 // SetVendorID sets the "vendor" edge to the Vendor entity by ID.
-func (cu *CommentUpdate) SetVendorID(id int) *CommentUpdate {
-	cu.mutation.SetVendorID(id)
-	return cu
+func (_u *CommentUpdate) SetVendorID(id int) *CommentUpdate {
+	_u.mutation.SetVendorID(id)
+	return _u
 }
 
 // SetNillableVendorID sets the "vendor" edge to the Vendor entity by ID if the given value is not nil.
-func (cu *CommentUpdate) SetNillableVendorID(id *int) *CommentUpdate {
+func (_u *CommentUpdate) SetNillableVendorID(id *int) *CommentUpdate {
 	if id != nil {
-		cu = cu.SetVendorID(*id)
+		_u = _u.SetVendorID(*id)
 	}
-	return cu
+	return _u
 }
 
 // SetVendor sets the "vendor" edge to the Vendor entity.
-func (cu *CommentUpdate) SetVendor(v *Vendor) *CommentUpdate {
-	return cu.SetVendorID(v.ID)
+func (_u *CommentUpdate) SetVendor(v *Vendor) *CommentUpdate {
+	return _u.SetVendorID(v.ID)
 }
 
 // Mutation returns the CommentMutation object of the builder.
-func (cu *CommentUpdate) Mutation() *CommentMutation {
-	return cu.mutation
+func (_u *CommentUpdate) Mutation() *CommentMutation {
+	return _u.mutation
 }
 
 // ClearVendor clears the "vendor" edge to the Vendor entity.
-func (cu *CommentUpdate) ClearVendor() *CommentUpdate {
-	cu.mutation.ClearVendor()
-	return cu
+func (_u *CommentUpdate) ClearVendor() *CommentUpdate {
+	_u.mutation.ClearVendor()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (cu *CommentUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, cu.sqlSave, cu.mutation, cu.hooks)
+func (_u *CommentUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (cu *CommentUpdate) SaveX(ctx context.Context) int {
-	affected, err := cu.Save(ctx)
+func (_u *CommentUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -130,40 +130,40 @@ func (cu *CommentUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (cu *CommentUpdate) Exec(ctx context.Context) error {
-	_, err := cu.Save(ctx)
+func (_u *CommentUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (cu *CommentUpdate) ExecX(ctx context.Context) {
-	if err := cu.Exec(ctx); err != nil {
+func (_u *CommentUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *CommentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(comment.Table, comment.Columns, sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt))
-	if ps := cu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := cu.mutation.Comment(); ok {
+	if value, ok := _u.mutation.Comment(); ok {
 		_spec.SetField(comment.FieldComment, field.TypeString, value)
 	}
-	if value, ok := cu.mutation.Warning(); ok {
+	if value, ok := _u.mutation.Warning(); ok {
 		_spec.SetField(comment.FieldWarning, field.TypeBool, value)
 	}
-	if value, ok := cu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(comment.FieldCreatedAt, field.TypeTime, value)
 	}
-	if value, ok := cu.mutation.ResolvedAt(); ok {
+	if value, ok := _u.mutation.ResolvedAt(); ok {
 		_spec.SetField(comment.FieldResolvedAt, field.TypeTime, value)
 	}
-	if cu.mutation.VendorCleared() {
+	if _u.mutation.VendorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -176,7 +176,7 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.mutation.VendorIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.VendorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -192,7 +192,7 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{comment.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -200,8 +200,8 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	cu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // CommentUpdateOne is the builder for updating a single Comment entity.
@@ -213,112 +213,112 @@ type CommentUpdateOne struct {
 }
 
 // SetComment sets the "comment" field.
-func (cuo *CommentUpdateOne) SetComment(s string) *CommentUpdateOne {
-	cuo.mutation.SetComment(s)
-	return cuo
+func (_u *CommentUpdateOne) SetComment(v string) *CommentUpdateOne {
+	_u.mutation.SetComment(v)
+	return _u
 }
 
 // SetNillableComment sets the "comment" field if the given value is not nil.
-func (cuo *CommentUpdateOne) SetNillableComment(s *string) *CommentUpdateOne {
-	if s != nil {
-		cuo.SetComment(*s)
+func (_u *CommentUpdateOne) SetNillableComment(v *string) *CommentUpdateOne {
+	if v != nil {
+		_u.SetComment(*v)
 	}
-	return cuo
+	return _u
 }
 
 // SetWarning sets the "warning" field.
-func (cuo *CommentUpdateOne) SetWarning(b bool) *CommentUpdateOne {
-	cuo.mutation.SetWarning(b)
-	return cuo
+func (_u *CommentUpdateOne) SetWarning(v bool) *CommentUpdateOne {
+	_u.mutation.SetWarning(v)
+	return _u
 }
 
 // SetNillableWarning sets the "warning" field if the given value is not nil.
-func (cuo *CommentUpdateOne) SetNillableWarning(b *bool) *CommentUpdateOne {
-	if b != nil {
-		cuo.SetWarning(*b)
+func (_u *CommentUpdateOne) SetNillableWarning(v *bool) *CommentUpdateOne {
+	if v != nil {
+		_u.SetWarning(*v)
 	}
-	return cuo
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (cuo *CommentUpdateOne) SetCreatedAt(t time.Time) *CommentUpdateOne {
-	cuo.mutation.SetCreatedAt(t)
-	return cuo
+func (_u *CommentUpdateOne) SetCreatedAt(v time.Time) *CommentUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (cuo *CommentUpdateOne) SetNillableCreatedAt(t *time.Time) *CommentUpdateOne {
-	if t != nil {
-		cuo.SetCreatedAt(*t)
+func (_u *CommentUpdateOne) SetNillableCreatedAt(v *time.Time) *CommentUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return cuo
+	return _u
 }
 
 // SetResolvedAt sets the "resolved_at" field.
-func (cuo *CommentUpdateOne) SetResolvedAt(t time.Time) *CommentUpdateOne {
-	cuo.mutation.SetResolvedAt(t)
-	return cuo
+func (_u *CommentUpdateOne) SetResolvedAt(v time.Time) *CommentUpdateOne {
+	_u.mutation.SetResolvedAt(v)
+	return _u
 }
 
 // SetNillableResolvedAt sets the "resolved_at" field if the given value is not nil.
-func (cuo *CommentUpdateOne) SetNillableResolvedAt(t *time.Time) *CommentUpdateOne {
-	if t != nil {
-		cuo.SetResolvedAt(*t)
+func (_u *CommentUpdateOne) SetNillableResolvedAt(v *time.Time) *CommentUpdateOne {
+	if v != nil {
+		_u.SetResolvedAt(*v)
 	}
-	return cuo
+	return _u
 }
 
 // SetVendorID sets the "vendor" edge to the Vendor entity by ID.
-func (cuo *CommentUpdateOne) SetVendorID(id int) *CommentUpdateOne {
-	cuo.mutation.SetVendorID(id)
-	return cuo
+func (_u *CommentUpdateOne) SetVendorID(id int) *CommentUpdateOne {
+	_u.mutation.SetVendorID(id)
+	return _u
 }
 
 // SetNillableVendorID sets the "vendor" edge to the Vendor entity by ID if the given value is not nil.
-func (cuo *CommentUpdateOne) SetNillableVendorID(id *int) *CommentUpdateOne {
+func (_u *CommentUpdateOne) SetNillableVendorID(id *int) *CommentUpdateOne {
 	if id != nil {
-		cuo = cuo.SetVendorID(*id)
+		_u = _u.SetVendorID(*id)
 	}
-	return cuo
+	return _u
 }
 
 // SetVendor sets the "vendor" edge to the Vendor entity.
-func (cuo *CommentUpdateOne) SetVendor(v *Vendor) *CommentUpdateOne {
-	return cuo.SetVendorID(v.ID)
+func (_u *CommentUpdateOne) SetVendor(v *Vendor) *CommentUpdateOne {
+	return _u.SetVendorID(v.ID)
 }
 
 // Mutation returns the CommentMutation object of the builder.
-func (cuo *CommentUpdateOne) Mutation() *CommentMutation {
-	return cuo.mutation
+func (_u *CommentUpdateOne) Mutation() *CommentMutation {
+	return _u.mutation
 }
 
 // ClearVendor clears the "vendor" edge to the Vendor entity.
-func (cuo *CommentUpdateOne) ClearVendor() *CommentUpdateOne {
-	cuo.mutation.ClearVendor()
-	return cuo
+func (_u *CommentUpdateOne) ClearVendor() *CommentUpdateOne {
+	_u.mutation.ClearVendor()
+	return _u
 }
 
 // Where appends a list predicates to the CommentUpdate builder.
-func (cuo *CommentUpdateOne) Where(ps ...predicate.Comment) *CommentUpdateOne {
-	cuo.mutation.Where(ps...)
-	return cuo
+func (_u *CommentUpdateOne) Where(ps ...predicate.Comment) *CommentUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (cuo *CommentUpdateOne) Select(field string, fields ...string) *CommentUpdateOne {
-	cuo.fields = append([]string{field}, fields...)
-	return cuo
+func (_u *CommentUpdateOne) Select(field string, fields ...string) *CommentUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated Comment entity.
-func (cuo *CommentUpdateOne) Save(ctx context.Context) (*Comment, error) {
-	return withHooks(ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
+func (_u *CommentUpdateOne) Save(ctx context.Context) (*Comment, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (cuo *CommentUpdateOne) SaveX(ctx context.Context) *Comment {
-	node, err := cuo.Save(ctx)
+func (_u *CommentUpdateOne) SaveX(ctx context.Context) *Comment {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -326,26 +326,26 @@ func (cuo *CommentUpdateOne) SaveX(ctx context.Context) *Comment {
 }
 
 // Exec executes the query on the entity.
-func (cuo *CommentUpdateOne) Exec(ctx context.Context) error {
-	_, err := cuo.Save(ctx)
+func (_u *CommentUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (cuo *CommentUpdateOne) ExecX(ctx context.Context) {
-	if err := cuo.Exec(ctx); err != nil {
+func (_u *CommentUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (_node *Comment, err error) {
+func (_u *CommentUpdateOne) sqlSave(ctx context.Context) (_node *Comment, err error) {
 	_spec := sqlgraph.NewUpdateSpec(comment.Table, comment.Columns, sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt))
-	id, ok := cuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Comment.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := cuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, comment.FieldID)
 		for _, f := range fields {
@@ -357,26 +357,26 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (_node *Comment, err e
 			}
 		}
 	}
-	if ps := cuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := cuo.mutation.Comment(); ok {
+	if value, ok := _u.mutation.Comment(); ok {
 		_spec.SetField(comment.FieldComment, field.TypeString, value)
 	}
-	if value, ok := cuo.mutation.Warning(); ok {
+	if value, ok := _u.mutation.Warning(); ok {
 		_spec.SetField(comment.FieldWarning, field.TypeBool, value)
 	}
-	if value, ok := cuo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(comment.FieldCreatedAt, field.TypeTime, value)
 	}
-	if value, ok := cuo.mutation.ResolvedAt(); ok {
+	if value, ok := _u.mutation.ResolvedAt(); ok {
 		_spec.SetField(comment.FieldResolvedAt, field.TypeTime, value)
 	}
-	if cuo.mutation.VendorCleared() {
+	if _u.mutation.VendorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -389,7 +389,7 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (_node *Comment, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.mutation.VendorIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.VendorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -405,10 +405,10 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (_node *Comment, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &Comment{config: cuo.config}
+	_node = &Comment{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, cuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{comment.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -416,6 +416,6 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (_node *Comment, err e
 		}
 		return nil, err
 	}
-	cuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

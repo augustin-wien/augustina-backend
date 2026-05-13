@@ -1712,7 +1712,15 @@
     "xXSSProtection" : "1; mode=block",
     "strictTransportSecurity" : "max-age=31536000; includeSubDomains"
   },
-  "smtpServer" : { },
+  "smtpServer" : {
+    "host" : "mailpit",
+    "port" : "1025",
+    "from" : "no-reply@example.com",
+    "fromDisplayName" : "Augustin",
+    "ssl" : "false",
+    "starttls" : "false",
+    "auth" : "false"
+  },
   "loginTheme" : "augustin",
   "accountTheme" : "keycloak.v2",
   "adminTheme" : "",

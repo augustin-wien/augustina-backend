@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/augustin-wien/augustina-backend/ent"
+	schema "github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 	"gopkg.in/guregu/null.v4"
@@ -16,6 +18,16 @@ func (db *Database) CreateDevData() (err error) {
 		log.Error("Dev data vendor creation failed ", zap.Error(err))
 		return err
 	}
+	err = db.createDevLocations(vendorIDs)
+	if err != nil {
+		log.Error("Dev data location creation failed ", zap.Error(err))
+		return err
+	}
+	err = db.createDevComments(vendorIDs)
+	if err != nil {
+		log.Error("Dev data comment creation failed ", zap.Error(err))
+		return err
+	}
 	_, err = db.createDevItems()
 	if err != nil {
 		log.Error("Dev data item creation failed ", zap.Error(err))
@@ -24,6 +36,16 @@ func (db *Database) CreateDevData() (err error) {
 	err = db.createDevOrdersAndPayments(vendorIDs)
 	if err != nil {
 		log.Error("Dev data order creation failed ", zap.Error(err))
+		return err
+	}
+	err = db.createDevPayout(vendorIDs)
+	if err != nil {
+		log.Error("Dev data payout creation failed ", zap.Error(err))
+		return err
+	}
+	err = db.createDevCustomersAndAbonements()
+	if err != nil {
+		log.Error("Dev data customers/abonements creation failed ", zap.Error(err))
 		return err
 	}
 	return err
@@ -61,6 +83,89 @@ func (db *Database) createDevVendors() (vendorIDs []int, err error) {
 	return
 }
 
+func (db *Database) createDevLocations(vendorIDs []int) (err error) {
+	if len(vendorIDs) == 0 {
+		return nil
+	}
+
+	vendorID := vendorIDs[0]
+	locations := []ent.Location{
+		{
+			Name:      "Morning Market",
+			Address:   "Marktplatz 1",
+			Longitude: 16.3725,
+			Latitude:  48.2082,
+			Zip:       "1010",
+			WorkingTime: &schema.WorkingTime{
+				Mode: "everyday",
+				Everyday: []schema.TimeRange{
+					{From: "08:00", To: "12:00"},
+				},
+			},
+		},
+		{
+			Name:      "Evening Stand",
+			Address:   "Kulturstraße 7",
+			Longitude: 16.3790,
+			Latitude:  48.2110,
+			Zip:       "1020",
+			WorkingTime: &schema.WorkingTime{
+				Mode: "by_day",
+				WeekDays: map[string][]schema.TimeRange{
+					"mon": {{From: "09:00", To: "17:00"}},
+					"tue": {{From: "09:00", To: "17:00"}},
+					"wed": {{From: "09:00", To: "17:00"}},
+					"thu": {{From: "09:00", To: "17:00"}},
+					"fri": {{From: "09:00", To: "17:00"}},
+					"sat": {{FullDay: true}},
+				},
+			},
+		},
+	}
+
+	for _, location := range locations {
+		err = db.CreateLocation(vendorID, location)
+		if err != nil {
+			log.Error("Dev data location creation failed ", zap.Error(err))
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (db *Database) createDevComments(vendorIDs []int) (err error) {
+	if len(vendorIDs) == 0 {
+		return nil
+	}
+
+	now := time.Now()
+	comments := []ent.Comment{
+		{
+			Comment:    "Demo vendor is active and ready for use.",
+			Warning:    false,
+			CreatedAt:  now.Add(-72 * time.Hour),
+			ResolvedAt: now.Add(-72 * time.Hour),
+		},
+		{
+			Comment:    "Please verify the demo vendor's contract details.",
+			Warning:    true,
+			CreatedAt:  now.Add(-24 * time.Hour),
+			ResolvedAt: now,
+		},
+	}
+
+	for _, comment := range comments {
+		err = db.CreateVendorComment(vendorIDs[0], comment)
+		if err != nil {
+			log.Error("Dev data comment creation failed ", zap.Error(err))
+			return err
+		}
+	}
+
+	return nil
+}
+
 // CreateDevItems creates test items for the application
 func (db *Database) createDevItems() (ids []int, err error) {
 
@@ -70,7 +175,8 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Price:         50,
 		Archived:      false,
 		IsLicenseItem: true,
-		Image:         "123",
+		Image:         "img/demo_digital.jpg",
+		Type:          "license_item",
 	}
 
 	digitalNewspaperLicenseID, err := db.CreateItem(digitalNewspaperLicense)
@@ -86,7 +192,8 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		LicenseItem:  null.NewInt(int64(digitalNewspaperLicenseID), true),
 		Archived:     false,
 		LicenseGroup: null.NewString("testedition", true),
-		Image:        "123",
+		Image:        "img/demo_digital.jpg",
+		Type:         "issue",
 	}
 
 	calendar := Item{
@@ -94,7 +201,8 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Description: "Kalender für das Jahr 2024",
 		Price:       800,
 		Archived:    false,
-		Image:       "123",
+		Image:       "img/demo_kalender.jpg",
+		Type:        "normal_item",
 	}
 
 	// Create newspaper
@@ -122,7 +230,8 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		Price:         50,
 		Archived:      false,
 		IsLicenseItem: true,
-		Image:         "123",
+		Image:         "img/demo_digital.jpg",
+		Type:          "license_item",
 	}
 
 	digitalNewspaperLicenseID2, err := db.CreateItem(digitalNewspaperLicense2)
@@ -148,9 +257,10 @@ func (db *Database) createDevItems() (ids []int, err error) {
 		LicenseItem:  null.NewInt(int64(digitalNewspaperLicenseID2), true),
 		Archived:     false,
 		LicenseGroup: null.NewString("testedition", true),
-		Image:        "123",
+		Image:        "img/demo_digital.jpg",
 		PDF:          null.NewInt(int64(pdfID), true),
 		IsPDFItem:    true,
+		Type:         "issue",
 	}
 
 	_, err = db.CreateItem(digitalNewspaperWithPDF)
@@ -276,4 +386,126 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 	}
 
 	return
+}
+
+// createDevPayout creates a payout for the first dev vendor using their existing sales payments.
+func (db *Database) createDevPayout(vendorIDs []int) error {
+	if len(vendorIDs) == 0 {
+		return nil
+	}
+
+	vendor, err := db.GetVendor(vendorIDs[0])
+	if err != nil {
+		return err
+	}
+
+	vendorAccount, err := db.GetAccountByVendorID(vendorIDs[0])
+	if err != nil {
+		return err
+	}
+
+	payments, err := db.ListPaymentsForPayout(time.Now().AddDate(-1, 0, 0), time.Now().AddDate(0, 0, 1), vendor.LicenseID.String)
+	if err != nil {
+		return err
+	}
+
+	if len(payments) == 0 {
+		return nil
+	}
+
+	total := 0
+	for _, p := range payments {
+		total += p.Amount
+	}
+
+	_, err = db.CreatePaymentPayout(vendor, vendorAccount.ID, "devtools", total, payments)
+	return err
+}
+
+// createDevCustomersAndAbonements creates sample customers and abonements for development.
+func (db *Database) createDevCustomersAndAbonements() error {
+	// Use ListItemsWithDisabled so we find abonement items even when they start disabled
+	items, err := db.ListItemsWithDisabled(false, false)
+	if err != nil {
+		return err
+	}
+
+	abonementItemID := 0
+	for _, it := range items {
+		if it.Type == "abonement" {
+			abonementItemID = it.ID
+			break
+		}
+	}
+
+	customers := []Customer{
+		{
+			KeycloakID:    "dev-customer-keycloak-1",
+			Email:         "anna.mueller@example.com",
+			FirstName:     "Anna",
+			LastName:      "Müller",
+			LicenseGroups: []string{"digital_edition"},
+		},
+		{
+			KeycloakID: "dev-customer-keycloak-2",
+			Email:      "max.mustermann@example.com",
+			FirstName:  "Max",
+			LastName:   "Mustermann",
+		},
+		{
+			KeycloakID: "dev-customer-keycloak-3",
+			Email:      "eva.schmidt@example.com",
+			FirstName:  "Eva",
+			LastName:   "Schmidt",
+		},
+	}
+
+	createdIDs := make([]int, 0, len(customers))
+	for _, c := range customers {
+		created, err := db.CreateCustomer(&c)
+		if err != nil {
+			log.Error("createDevCustomersAndAbonements: customer creation failed ", zap.Error(err))
+			return err
+		}
+		createdIDs = append(createdIDs, created.ID)
+	}
+
+	if abonementItemID == 0 {
+		return nil
+	}
+
+	now := time.Now()
+	abonements := []Abonement{
+		{
+			CustomerID: createdIDs[0],
+			ItemID:     abonementItemID,
+			FromDate:   now.AddDate(-1, 0, 0),
+			ToDate:     now.AddDate(0, 6, 0),
+			Status:     "active",
+		},
+		{
+			CustomerID: createdIDs[1],
+			ItemID:     abonementItemID,
+			FromDate:   now.AddDate(0, -3, 0),
+			ToDate:     now.AddDate(0, 9, 0),
+			Status:     "active",
+		},
+		{
+			CustomerID: createdIDs[2],
+			ItemID:     abonementItemID,
+			FromDate:   now.AddDate(-2, 0, 0),
+			ToDate:     now.AddDate(-1, 0, 0),
+			Status:     "active",
+		},
+	}
+
+	for _, a := range abonements {
+		_, err := db.CreateAbonement(&a)
+		if err != nil {
+			log.Error("createDevCustomersAndAbonements: abonement creation failed ", zap.Error(err))
+			return err
+		}
+	}
+
+	return nil
 }

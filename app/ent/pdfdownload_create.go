@@ -21,113 +21,113 @@ type PDFDownloadCreate struct {
 }
 
 // SetLinkID sets the "link_id" field.
-func (pdc *PDFDownloadCreate) SetLinkID(s string) *PDFDownloadCreate {
-	pdc.mutation.SetLinkID(s)
-	return pdc
+func (_c *PDFDownloadCreate) SetLinkID(v string) *PDFDownloadCreate {
+	_c.mutation.SetLinkID(v)
+	return _c
 }
 
 // SetPdfID sets the "pdf_id" field.
-func (pdc *PDFDownloadCreate) SetPdfID(i int) *PDFDownloadCreate {
-	pdc.mutation.SetPdfID(i)
-	return pdc
+func (_c *PDFDownloadCreate) SetPdfID(v int) *PDFDownloadCreate {
+	_c.mutation.SetPdfID(v)
+	return _c
 }
 
 // SetTimestamp sets the "timestamp" field.
-func (pdc *PDFDownloadCreate) SetTimestamp(t time.Time) *PDFDownloadCreate {
-	pdc.mutation.SetTimestamp(t)
-	return pdc
+func (_c *PDFDownloadCreate) SetTimestamp(v time.Time) *PDFDownloadCreate {
+	_c.mutation.SetTimestamp(v)
+	return _c
 }
 
 // SetEmailSent sets the "email_sent" field.
-func (pdc *PDFDownloadCreate) SetEmailSent(b bool) *PDFDownloadCreate {
-	pdc.mutation.SetEmailSent(b)
-	return pdc
+func (_c *PDFDownloadCreate) SetEmailSent(v bool) *PDFDownloadCreate {
+	_c.mutation.SetEmailSent(v)
+	return _c
 }
 
 // SetNillableEmailSent sets the "email_sent" field if the given value is not nil.
-func (pdc *PDFDownloadCreate) SetNillableEmailSent(b *bool) *PDFDownloadCreate {
-	if b != nil {
-		pdc.SetEmailSent(*b)
+func (_c *PDFDownloadCreate) SetNillableEmailSent(v *bool) *PDFDownloadCreate {
+	if v != nil {
+		_c.SetEmailSent(*v)
 	}
-	return pdc
+	return _c
 }
 
 // SetLastDownload sets the "last_download" field.
-func (pdc *PDFDownloadCreate) SetLastDownload(t time.Time) *PDFDownloadCreate {
-	pdc.mutation.SetLastDownload(t)
-	return pdc
+func (_c *PDFDownloadCreate) SetLastDownload(v time.Time) *PDFDownloadCreate {
+	_c.mutation.SetLastDownload(v)
+	return _c
 }
 
 // SetNillableLastDownload sets the "last_download" field if the given value is not nil.
-func (pdc *PDFDownloadCreate) SetNillableLastDownload(t *time.Time) *PDFDownloadCreate {
-	if t != nil {
-		pdc.SetLastDownload(*t)
+func (_c *PDFDownloadCreate) SetNillableLastDownload(v *time.Time) *PDFDownloadCreate {
+	if v != nil {
+		_c.SetLastDownload(*v)
 	}
-	return pdc
+	return _c
 }
 
 // SetDownloadCount sets the "download_count" field.
-func (pdc *PDFDownloadCreate) SetDownloadCount(i int) *PDFDownloadCreate {
-	pdc.mutation.SetDownloadCount(i)
-	return pdc
+func (_c *PDFDownloadCreate) SetDownloadCount(v int) *PDFDownloadCreate {
+	_c.mutation.SetDownloadCount(v)
+	return _c
 }
 
 // SetNillableDownloadCount sets the "download_count" field if the given value is not nil.
-func (pdc *PDFDownloadCreate) SetNillableDownloadCount(i *int) *PDFDownloadCreate {
-	if i != nil {
-		pdc.SetDownloadCount(*i)
+func (_c *PDFDownloadCreate) SetNillableDownloadCount(v *int) *PDFDownloadCreate {
+	if v != nil {
+		_c.SetDownloadCount(*v)
 	}
-	return pdc
+	return _c
 }
 
 // SetOrderID sets the "order_id" field.
-func (pdc *PDFDownloadCreate) SetOrderID(i int) *PDFDownloadCreate {
-	pdc.mutation.SetOrderID(i)
-	return pdc
+func (_c *PDFDownloadCreate) SetOrderID(v int) *PDFDownloadCreate {
+	_c.mutation.SetOrderID(v)
+	return _c
 }
 
 // SetNillableOrderID sets the "order_id" field if the given value is not nil.
-func (pdc *PDFDownloadCreate) SetNillableOrderID(i *int) *PDFDownloadCreate {
-	if i != nil {
-		pdc.SetOrderID(*i)
+func (_c *PDFDownloadCreate) SetNillableOrderID(v *int) *PDFDownloadCreate {
+	if v != nil {
+		_c.SetOrderID(*v)
 	}
-	return pdc
+	return _c
 }
 
 // SetItemID sets the "item_id" field.
-func (pdc *PDFDownloadCreate) SetItemID(i int) *PDFDownloadCreate {
-	pdc.mutation.SetItemID(i)
-	return pdc
+func (_c *PDFDownloadCreate) SetItemID(v int) *PDFDownloadCreate {
+	_c.mutation.SetItemID(v)
+	return _c
 }
 
 // SetNillableItemID sets the "item_id" field if the given value is not nil.
-func (pdc *PDFDownloadCreate) SetNillableItemID(i *int) *PDFDownloadCreate {
-	if i != nil {
-		pdc.SetItemID(*i)
+func (_c *PDFDownloadCreate) SetNillableItemID(v *int) *PDFDownloadCreate {
+	if v != nil {
+		_c.SetItemID(*v)
 	}
-	return pdc
+	return _c
 }
 
 // SetID sets the "id" field.
-func (pdc *PDFDownloadCreate) SetID(i int) *PDFDownloadCreate {
-	pdc.mutation.SetID(i)
-	return pdc
+func (_c *PDFDownloadCreate) SetID(v int) *PDFDownloadCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // Mutation returns the PDFDownloadMutation object of the builder.
-func (pdc *PDFDownloadCreate) Mutation() *PDFDownloadMutation {
-	return pdc.mutation
+func (_c *PDFDownloadCreate) Mutation() *PDFDownloadMutation {
+	return _c.mutation
 }
 
 // Save creates the PDFDownload in the database.
-func (pdc *PDFDownloadCreate) Save(ctx context.Context) (*PDFDownload, error) {
-	pdc.defaults()
-	return withHooks(ctx, pdc.sqlSave, pdc.mutation, pdc.hooks)
+func (_c *PDFDownloadCreate) Save(ctx context.Context) (*PDFDownload, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (pdc *PDFDownloadCreate) SaveX(ctx context.Context) *PDFDownload {
-	v, err := pdc.Save(ctx)
+func (_c *PDFDownloadCreate) SaveX(ctx context.Context) *PDFDownload {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -135,48 +135,48 @@ func (pdc *PDFDownloadCreate) SaveX(ctx context.Context) *PDFDownload {
 }
 
 // Exec executes the query.
-func (pdc *PDFDownloadCreate) Exec(ctx context.Context) error {
-	_, err := pdc.Save(ctx)
+func (_c *PDFDownloadCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (pdc *PDFDownloadCreate) ExecX(ctx context.Context) {
-	if err := pdc.Exec(ctx); err != nil {
+func (_c *PDFDownloadCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (pdc *PDFDownloadCreate) defaults() {
-	if _, ok := pdc.mutation.EmailSent(); !ok {
+func (_c *PDFDownloadCreate) defaults() {
+	if _, ok := _c.mutation.EmailSent(); !ok {
 		v := pdfdownload.DefaultEmailSent
-		pdc.mutation.SetEmailSent(v)
+		_c.mutation.SetEmailSent(v)
 	}
-	if _, ok := pdc.mutation.DownloadCount(); !ok {
+	if _, ok := _c.mutation.DownloadCount(); !ok {
 		v := pdfdownload.DefaultDownloadCount
-		pdc.mutation.SetDownloadCount(v)
+		_c.mutation.SetDownloadCount(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (pdc *PDFDownloadCreate) check() error {
-	if _, ok := pdc.mutation.LinkID(); !ok {
+func (_c *PDFDownloadCreate) check() error {
+	if _, ok := _c.mutation.LinkID(); !ok {
 		return &ValidationError{Name: "link_id", err: errors.New(`ent: missing required field "PDFDownload.link_id"`)}
 	}
-	if _, ok := pdc.mutation.PdfID(); !ok {
+	if _, ok := _c.mutation.PdfID(); !ok {
 		return &ValidationError{Name: "pdf_id", err: errors.New(`ent: missing required field "PDFDownload.pdf_id"`)}
 	}
-	if _, ok := pdc.mutation.Timestamp(); !ok {
+	if _, ok := _c.mutation.Timestamp(); !ok {
 		return &ValidationError{Name: "timestamp", err: errors.New(`ent: missing required field "PDFDownload.timestamp"`)}
 	}
-	if _, ok := pdc.mutation.EmailSent(); !ok {
+	if _, ok := _c.mutation.EmailSent(); !ok {
 		return &ValidationError{Name: "email_sent", err: errors.New(`ent: missing required field "PDFDownload.email_sent"`)}
 	}
-	if _, ok := pdc.mutation.DownloadCount(); !ok {
+	if _, ok := _c.mutation.DownloadCount(); !ok {
 		return &ValidationError{Name: "download_count", err: errors.New(`ent: missing required field "PDFDownload.download_count"`)}
 	}
-	if v, ok := pdc.mutation.ID(); ok {
+	if v, ok := _c.mutation.ID(); ok {
 		if err := pdfdownload.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "PDFDownload.id": %w`, err)}
 		}
@@ -184,12 +184,12 @@ func (pdc *PDFDownloadCreate) check() error {
 	return nil
 }
 
-func (pdc *PDFDownloadCreate) sqlSave(ctx context.Context) (*PDFDownload, error) {
-	if err := pdc.check(); err != nil {
+func (_c *PDFDownloadCreate) sqlSave(ctx context.Context) (*PDFDownload, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := pdc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, pdc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -199,49 +199,49 @@ func (pdc *PDFDownloadCreate) sqlSave(ctx context.Context) (*PDFDownload, error)
 		id := _spec.ID.Value.(int64)
 		_node.ID = int(id)
 	}
-	pdc.mutation.id = &_node.ID
-	pdc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (pdc *PDFDownloadCreate) createSpec() (*PDFDownload, *sqlgraph.CreateSpec) {
+func (_c *PDFDownloadCreate) createSpec() (*PDFDownload, *sqlgraph.CreateSpec) {
 	var (
-		_node = &PDFDownload{config: pdc.config}
+		_node = &PDFDownload{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(pdfdownload.Table, sqlgraph.NewFieldSpec(pdfdownload.FieldID, field.TypeInt))
 	)
-	if id, ok := pdc.mutation.ID(); ok {
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := pdc.mutation.LinkID(); ok {
+	if value, ok := _c.mutation.LinkID(); ok {
 		_spec.SetField(pdfdownload.FieldLinkID, field.TypeString, value)
 		_node.LinkID = value
 	}
-	if value, ok := pdc.mutation.PdfID(); ok {
+	if value, ok := _c.mutation.PdfID(); ok {
 		_spec.SetField(pdfdownload.FieldPdfID, field.TypeInt, value)
 		_node.PdfID = value
 	}
-	if value, ok := pdc.mutation.Timestamp(); ok {
+	if value, ok := _c.mutation.Timestamp(); ok {
 		_spec.SetField(pdfdownload.FieldTimestamp, field.TypeTime, value)
 		_node.Timestamp = value
 	}
-	if value, ok := pdc.mutation.EmailSent(); ok {
+	if value, ok := _c.mutation.EmailSent(); ok {
 		_spec.SetField(pdfdownload.FieldEmailSent, field.TypeBool, value)
 		_node.EmailSent = value
 	}
-	if value, ok := pdc.mutation.LastDownload(); ok {
+	if value, ok := _c.mutation.LastDownload(); ok {
 		_spec.SetField(pdfdownload.FieldLastDownload, field.TypeTime, value)
 		_node.LastDownload = &value
 	}
-	if value, ok := pdc.mutation.DownloadCount(); ok {
+	if value, ok := _c.mutation.DownloadCount(); ok {
 		_spec.SetField(pdfdownload.FieldDownloadCount, field.TypeInt, value)
 		_node.DownloadCount = value
 	}
-	if value, ok := pdc.mutation.OrderID(); ok {
+	if value, ok := _c.mutation.OrderID(); ok {
 		_spec.SetField(pdfdownload.FieldOrderID, field.TypeInt, value)
 		_node.OrderID = &value
 	}
-	if value, ok := pdc.mutation.ItemID(); ok {
+	if value, ok := _c.mutation.ItemID(); ok {
 		_spec.SetField(pdfdownload.FieldItemID, field.TypeInt, value)
 		_node.ItemID = &value
 	}
@@ -256,16 +256,16 @@ type PDFDownloadCreateBulk struct {
 }
 
 // Save creates the PDFDownload entities in the database.
-func (pdcb *PDFDownloadCreateBulk) Save(ctx context.Context) ([]*PDFDownload, error) {
-	if pdcb.err != nil {
-		return nil, pdcb.err
+func (_c *PDFDownloadCreateBulk) Save(ctx context.Context) ([]*PDFDownload, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(pdcb.builders))
-	nodes := make([]*PDFDownload, len(pdcb.builders))
-	mutators := make([]Mutator, len(pdcb.builders))
-	for i := range pdcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*PDFDownload, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := pdcb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PDFDownloadMutation)
@@ -279,11 +279,11 @@ func (pdcb *PDFDownloadCreateBulk) Save(ctx context.Context) ([]*PDFDownload, er
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, pdcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, pdcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -307,7 +307,7 @@ func (pdcb *PDFDownloadCreateBulk) Save(ctx context.Context) ([]*PDFDownload, er
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, pdcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -315,8 +315,8 @@ func (pdcb *PDFDownloadCreateBulk) Save(ctx context.Context) ([]*PDFDownload, er
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (pdcb *PDFDownloadCreateBulk) SaveX(ctx context.Context) []*PDFDownload {
-	v, err := pdcb.Save(ctx)
+func (_c *PDFDownloadCreateBulk) SaveX(ctx context.Context) []*PDFDownload {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -324,14 +324,14 @@ func (pdcb *PDFDownloadCreateBulk) SaveX(ctx context.Context) []*PDFDownload {
 }
 
 // Exec executes the query.
-func (pdcb *PDFDownloadCreateBulk) Exec(ctx context.Context) error {
-	_, err := pdcb.Save(ctx)
+func (_c *PDFDownloadCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (pdcb *PDFDownloadCreateBulk) ExecX(ctx context.Context) {
-	if err := pdcb.Exec(ctx); err != nil {
+func (_c *PDFDownloadCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

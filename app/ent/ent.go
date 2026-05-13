@@ -12,9 +12,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/augustin-wien/augustina-backend/ent/abonement"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
+	"github.com/augustin-wien/augustina-backend/ent/customer"
 	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
@@ -83,12 +85,14 @@ var (
 )
 
 // checkColumn checks if the column exists in the given table.
-func checkColumn(table, column string) error {
+func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			abonement.Table:    abonement.ValidColumn,
 			account.Table:      account.ValidColumn,
 			blockedip.Table:    blockedip.ValidColumn,
 			comment.Table:      comment.ValidColumn,
+			customer.Table:     customer.ValidColumn,
 			dbsettings.Table:   dbsettings.ValidColumn,
 			item.Table:         item.ValidColumn,
 			location.Table:     location.ValidColumn,
@@ -102,7 +106,7 @@ func checkColumn(table, column string) error {
 			vendor.Table:       vendor.ValidColumn,
 		})
 	})
-	return columnCheck(table, column)
+	return columnCheck(t, c)
 }
 
 // Asc applies the given fields in ASC order.

@@ -28,40 +28,40 @@ type DBSettingsQuery struct {
 }
 
 // Where adds a new predicate for the DBSettingsQuery builder.
-func (dsq *DBSettingsQuery) Where(ps ...predicate.DBSettings) *DBSettingsQuery {
-	dsq.predicates = append(dsq.predicates, ps...)
-	return dsq
+func (_q *DBSettingsQuery) Where(ps ...predicate.DBSettings) *DBSettingsQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (dsq *DBSettingsQuery) Limit(limit int) *DBSettingsQuery {
-	dsq.ctx.Limit = &limit
-	return dsq
+func (_q *DBSettingsQuery) Limit(limit int) *DBSettingsQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (dsq *DBSettingsQuery) Offset(offset int) *DBSettingsQuery {
-	dsq.ctx.Offset = &offset
-	return dsq
+func (_q *DBSettingsQuery) Offset(offset int) *DBSettingsQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (dsq *DBSettingsQuery) Unique(unique bool) *DBSettingsQuery {
-	dsq.ctx.Unique = &unique
-	return dsq
+func (_q *DBSettingsQuery) Unique(unique bool) *DBSettingsQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (dsq *DBSettingsQuery) Order(o ...dbsettings.OrderOption) *DBSettingsQuery {
-	dsq.order = append(dsq.order, o...)
-	return dsq
+func (_q *DBSettingsQuery) Order(o ...dbsettings.OrderOption) *DBSettingsQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // First returns the first DBSettings entity from the query.
 // Returns a *NotFoundError when no DBSettings was found.
-func (dsq *DBSettingsQuery) First(ctx context.Context) (*DBSettings, error) {
-	nodes, err := dsq.Limit(1).All(setContextOp(ctx, dsq.ctx, ent.OpQueryFirst))
+func (_q *DBSettingsQuery) First(ctx context.Context) (*DBSettings, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -72,8 +72,8 @@ func (dsq *DBSettingsQuery) First(ctx context.Context) (*DBSettings, error) {
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (dsq *DBSettingsQuery) FirstX(ctx context.Context) *DBSettings {
-	node, err := dsq.First(ctx)
+func (_q *DBSettingsQuery) FirstX(ctx context.Context) *DBSettings {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -82,9 +82,9 @@ func (dsq *DBSettingsQuery) FirstX(ctx context.Context) *DBSettings {
 
 // FirstID returns the first DBSettings ID from the query.
 // Returns a *NotFoundError when no DBSettings ID was found.
-func (dsq *DBSettingsQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *DBSettingsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dsq.Limit(1).IDs(setContextOp(ctx, dsq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -95,8 +95,8 @@ func (dsq *DBSettingsQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (dsq *DBSettingsQuery) FirstIDX(ctx context.Context) int {
-	id, err := dsq.FirstID(ctx)
+func (_q *DBSettingsQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -106,8 +106,8 @@ func (dsq *DBSettingsQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single DBSettings entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one DBSettings entity is found.
 // Returns a *NotFoundError when no DBSettings entities are found.
-func (dsq *DBSettingsQuery) Only(ctx context.Context) (*DBSettings, error) {
-	nodes, err := dsq.Limit(2).All(setContextOp(ctx, dsq.ctx, ent.OpQueryOnly))
+func (_q *DBSettingsQuery) Only(ctx context.Context) (*DBSettings, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +122,8 @@ func (dsq *DBSettingsQuery) Only(ctx context.Context) (*DBSettings, error) {
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (dsq *DBSettingsQuery) OnlyX(ctx context.Context) *DBSettings {
-	node, err := dsq.Only(ctx)
+func (_q *DBSettingsQuery) OnlyX(ctx context.Context) *DBSettings {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -133,9 +133,9 @@ func (dsq *DBSettingsQuery) OnlyX(ctx context.Context) *DBSettings {
 // OnlyID is like Only, but returns the only DBSettings ID in the query.
 // Returns a *NotSingularError when more than one DBSettings ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (dsq *DBSettingsQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *DBSettingsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = dsq.Limit(2).IDs(setContextOp(ctx, dsq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -150,8 +150,8 @@ func (dsq *DBSettingsQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (dsq *DBSettingsQuery) OnlyIDX(ctx context.Context) int {
-	id, err := dsq.OnlyID(ctx)
+func (_q *DBSettingsQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -159,18 +159,18 @@ func (dsq *DBSettingsQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of DBSettingsSlice.
-func (dsq *DBSettingsQuery) All(ctx context.Context) ([]*DBSettings, error) {
-	ctx = setContextOp(ctx, dsq.ctx, ent.OpQueryAll)
-	if err := dsq.prepareQuery(ctx); err != nil {
+func (_q *DBSettingsQuery) All(ctx context.Context) ([]*DBSettings, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*DBSettings, *DBSettingsQuery]()
-	return withInterceptors[[]*DBSettings](ctx, dsq, qr, dsq.inters)
+	return withInterceptors[[]*DBSettings](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (dsq *DBSettingsQuery) AllX(ctx context.Context) []*DBSettings {
-	nodes, err := dsq.All(ctx)
+func (_q *DBSettingsQuery) AllX(ctx context.Context) []*DBSettings {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -178,20 +178,20 @@ func (dsq *DBSettingsQuery) AllX(ctx context.Context) []*DBSettings {
 }
 
 // IDs executes the query and returns a list of DBSettings IDs.
-func (dsq *DBSettingsQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if dsq.ctx.Unique == nil && dsq.path != nil {
-		dsq.Unique(true)
+func (_q *DBSettingsQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, dsq.ctx, ent.OpQueryIDs)
-	if err = dsq.Select(dbsettings.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(dbsettings.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (dsq *DBSettingsQuery) IDsX(ctx context.Context) []int {
-	ids, err := dsq.IDs(ctx)
+func (_q *DBSettingsQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -199,17 +199,17 @@ func (dsq *DBSettingsQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (dsq *DBSettingsQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, dsq.ctx, ent.OpQueryCount)
-	if err := dsq.prepareQuery(ctx); err != nil {
+func (_q *DBSettingsQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, dsq, querierCount[*DBSettingsQuery](), dsq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*DBSettingsQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (dsq *DBSettingsQuery) CountX(ctx context.Context) int {
-	count, err := dsq.Count(ctx)
+func (_q *DBSettingsQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -217,9 +217,9 @@ func (dsq *DBSettingsQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (dsq *DBSettingsQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, dsq.ctx, ent.OpQueryExist)
-	switch _, err := dsq.FirstID(ctx); {
+func (_q *DBSettingsQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -230,8 +230,8 @@ func (dsq *DBSettingsQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (dsq *DBSettingsQuery) ExistX(ctx context.Context) bool {
-	exist, err := dsq.Exist(ctx)
+func (_q *DBSettingsQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -240,19 +240,19 @@ func (dsq *DBSettingsQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the DBSettingsQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (dsq *DBSettingsQuery) Clone() *DBSettingsQuery {
-	if dsq == nil {
+func (_q *DBSettingsQuery) Clone() *DBSettingsQuery {
+	if _q == nil {
 		return nil
 	}
 	return &DBSettingsQuery{
-		config:     dsq.config,
-		ctx:        dsq.ctx.Clone(),
-		order:      append([]dbsettings.OrderOption{}, dsq.order...),
-		inters:     append([]Interceptor{}, dsq.inters...),
-		predicates: append([]predicate.DBSettings{}, dsq.predicates...),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]dbsettings.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.DBSettings{}, _q.predicates...),
 		// clone intermediate query.
-		sql:  dsq.sql.Clone(),
-		path: dsq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
@@ -270,10 +270,10 @@ func (dsq *DBSettingsQuery) Clone() *DBSettingsQuery {
 //		GroupBy(dbsettings.FieldIsInitialized).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (dsq *DBSettingsQuery) GroupBy(field string, fields ...string) *DBSettingsGroupBy {
-	dsq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &DBSettingsGroupBy{build: dsq}
-	grbuild.flds = &dsq.ctx.Fields
+func (_q *DBSettingsQuery) GroupBy(field string, fields ...string) *DBSettingsGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &DBSettingsGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = dbsettings.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -291,62 +291,62 @@ func (dsq *DBSettingsQuery) GroupBy(field string, fields ...string) *DBSettingsG
 //	client.DBSettings.Query().
 //		Select(dbsettings.FieldIsInitialized).
 //		Scan(ctx, &v)
-func (dsq *DBSettingsQuery) Select(fields ...string) *DBSettingsSelect {
-	dsq.ctx.Fields = append(dsq.ctx.Fields, fields...)
-	sbuild := &DBSettingsSelect{DBSettingsQuery: dsq}
+func (_q *DBSettingsQuery) Select(fields ...string) *DBSettingsSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &DBSettingsSelect{DBSettingsQuery: _q}
 	sbuild.label = dbsettings.Label
-	sbuild.flds, sbuild.scan = &dsq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a DBSettingsSelect configured with the given aggregations.
-func (dsq *DBSettingsQuery) Aggregate(fns ...AggregateFunc) *DBSettingsSelect {
-	return dsq.Select().Aggregate(fns...)
+func (_q *DBSettingsQuery) Aggregate(fns ...AggregateFunc) *DBSettingsSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (dsq *DBSettingsQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range dsq.inters {
+func (_q *DBSettingsQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, dsq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range dsq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !dbsettings.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if dsq.path != nil {
-		prev, err := dsq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		dsq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (dsq *DBSettingsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*DBSettings, error) {
+func (_q *DBSettingsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*DBSettings, error) {
 	var (
 		nodes = []*DBSettings{}
-		_spec = dsq.querySpec()
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*DBSettings).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &DBSettings{config: dsq.config}
+		node := &DBSettings{config: _q.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, dsq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
@@ -355,24 +355,24 @@ func (dsq *DBSettingsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	return nodes, nil
 }
 
-func (dsq *DBSettingsQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := dsq.querySpec()
-	_spec.Node.Columns = dsq.ctx.Fields
-	if len(dsq.ctx.Fields) > 0 {
-		_spec.Unique = dsq.ctx.Unique != nil && *dsq.ctx.Unique
+func (_q *DBSettingsQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, dsq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (dsq *DBSettingsQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *DBSettingsQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(dbsettings.Table, dbsettings.Columns, sqlgraph.NewFieldSpec(dbsettings.FieldID, field.TypeInt))
-	_spec.From = dsq.sql
-	if unique := dsq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if dsq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := dsq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, dbsettings.FieldID)
 		for i := range fields {
@@ -381,20 +381,20 @@ func (dsq *DBSettingsQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := dsq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := dsq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := dsq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := dsq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -404,33 +404,33 @@ func (dsq *DBSettingsQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (dsq *DBSettingsQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(dsq.driver.Dialect())
+func (_q *DBSettingsQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(dbsettings.Table)
-	columns := dsq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = dbsettings.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if dsq.sql != nil {
-		selector = dsq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if dsq.ctx.Unique != nil && *dsq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range dsq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range dsq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := dsq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := dsq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -443,41 +443,41 @@ type DBSettingsGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (dsgb *DBSettingsGroupBy) Aggregate(fns ...AggregateFunc) *DBSettingsGroupBy {
-	dsgb.fns = append(dsgb.fns, fns...)
-	return dsgb
+func (_g *DBSettingsGroupBy) Aggregate(fns ...AggregateFunc) *DBSettingsGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (dsgb *DBSettingsGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, dsgb.build.ctx, ent.OpQueryGroupBy)
-	if err := dsgb.build.prepareQuery(ctx); err != nil {
+func (_g *DBSettingsGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*DBSettingsQuery, *DBSettingsGroupBy](ctx, dsgb.build, dsgb, dsgb.build.inters, v)
+	return scanWithInterceptors[*DBSettingsQuery, *DBSettingsGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (dsgb *DBSettingsGroupBy) sqlScan(ctx context.Context, root *DBSettingsQuery, v any) error {
+func (_g *DBSettingsGroupBy) sqlScan(ctx context.Context, root *DBSettingsQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(dsgb.fns))
-	for _, fn := range dsgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*dsgb.flds)+len(dsgb.fns))
-		for _, f := range *dsgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*dsgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := dsgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -491,27 +491,27 @@ type DBSettingsSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (dss *DBSettingsSelect) Aggregate(fns ...AggregateFunc) *DBSettingsSelect {
-	dss.fns = append(dss.fns, fns...)
-	return dss
+func (_s *DBSettingsSelect) Aggregate(fns ...AggregateFunc) *DBSettingsSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (dss *DBSettingsSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, dss.ctx, ent.OpQuerySelect)
-	if err := dss.prepareQuery(ctx); err != nil {
+func (_s *DBSettingsSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*DBSettingsQuery, *DBSettingsSelect](ctx, dss.DBSettingsQuery, dss, dss.inters, v)
+	return scanWithInterceptors[*DBSettingsQuery, *DBSettingsSelect](ctx, _s.DBSettingsQuery, _s, _s.inters, v)
 }
 
-func (dss *DBSettingsSelect) sqlScan(ctx context.Context, root *DBSettingsQuery, v any) error {
+func (_s *DBSettingsSelect) sqlScan(ctx context.Context, root *DBSettingsQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(dss.fns))
-	for _, fn := range dss.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*dss.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -519,7 +519,7 @@ func (dss *DBSettingsSelect) sqlScan(ctx context.Context, root *DBSettingsQuery,
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := dss.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

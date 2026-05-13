@@ -50,7 +50,7 @@ func (*MailTemplate) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the MailTemplate fields.
-func (mt *MailTemplate) assignValues(columns []string, values []any) error {
+func (_m *MailTemplate) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -61,39 +61,39 @@ func (mt *MailTemplate) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			mt.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case mailtemplate.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				mt.Name = value.String
+				_m.Name = value.String
 			}
 		case mailtemplate.FieldSubject:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field subject", values[i])
 			} else if value.Valid {
-				mt.Subject = value.String
+				_m.Subject = value.String
 			}
 		case mailtemplate.FieldBody:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field body", values[i])
 			} else if value.Valid {
-				mt.Body = value.String
+				_m.Body = value.String
 			}
 		case mailtemplate.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				mt.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case mailtemplate.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				mt.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		default:
-			mt.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -101,47 +101,47 @@ func (mt *MailTemplate) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the MailTemplate.
 // This includes values selected through modifiers, order, etc.
-func (mt *MailTemplate) Value(name string) (ent.Value, error) {
-	return mt.selectValues.Get(name)
+func (_m *MailTemplate) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this MailTemplate.
 // Note that you need to call MailTemplate.Unwrap() before calling this method if this MailTemplate
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (mt *MailTemplate) Update() *MailTemplateUpdateOne {
-	return NewMailTemplateClient(mt.config).UpdateOne(mt)
+func (_m *MailTemplate) Update() *MailTemplateUpdateOne {
+	return NewMailTemplateClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the MailTemplate entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (mt *MailTemplate) Unwrap() *MailTemplate {
-	_tx, ok := mt.config.driver.(*txDriver)
+func (_m *MailTemplate) Unwrap() *MailTemplate {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: MailTemplate is not a transactional entity")
 	}
-	mt.config.driver = _tx.drv
-	return mt
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (mt *MailTemplate) String() string {
+func (_m *MailTemplate) String() string {
 	var builder strings.Builder
 	builder.WriteString("MailTemplate(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", mt.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
-	builder.WriteString(mt.Name)
+	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
 	builder.WriteString("subject=")
-	builder.WriteString(mt.Subject)
+	builder.WriteString(_m.Subject)
 	builder.WriteString(", ")
 	builder.WriteString("body=")
-	builder.WriteString(mt.Body)
+	builder.WriteString(_m.Body)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(mt.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(mt.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

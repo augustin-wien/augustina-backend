@@ -28,6 +28,8 @@ const (
 	FieldIsLicenseItem = "islicenseitem"
 	// FieldLicenseGroup holds the string denoting the licensegroup field in the database.
 	FieldLicenseGroup = "licensegroup"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "item_type"
 	// FieldIsPDFItem holds the string denoting the ispdfitem field in the database.
 	FieldIsPDFItem = "ispdfitem"
 	// FieldItemOrder holds the string denoting the itemorder field in the database.
@@ -66,6 +68,7 @@ var Columns = []string{
 	FieldDisabled,
 	FieldIsLicenseItem,
 	FieldLicenseGroup,
+	FieldType,
 	FieldIsPDFItem,
 	FieldItemOrder,
 	FieldItemColor,
@@ -109,6 +112,8 @@ var (
 	DefaultIsLicenseItem bool
 	// DefaultLicenseGroup holds the default value on creation for the "LicenseGroup" field.
 	DefaultLicenseGroup string
+	// DefaultType holds the default value on creation for the "Type" field.
+	DefaultType string
 	// DefaultIsPDFItem holds the default value on creation for the "IsPDFItem" field.
 	DefaultIsPDFItem bool
 	// DefaultItemOrder holds the default value on creation for the "ItemOrder" field.
@@ -167,6 +172,11 @@ func ByIsLicenseItem(opts ...sql.OrderTermOption) OrderOption {
 // ByLicenseGroup orders the results by the LicenseGroup field.
 func ByLicenseGroup(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLicenseGroup, opts...).ToFunc()
+}
+
+// ByType orders the results by the Type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
 // ByIsPDFItem orders the results by the IsPDFItem field.

@@ -20,11 +20,7 @@ services:
       - ./email_templates:/app/templates
     command: >
         sh -c 'tern migrate --migrations ./migrations --config ./migrations/tern.conf &&
-        mv ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql.bak  || true &&
-        echo "CREATE TABLE Dummy (ID SERIAL PRIMARY KEY);" > ./migrations/011_sample_dummy_table.sql &&
         tern migrate --migrations ./migrations --config ./migrations/tern_test.conf &&
-        rm ./migrations/011_sample_dummy_table.sql &&
-        mv ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql.bak ./migrations/011_trigger_add_prevent_dropping_and_deleting.sql || true &&
         go run main.go'
 
     environment:
@@ -63,6 +59,7 @@ services:
       - augustin-db-test
       - keycloak
       - webhook-receiver
+      - mailpit
     ports:
       - "3000:3000"
     healthcheck:
@@ -143,6 +140,8 @@ services:
     command: start-dev --import-realm
     ports:
       - "8080:8080"
+    links:
+      - mailpit
   wordpress-db:
     # We use a mariadb image which supports both amd64 & arm64 architecture
     image: mariadb
@@ -185,6 +184,7 @@ services:
       - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
       - AUGUSTIN_PARSER_URL=${AUGUSTIN_PARSER_URL}
+      - WORDPRESS_DEBUG=true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost"]
       interval: 30s
@@ -244,6 +244,14 @@ services:
     depends_on:
       wordpress:
         condition: service_healthy
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    ports:
+      - "8025:8025"   # web UI
+      - "1025:1025"   # SMTP
+    restart: unless-stopped
+
   webhook-receiver:
     build:
       context: ./docker/webhook-receiver

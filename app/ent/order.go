@@ -92,7 +92,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Order fields.
-func (o *Order) assignValues(columns []string, values []any) error {
+func (_m *Order) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -103,67 +103,67 @@ func (o *Order) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			o.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case order.FieldOrderCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field order_code", values[i])
 			} else if value.Valid {
-				o.OrderCode = new(string)
-				*o.OrderCode = value.String
+				_m.OrderCode = new(string)
+				*_m.OrderCode = value.String
 			}
 		case order.FieldTransactionID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field transaction_id", values[i])
 			} else if value.Valid {
-				o.TransactionID = value.String
+				_m.TransactionID = value.String
 			}
 		case order.FieldVerified:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field verified", values[i])
 			} else if value.Valid {
-				o.Verified = value.Bool
+				_m.Verified = value.Bool
 			}
 		case order.FieldVerifiedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field verified_at", values[i])
 			} else if value.Valid {
-				o.VerifiedAt = new(time.Time)
-				*o.VerifiedAt = value.Time
+				_m.VerifiedAt = new(time.Time)
+				*_m.VerifiedAt = value.Time
 			}
 		case order.FieldTransactionTypeID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field transaction_type_id", values[i])
 			} else if value.Valid {
-				o.TransactionTypeID = int(value.Int64)
+				_m.TransactionTypeID = int(value.Int64)
 			}
 		case order.FieldTimestamp:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field timestamp", values[i])
 			} else if value.Valid {
-				o.Timestamp = value.Time
+				_m.Timestamp = value.Time
 			}
 		case order.FieldUserID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
-				o.UserID = new(string)
-				*o.UserID = value.String
+				_m.UserID = new(string)
+				*_m.UserID = value.String
 			}
 		case order.FieldVendorID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field vendor_id", values[i])
 			} else if value.Valid {
-				o.VendorID = int(value.Int64)
+				_m.VendorID = int(value.Int64)
 			}
 		case order.FieldCustomerEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field customer_email", values[i])
 			} else if value.Valid {
-				o.CustomerEmail = new(string)
-				*o.CustomerEmail = value.String
+				_m.CustomerEmail = new(string)
+				*_m.CustomerEmail = value.String
 			}
 		default:
-			o.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -171,74 +171,74 @@ func (o *Order) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Order.
 // This includes values selected through modifiers, order, etc.
-func (o *Order) Value(name string) (ent.Value, error) {
-	return o.selectValues.Get(name)
+func (_m *Order) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryEntries queries the "entries" edge of the Order entity.
-func (o *Order) QueryEntries() *OrderEntryQuery {
-	return NewOrderClient(o.config).QueryEntries(o)
+func (_m *Order) QueryEntries() *OrderEntryQuery {
+	return NewOrderClient(_m.config).QueryEntries(_m)
 }
 
 // QueryPayments queries the "payments" edge of the Order entity.
-func (o *Order) QueryPayments() *PaymentQuery {
-	return NewOrderClient(o.config).QueryPayments(o)
+func (_m *Order) QueryPayments() *PaymentQuery {
+	return NewOrderClient(_m.config).QueryPayments(_m)
 }
 
 // Update returns a builder for updating this Order.
 // Note that you need to call Order.Unwrap() before calling this method if this Order
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (o *Order) Update() *OrderUpdateOne {
-	return NewOrderClient(o.config).UpdateOne(o)
+func (_m *Order) Update() *OrderUpdateOne {
+	return NewOrderClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Order entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (o *Order) Unwrap() *Order {
-	_tx, ok := o.config.driver.(*txDriver)
+func (_m *Order) Unwrap() *Order {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Order is not a transactional entity")
 	}
-	o.config.driver = _tx.drv
-	return o
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (o *Order) String() string {
+func (_m *Order) String() string {
 	var builder strings.Builder
 	builder.WriteString("Order(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", o.ID))
-	if v := o.OrderCode; v != nil {
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	if v := _m.OrderCode; v != nil {
 		builder.WriteString("order_code=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	builder.WriteString("transaction_id=")
-	builder.WriteString(o.TransactionID)
+	builder.WriteString(_m.TransactionID)
 	builder.WriteString(", ")
 	builder.WriteString("verified=")
-	builder.WriteString(fmt.Sprintf("%v", o.Verified))
+	builder.WriteString(fmt.Sprintf("%v", _m.Verified))
 	builder.WriteString(", ")
-	if v := o.VerifiedAt; v != nil {
+	if v := _m.VerifiedAt; v != nil {
 		builder.WriteString("verified_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("transaction_type_id=")
-	builder.WriteString(fmt.Sprintf("%v", o.TransactionTypeID))
+	builder.WriteString(fmt.Sprintf("%v", _m.TransactionTypeID))
 	builder.WriteString(", ")
 	builder.WriteString("timestamp=")
-	builder.WriteString(o.Timestamp.Format(time.ANSIC))
+	builder.WriteString(_m.Timestamp.Format(time.ANSIC))
 	builder.WriteString(", ")
-	if v := o.UserID; v != nil {
+	if v := _m.UserID; v != nil {
 		builder.WriteString("user_id=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	builder.WriteString("vendor_id=")
-	builder.WriteString(fmt.Sprintf("%v", o.VendorID))
+	builder.WriteString(fmt.Sprintf("%v", _m.VendorID))
 	builder.WriteString(", ")
-	if v := o.CustomerEmail; v != nil {
+	if v := _m.CustomerEmail; v != nil {
 		builder.WriteString("customer_email=")
 		builder.WriteString(*v)
 	}

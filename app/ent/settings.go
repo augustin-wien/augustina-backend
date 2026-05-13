@@ -61,6 +61,8 @@ type Settings struct {
 	ShopLanding bool `json:"ShopLanding"`
 	// DigitalItemsUrl holds the value of the "DigitalItemsUrl" field.
 	DigitalItemsUrl string `json:"DigitalItemsUrl"`
+	// AbonementUrl holds the value of the "AbonementUrl" field.
+	AbonementUrl string `json:"AbonementUrl"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -99,7 +101,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case settings.FieldID, settings.FieldMaxOrderAmount:
 			values[i] = new(sql.NullInt64)
-		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl:
+		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl:
 			values[i] = new(sql.NullString)
 		case settings.ForeignKeys[0]: // mainitem
 			values[i] = new(sql.NullInt64)
@@ -112,7 +114,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Settings fields.
-func (s *Settings) assignValues(columns []string, values []any) error {
+func (_m *Settings) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -123,148 +125,154 @@ func (s *Settings) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			s.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case settings.FieldAGBUrl:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field AGBUrl", values[i])
 			} else if value.Valid {
-				s.AGBUrl = value.String
+				_m.AGBUrl = value.String
 			}
 		case settings.FieldColor:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field Color", values[i])
 			} else if value.Valid {
-				s.Color = value.String
+				_m.Color = value.String
 			}
 		case settings.FieldFontColor:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field FontColor", values[i])
 			} else if value.Valid {
-				s.FontColor = value.String
+				_m.FontColor = value.String
 			}
 		case settings.FieldLogo:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field Logo", values[i])
 			} else if value.Valid {
-				s.Logo = value.String
+				_m.Logo = value.String
 			}
 		case settings.FieldMaxOrderAmount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field MaxOrderAmount", values[i])
 			} else if value.Valid {
-				s.MaxOrderAmount = int(value.Int64)
+				_m.MaxOrderAmount = int(value.Int64)
 			}
 		case settings.FieldOrgaCoversTransactionCosts:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field OrgaCoversTransactionCosts", values[i])
 			} else if value.Valid {
-				s.OrgaCoversTransactionCosts = value.Bool
+				_m.OrgaCoversTransactionCosts = value.Bool
 			}
 		case settings.FieldWebshopIsClosed:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field WebshopIsClosed", values[i])
 			} else if value.Valid {
-				s.WebshopIsClosed = value.Bool
+				_m.WebshopIsClosed = value.Bool
 			}
 		case settings.FieldVendorNotFoundHelpUrl:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field VendorNotFoundHelpUrl", values[i])
 			} else if value.Valid {
-				s.VendorNotFoundHelpUrl = value.String
+				_m.VendorNotFoundHelpUrl = value.String
 			}
 		case settings.FieldMaintainanceModeHelpUrl:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field MaintainanceModeHelpUrl", values[i])
 			} else if value.Valid {
-				s.MaintainanceModeHelpUrl = value.String
+				_m.MaintainanceModeHelpUrl = value.String
 			}
 		case settings.FieldVendorEmailPostfix:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field VendorEmailPostfix", values[i])
 			} else if value.Valid {
-				s.VendorEmailPostfix = value.String
+				_m.VendorEmailPostfix = value.String
 			}
 		case settings.FieldNewspaperName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field NewspaperName", values[i])
 			} else if value.Valid {
-				s.NewspaperName = value.String
+				_m.NewspaperName = value.String
 			}
 		case settings.FieldQRCodeUrl:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field QRCodeUrl", values[i])
 			} else if value.Valid {
-				s.QRCodeUrl = value.String
+				_m.QRCodeUrl = value.String
 			}
 		case settings.FieldQRCodeLogoImgUrl:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field QRCodeLogoImgUrl", values[i])
 			} else if value.Valid {
-				s.QRCodeLogoImgUrl = value.String
+				_m.QRCodeLogoImgUrl = value.String
 			}
 		case settings.FieldMapCenterLat:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field MapCenterLat", values[i])
 			} else if value.Valid {
-				s.MapCenterLat = value.Float64
+				_m.MapCenterLat = value.Float64
 			}
 		case settings.FieldMapCenterLong:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field MapCenterLong", values[i])
 			} else if value.Valid {
-				s.MapCenterLong = value.Float64
+				_m.MapCenterLong = value.Float64
 			}
 		case settings.FieldUseVendorLicenseIdInShop:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field UseVendorLicenseIdInShop", values[i])
 			} else if value.Valid {
-				s.UseVendorLicenseIdInShop = value.Bool
+				_m.UseVendorLicenseIdInShop = value.Bool
 			}
 		case settings.FieldFavicon:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field Favicon", values[i])
 			} else if value.Valid {
-				s.Favicon = value.String
+				_m.Favicon = value.String
 			}
 		case settings.FieldQRCodeSettings:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field QRCodeSettings", values[i])
 			} else if value.Valid {
-				s.QRCodeSettings = value.String
+				_m.QRCodeSettings = value.String
 			}
 		case settings.FieldQRCodeEnableLogo:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field QRCodeEnableLogo", values[i])
 			} else if value.Valid {
-				s.QRCodeEnableLogo = value.Bool
+				_m.QRCodeEnableLogo = value.Bool
 			}
 		case settings.FieldUseTipInsteadOfDonation:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field UseTipInsteadOfDonation", values[i])
 			} else if value.Valid {
-				s.UseTipInsteadOfDonation = value.Bool
+				_m.UseTipInsteadOfDonation = value.Bool
 			}
 		case settings.FieldShopLanding:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field ShopLanding", values[i])
 			} else if value.Valid {
-				s.ShopLanding = value.Bool
+				_m.ShopLanding = value.Bool
 			}
 		case settings.FieldDigitalItemsUrl:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field DigitalItemsUrl", values[i])
 			} else if value.Valid {
-				s.DigitalItemsUrl = value.String
+				_m.DigitalItemsUrl = value.String
+			}
+		case settings.FieldAbonementUrl:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field AbonementUrl", values[i])
+			} else if value.Valid {
+				_m.AbonementUrl = value.String
 			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
 			} else if value.Valid {
-				s.mainitem = new(int)
-				*s.mainitem = int(value.Int64)
+				_m.mainitem = new(int)
+				*_m.mainitem = int(value.Int64)
 			}
 		default:
-			s.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -272,103 +280,106 @@ func (s *Settings) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Settings.
 // This includes values selected through modifiers, order, etc.
-func (s *Settings) Value(name string) (ent.Value, error) {
-	return s.selectValues.Get(name)
+func (_m *Settings) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryMainItem queries the "MainItem" edge of the Settings entity.
-func (s *Settings) QueryMainItem() *ItemQuery {
-	return NewSettingsClient(s.config).QueryMainItem(s)
+func (_m *Settings) QueryMainItem() *ItemQuery {
+	return NewSettingsClient(_m.config).QueryMainItem(_m)
 }
 
 // Update returns a builder for updating this Settings.
 // Note that you need to call Settings.Unwrap() before calling this method if this Settings
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (s *Settings) Update() *SettingsUpdateOne {
-	return NewSettingsClient(s.config).UpdateOne(s)
+func (_m *Settings) Update() *SettingsUpdateOne {
+	return NewSettingsClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Settings entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (s *Settings) Unwrap() *Settings {
-	_tx, ok := s.config.driver.(*txDriver)
+func (_m *Settings) Unwrap() *Settings {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Settings is not a transactional entity")
 	}
-	s.config.driver = _tx.drv
-	return s
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (s *Settings) String() string {
+func (_m *Settings) String() string {
 	var builder strings.Builder
 	builder.WriteString("Settings(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("AGBUrl=")
-	builder.WriteString(s.AGBUrl)
+	builder.WriteString(_m.AGBUrl)
 	builder.WriteString(", ")
 	builder.WriteString("Color=")
-	builder.WriteString(s.Color)
+	builder.WriteString(_m.Color)
 	builder.WriteString(", ")
 	builder.WriteString("FontColor=")
-	builder.WriteString(s.FontColor)
+	builder.WriteString(_m.FontColor)
 	builder.WriteString(", ")
 	builder.WriteString("Logo=")
-	builder.WriteString(s.Logo)
+	builder.WriteString(_m.Logo)
 	builder.WriteString(", ")
 	builder.WriteString("MaxOrderAmount=")
-	builder.WriteString(fmt.Sprintf("%v", s.MaxOrderAmount))
+	builder.WriteString(fmt.Sprintf("%v", _m.MaxOrderAmount))
 	builder.WriteString(", ")
 	builder.WriteString("OrgaCoversTransactionCosts=")
-	builder.WriteString(fmt.Sprintf("%v", s.OrgaCoversTransactionCosts))
+	builder.WriteString(fmt.Sprintf("%v", _m.OrgaCoversTransactionCosts))
 	builder.WriteString(", ")
 	builder.WriteString("WebshopIsClosed=")
-	builder.WriteString(fmt.Sprintf("%v", s.WebshopIsClosed))
+	builder.WriteString(fmt.Sprintf("%v", _m.WebshopIsClosed))
 	builder.WriteString(", ")
 	builder.WriteString("VendorNotFoundHelpUrl=")
-	builder.WriteString(s.VendorNotFoundHelpUrl)
+	builder.WriteString(_m.VendorNotFoundHelpUrl)
 	builder.WriteString(", ")
 	builder.WriteString("MaintainanceModeHelpUrl=")
-	builder.WriteString(s.MaintainanceModeHelpUrl)
+	builder.WriteString(_m.MaintainanceModeHelpUrl)
 	builder.WriteString(", ")
 	builder.WriteString("VendorEmailPostfix=")
-	builder.WriteString(s.VendorEmailPostfix)
+	builder.WriteString(_m.VendorEmailPostfix)
 	builder.WriteString(", ")
 	builder.WriteString("NewspaperName=")
-	builder.WriteString(s.NewspaperName)
+	builder.WriteString(_m.NewspaperName)
 	builder.WriteString(", ")
 	builder.WriteString("QRCodeUrl=")
-	builder.WriteString(s.QRCodeUrl)
+	builder.WriteString(_m.QRCodeUrl)
 	builder.WriteString(", ")
 	builder.WriteString("QRCodeLogoImgUrl=")
-	builder.WriteString(s.QRCodeLogoImgUrl)
+	builder.WriteString(_m.QRCodeLogoImgUrl)
 	builder.WriteString(", ")
 	builder.WriteString("MapCenterLat=")
-	builder.WriteString(fmt.Sprintf("%v", s.MapCenterLat))
+	builder.WriteString(fmt.Sprintf("%v", _m.MapCenterLat))
 	builder.WriteString(", ")
 	builder.WriteString("MapCenterLong=")
-	builder.WriteString(fmt.Sprintf("%v", s.MapCenterLong))
+	builder.WriteString(fmt.Sprintf("%v", _m.MapCenterLong))
 	builder.WriteString(", ")
 	builder.WriteString("UseVendorLicenseIdInShop=")
-	builder.WriteString(fmt.Sprintf("%v", s.UseVendorLicenseIdInShop))
+	builder.WriteString(fmt.Sprintf("%v", _m.UseVendorLicenseIdInShop))
 	builder.WriteString(", ")
 	builder.WriteString("Favicon=")
-	builder.WriteString(s.Favicon)
+	builder.WriteString(_m.Favicon)
 	builder.WriteString(", ")
 	builder.WriteString("QRCodeSettings=")
-	builder.WriteString(s.QRCodeSettings)
+	builder.WriteString(_m.QRCodeSettings)
 	builder.WriteString(", ")
 	builder.WriteString("QRCodeEnableLogo=")
-	builder.WriteString(fmt.Sprintf("%v", s.QRCodeEnableLogo))
+	builder.WriteString(fmt.Sprintf("%v", _m.QRCodeEnableLogo))
 	builder.WriteString(", ")
 	builder.WriteString("UseTipInsteadOfDonation=")
-	builder.WriteString(fmt.Sprintf("%v", s.UseTipInsteadOfDonation))
+	builder.WriteString(fmt.Sprintf("%v", _m.UseTipInsteadOfDonation))
 	builder.WriteString(", ")
 	builder.WriteString("ShopLanding=")
-	builder.WriteString(fmt.Sprintf("%v", s.ShopLanding))
+	builder.WriteString(fmt.Sprintf("%v", _m.ShopLanding))
 	builder.WriteString(", ")
 	builder.WriteString("DigitalItemsUrl=")
-	builder.WriteString(s.DigitalItemsUrl)
+	builder.WriteString(_m.DigitalItemsUrl)
+	builder.WriteString(", ")
+	builder.WriteString("AbonementUrl=")
+	builder.WriteString(_m.AbonementUrl)
 	builder.WriteByte(')')
 	return builder.String()
 }

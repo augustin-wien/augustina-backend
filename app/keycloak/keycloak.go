@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
@@ -31,6 +32,7 @@ type Keycloak struct {
 	CustomerGroup           string
 	BackofficeGroup         string
 	NewspaperGroup          string
+	mu                      sync.Mutex
 }
 
 // InitializeOauthServer initializes the Keycloak client
@@ -131,18 +133,24 @@ func (k *Keycloak) GetUserGroups(userID string) ([]*gocloak.Group, error) {
 }
 
 func (k *Keycloak) checkAdminToken() {
+	k.mu.Lock()
+	defer k.mu.Unlock()
 	var err error
 	if k.clientToken == nil {
-		k.clientToken, err = KeycloakClient.LoginClient()
+		k.clientToken, err = k.LoginClient()
 		if err != nil {
 			log.Error("Error logging in Keycloak client ", err)
+			return
 		}
+		k.clientTokenCreationTime = utils.GetUnixTime()
+		return
 	}
-	// admin  token is expired
-	if utils.GetUnixTime()-(k.clientTokenCreationTime+int64(k.clientToken.ExpiresIn)) > 0 {
-		k.clientToken, err = KeycloakClient.LoginClient()
+	// token is expired
+	if utils.GetUnixTime() > k.clientTokenCreationTime+int64(k.clientToken.ExpiresIn) {
+		k.clientToken, err = k.LoginClient()
 		if err != nil {
 			log.Error("Error logging in Keycloak admin ", err)
+			return
 		}
 		k.clientTokenCreationTime = utils.GetUnixTime()
 	}
@@ -182,6 +190,12 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 
 // Assign group to user
 func (k *Keycloak) AssignGroup(userID string, groupName string) error {
+	if k.Client == nil {
+		return fmt.Errorf("AssignGroup: keycloak client not initialized")
+	}
+	if groupName == "" {
+		return fmt.Errorf("AssignGroup: groupName is empty")
+	}
 	k.checkAdminToken()
 	// Groups can only be searched by group paths and not by group names. Group paths have to start with / and if it's not there, we add it.
 	if groupName[0] != '/' {
@@ -197,6 +211,9 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 }
 
 func (k *Keycloak) AssignDigitalLicenseGroup(userID string, licenseGroup string) error {
+	if k.Client == nil {
+		return fmt.Errorf("AssignDigitalLicenseGroup: keycloak client not initialized")
+	}
 	k.checkAdminToken()
 	licenseGroupPath := "/" + k.CustomerGroup + "/" + k.NewspaperGroup + "/" + licenseGroup
 	// Check if group exists
@@ -222,6 +239,47 @@ func (k *Keycloak) AssignDigitalLicenseGroup(userID string, licenseGroup string)
 	}
 	// Assign user to group
 	return k.AssignGroup(userID, licenseGroupPath)
+}
+
+// SyncLicenseGroupsDiffToKeycloak applies the diff between oldGroups and newGroups to
+// Keycloak: groups added by the admin are assigned, groups explicitly removed by the
+// admin are unassigned. Groups that were never in our DB (from other applications) are
+// never touched.
+func (k *Keycloak) SyncLicenseGroupsDiffToKeycloak(userID string, oldGroups, newGroups []string) error {
+	oldSet := make(map[string]bool, len(oldGroups))
+	for _, g := range oldGroups {
+		if g != "" {
+			oldSet[g] = true
+		}
+	}
+	newSet := make(map[string]bool, len(newGroups))
+	for _, g := range newGroups {
+		if g != "" {
+			newSet[g] = true
+		}
+	}
+
+	for g := range newSet {
+		if !oldSet[g] {
+			if err := k.AssignDigitalLicenseGroup(userID, g); err != nil {
+				log.Errorf("SyncLicenseGroupsDiffToKeycloak: add %s to %s: %v", g, userID, err)
+			}
+		}
+	}
+	for g := range oldSet {
+		if !newSet[g] {
+			licenseGroupPath := "/" + k.CustomerGroup + "/" + k.NewspaperGroup + "/" + g
+			group, err := k.GetGroupByPath(licenseGroupPath)
+			if err != nil {
+				continue // group doesn't exist in Keycloak, nothing to remove
+			}
+			k.checkAdminToken()
+			if err := k.Client.DeleteUserFromGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID); err != nil {
+				log.Errorf("SyncLicenseGroupsDiffToKeycloak: remove %s from %s: %v", g, userID, err)
+			}
+		}
+	}
+	return nil
 }
 
 func (k *Keycloak) CreateGroup(groupName string) (string, error) {
@@ -614,6 +672,9 @@ func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
 }
 
 func (k *Keycloak) GetOrCreateUser(email string) (userID string, newUser bool, err error) {
+	if k.Client == nil {
+		return "", false, fmt.Errorf("GetOrCreateUser: keycloak client not initialized")
+	}
 	if email == "" {
 		return "", false, fmt.Errorf("GetOrCreateUser: email is empty")
 	}

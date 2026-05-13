@@ -21,67 +21,67 @@ type BlockedIPCreate struct {
 }
 
 // SetIP sets the "ip" field.
-func (bic *BlockedIPCreate) SetIP(s string) *BlockedIPCreate {
-	bic.mutation.SetIP(s)
-	return bic
+func (_c *BlockedIPCreate) SetIP(v string) *BlockedIPCreate {
+	_c.mutation.SetIP(v)
+	return _c
 }
 
 // SetStrikes sets the "strikes" field.
-func (bic *BlockedIPCreate) SetStrikes(i int) *BlockedIPCreate {
-	bic.mutation.SetStrikes(i)
-	return bic
+func (_c *BlockedIPCreate) SetStrikes(v int) *BlockedIPCreate {
+	_c.mutation.SetStrikes(v)
+	return _c
 }
 
 // SetNillableStrikes sets the "strikes" field if the given value is not nil.
-func (bic *BlockedIPCreate) SetNillableStrikes(i *int) *BlockedIPCreate {
-	if i != nil {
-		bic.SetStrikes(*i)
+func (_c *BlockedIPCreate) SetNillableStrikes(v *int) *BlockedIPCreate {
+	if v != nil {
+		_c.SetStrikes(*v)
 	}
-	return bic
+	return _c
 }
 
 // SetBlockExpiresAt sets the "block_expires_at" field.
-func (bic *BlockedIPCreate) SetBlockExpiresAt(t time.Time) *BlockedIPCreate {
-	bic.mutation.SetBlockExpiresAt(t)
-	return bic
+func (_c *BlockedIPCreate) SetBlockExpiresAt(v time.Time) *BlockedIPCreate {
+	_c.mutation.SetBlockExpiresAt(v)
+	return _c
 }
 
 // SetNillableBlockExpiresAt sets the "block_expires_at" field if the given value is not nil.
-func (bic *BlockedIPCreate) SetNillableBlockExpiresAt(t *time.Time) *BlockedIPCreate {
-	if t != nil {
-		bic.SetBlockExpiresAt(*t)
+func (_c *BlockedIPCreate) SetNillableBlockExpiresAt(v *time.Time) *BlockedIPCreate {
+	if v != nil {
+		_c.SetBlockExpiresAt(*v)
 	}
-	return bic
+	return _c
 }
 
 // SetReason sets the "reason" field.
-func (bic *BlockedIPCreate) SetReason(s string) *BlockedIPCreate {
-	bic.mutation.SetReason(s)
-	return bic
+func (_c *BlockedIPCreate) SetReason(v string) *BlockedIPCreate {
+	_c.mutation.SetReason(v)
+	return _c
 }
 
 // SetNillableReason sets the "reason" field if the given value is not nil.
-func (bic *BlockedIPCreate) SetNillableReason(s *string) *BlockedIPCreate {
-	if s != nil {
-		bic.SetReason(*s)
+func (_c *BlockedIPCreate) SetNillableReason(v *string) *BlockedIPCreate {
+	if v != nil {
+		_c.SetReason(*v)
 	}
-	return bic
+	return _c
 }
 
 // Mutation returns the BlockedIPMutation object of the builder.
-func (bic *BlockedIPCreate) Mutation() *BlockedIPMutation {
-	return bic.mutation
+func (_c *BlockedIPCreate) Mutation() *BlockedIPMutation {
+	return _c.mutation
 }
 
 // Save creates the BlockedIP in the database.
-func (bic *BlockedIPCreate) Save(ctx context.Context) (*BlockedIP, error) {
-	bic.defaults()
-	return withHooks(ctx, bic.sqlSave, bic.mutation, bic.hooks)
+func (_c *BlockedIPCreate) Save(ctx context.Context) (*BlockedIP, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (bic *BlockedIPCreate) SaveX(ctx context.Context) *BlockedIP {
-	v, err := bic.Save(ctx)
+func (_c *BlockedIPCreate) SaveX(ctx context.Context) *BlockedIP {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -89,48 +89,48 @@ func (bic *BlockedIPCreate) SaveX(ctx context.Context) *BlockedIP {
 }
 
 // Exec executes the query.
-func (bic *BlockedIPCreate) Exec(ctx context.Context) error {
-	_, err := bic.Save(ctx)
+func (_c *BlockedIPCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (bic *BlockedIPCreate) ExecX(ctx context.Context) {
-	if err := bic.Exec(ctx); err != nil {
+func (_c *BlockedIPCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (bic *BlockedIPCreate) defaults() {
-	if _, ok := bic.mutation.Strikes(); !ok {
+func (_c *BlockedIPCreate) defaults() {
+	if _, ok := _c.mutation.Strikes(); !ok {
 		v := blockedip.DefaultStrikes
-		bic.mutation.SetStrikes(v)
+		_c.mutation.SetStrikes(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (bic *BlockedIPCreate) check() error {
-	if _, ok := bic.mutation.IP(); !ok {
+func (_c *BlockedIPCreate) check() error {
+	if _, ok := _c.mutation.IP(); !ok {
 		return &ValidationError{Name: "ip", err: errors.New(`ent: missing required field "BlockedIP.ip"`)}
 	}
-	if v, ok := bic.mutation.IP(); ok {
+	if v, ok := _c.mutation.IP(); ok {
 		if err := blockedip.IPValidator(v); err != nil {
 			return &ValidationError{Name: "ip", err: fmt.Errorf(`ent: validator failed for field "BlockedIP.ip": %w`, err)}
 		}
 	}
-	if _, ok := bic.mutation.Strikes(); !ok {
+	if _, ok := _c.mutation.Strikes(); !ok {
 		return &ValidationError{Name: "strikes", err: errors.New(`ent: missing required field "BlockedIP.strikes"`)}
 	}
 	return nil
 }
 
-func (bic *BlockedIPCreate) sqlSave(ctx context.Context) (*BlockedIP, error) {
-	if err := bic.check(); err != nil {
+func (_c *BlockedIPCreate) sqlSave(ctx context.Context) (*BlockedIP, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := bic.createSpec()
-	if err := sqlgraph.CreateNode(ctx, bic.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -138,29 +138,29 @@ func (bic *BlockedIPCreate) sqlSave(ctx context.Context) (*BlockedIP, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	bic.mutation.id = &_node.ID
-	bic.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (bic *BlockedIPCreate) createSpec() (*BlockedIP, *sqlgraph.CreateSpec) {
+func (_c *BlockedIPCreate) createSpec() (*BlockedIP, *sqlgraph.CreateSpec) {
 	var (
-		_node = &BlockedIP{config: bic.config}
+		_node = &BlockedIP{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(blockedip.Table, sqlgraph.NewFieldSpec(blockedip.FieldID, field.TypeInt))
 	)
-	if value, ok := bic.mutation.IP(); ok {
+	if value, ok := _c.mutation.IP(); ok {
 		_spec.SetField(blockedip.FieldIP, field.TypeString, value)
 		_node.IP = value
 	}
-	if value, ok := bic.mutation.Strikes(); ok {
+	if value, ok := _c.mutation.Strikes(); ok {
 		_spec.SetField(blockedip.FieldStrikes, field.TypeInt, value)
 		_node.Strikes = value
 	}
-	if value, ok := bic.mutation.BlockExpiresAt(); ok {
+	if value, ok := _c.mutation.BlockExpiresAt(); ok {
 		_spec.SetField(blockedip.FieldBlockExpiresAt, field.TypeTime, value)
 		_node.BlockExpiresAt = value
 	}
-	if value, ok := bic.mutation.Reason(); ok {
+	if value, ok := _c.mutation.Reason(); ok {
 		_spec.SetField(blockedip.FieldReason, field.TypeString, value)
 		_node.Reason = value
 	}
@@ -175,16 +175,16 @@ type BlockedIPCreateBulk struct {
 }
 
 // Save creates the BlockedIP entities in the database.
-func (bicb *BlockedIPCreateBulk) Save(ctx context.Context) ([]*BlockedIP, error) {
-	if bicb.err != nil {
-		return nil, bicb.err
+func (_c *BlockedIPCreateBulk) Save(ctx context.Context) ([]*BlockedIP, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(bicb.builders))
-	nodes := make([]*BlockedIP, len(bicb.builders))
-	mutators := make([]Mutator, len(bicb.builders))
-	for i := range bicb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*BlockedIP, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := bicb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*BlockedIPMutation)
@@ -198,11 +198,11 @@ func (bicb *BlockedIPCreateBulk) Save(ctx context.Context) ([]*BlockedIP, error)
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, bicb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, bicb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -226,7 +226,7 @@ func (bicb *BlockedIPCreateBulk) Save(ctx context.Context) ([]*BlockedIP, error)
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, bicb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -234,8 +234,8 @@ func (bicb *BlockedIPCreateBulk) Save(ctx context.Context) ([]*BlockedIP, error)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (bicb *BlockedIPCreateBulk) SaveX(ctx context.Context) []*BlockedIP {
-	v, err := bicb.Save(ctx)
+func (_c *BlockedIPCreateBulk) SaveX(ctx context.Context) []*BlockedIP {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -243,14 +243,14 @@ func (bicb *BlockedIPCreateBulk) SaveX(ctx context.Context) []*BlockedIP {
 }
 
 // Exec executes the query.
-func (bicb *BlockedIPCreateBulk) Exec(ctx context.Context) error {
-	_, err := bicb.Save(ctx)
+func (_c *BlockedIPCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (bicb *BlockedIPCreateBulk) ExecX(ctx context.Context) {
-	if err := bicb.Exec(ctx); err != nil {
+func (_c *BlockedIPCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

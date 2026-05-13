@@ -20,56 +20,56 @@ type MailTemplateDelete struct {
 }
 
 // Where appends a list predicates to the MailTemplateDelete builder.
-func (mtd *MailTemplateDelete) Where(ps ...predicate.MailTemplate) *MailTemplateDelete {
-	mtd.mutation.Where(ps...)
-	return mtd
+func (_d *MailTemplateDelete) Where(ps ...predicate.MailTemplate) *MailTemplateDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (mtd *MailTemplateDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, mtd.sqlExec, mtd.mutation, mtd.hooks)
+func (_d *MailTemplateDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (mtd *MailTemplateDelete) ExecX(ctx context.Context) int {
-	n, err := mtd.Exec(ctx)
+func (_d *MailTemplateDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (mtd *MailTemplateDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *MailTemplateDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(mailtemplate.Table, sqlgraph.NewFieldSpec(mailtemplate.FieldID, field.TypeInt))
-	if ps := mtd.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, mtd.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	mtd.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // MailTemplateDeleteOne is the builder for deleting a single MailTemplate entity.
 type MailTemplateDeleteOne struct {
-	mtd *MailTemplateDelete
+	_d *MailTemplateDelete
 }
 
 // Where appends a list predicates to the MailTemplateDelete builder.
-func (mtdo *MailTemplateDeleteOne) Where(ps ...predicate.MailTemplate) *MailTemplateDeleteOne {
-	mtdo.mtd.mutation.Where(ps...)
-	return mtdo
+func (_d *MailTemplateDeleteOne) Where(ps ...predicate.MailTemplate) *MailTemplateDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (mtdo *MailTemplateDeleteOne) Exec(ctx context.Context) error {
-	n, err := mtdo.mtd.Exec(ctx)
+func (_d *MailTemplateDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (mtdo *MailTemplateDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (mtdo *MailTemplateDeleteOne) ExecX(ctx context.Context) {
-	if err := mtdo.Exec(ctx); err != nil {
+func (_d *MailTemplateDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

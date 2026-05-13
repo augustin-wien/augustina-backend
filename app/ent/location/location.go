@@ -111,11 +111,6 @@ func ByZip(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldZip, opts...).ToFunc()
 }
 
-// ByWorkingTime orders the results by the working_time field.
-func ByWorkingTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldWorkingTime, opts...).ToFunc()
-}
-
 // ByVendorField orders the results by vendor field.
 func ByVendorField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {

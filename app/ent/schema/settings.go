@@ -79,6 +79,9 @@ func (Settings) Fields() []ent.Field {
 		field.String("DigitalItemsUrl").
 			StorageKey("digitalitemsurl").
 			Default("https://augustina.cc/digital-items"),
+		field.String("AbonementUrl").
+			StorageKey("abonementurl").
+			Default(""),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

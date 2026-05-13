@@ -48,7 +48,7 @@ func (*BlockedIP) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the BlockedIP fields.
-func (bi *BlockedIP) assignValues(columns []string, values []any) error {
+func (_m *BlockedIP) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -59,33 +59,33 @@ func (bi *BlockedIP) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			bi.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case blockedip.FieldIP:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field ip", values[i])
 			} else if value.Valid {
-				bi.IP = value.String
+				_m.IP = value.String
 			}
 		case blockedip.FieldStrikes:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field strikes", values[i])
 			} else if value.Valid {
-				bi.Strikes = int(value.Int64)
+				_m.Strikes = int(value.Int64)
 			}
 		case blockedip.FieldBlockExpiresAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field block_expires_at", values[i])
 			} else if value.Valid {
-				bi.BlockExpiresAt = value.Time
+				_m.BlockExpiresAt = value.Time
 			}
 		case blockedip.FieldReason:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field reason", values[i])
 			} else if value.Valid {
-				bi.Reason = value.String
+				_m.Reason = value.String
 			}
 		default:
-			bi.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -93,44 +93,44 @@ func (bi *BlockedIP) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the BlockedIP.
 // This includes values selected through modifiers, order, etc.
-func (bi *BlockedIP) Value(name string) (ent.Value, error) {
-	return bi.selectValues.Get(name)
+func (_m *BlockedIP) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this BlockedIP.
 // Note that you need to call BlockedIP.Unwrap() before calling this method if this BlockedIP
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (bi *BlockedIP) Update() *BlockedIPUpdateOne {
-	return NewBlockedIPClient(bi.config).UpdateOne(bi)
+func (_m *BlockedIP) Update() *BlockedIPUpdateOne {
+	return NewBlockedIPClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the BlockedIP entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (bi *BlockedIP) Unwrap() *BlockedIP {
-	_tx, ok := bi.config.driver.(*txDriver)
+func (_m *BlockedIP) Unwrap() *BlockedIP {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: BlockedIP is not a transactional entity")
 	}
-	bi.config.driver = _tx.drv
-	return bi
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (bi *BlockedIP) String() string {
+func (_m *BlockedIP) String() string {
 	var builder strings.Builder
 	builder.WriteString("BlockedIP(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", bi.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("ip=")
-	builder.WriteString(bi.IP)
+	builder.WriteString(_m.IP)
 	builder.WriteString(", ")
 	builder.WriteString("strikes=")
-	builder.WriteString(fmt.Sprintf("%v", bi.Strikes))
+	builder.WriteString(fmt.Sprintf("%v", _m.Strikes))
 	builder.WriteString(", ")
 	builder.WriteString("block_expires_at=")
-	builder.WriteString(bi.BlockExpiresAt.Format(time.ANSIC))
+	builder.WriteString(_m.BlockExpiresAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("reason=")
-	builder.WriteString(bi.Reason)
+	builder.WriteString(_m.Reason)
 	builder.WriteByte(')')
 	return builder.String()
 }

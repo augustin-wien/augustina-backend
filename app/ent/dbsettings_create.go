@@ -20,30 +20,30 @@ type DBSettingsCreate struct {
 }
 
 // SetIsInitialized sets the "is_initialized" field.
-func (dsc *DBSettingsCreate) SetIsInitialized(b bool) *DBSettingsCreate {
-	dsc.mutation.SetIsInitialized(b)
-	return dsc
+func (_c *DBSettingsCreate) SetIsInitialized(v bool) *DBSettingsCreate {
+	_c.mutation.SetIsInitialized(v)
+	return _c
 }
 
 // SetID sets the "id" field.
-func (dsc *DBSettingsCreate) SetID(i int) *DBSettingsCreate {
-	dsc.mutation.SetID(i)
-	return dsc
+func (_c *DBSettingsCreate) SetID(v int) *DBSettingsCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // Mutation returns the DBSettingsMutation object of the builder.
-func (dsc *DBSettingsCreate) Mutation() *DBSettingsMutation {
-	return dsc.mutation
+func (_c *DBSettingsCreate) Mutation() *DBSettingsMutation {
+	return _c.mutation
 }
 
 // Save creates the DBSettings in the database.
-func (dsc *DBSettingsCreate) Save(ctx context.Context) (*DBSettings, error) {
-	return withHooks(ctx, dsc.sqlSave, dsc.mutation, dsc.hooks)
+func (_c *DBSettingsCreate) Save(ctx context.Context) (*DBSettings, error) {
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (dsc *DBSettingsCreate) SaveX(ctx context.Context) *DBSettings {
-	v, err := dsc.Save(ctx)
+func (_c *DBSettingsCreate) SaveX(ctx context.Context) *DBSettings {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -51,24 +51,24 @@ func (dsc *DBSettingsCreate) SaveX(ctx context.Context) *DBSettings {
 }
 
 // Exec executes the query.
-func (dsc *DBSettingsCreate) Exec(ctx context.Context) error {
-	_, err := dsc.Save(ctx)
+func (_c *DBSettingsCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (dsc *DBSettingsCreate) ExecX(ctx context.Context) {
-	if err := dsc.Exec(ctx); err != nil {
+func (_c *DBSettingsCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (dsc *DBSettingsCreate) check() error {
-	if _, ok := dsc.mutation.IsInitialized(); !ok {
+func (_c *DBSettingsCreate) check() error {
+	if _, ok := _c.mutation.IsInitialized(); !ok {
 		return &ValidationError{Name: "is_initialized", err: errors.New(`ent: missing required field "DBSettings.is_initialized"`)}
 	}
-	if v, ok := dsc.mutation.ID(); ok {
+	if v, ok := _c.mutation.ID(); ok {
 		if err := dbsettings.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "DBSettings.id": %w`, err)}
 		}
@@ -76,12 +76,12 @@ func (dsc *DBSettingsCreate) check() error {
 	return nil
 }
 
-func (dsc *DBSettingsCreate) sqlSave(ctx context.Context) (*DBSettings, error) {
-	if err := dsc.check(); err != nil {
+func (_c *DBSettingsCreate) sqlSave(ctx context.Context) (*DBSettings, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := dsc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, dsc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -91,21 +91,21 @@ func (dsc *DBSettingsCreate) sqlSave(ctx context.Context) (*DBSettings, error) {
 		id := _spec.ID.Value.(int64)
 		_node.ID = int(id)
 	}
-	dsc.mutation.id = &_node.ID
-	dsc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (dsc *DBSettingsCreate) createSpec() (*DBSettings, *sqlgraph.CreateSpec) {
+func (_c *DBSettingsCreate) createSpec() (*DBSettings, *sqlgraph.CreateSpec) {
 	var (
-		_node = &DBSettings{config: dsc.config}
+		_node = &DBSettings{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(dbsettings.Table, sqlgraph.NewFieldSpec(dbsettings.FieldID, field.TypeInt))
 	)
-	if id, ok := dsc.mutation.ID(); ok {
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := dsc.mutation.IsInitialized(); ok {
+	if value, ok := _c.mutation.IsInitialized(); ok {
 		_spec.SetField(dbsettings.FieldIsInitialized, field.TypeBool, value)
 		_node.IsInitialized = value
 	}
@@ -120,16 +120,16 @@ type DBSettingsCreateBulk struct {
 }
 
 // Save creates the DBSettings entities in the database.
-func (dscb *DBSettingsCreateBulk) Save(ctx context.Context) ([]*DBSettings, error) {
-	if dscb.err != nil {
-		return nil, dscb.err
+func (_c *DBSettingsCreateBulk) Save(ctx context.Context) ([]*DBSettings, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(dscb.builders))
-	nodes := make([]*DBSettings, len(dscb.builders))
-	mutators := make([]Mutator, len(dscb.builders))
-	for i := range dscb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*DBSettings, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := dscb.builders[i]
+			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*DBSettingsMutation)
 				if !ok {
@@ -142,11 +142,11 @@ func (dscb *DBSettingsCreateBulk) Save(ctx context.Context) ([]*DBSettings, erro
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, dscb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, dscb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -170,7 +170,7 @@ func (dscb *DBSettingsCreateBulk) Save(ctx context.Context) ([]*DBSettings, erro
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, dscb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -178,8 +178,8 @@ func (dscb *DBSettingsCreateBulk) Save(ctx context.Context) ([]*DBSettings, erro
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (dscb *DBSettingsCreateBulk) SaveX(ctx context.Context) []*DBSettings {
-	v, err := dscb.Save(ctx)
+func (_c *DBSettingsCreateBulk) SaveX(ctx context.Context) []*DBSettings {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -187,14 +187,14 @@ func (dscb *DBSettingsCreateBulk) SaveX(ctx context.Context) []*DBSettings {
 }
 
 // Exec executes the query.
-func (dscb *DBSettingsCreateBulk) Exec(ctx context.Context) error {
-	_, err := dscb.Save(ctx)
+func (_c *DBSettingsCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (dscb *DBSettingsCreateBulk) ExecX(ctx context.Context) {
-	if err := dscb.Exec(ctx); err != nil {
+func (_c *DBSettingsCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

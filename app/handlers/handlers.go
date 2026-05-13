@@ -196,7 +196,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		// 4. Check: If there is a item that needs a customerEmail, the user has to be given
 
-		if item.LicenseItem.Valid {
+		if item.LicenseItem.Valid || item.Type == "abonement" {
 			if !requestData.CustomerEmail.Valid || requestData.CustomerEmail.String == "" {
 				utils.ErrorJSON(w, errors.New("you are not allowed to purchase this item without a customer email"), http.StatusBadRequest)
 				return
@@ -814,6 +814,35 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 		Balance:  balance,
 	}
 	respond(w, nil, resp)
+}
+
+// ListMyPayments godoc
+//
+//	@Summary		List payments for the authenticated customer
+//	@Tags			Payments
+//	@Produce		json
+//	@Success		200	{array}	database.Payment
+//	@Failure		400	{object}	utils.ErrorResponse
+//	@Security		KeycloakAuth
+//	@Router			/customers/me/payments [get]
+func ListMyPayments(w http.ResponseWriter, r *http.Request) {
+	customerEmail := r.Header.Get("X-Auth-User-Email")
+	if customerEmail == "" {
+		utils.ErrorJSON(w, errors.New("Unauthorized"), http.StatusUnauthorized)
+		return
+	}
+
+	payments, err := database.Db.ListPaymentsForCustomer(customerEmail)
+	if err != nil {
+		log.Error("ListMyPayments: ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = utils.WriteJSON(w, http.StatusOK, payments)
+	if err != nil {
+		log.Error("ListMyPayments", err)
+	}
 }
 
 // ListPayments godoc

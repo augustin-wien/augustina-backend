@@ -6,6 +6,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/ent"
 	entaccount "github.com/augustin-wien/augustina-backend/ent/account"
+	entorder "github.com/augustin-wien/augustina-backend/ent/order"
 	entpayment "github.com/augustin-wien/augustina-backend/ent/payment"
 	"gopkg.in/guregu/null.v4"
 )
@@ -125,6 +126,82 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 				pmt.IsPayoutFor = append(pmt.IsPayoutFor, childPmt)
 			}
 
+			payments = append(payments, pmt)
+		}
+	}
+
+	return payments, nil
+}
+
+// ListPaymentsForCustomer returns payments that belong to orders created by the given customer email.
+func (db *Database) ListPaymentsForCustomer(customerEmail string) (payments []Payment, err error) {
+	ctx := context.Background()
+
+	if customerEmail == "" {
+		return []Payment{}, nil
+	}
+
+	orderIDs, err := db.EntClient.Order.Query().
+		Where(entorder.CustomerEmail(customerEmail)).
+		IDs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(orderIDs) == 0 {
+		return []Payment{}, nil
+	}
+
+	q := db.EntClient.Payment.Query().Where(entpayment.OrderIDIn(orderIDs...))
+	q.Order(ent.Asc(entpayment.FieldTimestamp))
+	q.WithChildren(func(cq *ent.PaymentQuery) {
+		cq.Order(ent.Asc(entpayment.FieldTimestamp))
+	})
+
+	ents, err := q.All(ctx)
+	if err != nil {
+		log.Error("ListPaymentsForCustomer: ", err)
+		return nil, err
+	}
+
+	accountIDs := make(map[int]struct{})
+	for _, p := range ents {
+		accountIDs[p.SenderID] = struct{}{}
+		accountIDs[p.ReceiverID] = struct{}{}
+		for _, child := range p.Edges.Children {
+			accountIDs[child.SenderID] = struct{}{}
+			accountIDs[child.ReceiverID] = struct{}{}
+		}
+	}
+
+	var ids []int
+	for id := range accountIDs {
+		ids = append(ids, id)
+	}
+
+	if len(ids) > 0 {
+		accounts, err := db.EntClient.Account.Query().Where(entaccount.IDIn(ids...)).All(ctx)
+		if err != nil {
+			log.Error("ListPaymentsForCustomer: fetch accounts ", err)
+			return nil, err
+		}
+
+		accountMap := make(map[int]*ent.Account)
+		for _, acc := range accounts {
+			accountMap[acc.ID] = acc
+		}
+
+		for _, p := range ents {
+			pmt := db.PaymentEntIntoPayment(p)
+			if acc, ok := accountMap[p.SenderID]; ok {
+				pmt.SenderName = null.StringFrom(acc.Name)
+			}
+			if acc, ok := accountMap[p.ReceiverID]; ok {
+				pmt.ReceiverName = null.StringFrom(acc.Name)
+			}
+			for _, child := range p.Edges.Children {
+				childPmt := db.PaymentEntIntoPayment(child)
+				pmt.IsPayoutFor = append(pmt.IsPayoutFor, childPmt)
+			}
 			payments = append(payments, pmt)
 		}
 	}

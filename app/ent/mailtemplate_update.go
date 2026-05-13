@@ -23,94 +23,94 @@ type MailTemplateUpdate struct {
 }
 
 // Where appends a list predicates to the MailTemplateUpdate builder.
-func (mtu *MailTemplateUpdate) Where(ps ...predicate.MailTemplate) *MailTemplateUpdate {
-	mtu.mutation.Where(ps...)
-	return mtu
+func (_u *MailTemplateUpdate) Where(ps ...predicate.MailTemplate) *MailTemplateUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetName sets the "name" field.
-func (mtu *MailTemplateUpdate) SetName(s string) *MailTemplateUpdate {
-	mtu.mutation.SetName(s)
-	return mtu
+func (_u *MailTemplateUpdate) SetName(v string) *MailTemplateUpdate {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (mtu *MailTemplateUpdate) SetNillableName(s *string) *MailTemplateUpdate {
-	if s != nil {
-		mtu.SetName(*s)
+func (_u *MailTemplateUpdate) SetNillableName(v *string) *MailTemplateUpdate {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return mtu
+	return _u
 }
 
 // SetSubject sets the "subject" field.
-func (mtu *MailTemplateUpdate) SetSubject(s string) *MailTemplateUpdate {
-	mtu.mutation.SetSubject(s)
-	return mtu
+func (_u *MailTemplateUpdate) SetSubject(v string) *MailTemplateUpdate {
+	_u.mutation.SetSubject(v)
+	return _u
 }
 
 // SetNillableSubject sets the "subject" field if the given value is not nil.
-func (mtu *MailTemplateUpdate) SetNillableSubject(s *string) *MailTemplateUpdate {
-	if s != nil {
-		mtu.SetSubject(*s)
+func (_u *MailTemplateUpdate) SetNillableSubject(v *string) *MailTemplateUpdate {
+	if v != nil {
+		_u.SetSubject(*v)
 	}
-	return mtu
+	return _u
 }
 
 // SetBody sets the "body" field.
-func (mtu *MailTemplateUpdate) SetBody(s string) *MailTemplateUpdate {
-	mtu.mutation.SetBody(s)
-	return mtu
+func (_u *MailTemplateUpdate) SetBody(v string) *MailTemplateUpdate {
+	_u.mutation.SetBody(v)
+	return _u
 }
 
 // SetNillableBody sets the "body" field if the given value is not nil.
-func (mtu *MailTemplateUpdate) SetNillableBody(s *string) *MailTemplateUpdate {
-	if s != nil {
-		mtu.SetBody(*s)
+func (_u *MailTemplateUpdate) SetNillableBody(v *string) *MailTemplateUpdate {
+	if v != nil {
+		_u.SetBody(*v)
 	}
-	return mtu
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (mtu *MailTemplateUpdate) SetCreatedAt(t time.Time) *MailTemplateUpdate {
-	mtu.mutation.SetCreatedAt(t)
-	return mtu
+func (_u *MailTemplateUpdate) SetCreatedAt(v time.Time) *MailTemplateUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (mtu *MailTemplateUpdate) SetNillableCreatedAt(t *time.Time) *MailTemplateUpdate {
-	if t != nil {
-		mtu.SetCreatedAt(*t)
+func (_u *MailTemplateUpdate) SetNillableCreatedAt(v *time.Time) *MailTemplateUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return mtu
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (mtu *MailTemplateUpdate) SetUpdatedAt(t time.Time) *MailTemplateUpdate {
-	mtu.mutation.SetUpdatedAt(t)
-	return mtu
+func (_u *MailTemplateUpdate) SetUpdatedAt(v time.Time) *MailTemplateUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (mtu *MailTemplateUpdate) SetNillableUpdatedAt(t *time.Time) *MailTemplateUpdate {
-	if t != nil {
-		mtu.SetUpdatedAt(*t)
+func (_u *MailTemplateUpdate) SetNillableUpdatedAt(v *time.Time) *MailTemplateUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return mtu
+	return _u
 }
 
 // Mutation returns the MailTemplateMutation object of the builder.
-func (mtu *MailTemplateUpdate) Mutation() *MailTemplateMutation {
-	return mtu.mutation
+func (_u *MailTemplateUpdate) Mutation() *MailTemplateMutation {
+	return _u.mutation
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (mtu *MailTemplateUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, mtu.sqlSave, mtu.mutation, mtu.hooks)
+func (_u *MailTemplateUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (mtu *MailTemplateUpdate) SaveX(ctx context.Context) int {
-	affected, err := mtu.Save(ctx)
+func (_u *MailTemplateUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -118,43 +118,43 @@ func (mtu *MailTemplateUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (mtu *MailTemplateUpdate) Exec(ctx context.Context) error {
-	_, err := mtu.Save(ctx)
+func (_u *MailTemplateUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (mtu *MailTemplateUpdate) ExecX(ctx context.Context) {
-	if err := mtu.Exec(ctx); err != nil {
+func (_u *MailTemplateUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (mtu *MailTemplateUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *MailTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(mailtemplate.Table, mailtemplate.Columns, sqlgraph.NewFieldSpec(mailtemplate.FieldID, field.TypeInt))
-	if ps := mtu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := mtu.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(mailtemplate.FieldName, field.TypeString, value)
 	}
-	if value, ok := mtu.mutation.Subject(); ok {
+	if value, ok := _u.mutation.Subject(); ok {
 		_spec.SetField(mailtemplate.FieldSubject, field.TypeString, value)
 	}
-	if value, ok := mtu.mutation.Body(); ok {
+	if value, ok := _u.mutation.Body(); ok {
 		_spec.SetField(mailtemplate.FieldBody, field.TypeString, value)
 	}
-	if value, ok := mtu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(mailtemplate.FieldCreatedAt, field.TypeTime, value)
 	}
-	if value, ok := mtu.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(mailtemplate.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, mtu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{mailtemplate.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -162,8 +162,8 @@ func (mtu *MailTemplateUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	mtu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // MailTemplateUpdateOne is the builder for updating a single MailTemplate entity.
@@ -175,101 +175,101 @@ type MailTemplateUpdateOne struct {
 }
 
 // SetName sets the "name" field.
-func (mtuo *MailTemplateUpdateOne) SetName(s string) *MailTemplateUpdateOne {
-	mtuo.mutation.SetName(s)
-	return mtuo
+func (_u *MailTemplateUpdateOne) SetName(v string) *MailTemplateUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (mtuo *MailTemplateUpdateOne) SetNillableName(s *string) *MailTemplateUpdateOne {
-	if s != nil {
-		mtuo.SetName(*s)
+func (_u *MailTemplateUpdateOne) SetNillableName(v *string) *MailTemplateUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return mtuo
+	return _u
 }
 
 // SetSubject sets the "subject" field.
-func (mtuo *MailTemplateUpdateOne) SetSubject(s string) *MailTemplateUpdateOne {
-	mtuo.mutation.SetSubject(s)
-	return mtuo
+func (_u *MailTemplateUpdateOne) SetSubject(v string) *MailTemplateUpdateOne {
+	_u.mutation.SetSubject(v)
+	return _u
 }
 
 // SetNillableSubject sets the "subject" field if the given value is not nil.
-func (mtuo *MailTemplateUpdateOne) SetNillableSubject(s *string) *MailTemplateUpdateOne {
-	if s != nil {
-		mtuo.SetSubject(*s)
+func (_u *MailTemplateUpdateOne) SetNillableSubject(v *string) *MailTemplateUpdateOne {
+	if v != nil {
+		_u.SetSubject(*v)
 	}
-	return mtuo
+	return _u
 }
 
 // SetBody sets the "body" field.
-func (mtuo *MailTemplateUpdateOne) SetBody(s string) *MailTemplateUpdateOne {
-	mtuo.mutation.SetBody(s)
-	return mtuo
+func (_u *MailTemplateUpdateOne) SetBody(v string) *MailTemplateUpdateOne {
+	_u.mutation.SetBody(v)
+	return _u
 }
 
 // SetNillableBody sets the "body" field if the given value is not nil.
-func (mtuo *MailTemplateUpdateOne) SetNillableBody(s *string) *MailTemplateUpdateOne {
-	if s != nil {
-		mtuo.SetBody(*s)
+func (_u *MailTemplateUpdateOne) SetNillableBody(v *string) *MailTemplateUpdateOne {
+	if v != nil {
+		_u.SetBody(*v)
 	}
-	return mtuo
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (mtuo *MailTemplateUpdateOne) SetCreatedAt(t time.Time) *MailTemplateUpdateOne {
-	mtuo.mutation.SetCreatedAt(t)
-	return mtuo
+func (_u *MailTemplateUpdateOne) SetCreatedAt(v time.Time) *MailTemplateUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (mtuo *MailTemplateUpdateOne) SetNillableCreatedAt(t *time.Time) *MailTemplateUpdateOne {
-	if t != nil {
-		mtuo.SetCreatedAt(*t)
+func (_u *MailTemplateUpdateOne) SetNillableCreatedAt(v *time.Time) *MailTemplateUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return mtuo
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (mtuo *MailTemplateUpdateOne) SetUpdatedAt(t time.Time) *MailTemplateUpdateOne {
-	mtuo.mutation.SetUpdatedAt(t)
-	return mtuo
+func (_u *MailTemplateUpdateOne) SetUpdatedAt(v time.Time) *MailTemplateUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (mtuo *MailTemplateUpdateOne) SetNillableUpdatedAt(t *time.Time) *MailTemplateUpdateOne {
-	if t != nil {
-		mtuo.SetUpdatedAt(*t)
+func (_u *MailTemplateUpdateOne) SetNillableUpdatedAt(v *time.Time) *MailTemplateUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return mtuo
+	return _u
 }
 
 // Mutation returns the MailTemplateMutation object of the builder.
-func (mtuo *MailTemplateUpdateOne) Mutation() *MailTemplateMutation {
-	return mtuo.mutation
+func (_u *MailTemplateUpdateOne) Mutation() *MailTemplateMutation {
+	return _u.mutation
 }
 
 // Where appends a list predicates to the MailTemplateUpdate builder.
-func (mtuo *MailTemplateUpdateOne) Where(ps ...predicate.MailTemplate) *MailTemplateUpdateOne {
-	mtuo.mutation.Where(ps...)
-	return mtuo
+func (_u *MailTemplateUpdateOne) Where(ps ...predicate.MailTemplate) *MailTemplateUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (mtuo *MailTemplateUpdateOne) Select(field string, fields ...string) *MailTemplateUpdateOne {
-	mtuo.fields = append([]string{field}, fields...)
-	return mtuo
+func (_u *MailTemplateUpdateOne) Select(field string, fields ...string) *MailTemplateUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated MailTemplate entity.
-func (mtuo *MailTemplateUpdateOne) Save(ctx context.Context) (*MailTemplate, error) {
-	return withHooks(ctx, mtuo.sqlSave, mtuo.mutation, mtuo.hooks)
+func (_u *MailTemplateUpdateOne) Save(ctx context.Context) (*MailTemplate, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (mtuo *MailTemplateUpdateOne) SaveX(ctx context.Context) *MailTemplate {
-	node, err := mtuo.Save(ctx)
+func (_u *MailTemplateUpdateOne) SaveX(ctx context.Context) *MailTemplate {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -277,26 +277,26 @@ func (mtuo *MailTemplateUpdateOne) SaveX(ctx context.Context) *MailTemplate {
 }
 
 // Exec executes the query on the entity.
-func (mtuo *MailTemplateUpdateOne) Exec(ctx context.Context) error {
-	_, err := mtuo.Save(ctx)
+func (_u *MailTemplateUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (mtuo *MailTemplateUpdateOne) ExecX(ctx context.Context) {
-	if err := mtuo.Exec(ctx); err != nil {
+func (_u *MailTemplateUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (mtuo *MailTemplateUpdateOne) sqlSave(ctx context.Context) (_node *MailTemplate, err error) {
+func (_u *MailTemplateUpdateOne) sqlSave(ctx context.Context) (_node *MailTemplate, err error) {
 	_spec := sqlgraph.NewUpdateSpec(mailtemplate.Table, mailtemplate.Columns, sqlgraph.NewFieldSpec(mailtemplate.FieldID, field.TypeInt))
-	id, ok := mtuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MailTemplate.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := mtuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, mailtemplate.FieldID)
 		for _, f := range fields {
@@ -308,32 +308,32 @@ func (mtuo *MailTemplateUpdateOne) sqlSave(ctx context.Context) (_node *MailTemp
 			}
 		}
 	}
-	if ps := mtuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := mtuo.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(mailtemplate.FieldName, field.TypeString, value)
 	}
-	if value, ok := mtuo.mutation.Subject(); ok {
+	if value, ok := _u.mutation.Subject(); ok {
 		_spec.SetField(mailtemplate.FieldSubject, field.TypeString, value)
 	}
-	if value, ok := mtuo.mutation.Body(); ok {
+	if value, ok := _u.mutation.Body(); ok {
 		_spec.SetField(mailtemplate.FieldBody, field.TypeString, value)
 	}
-	if value, ok := mtuo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(mailtemplate.FieldCreatedAt, field.TypeTime, value)
 	}
-	if value, ok := mtuo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(mailtemplate.FieldUpdatedAt, field.TypeTime, value)
 	}
-	_node = &MailTemplate{config: mtuo.config}
+	_node = &MailTemplate{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, mtuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{mailtemplate.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -341,6 +341,6 @@ func (mtuo *MailTemplateUpdateOne) sqlSave(ctx context.Context) (_node *MailTemp
 		}
 		return nil, err
 	}
-	mtuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

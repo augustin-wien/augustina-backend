@@ -226,6 +226,7 @@ func GetRouter() (r *chi.Mux) {
 				r.Use(middlewares.AuthMiddleware)
 				r.Use(middlewares.AdminAuthMiddleware)
 				r.Get("/backoffice/", ListItemsBackoffice)
+				r.Get("/licensegroups/", ListLicenseGroups)
 				r.Post("/", CreateItem)
 				r.Route("/{id}", func(r chi.Router) {
 					r.Put("/", UpdateItem)
@@ -248,14 +249,53 @@ func GetRouter() (r *chi.Mux) {
 			})
 		})
 
+		// Customer self-service
+		r.Route("/api/customers", func(r chi.Router) {
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.CustomerAuthMiddleware)
+				r.Get("/me/abonements/", ListMyAbonements)
+				r.Get("/me/payments/", ListMyPayments)
+			})
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.AdminAuthMiddleware)
+				r.Get("/", ListCustomers)
+				r.Post("/", CreateCustomer)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Get("/", GetCustomer)
+					r.Put("/", UpdateCustomer)
+					r.Delete("/", DeleteCustomer)
+					r.Get("/abonements/", ListAbonementsByCustomer)
+				})
+			})
+		})
+
+		// Abonements (admin)
+		r.Route("/api/abonements", func(r chi.Router) {
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.AdminAuthMiddleware)
+				r.Get("/", ListAbonements)
+				r.Post("/", CreateAbonement)
+				r.Get("/active/", ListActiveAbonementsWithCustomers)
+				r.Get("/by-date/", GetActiveAbonementsByDate)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Get("/", GetAbonement)
+					r.Put("/", UpdateAbonement)
+					r.Delete("/", DeleteAbonement)
+				})
+			})
+		})
+
 		// Payments
 		r.Route("/api/payments", func(r chi.Router) {
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.AuthMiddleware)
 				r.Use(middlewares.AdminAuthMiddleware)
+				r.Get("/", ListPayments)
 				r.Post("/", CreatePayment)
 				r.Post("/batch/", CreatePayments)
-				r.Get("/", ListPayments)
 				r.Get("/forpayout/", ListPaymentsForPayout)
 				r.Get("/statistics/", ListPaymentsStatistics)
 				r.Post("/payout/", CreatePaymentPayout)

@@ -66,8 +66,10 @@ func (db *Database) InitEmptyTestDb() (err error) {
 
 		// Drop constraints on legacy fields if they persist (i.e. if rename failed because new column exists)
 		`ALTER TABLE "paymentorder" ALTER COLUMN "ordercode" DROP NOT NULL;`,
+		`ALTER TABLE "paymentorder" ALTER COLUMN "order_code" DROP NOT NULL;`,
 
 		// Add missing columns (idempotent)
+		`ALTER TABLE "item" ADD COLUMN IF NOT EXISTS "item_type" VARCHAR(255) NOT NULL DEFAULT 'normal_item';`,
 		`ALTER TABLE "payment" ADD COLUMN IF NOT EXISTS "authorized_by" VARCHAR(255) NOT NULL DEFAULT '';`,
 		`ALTER TABLE "payment" ADD COLUMN IF NOT EXISTS "is_sale" BOOLEAN NOT NULL DEFAULT FALSE;`,
 		`ALTER TABLE "payment" ADD COLUMN IF NOT EXISTS "payout" INTEGER;`,

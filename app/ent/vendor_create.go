@@ -24,250 +24,250 @@ type VendorCreate struct {
 }
 
 // SetKeycloakid sets the "keycloakid" field.
-func (vc *VendorCreate) SetKeycloakid(s string) *VendorCreate {
-	vc.mutation.SetKeycloakid(s)
-	return vc
+func (_c *VendorCreate) SetKeycloakid(v string) *VendorCreate {
+	_c.mutation.SetKeycloakid(v)
+	return _c
 }
 
 // SetUrlid sets the "urlid" field.
-func (vc *VendorCreate) SetUrlid(s string) *VendorCreate {
-	vc.mutation.SetUrlid(s)
-	return vc
+func (_c *VendorCreate) SetUrlid(v string) *VendorCreate {
+	_c.mutation.SetUrlid(v)
+	return _c
 }
 
 // SetLicenseid sets the "licenseid" field.
-func (vc *VendorCreate) SetLicenseid(s string) *VendorCreate {
-	vc.mutation.SetLicenseid(s)
-	return vc
+func (_c *VendorCreate) SetLicenseid(v string) *VendorCreate {
+	_c.mutation.SetLicenseid(v)
+	return _c
 }
 
 // SetNillableLicenseid sets the "licenseid" field if the given value is not nil.
-func (vc *VendorCreate) SetNillableLicenseid(s *string) *VendorCreate {
-	if s != nil {
-		vc.SetLicenseid(*s)
+func (_c *VendorCreate) SetNillableLicenseid(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetLicenseid(*v)
 	}
-	return vc
+	return _c
 }
 
 // SetFirstname sets the "firstname" field.
-func (vc *VendorCreate) SetFirstname(s string) *VendorCreate {
-	vc.mutation.SetFirstname(s)
-	return vc
+func (_c *VendorCreate) SetFirstname(v string) *VendorCreate {
+	_c.mutation.SetFirstname(v)
+	return _c
 }
 
 // SetNillableFirstname sets the "firstname" field if the given value is not nil.
-func (vc *VendorCreate) SetNillableFirstname(s *string) *VendorCreate {
-	if s != nil {
-		vc.SetFirstname(*s)
+func (_c *VendorCreate) SetNillableFirstname(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetFirstname(*v)
 	}
-	return vc
+	return _c
 }
 
 // SetLastname sets the "lastname" field.
-func (vc *VendorCreate) SetLastname(s string) *VendorCreate {
-	vc.mutation.SetLastname(s)
-	return vc
+func (_c *VendorCreate) SetLastname(v string) *VendorCreate {
+	_c.mutation.SetLastname(v)
+	return _c
 }
 
 // SetNillableLastname sets the "lastname" field if the given value is not nil.
-func (vc *VendorCreate) SetNillableLastname(s *string) *VendorCreate {
-	if s != nil {
-		vc.SetLastname(*s)
+func (_c *VendorCreate) SetNillableLastname(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetLastname(*v)
 	}
-	return vc
+	return _c
 }
 
 // SetEmail sets the "email" field.
-func (vc *VendorCreate) SetEmail(s string) *VendorCreate {
-	vc.mutation.SetEmail(s)
-	return vc
+func (_c *VendorCreate) SetEmail(v string) *VendorCreate {
+	_c.mutation.SetEmail(v)
+	return _c
 }
 
 // SetNillableEmail sets the "email" field if the given value is not nil.
-func (vc *VendorCreate) SetNillableEmail(s *string) *VendorCreate {
-	if s != nil {
-		vc.SetEmail(*s)
+func (_c *VendorCreate) SetNillableEmail(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetEmail(*v)
 	}
-	return vc
+	return _c
 }
 
 // SetLastpayout sets the "lastpayout" field.
-func (vc *VendorCreate) SetLastpayout(t time.Time) *VendorCreate {
-	vc.mutation.SetLastpayout(t)
-	return vc
+func (_c *VendorCreate) SetLastpayout(v time.Time) *VendorCreate {
+	_c.mutation.SetLastpayout(v)
+	return _c
 }
 
 // SetIsdisabled sets the "isdisabled" field.
-func (vc *VendorCreate) SetIsdisabled(b bool) *VendorCreate {
-	vc.mutation.SetIsdisabled(b)
-	return vc
+func (_c *VendorCreate) SetIsdisabled(v bool) *VendorCreate {
+	_c.mutation.SetIsdisabled(v)
+	return _c
 }
 
 // SetNillableIsdisabled sets the "isdisabled" field if the given value is not nil.
-func (vc *VendorCreate) SetNillableIsdisabled(b *bool) *VendorCreate {
-	if b != nil {
-		vc.SetIsdisabled(*b)
+func (_c *VendorCreate) SetNillableIsdisabled(v *bool) *VendorCreate {
+	if v != nil {
+		_c.SetIsdisabled(*v)
 	}
-	return vc
+	return _c
 }
 
 // SetLanguage sets the "language" field.
-func (vc *VendorCreate) SetLanguage(s string) *VendorCreate {
-	vc.mutation.SetLanguage(s)
-	return vc
+func (_c *VendorCreate) SetLanguage(v string) *VendorCreate {
+	_c.mutation.SetLanguage(v)
+	return _c
 }
 
 // SetTelephone sets the "telephone" field.
-func (vc *VendorCreate) SetTelephone(s string) *VendorCreate {
-	vc.mutation.SetTelephone(s)
-	return vc
+func (_c *VendorCreate) SetTelephone(v string) *VendorCreate {
+	_c.mutation.SetTelephone(v)
+	return _c
 }
 
 // SetRegistrationdate sets the "registrationdate" field.
-func (vc *VendorCreate) SetRegistrationdate(s string) *VendorCreate {
-	vc.mutation.SetRegistrationdate(s)
-	return vc
+func (_c *VendorCreate) SetRegistrationdate(v string) *VendorCreate {
+	_c.mutation.SetRegistrationdate(v)
+	return _c
 }
 
 // SetVendorsince sets the "vendorsince" field.
-func (vc *VendorCreate) SetVendorsince(s string) *VendorCreate {
-	vc.mutation.SetVendorsince(s)
-	return vc
+func (_c *VendorCreate) SetVendorsince(v string) *VendorCreate {
+	_c.mutation.SetVendorsince(v)
+	return _c
 }
 
 // SetOnlinemap sets the "onlinemap" field.
-func (vc *VendorCreate) SetOnlinemap(b bool) *VendorCreate {
-	vc.mutation.SetOnlinemap(b)
-	return vc
+func (_c *VendorCreate) SetOnlinemap(v bool) *VendorCreate {
+	_c.mutation.SetOnlinemap(v)
+	return _c
 }
 
 // SetNillableOnlinemap sets the "onlinemap" field if the given value is not nil.
-func (vc *VendorCreate) SetNillableOnlinemap(b *bool) *VendorCreate {
-	if b != nil {
-		vc.SetOnlinemap(*b)
+func (_c *VendorCreate) SetNillableOnlinemap(v *bool) *VendorCreate {
+	if v != nil {
+		_c.SetOnlinemap(*v)
 	}
-	return vc
+	return _c
 }
 
 // SetHassmartphone sets the "hassmartphone" field.
-func (vc *VendorCreate) SetHassmartphone(b bool) *VendorCreate {
-	vc.mutation.SetHassmartphone(b)
-	return vc
+func (_c *VendorCreate) SetHassmartphone(v bool) *VendorCreate {
+	_c.mutation.SetHassmartphone(v)
+	return _c
 }
 
 // SetNillableHassmartphone sets the "hassmartphone" field if the given value is not nil.
-func (vc *VendorCreate) SetNillableHassmartphone(b *bool) *VendorCreate {
-	if b != nil {
-		vc.SetHassmartphone(*b)
+func (_c *VendorCreate) SetNillableHassmartphone(v *bool) *VendorCreate {
+	if v != nil {
+		_c.SetHassmartphone(*v)
 	}
-	return vc
+	return _c
 }
 
 // SetHasbankaccount sets the "hasbankaccount" field.
-func (vc *VendorCreate) SetHasbankaccount(b bool) *VendorCreate {
-	vc.mutation.SetHasbankaccount(b)
-	return vc
+func (_c *VendorCreate) SetHasbankaccount(v bool) *VendorCreate {
+	_c.mutation.SetHasbankaccount(v)
+	return _c
 }
 
 // SetNillableHasbankaccount sets the "hasbankaccount" field if the given value is not nil.
-func (vc *VendorCreate) SetNillableHasbankaccount(b *bool) *VendorCreate {
-	if b != nil {
-		vc.SetHasbankaccount(*b)
+func (_c *VendorCreate) SetNillableHasbankaccount(v *bool) *VendorCreate {
+	if v != nil {
+		_c.SetHasbankaccount(*v)
 	}
-	return vc
+	return _c
 }
 
 // SetIsdeleted sets the "isdeleted" field.
-func (vc *VendorCreate) SetIsdeleted(b bool) *VendorCreate {
-	vc.mutation.SetIsdeleted(b)
-	return vc
+func (_c *VendorCreate) SetIsdeleted(v bool) *VendorCreate {
+	_c.mutation.SetIsdeleted(v)
+	return _c
 }
 
 // SetNillableIsdeleted sets the "isdeleted" field if the given value is not nil.
-func (vc *VendorCreate) SetNillableIsdeleted(b *bool) *VendorCreate {
-	if b != nil {
-		vc.SetIsdeleted(*b)
+func (_c *VendorCreate) SetNillableIsdeleted(v *bool) *VendorCreate {
+	if v != nil {
+		_c.SetIsdeleted(*v)
 	}
-	return vc
+	return _c
 }
 
 // SetAccountproofurl sets the "accountproofurl" field.
-func (vc *VendorCreate) SetAccountproofurl(s string) *VendorCreate {
-	vc.mutation.SetAccountproofurl(s)
-	return vc
+func (_c *VendorCreate) SetAccountproofurl(v string) *VendorCreate {
+	_c.mutation.SetAccountproofurl(v)
+	return _c
 }
 
 // SetDebt sets the "debt" field.
-func (vc *VendorCreate) SetDebt(s string) *VendorCreate {
-	vc.mutation.SetDebt(s)
-	return vc
+func (_c *VendorCreate) SetDebt(v string) *VendorCreate {
+	_c.mutation.SetDebt(v)
+	return _c
 }
 
 // SetID sets the "id" field.
-func (vc *VendorCreate) SetID(i int) *VendorCreate {
-	vc.mutation.SetID(i)
-	return vc
+func (_c *VendorCreate) SetID(v int) *VendorCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // AddLocationIDs adds the "locations" edge to the Location entity by IDs.
-func (vc *VendorCreate) AddLocationIDs(ids ...int) *VendorCreate {
-	vc.mutation.AddLocationIDs(ids...)
-	return vc
+func (_c *VendorCreate) AddLocationIDs(ids ...int) *VendorCreate {
+	_c.mutation.AddLocationIDs(ids...)
+	return _c
 }
 
 // AddLocations adds the "locations" edges to the Location entity.
-func (vc *VendorCreate) AddLocations(l ...*Location) *VendorCreate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+func (_c *VendorCreate) AddLocations(v ...*Location) *VendorCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return vc.AddLocationIDs(ids...)
+	return _c.AddLocationIDs(ids...)
 }
 
 // AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
-func (vc *VendorCreate) AddCommentIDs(ids ...int) *VendorCreate {
-	vc.mutation.AddCommentIDs(ids...)
-	return vc
+func (_c *VendorCreate) AddCommentIDs(ids ...int) *VendorCreate {
+	_c.mutation.AddCommentIDs(ids...)
+	return _c
 }
 
 // AddComments adds the "comments" edges to the Comment entity.
-func (vc *VendorCreate) AddComments(c ...*Comment) *VendorCreate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+func (_c *VendorCreate) AddComments(v ...*Comment) *VendorCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return vc.AddCommentIDs(ids...)
+	return _c.AddCommentIDs(ids...)
 }
 
 // AddAccountIDs adds the "accounts" edge to the Account entity by IDs.
-func (vc *VendorCreate) AddAccountIDs(ids ...int) *VendorCreate {
-	vc.mutation.AddAccountIDs(ids...)
-	return vc
+func (_c *VendorCreate) AddAccountIDs(ids ...int) *VendorCreate {
+	_c.mutation.AddAccountIDs(ids...)
+	return _c
 }
 
 // AddAccounts adds the "accounts" edges to the Account entity.
-func (vc *VendorCreate) AddAccounts(a ...*Account) *VendorCreate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+func (_c *VendorCreate) AddAccounts(v ...*Account) *VendorCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return vc.AddAccountIDs(ids...)
+	return _c.AddAccountIDs(ids...)
 }
 
 // Mutation returns the VendorMutation object of the builder.
-func (vc *VendorCreate) Mutation() *VendorMutation {
-	return vc.mutation
+func (_c *VendorCreate) Mutation() *VendorMutation {
+	return _c.mutation
 }
 
 // Save creates the Vendor in the database.
-func (vc *VendorCreate) Save(ctx context.Context) (*Vendor, error) {
-	vc.defaults()
-	return withHooks(ctx, vc.sqlSave, vc.mutation, vc.hooks)
+func (_c *VendorCreate) Save(ctx context.Context) (*Vendor, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (vc *VendorCreate) SaveX(ctx context.Context) *Vendor {
-	v, err := vc.Save(ctx)
+func (_c *VendorCreate) SaveX(ctx context.Context) *Vendor {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -275,115 +275,115 @@ func (vc *VendorCreate) SaveX(ctx context.Context) *Vendor {
 }
 
 // Exec executes the query.
-func (vc *VendorCreate) Exec(ctx context.Context) error {
-	_, err := vc.Save(ctx)
+func (_c *VendorCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (vc *VendorCreate) ExecX(ctx context.Context) {
-	if err := vc.Exec(ctx); err != nil {
+func (_c *VendorCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (vc *VendorCreate) defaults() {
-	if _, ok := vc.mutation.Licenseid(); !ok {
+func (_c *VendorCreate) defaults() {
+	if _, ok := _c.mutation.Licenseid(); !ok {
 		v := vendor.DefaultLicenseid
-		vc.mutation.SetLicenseid(v)
+		_c.mutation.SetLicenseid(v)
 	}
-	if _, ok := vc.mutation.Firstname(); !ok {
+	if _, ok := _c.mutation.Firstname(); !ok {
 		v := vendor.DefaultFirstname
-		vc.mutation.SetFirstname(v)
+		_c.mutation.SetFirstname(v)
 	}
-	if _, ok := vc.mutation.Lastname(); !ok {
+	if _, ok := _c.mutation.Lastname(); !ok {
 		v := vendor.DefaultLastname
-		vc.mutation.SetLastname(v)
+		_c.mutation.SetLastname(v)
 	}
-	if _, ok := vc.mutation.Email(); !ok {
+	if _, ok := _c.mutation.Email(); !ok {
 		v := vendor.DefaultEmail
-		vc.mutation.SetEmail(v)
+		_c.mutation.SetEmail(v)
 	}
-	if _, ok := vc.mutation.Isdisabled(); !ok {
+	if _, ok := _c.mutation.Isdisabled(); !ok {
 		v := vendor.DefaultIsdisabled
-		vc.mutation.SetIsdisabled(v)
+		_c.mutation.SetIsdisabled(v)
 	}
-	if _, ok := vc.mutation.Onlinemap(); !ok {
+	if _, ok := _c.mutation.Onlinemap(); !ok {
 		v := vendor.DefaultOnlinemap
-		vc.mutation.SetOnlinemap(v)
+		_c.mutation.SetOnlinemap(v)
 	}
-	if _, ok := vc.mutation.Hassmartphone(); !ok {
+	if _, ok := _c.mutation.Hassmartphone(); !ok {
 		v := vendor.DefaultHassmartphone
-		vc.mutation.SetHassmartphone(v)
+		_c.mutation.SetHassmartphone(v)
 	}
-	if _, ok := vc.mutation.Hasbankaccount(); !ok {
+	if _, ok := _c.mutation.Hasbankaccount(); !ok {
 		v := vendor.DefaultHasbankaccount
-		vc.mutation.SetHasbankaccount(v)
+		_c.mutation.SetHasbankaccount(v)
 	}
-	if _, ok := vc.mutation.Isdeleted(); !ok {
+	if _, ok := _c.mutation.Isdeleted(); !ok {
 		v := vendor.DefaultIsdeleted
-		vc.mutation.SetIsdeleted(v)
+		_c.mutation.SetIsdeleted(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (vc *VendorCreate) check() error {
-	if _, ok := vc.mutation.Keycloakid(); !ok {
+func (_c *VendorCreate) check() error {
+	if _, ok := _c.mutation.Keycloakid(); !ok {
 		return &ValidationError{Name: "keycloakid", err: errors.New(`ent: missing required field "Vendor.keycloakid"`)}
 	}
-	if _, ok := vc.mutation.Urlid(); !ok {
+	if _, ok := _c.mutation.Urlid(); !ok {
 		return &ValidationError{Name: "urlid", err: errors.New(`ent: missing required field "Vendor.urlid"`)}
 	}
-	if _, ok := vc.mutation.Licenseid(); !ok {
+	if _, ok := _c.mutation.Licenseid(); !ok {
 		return &ValidationError{Name: "licenseid", err: errors.New(`ent: missing required field "Vendor.licenseid"`)}
 	}
-	if _, ok := vc.mutation.Firstname(); !ok {
+	if _, ok := _c.mutation.Firstname(); !ok {
 		return &ValidationError{Name: "firstname", err: errors.New(`ent: missing required field "Vendor.firstname"`)}
 	}
-	if _, ok := vc.mutation.Lastname(); !ok {
+	if _, ok := _c.mutation.Lastname(); !ok {
 		return &ValidationError{Name: "lastname", err: errors.New(`ent: missing required field "Vendor.lastname"`)}
 	}
-	if _, ok := vc.mutation.Email(); !ok {
+	if _, ok := _c.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "Vendor.email"`)}
 	}
-	if _, ok := vc.mutation.Lastpayout(); !ok {
+	if _, ok := _c.mutation.Lastpayout(); !ok {
 		return &ValidationError{Name: "lastpayout", err: errors.New(`ent: missing required field "Vendor.lastpayout"`)}
 	}
-	if _, ok := vc.mutation.Isdisabled(); !ok {
+	if _, ok := _c.mutation.Isdisabled(); !ok {
 		return &ValidationError{Name: "isdisabled", err: errors.New(`ent: missing required field "Vendor.isdisabled"`)}
 	}
-	if _, ok := vc.mutation.Language(); !ok {
+	if _, ok := _c.mutation.Language(); !ok {
 		return &ValidationError{Name: "language", err: errors.New(`ent: missing required field "Vendor.language"`)}
 	}
-	if _, ok := vc.mutation.Telephone(); !ok {
+	if _, ok := _c.mutation.Telephone(); !ok {
 		return &ValidationError{Name: "telephone", err: errors.New(`ent: missing required field "Vendor.telephone"`)}
 	}
-	if _, ok := vc.mutation.Registrationdate(); !ok {
+	if _, ok := _c.mutation.Registrationdate(); !ok {
 		return &ValidationError{Name: "registrationdate", err: errors.New(`ent: missing required field "Vendor.registrationdate"`)}
 	}
-	if _, ok := vc.mutation.Vendorsince(); !ok {
+	if _, ok := _c.mutation.Vendorsince(); !ok {
 		return &ValidationError{Name: "vendorsince", err: errors.New(`ent: missing required field "Vendor.vendorsince"`)}
 	}
-	if _, ok := vc.mutation.Onlinemap(); !ok {
+	if _, ok := _c.mutation.Onlinemap(); !ok {
 		return &ValidationError{Name: "onlinemap", err: errors.New(`ent: missing required field "Vendor.onlinemap"`)}
 	}
-	if _, ok := vc.mutation.Hassmartphone(); !ok {
+	if _, ok := _c.mutation.Hassmartphone(); !ok {
 		return &ValidationError{Name: "hassmartphone", err: errors.New(`ent: missing required field "Vendor.hassmartphone"`)}
 	}
-	if _, ok := vc.mutation.Hasbankaccount(); !ok {
+	if _, ok := _c.mutation.Hasbankaccount(); !ok {
 		return &ValidationError{Name: "hasbankaccount", err: errors.New(`ent: missing required field "Vendor.hasbankaccount"`)}
 	}
-	if _, ok := vc.mutation.Isdeleted(); !ok {
+	if _, ok := _c.mutation.Isdeleted(); !ok {
 		return &ValidationError{Name: "isdeleted", err: errors.New(`ent: missing required field "Vendor.isdeleted"`)}
 	}
-	if _, ok := vc.mutation.Accountproofurl(); !ok {
+	if _, ok := _c.mutation.Accountproofurl(); !ok {
 		return &ValidationError{Name: "accountproofurl", err: errors.New(`ent: missing required field "Vendor.accountproofurl"`)}
 	}
-	if _, ok := vc.mutation.Debt(); !ok {
+	if _, ok := _c.mutation.Debt(); !ok {
 		return &ValidationError{Name: "debt", err: errors.New(`ent: missing required field "Vendor.debt"`)}
 	}
-	if v, ok := vc.mutation.ID(); ok {
+	if v, ok := _c.mutation.ID(); ok {
 		if err := vendor.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Vendor.id": %w`, err)}
 		}
@@ -391,12 +391,12 @@ func (vc *VendorCreate) check() error {
 	return nil
 }
 
-func (vc *VendorCreate) sqlSave(ctx context.Context) (*Vendor, error) {
-	if err := vc.check(); err != nil {
+func (_c *VendorCreate) sqlSave(ctx context.Context) (*Vendor, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := vc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, vc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -406,93 +406,93 @@ func (vc *VendorCreate) sqlSave(ctx context.Context) (*Vendor, error) {
 		id := _spec.ID.Value.(int64)
 		_node.ID = int(id)
 	}
-	vc.mutation.id = &_node.ID
-	vc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (vc *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
+func (_c *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
 	var (
-		_node = &Vendor{config: vc.config}
+		_node = &Vendor{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(vendor.Table, sqlgraph.NewFieldSpec(vendor.FieldID, field.TypeInt))
 	)
-	if id, ok := vc.mutation.ID(); ok {
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := vc.mutation.Keycloakid(); ok {
+	if value, ok := _c.mutation.Keycloakid(); ok {
 		_spec.SetField(vendor.FieldKeycloakid, field.TypeString, value)
 		_node.Keycloakid = value
 	}
-	if value, ok := vc.mutation.Urlid(); ok {
+	if value, ok := _c.mutation.Urlid(); ok {
 		_spec.SetField(vendor.FieldUrlid, field.TypeString, value)
 		_node.Urlid = value
 	}
-	if value, ok := vc.mutation.Licenseid(); ok {
+	if value, ok := _c.mutation.Licenseid(); ok {
 		_spec.SetField(vendor.FieldLicenseid, field.TypeString, value)
 		_node.Licenseid = value
 	}
-	if value, ok := vc.mutation.Firstname(); ok {
+	if value, ok := _c.mutation.Firstname(); ok {
 		_spec.SetField(vendor.FieldFirstname, field.TypeString, value)
 		_node.Firstname = value
 	}
-	if value, ok := vc.mutation.Lastname(); ok {
+	if value, ok := _c.mutation.Lastname(); ok {
 		_spec.SetField(vendor.FieldLastname, field.TypeString, value)
 		_node.Lastname = value
 	}
-	if value, ok := vc.mutation.Email(); ok {
+	if value, ok := _c.mutation.Email(); ok {
 		_spec.SetField(vendor.FieldEmail, field.TypeString, value)
 		_node.Email = value
 	}
-	if value, ok := vc.mutation.Lastpayout(); ok {
+	if value, ok := _c.mutation.Lastpayout(); ok {
 		_spec.SetField(vendor.FieldLastpayout, field.TypeTime, value)
 		_node.Lastpayout = value
 	}
-	if value, ok := vc.mutation.Isdisabled(); ok {
+	if value, ok := _c.mutation.Isdisabled(); ok {
 		_spec.SetField(vendor.FieldIsdisabled, field.TypeBool, value)
 		_node.Isdisabled = value
 	}
-	if value, ok := vc.mutation.Language(); ok {
+	if value, ok := _c.mutation.Language(); ok {
 		_spec.SetField(vendor.FieldLanguage, field.TypeString, value)
 		_node.Language = value
 	}
-	if value, ok := vc.mutation.Telephone(); ok {
+	if value, ok := _c.mutation.Telephone(); ok {
 		_spec.SetField(vendor.FieldTelephone, field.TypeString, value)
 		_node.Telephone = value
 	}
-	if value, ok := vc.mutation.Registrationdate(); ok {
+	if value, ok := _c.mutation.Registrationdate(); ok {
 		_spec.SetField(vendor.FieldRegistrationdate, field.TypeString, value)
 		_node.Registrationdate = value
 	}
-	if value, ok := vc.mutation.Vendorsince(); ok {
+	if value, ok := _c.mutation.Vendorsince(); ok {
 		_spec.SetField(vendor.FieldVendorsince, field.TypeString, value)
 		_node.Vendorsince = value
 	}
-	if value, ok := vc.mutation.Onlinemap(); ok {
+	if value, ok := _c.mutation.Onlinemap(); ok {
 		_spec.SetField(vendor.FieldOnlinemap, field.TypeBool, value)
 		_node.Onlinemap = value
 	}
-	if value, ok := vc.mutation.Hassmartphone(); ok {
+	if value, ok := _c.mutation.Hassmartphone(); ok {
 		_spec.SetField(vendor.FieldHassmartphone, field.TypeBool, value)
 		_node.Hassmartphone = value
 	}
-	if value, ok := vc.mutation.Hasbankaccount(); ok {
+	if value, ok := _c.mutation.Hasbankaccount(); ok {
 		_spec.SetField(vendor.FieldHasbankaccount, field.TypeBool, value)
 		_node.Hasbankaccount = value
 	}
-	if value, ok := vc.mutation.Isdeleted(); ok {
+	if value, ok := _c.mutation.Isdeleted(); ok {
 		_spec.SetField(vendor.FieldIsdeleted, field.TypeBool, value)
 		_node.Isdeleted = value
 	}
-	if value, ok := vc.mutation.Accountproofurl(); ok {
+	if value, ok := _c.mutation.Accountproofurl(); ok {
 		_spec.SetField(vendor.FieldAccountproofurl, field.TypeString, value)
 		_node.Accountproofurl = value
 	}
-	if value, ok := vc.mutation.Debt(); ok {
+	if value, ok := _c.mutation.Debt(); ok {
 		_spec.SetField(vendor.FieldDebt, field.TypeString, value)
 		_node.Debt = value
 	}
-	if nodes := vc.mutation.LocationsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.LocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -508,7 +508,7 @@ func (vc *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := vc.mutation.CommentsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.CommentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -524,7 +524,7 @@ func (vc *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := vc.mutation.AccountsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.AccountsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -551,16 +551,16 @@ type VendorCreateBulk struct {
 }
 
 // Save creates the Vendor entities in the database.
-func (vcb *VendorCreateBulk) Save(ctx context.Context) ([]*Vendor, error) {
-	if vcb.err != nil {
-		return nil, vcb.err
+func (_c *VendorCreateBulk) Save(ctx context.Context) ([]*Vendor, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(vcb.builders))
-	nodes := make([]*Vendor, len(vcb.builders))
-	mutators := make([]Mutator, len(vcb.builders))
-	for i := range vcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*Vendor, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := vcb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*VendorMutation)
@@ -574,11 +574,11 @@ func (vcb *VendorCreateBulk) Save(ctx context.Context) ([]*Vendor, error) {
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, vcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, vcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -602,7 +602,7 @@ func (vcb *VendorCreateBulk) Save(ctx context.Context) ([]*Vendor, error) {
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, vcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -610,8 +610,8 @@ func (vcb *VendorCreateBulk) Save(ctx context.Context) ([]*Vendor, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (vcb *VendorCreateBulk) SaveX(ctx context.Context) []*Vendor {
-	v, err := vcb.Save(ctx)
+func (_c *VendorCreateBulk) SaveX(ctx context.Context) []*Vendor {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -619,14 +619,14 @@ func (vcb *VendorCreateBulk) SaveX(ctx context.Context) []*Vendor {
 }
 
 // Exec executes the query.
-func (vcb *VendorCreateBulk) Exec(ctx context.Context) error {
-	_, err := vcb.Save(ctx)
+func (_c *VendorCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (vcb *VendorCreateBulk) ExecX(ctx context.Context) {
-	if err := vcb.Exec(ctx); err != nil {
+func (_c *VendorCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

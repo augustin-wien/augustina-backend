@@ -23,182 +23,182 @@ type PDFDownloadUpdate struct {
 }
 
 // Where appends a list predicates to the PDFDownloadUpdate builder.
-func (pdu *PDFDownloadUpdate) Where(ps ...predicate.PDFDownload) *PDFDownloadUpdate {
-	pdu.mutation.Where(ps...)
-	return pdu
+func (_u *PDFDownloadUpdate) Where(ps ...predicate.PDFDownload) *PDFDownloadUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetLinkID sets the "link_id" field.
-func (pdu *PDFDownloadUpdate) SetLinkID(s string) *PDFDownloadUpdate {
-	pdu.mutation.SetLinkID(s)
-	return pdu
+func (_u *PDFDownloadUpdate) SetLinkID(v string) *PDFDownloadUpdate {
+	_u.mutation.SetLinkID(v)
+	return _u
 }
 
 // SetNillableLinkID sets the "link_id" field if the given value is not nil.
-func (pdu *PDFDownloadUpdate) SetNillableLinkID(s *string) *PDFDownloadUpdate {
-	if s != nil {
-		pdu.SetLinkID(*s)
+func (_u *PDFDownloadUpdate) SetNillableLinkID(v *string) *PDFDownloadUpdate {
+	if v != nil {
+		_u.SetLinkID(*v)
 	}
-	return pdu
+	return _u
 }
 
 // SetPdfID sets the "pdf_id" field.
-func (pdu *PDFDownloadUpdate) SetPdfID(i int) *PDFDownloadUpdate {
-	pdu.mutation.ResetPdfID()
-	pdu.mutation.SetPdfID(i)
-	return pdu
+func (_u *PDFDownloadUpdate) SetPdfID(v int) *PDFDownloadUpdate {
+	_u.mutation.ResetPdfID()
+	_u.mutation.SetPdfID(v)
+	return _u
 }
 
 // SetNillablePdfID sets the "pdf_id" field if the given value is not nil.
-func (pdu *PDFDownloadUpdate) SetNillablePdfID(i *int) *PDFDownloadUpdate {
-	if i != nil {
-		pdu.SetPdfID(*i)
+func (_u *PDFDownloadUpdate) SetNillablePdfID(v *int) *PDFDownloadUpdate {
+	if v != nil {
+		_u.SetPdfID(*v)
 	}
-	return pdu
+	return _u
 }
 
-// AddPdfID adds i to the "pdf_id" field.
-func (pdu *PDFDownloadUpdate) AddPdfID(i int) *PDFDownloadUpdate {
-	pdu.mutation.AddPdfID(i)
-	return pdu
+// AddPdfID adds value to the "pdf_id" field.
+func (_u *PDFDownloadUpdate) AddPdfID(v int) *PDFDownloadUpdate {
+	_u.mutation.AddPdfID(v)
+	return _u
 }
 
 // SetTimestamp sets the "timestamp" field.
-func (pdu *PDFDownloadUpdate) SetTimestamp(t time.Time) *PDFDownloadUpdate {
-	pdu.mutation.SetTimestamp(t)
-	return pdu
+func (_u *PDFDownloadUpdate) SetTimestamp(v time.Time) *PDFDownloadUpdate {
+	_u.mutation.SetTimestamp(v)
+	return _u
 }
 
 // SetNillableTimestamp sets the "timestamp" field if the given value is not nil.
-func (pdu *PDFDownloadUpdate) SetNillableTimestamp(t *time.Time) *PDFDownloadUpdate {
-	if t != nil {
-		pdu.SetTimestamp(*t)
+func (_u *PDFDownloadUpdate) SetNillableTimestamp(v *time.Time) *PDFDownloadUpdate {
+	if v != nil {
+		_u.SetTimestamp(*v)
 	}
-	return pdu
+	return _u
 }
 
 // SetEmailSent sets the "email_sent" field.
-func (pdu *PDFDownloadUpdate) SetEmailSent(b bool) *PDFDownloadUpdate {
-	pdu.mutation.SetEmailSent(b)
-	return pdu
+func (_u *PDFDownloadUpdate) SetEmailSent(v bool) *PDFDownloadUpdate {
+	_u.mutation.SetEmailSent(v)
+	return _u
 }
 
 // SetNillableEmailSent sets the "email_sent" field if the given value is not nil.
-func (pdu *PDFDownloadUpdate) SetNillableEmailSent(b *bool) *PDFDownloadUpdate {
-	if b != nil {
-		pdu.SetEmailSent(*b)
+func (_u *PDFDownloadUpdate) SetNillableEmailSent(v *bool) *PDFDownloadUpdate {
+	if v != nil {
+		_u.SetEmailSent(*v)
 	}
-	return pdu
+	return _u
 }
 
 // SetLastDownload sets the "last_download" field.
-func (pdu *PDFDownloadUpdate) SetLastDownload(t time.Time) *PDFDownloadUpdate {
-	pdu.mutation.SetLastDownload(t)
-	return pdu
+func (_u *PDFDownloadUpdate) SetLastDownload(v time.Time) *PDFDownloadUpdate {
+	_u.mutation.SetLastDownload(v)
+	return _u
 }
 
 // SetNillableLastDownload sets the "last_download" field if the given value is not nil.
-func (pdu *PDFDownloadUpdate) SetNillableLastDownload(t *time.Time) *PDFDownloadUpdate {
-	if t != nil {
-		pdu.SetLastDownload(*t)
+func (_u *PDFDownloadUpdate) SetNillableLastDownload(v *time.Time) *PDFDownloadUpdate {
+	if v != nil {
+		_u.SetLastDownload(*v)
 	}
-	return pdu
+	return _u
 }
 
 // ClearLastDownload clears the value of the "last_download" field.
-func (pdu *PDFDownloadUpdate) ClearLastDownload() *PDFDownloadUpdate {
-	pdu.mutation.ClearLastDownload()
-	return pdu
+func (_u *PDFDownloadUpdate) ClearLastDownload() *PDFDownloadUpdate {
+	_u.mutation.ClearLastDownload()
+	return _u
 }
 
 // SetDownloadCount sets the "download_count" field.
-func (pdu *PDFDownloadUpdate) SetDownloadCount(i int) *PDFDownloadUpdate {
-	pdu.mutation.ResetDownloadCount()
-	pdu.mutation.SetDownloadCount(i)
-	return pdu
+func (_u *PDFDownloadUpdate) SetDownloadCount(v int) *PDFDownloadUpdate {
+	_u.mutation.ResetDownloadCount()
+	_u.mutation.SetDownloadCount(v)
+	return _u
 }
 
 // SetNillableDownloadCount sets the "download_count" field if the given value is not nil.
-func (pdu *PDFDownloadUpdate) SetNillableDownloadCount(i *int) *PDFDownloadUpdate {
-	if i != nil {
-		pdu.SetDownloadCount(*i)
+func (_u *PDFDownloadUpdate) SetNillableDownloadCount(v *int) *PDFDownloadUpdate {
+	if v != nil {
+		_u.SetDownloadCount(*v)
 	}
-	return pdu
+	return _u
 }
 
-// AddDownloadCount adds i to the "download_count" field.
-func (pdu *PDFDownloadUpdate) AddDownloadCount(i int) *PDFDownloadUpdate {
-	pdu.mutation.AddDownloadCount(i)
-	return pdu
+// AddDownloadCount adds value to the "download_count" field.
+func (_u *PDFDownloadUpdate) AddDownloadCount(v int) *PDFDownloadUpdate {
+	_u.mutation.AddDownloadCount(v)
+	return _u
 }
 
 // SetOrderID sets the "order_id" field.
-func (pdu *PDFDownloadUpdate) SetOrderID(i int) *PDFDownloadUpdate {
-	pdu.mutation.ResetOrderID()
-	pdu.mutation.SetOrderID(i)
-	return pdu
+func (_u *PDFDownloadUpdate) SetOrderID(v int) *PDFDownloadUpdate {
+	_u.mutation.ResetOrderID()
+	_u.mutation.SetOrderID(v)
+	return _u
 }
 
 // SetNillableOrderID sets the "order_id" field if the given value is not nil.
-func (pdu *PDFDownloadUpdate) SetNillableOrderID(i *int) *PDFDownloadUpdate {
-	if i != nil {
-		pdu.SetOrderID(*i)
+func (_u *PDFDownloadUpdate) SetNillableOrderID(v *int) *PDFDownloadUpdate {
+	if v != nil {
+		_u.SetOrderID(*v)
 	}
-	return pdu
+	return _u
 }
 
-// AddOrderID adds i to the "order_id" field.
-func (pdu *PDFDownloadUpdate) AddOrderID(i int) *PDFDownloadUpdate {
-	pdu.mutation.AddOrderID(i)
-	return pdu
+// AddOrderID adds value to the "order_id" field.
+func (_u *PDFDownloadUpdate) AddOrderID(v int) *PDFDownloadUpdate {
+	_u.mutation.AddOrderID(v)
+	return _u
 }
 
 // ClearOrderID clears the value of the "order_id" field.
-func (pdu *PDFDownloadUpdate) ClearOrderID() *PDFDownloadUpdate {
-	pdu.mutation.ClearOrderID()
-	return pdu
+func (_u *PDFDownloadUpdate) ClearOrderID() *PDFDownloadUpdate {
+	_u.mutation.ClearOrderID()
+	return _u
 }
 
 // SetItemID sets the "item_id" field.
-func (pdu *PDFDownloadUpdate) SetItemID(i int) *PDFDownloadUpdate {
-	pdu.mutation.ResetItemID()
-	pdu.mutation.SetItemID(i)
-	return pdu
+func (_u *PDFDownloadUpdate) SetItemID(v int) *PDFDownloadUpdate {
+	_u.mutation.ResetItemID()
+	_u.mutation.SetItemID(v)
+	return _u
 }
 
 // SetNillableItemID sets the "item_id" field if the given value is not nil.
-func (pdu *PDFDownloadUpdate) SetNillableItemID(i *int) *PDFDownloadUpdate {
-	if i != nil {
-		pdu.SetItemID(*i)
+func (_u *PDFDownloadUpdate) SetNillableItemID(v *int) *PDFDownloadUpdate {
+	if v != nil {
+		_u.SetItemID(*v)
 	}
-	return pdu
+	return _u
 }
 
-// AddItemID adds i to the "item_id" field.
-func (pdu *PDFDownloadUpdate) AddItemID(i int) *PDFDownloadUpdate {
-	pdu.mutation.AddItemID(i)
-	return pdu
+// AddItemID adds value to the "item_id" field.
+func (_u *PDFDownloadUpdate) AddItemID(v int) *PDFDownloadUpdate {
+	_u.mutation.AddItemID(v)
+	return _u
 }
 
 // ClearItemID clears the value of the "item_id" field.
-func (pdu *PDFDownloadUpdate) ClearItemID() *PDFDownloadUpdate {
-	pdu.mutation.ClearItemID()
-	return pdu
+func (_u *PDFDownloadUpdate) ClearItemID() *PDFDownloadUpdate {
+	_u.mutation.ClearItemID()
+	return _u
 }
 
 // Mutation returns the PDFDownloadMutation object of the builder.
-func (pdu *PDFDownloadUpdate) Mutation() *PDFDownloadMutation {
-	return pdu.mutation
+func (_u *PDFDownloadUpdate) Mutation() *PDFDownloadMutation {
+	return _u.mutation
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (pdu *PDFDownloadUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, pdu.sqlSave, pdu.mutation, pdu.hooks)
+func (_u *PDFDownloadUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (pdu *PDFDownloadUpdate) SaveX(ctx context.Context) int {
-	affected, err := pdu.Save(ctx)
+func (_u *PDFDownloadUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -206,73 +206,73 @@ func (pdu *PDFDownloadUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (pdu *PDFDownloadUpdate) Exec(ctx context.Context) error {
-	_, err := pdu.Save(ctx)
+func (_u *PDFDownloadUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (pdu *PDFDownloadUpdate) ExecX(ctx context.Context) {
-	if err := pdu.Exec(ctx); err != nil {
+func (_u *PDFDownloadUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (pdu *PDFDownloadUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *PDFDownloadUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(pdfdownload.Table, pdfdownload.Columns, sqlgraph.NewFieldSpec(pdfdownload.FieldID, field.TypeInt))
-	if ps := pdu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := pdu.mutation.LinkID(); ok {
+	if value, ok := _u.mutation.LinkID(); ok {
 		_spec.SetField(pdfdownload.FieldLinkID, field.TypeString, value)
 	}
-	if value, ok := pdu.mutation.PdfID(); ok {
+	if value, ok := _u.mutation.PdfID(); ok {
 		_spec.SetField(pdfdownload.FieldPdfID, field.TypeInt, value)
 	}
-	if value, ok := pdu.mutation.AddedPdfID(); ok {
+	if value, ok := _u.mutation.AddedPdfID(); ok {
 		_spec.AddField(pdfdownload.FieldPdfID, field.TypeInt, value)
 	}
-	if value, ok := pdu.mutation.Timestamp(); ok {
+	if value, ok := _u.mutation.Timestamp(); ok {
 		_spec.SetField(pdfdownload.FieldTimestamp, field.TypeTime, value)
 	}
-	if value, ok := pdu.mutation.EmailSent(); ok {
+	if value, ok := _u.mutation.EmailSent(); ok {
 		_spec.SetField(pdfdownload.FieldEmailSent, field.TypeBool, value)
 	}
-	if value, ok := pdu.mutation.LastDownload(); ok {
+	if value, ok := _u.mutation.LastDownload(); ok {
 		_spec.SetField(pdfdownload.FieldLastDownload, field.TypeTime, value)
 	}
-	if pdu.mutation.LastDownloadCleared() {
+	if _u.mutation.LastDownloadCleared() {
 		_spec.ClearField(pdfdownload.FieldLastDownload, field.TypeTime)
 	}
-	if value, ok := pdu.mutation.DownloadCount(); ok {
+	if value, ok := _u.mutation.DownloadCount(); ok {
 		_spec.SetField(pdfdownload.FieldDownloadCount, field.TypeInt, value)
 	}
-	if value, ok := pdu.mutation.AddedDownloadCount(); ok {
+	if value, ok := _u.mutation.AddedDownloadCount(); ok {
 		_spec.AddField(pdfdownload.FieldDownloadCount, field.TypeInt, value)
 	}
-	if value, ok := pdu.mutation.OrderID(); ok {
+	if value, ok := _u.mutation.OrderID(); ok {
 		_spec.SetField(pdfdownload.FieldOrderID, field.TypeInt, value)
 	}
-	if value, ok := pdu.mutation.AddedOrderID(); ok {
+	if value, ok := _u.mutation.AddedOrderID(); ok {
 		_spec.AddField(pdfdownload.FieldOrderID, field.TypeInt, value)
 	}
-	if pdu.mutation.OrderIDCleared() {
+	if _u.mutation.OrderIDCleared() {
 		_spec.ClearField(pdfdownload.FieldOrderID, field.TypeInt)
 	}
-	if value, ok := pdu.mutation.ItemID(); ok {
+	if value, ok := _u.mutation.ItemID(); ok {
 		_spec.SetField(pdfdownload.FieldItemID, field.TypeInt, value)
 	}
-	if value, ok := pdu.mutation.AddedItemID(); ok {
+	if value, ok := _u.mutation.AddedItemID(); ok {
 		_spec.AddField(pdfdownload.FieldItemID, field.TypeInt, value)
 	}
-	if pdu.mutation.ItemIDCleared() {
+	if _u.mutation.ItemIDCleared() {
 		_spec.ClearField(pdfdownload.FieldItemID, field.TypeInt)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, pdu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{pdfdownload.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -280,8 +280,8 @@ func (pdu *PDFDownloadUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	pdu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // PDFDownloadUpdateOne is the builder for updating a single PDFDownload entity.
@@ -293,189 +293,189 @@ type PDFDownloadUpdateOne struct {
 }
 
 // SetLinkID sets the "link_id" field.
-func (pduo *PDFDownloadUpdateOne) SetLinkID(s string) *PDFDownloadUpdateOne {
-	pduo.mutation.SetLinkID(s)
-	return pduo
+func (_u *PDFDownloadUpdateOne) SetLinkID(v string) *PDFDownloadUpdateOne {
+	_u.mutation.SetLinkID(v)
+	return _u
 }
 
 // SetNillableLinkID sets the "link_id" field if the given value is not nil.
-func (pduo *PDFDownloadUpdateOne) SetNillableLinkID(s *string) *PDFDownloadUpdateOne {
-	if s != nil {
-		pduo.SetLinkID(*s)
+func (_u *PDFDownloadUpdateOne) SetNillableLinkID(v *string) *PDFDownloadUpdateOne {
+	if v != nil {
+		_u.SetLinkID(*v)
 	}
-	return pduo
+	return _u
 }
 
 // SetPdfID sets the "pdf_id" field.
-func (pduo *PDFDownloadUpdateOne) SetPdfID(i int) *PDFDownloadUpdateOne {
-	pduo.mutation.ResetPdfID()
-	pduo.mutation.SetPdfID(i)
-	return pduo
+func (_u *PDFDownloadUpdateOne) SetPdfID(v int) *PDFDownloadUpdateOne {
+	_u.mutation.ResetPdfID()
+	_u.mutation.SetPdfID(v)
+	return _u
 }
 
 // SetNillablePdfID sets the "pdf_id" field if the given value is not nil.
-func (pduo *PDFDownloadUpdateOne) SetNillablePdfID(i *int) *PDFDownloadUpdateOne {
-	if i != nil {
-		pduo.SetPdfID(*i)
+func (_u *PDFDownloadUpdateOne) SetNillablePdfID(v *int) *PDFDownloadUpdateOne {
+	if v != nil {
+		_u.SetPdfID(*v)
 	}
-	return pduo
+	return _u
 }
 
-// AddPdfID adds i to the "pdf_id" field.
-func (pduo *PDFDownloadUpdateOne) AddPdfID(i int) *PDFDownloadUpdateOne {
-	pduo.mutation.AddPdfID(i)
-	return pduo
+// AddPdfID adds value to the "pdf_id" field.
+func (_u *PDFDownloadUpdateOne) AddPdfID(v int) *PDFDownloadUpdateOne {
+	_u.mutation.AddPdfID(v)
+	return _u
 }
 
 // SetTimestamp sets the "timestamp" field.
-func (pduo *PDFDownloadUpdateOne) SetTimestamp(t time.Time) *PDFDownloadUpdateOne {
-	pduo.mutation.SetTimestamp(t)
-	return pduo
+func (_u *PDFDownloadUpdateOne) SetTimestamp(v time.Time) *PDFDownloadUpdateOne {
+	_u.mutation.SetTimestamp(v)
+	return _u
 }
 
 // SetNillableTimestamp sets the "timestamp" field if the given value is not nil.
-func (pduo *PDFDownloadUpdateOne) SetNillableTimestamp(t *time.Time) *PDFDownloadUpdateOne {
-	if t != nil {
-		pduo.SetTimestamp(*t)
+func (_u *PDFDownloadUpdateOne) SetNillableTimestamp(v *time.Time) *PDFDownloadUpdateOne {
+	if v != nil {
+		_u.SetTimestamp(*v)
 	}
-	return pduo
+	return _u
 }
 
 // SetEmailSent sets the "email_sent" field.
-func (pduo *PDFDownloadUpdateOne) SetEmailSent(b bool) *PDFDownloadUpdateOne {
-	pduo.mutation.SetEmailSent(b)
-	return pduo
+func (_u *PDFDownloadUpdateOne) SetEmailSent(v bool) *PDFDownloadUpdateOne {
+	_u.mutation.SetEmailSent(v)
+	return _u
 }
 
 // SetNillableEmailSent sets the "email_sent" field if the given value is not nil.
-func (pduo *PDFDownloadUpdateOne) SetNillableEmailSent(b *bool) *PDFDownloadUpdateOne {
-	if b != nil {
-		pduo.SetEmailSent(*b)
+func (_u *PDFDownloadUpdateOne) SetNillableEmailSent(v *bool) *PDFDownloadUpdateOne {
+	if v != nil {
+		_u.SetEmailSent(*v)
 	}
-	return pduo
+	return _u
 }
 
 // SetLastDownload sets the "last_download" field.
-func (pduo *PDFDownloadUpdateOne) SetLastDownload(t time.Time) *PDFDownloadUpdateOne {
-	pduo.mutation.SetLastDownload(t)
-	return pduo
+func (_u *PDFDownloadUpdateOne) SetLastDownload(v time.Time) *PDFDownloadUpdateOne {
+	_u.mutation.SetLastDownload(v)
+	return _u
 }
 
 // SetNillableLastDownload sets the "last_download" field if the given value is not nil.
-func (pduo *PDFDownloadUpdateOne) SetNillableLastDownload(t *time.Time) *PDFDownloadUpdateOne {
-	if t != nil {
-		pduo.SetLastDownload(*t)
+func (_u *PDFDownloadUpdateOne) SetNillableLastDownload(v *time.Time) *PDFDownloadUpdateOne {
+	if v != nil {
+		_u.SetLastDownload(*v)
 	}
-	return pduo
+	return _u
 }
 
 // ClearLastDownload clears the value of the "last_download" field.
-func (pduo *PDFDownloadUpdateOne) ClearLastDownload() *PDFDownloadUpdateOne {
-	pduo.mutation.ClearLastDownload()
-	return pduo
+func (_u *PDFDownloadUpdateOne) ClearLastDownload() *PDFDownloadUpdateOne {
+	_u.mutation.ClearLastDownload()
+	return _u
 }
 
 // SetDownloadCount sets the "download_count" field.
-func (pduo *PDFDownloadUpdateOne) SetDownloadCount(i int) *PDFDownloadUpdateOne {
-	pduo.mutation.ResetDownloadCount()
-	pduo.mutation.SetDownloadCount(i)
-	return pduo
+func (_u *PDFDownloadUpdateOne) SetDownloadCount(v int) *PDFDownloadUpdateOne {
+	_u.mutation.ResetDownloadCount()
+	_u.mutation.SetDownloadCount(v)
+	return _u
 }
 
 // SetNillableDownloadCount sets the "download_count" field if the given value is not nil.
-func (pduo *PDFDownloadUpdateOne) SetNillableDownloadCount(i *int) *PDFDownloadUpdateOne {
-	if i != nil {
-		pduo.SetDownloadCount(*i)
+func (_u *PDFDownloadUpdateOne) SetNillableDownloadCount(v *int) *PDFDownloadUpdateOne {
+	if v != nil {
+		_u.SetDownloadCount(*v)
 	}
-	return pduo
+	return _u
 }
 
-// AddDownloadCount adds i to the "download_count" field.
-func (pduo *PDFDownloadUpdateOne) AddDownloadCount(i int) *PDFDownloadUpdateOne {
-	pduo.mutation.AddDownloadCount(i)
-	return pduo
+// AddDownloadCount adds value to the "download_count" field.
+func (_u *PDFDownloadUpdateOne) AddDownloadCount(v int) *PDFDownloadUpdateOne {
+	_u.mutation.AddDownloadCount(v)
+	return _u
 }
 
 // SetOrderID sets the "order_id" field.
-func (pduo *PDFDownloadUpdateOne) SetOrderID(i int) *PDFDownloadUpdateOne {
-	pduo.mutation.ResetOrderID()
-	pduo.mutation.SetOrderID(i)
-	return pduo
+func (_u *PDFDownloadUpdateOne) SetOrderID(v int) *PDFDownloadUpdateOne {
+	_u.mutation.ResetOrderID()
+	_u.mutation.SetOrderID(v)
+	return _u
 }
 
 // SetNillableOrderID sets the "order_id" field if the given value is not nil.
-func (pduo *PDFDownloadUpdateOne) SetNillableOrderID(i *int) *PDFDownloadUpdateOne {
-	if i != nil {
-		pduo.SetOrderID(*i)
+func (_u *PDFDownloadUpdateOne) SetNillableOrderID(v *int) *PDFDownloadUpdateOne {
+	if v != nil {
+		_u.SetOrderID(*v)
 	}
-	return pduo
+	return _u
 }
 
-// AddOrderID adds i to the "order_id" field.
-func (pduo *PDFDownloadUpdateOne) AddOrderID(i int) *PDFDownloadUpdateOne {
-	pduo.mutation.AddOrderID(i)
-	return pduo
+// AddOrderID adds value to the "order_id" field.
+func (_u *PDFDownloadUpdateOne) AddOrderID(v int) *PDFDownloadUpdateOne {
+	_u.mutation.AddOrderID(v)
+	return _u
 }
 
 // ClearOrderID clears the value of the "order_id" field.
-func (pduo *PDFDownloadUpdateOne) ClearOrderID() *PDFDownloadUpdateOne {
-	pduo.mutation.ClearOrderID()
-	return pduo
+func (_u *PDFDownloadUpdateOne) ClearOrderID() *PDFDownloadUpdateOne {
+	_u.mutation.ClearOrderID()
+	return _u
 }
 
 // SetItemID sets the "item_id" field.
-func (pduo *PDFDownloadUpdateOne) SetItemID(i int) *PDFDownloadUpdateOne {
-	pduo.mutation.ResetItemID()
-	pduo.mutation.SetItemID(i)
-	return pduo
+func (_u *PDFDownloadUpdateOne) SetItemID(v int) *PDFDownloadUpdateOne {
+	_u.mutation.ResetItemID()
+	_u.mutation.SetItemID(v)
+	return _u
 }
 
 // SetNillableItemID sets the "item_id" field if the given value is not nil.
-func (pduo *PDFDownloadUpdateOne) SetNillableItemID(i *int) *PDFDownloadUpdateOne {
-	if i != nil {
-		pduo.SetItemID(*i)
+func (_u *PDFDownloadUpdateOne) SetNillableItemID(v *int) *PDFDownloadUpdateOne {
+	if v != nil {
+		_u.SetItemID(*v)
 	}
-	return pduo
+	return _u
 }
 
-// AddItemID adds i to the "item_id" field.
-func (pduo *PDFDownloadUpdateOne) AddItemID(i int) *PDFDownloadUpdateOne {
-	pduo.mutation.AddItemID(i)
-	return pduo
+// AddItemID adds value to the "item_id" field.
+func (_u *PDFDownloadUpdateOne) AddItemID(v int) *PDFDownloadUpdateOne {
+	_u.mutation.AddItemID(v)
+	return _u
 }
 
 // ClearItemID clears the value of the "item_id" field.
-func (pduo *PDFDownloadUpdateOne) ClearItemID() *PDFDownloadUpdateOne {
-	pduo.mutation.ClearItemID()
-	return pduo
+func (_u *PDFDownloadUpdateOne) ClearItemID() *PDFDownloadUpdateOne {
+	_u.mutation.ClearItemID()
+	return _u
 }
 
 // Mutation returns the PDFDownloadMutation object of the builder.
-func (pduo *PDFDownloadUpdateOne) Mutation() *PDFDownloadMutation {
-	return pduo.mutation
+func (_u *PDFDownloadUpdateOne) Mutation() *PDFDownloadMutation {
+	return _u.mutation
 }
 
 // Where appends a list predicates to the PDFDownloadUpdate builder.
-func (pduo *PDFDownloadUpdateOne) Where(ps ...predicate.PDFDownload) *PDFDownloadUpdateOne {
-	pduo.mutation.Where(ps...)
-	return pduo
+func (_u *PDFDownloadUpdateOne) Where(ps ...predicate.PDFDownload) *PDFDownloadUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (pduo *PDFDownloadUpdateOne) Select(field string, fields ...string) *PDFDownloadUpdateOne {
-	pduo.fields = append([]string{field}, fields...)
-	return pduo
+func (_u *PDFDownloadUpdateOne) Select(field string, fields ...string) *PDFDownloadUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated PDFDownload entity.
-func (pduo *PDFDownloadUpdateOne) Save(ctx context.Context) (*PDFDownload, error) {
-	return withHooks(ctx, pduo.sqlSave, pduo.mutation, pduo.hooks)
+func (_u *PDFDownloadUpdateOne) Save(ctx context.Context) (*PDFDownload, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (pduo *PDFDownloadUpdateOne) SaveX(ctx context.Context) *PDFDownload {
-	node, err := pduo.Save(ctx)
+func (_u *PDFDownloadUpdateOne) SaveX(ctx context.Context) *PDFDownload {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -483,26 +483,26 @@ func (pduo *PDFDownloadUpdateOne) SaveX(ctx context.Context) *PDFDownload {
 }
 
 // Exec executes the query on the entity.
-func (pduo *PDFDownloadUpdateOne) Exec(ctx context.Context) error {
-	_, err := pduo.Save(ctx)
+func (_u *PDFDownloadUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (pduo *PDFDownloadUpdateOne) ExecX(ctx context.Context) {
-	if err := pduo.Exec(ctx); err != nil {
+func (_u *PDFDownloadUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (pduo *PDFDownloadUpdateOne) sqlSave(ctx context.Context) (_node *PDFDownload, err error) {
+func (_u *PDFDownloadUpdateOne) sqlSave(ctx context.Context) (_node *PDFDownload, err error) {
 	_spec := sqlgraph.NewUpdateSpec(pdfdownload.Table, pdfdownload.Columns, sqlgraph.NewFieldSpec(pdfdownload.FieldID, field.TypeInt))
-	id, ok := pduo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "PDFDownload.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := pduo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, pdfdownload.FieldID)
 		for _, f := range fields {
@@ -514,62 +514,62 @@ func (pduo *PDFDownloadUpdateOne) sqlSave(ctx context.Context) (_node *PDFDownlo
 			}
 		}
 	}
-	if ps := pduo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := pduo.mutation.LinkID(); ok {
+	if value, ok := _u.mutation.LinkID(); ok {
 		_spec.SetField(pdfdownload.FieldLinkID, field.TypeString, value)
 	}
-	if value, ok := pduo.mutation.PdfID(); ok {
+	if value, ok := _u.mutation.PdfID(); ok {
 		_spec.SetField(pdfdownload.FieldPdfID, field.TypeInt, value)
 	}
-	if value, ok := pduo.mutation.AddedPdfID(); ok {
+	if value, ok := _u.mutation.AddedPdfID(); ok {
 		_spec.AddField(pdfdownload.FieldPdfID, field.TypeInt, value)
 	}
-	if value, ok := pduo.mutation.Timestamp(); ok {
+	if value, ok := _u.mutation.Timestamp(); ok {
 		_spec.SetField(pdfdownload.FieldTimestamp, field.TypeTime, value)
 	}
-	if value, ok := pduo.mutation.EmailSent(); ok {
+	if value, ok := _u.mutation.EmailSent(); ok {
 		_spec.SetField(pdfdownload.FieldEmailSent, field.TypeBool, value)
 	}
-	if value, ok := pduo.mutation.LastDownload(); ok {
+	if value, ok := _u.mutation.LastDownload(); ok {
 		_spec.SetField(pdfdownload.FieldLastDownload, field.TypeTime, value)
 	}
-	if pduo.mutation.LastDownloadCleared() {
+	if _u.mutation.LastDownloadCleared() {
 		_spec.ClearField(pdfdownload.FieldLastDownload, field.TypeTime)
 	}
-	if value, ok := pduo.mutation.DownloadCount(); ok {
+	if value, ok := _u.mutation.DownloadCount(); ok {
 		_spec.SetField(pdfdownload.FieldDownloadCount, field.TypeInt, value)
 	}
-	if value, ok := pduo.mutation.AddedDownloadCount(); ok {
+	if value, ok := _u.mutation.AddedDownloadCount(); ok {
 		_spec.AddField(pdfdownload.FieldDownloadCount, field.TypeInt, value)
 	}
-	if value, ok := pduo.mutation.OrderID(); ok {
+	if value, ok := _u.mutation.OrderID(); ok {
 		_spec.SetField(pdfdownload.FieldOrderID, field.TypeInt, value)
 	}
-	if value, ok := pduo.mutation.AddedOrderID(); ok {
+	if value, ok := _u.mutation.AddedOrderID(); ok {
 		_spec.AddField(pdfdownload.FieldOrderID, field.TypeInt, value)
 	}
-	if pduo.mutation.OrderIDCleared() {
+	if _u.mutation.OrderIDCleared() {
 		_spec.ClearField(pdfdownload.FieldOrderID, field.TypeInt)
 	}
-	if value, ok := pduo.mutation.ItemID(); ok {
+	if value, ok := _u.mutation.ItemID(); ok {
 		_spec.SetField(pdfdownload.FieldItemID, field.TypeInt, value)
 	}
-	if value, ok := pduo.mutation.AddedItemID(); ok {
+	if value, ok := _u.mutation.AddedItemID(); ok {
 		_spec.AddField(pdfdownload.FieldItemID, field.TypeInt, value)
 	}
-	if pduo.mutation.ItemIDCleared() {
+	if _u.mutation.ItemIDCleared() {
 		_spec.ClearField(pdfdownload.FieldItemID, field.TypeInt)
 	}
-	_node = &PDFDownload{config: pduo.config}
+	_node = &PDFDownload{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, pduo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{pdfdownload.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -577,6 +577,6 @@ func (pduo *PDFDownloadUpdateOne) sqlSave(ctx context.Context) (_node *PDFDownlo
 		}
 		return nil, err
 	}
-	pduo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

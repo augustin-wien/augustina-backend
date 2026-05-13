@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
+	"github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/ent/vendor"
 )
 
@@ -23,147 +24,139 @@ type LocationUpdate struct {
 }
 
 // Where appends a list predicates to the LocationUpdate builder.
-func (lu *LocationUpdate) Where(ps ...predicate.Location) *LocationUpdate {
-	lu.mutation.Where(ps...)
-	return lu
+func (_u *LocationUpdate) Where(ps ...predicate.Location) *LocationUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetName sets the "name" field.
-func (lu *LocationUpdate) SetName(s string) *LocationUpdate {
-	lu.mutation.SetName(s)
-	return lu
+func (_u *LocationUpdate) SetName(v string) *LocationUpdate {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (lu *LocationUpdate) SetNillableName(s *string) *LocationUpdate {
-	if s != nil {
-		lu.SetName(*s)
+func (_u *LocationUpdate) SetNillableName(v *string) *LocationUpdate {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return lu
+	return _u
 }
 
 // SetAddress sets the "address" field.
-func (lu *LocationUpdate) SetAddress(s string) *LocationUpdate {
-	lu.mutation.SetAddress(s)
-	return lu
+func (_u *LocationUpdate) SetAddress(v string) *LocationUpdate {
+	_u.mutation.SetAddress(v)
+	return _u
 }
 
 // SetNillableAddress sets the "address" field if the given value is not nil.
-func (lu *LocationUpdate) SetNillableAddress(s *string) *LocationUpdate {
-	if s != nil {
-		lu.SetAddress(*s)
+func (_u *LocationUpdate) SetNillableAddress(v *string) *LocationUpdate {
+	if v != nil {
+		_u.SetAddress(*v)
 	}
-	return lu
+	return _u
 }
 
 // SetLongitude sets the "longitude" field.
-func (lu *LocationUpdate) SetLongitude(f float64) *LocationUpdate {
-	lu.mutation.ResetLongitude()
-	lu.mutation.SetLongitude(f)
-	return lu
+func (_u *LocationUpdate) SetLongitude(v float64) *LocationUpdate {
+	_u.mutation.ResetLongitude()
+	_u.mutation.SetLongitude(v)
+	return _u
 }
 
 // SetNillableLongitude sets the "longitude" field if the given value is not nil.
-func (lu *LocationUpdate) SetNillableLongitude(f *float64) *LocationUpdate {
-	if f != nil {
-		lu.SetLongitude(*f)
+func (_u *LocationUpdate) SetNillableLongitude(v *float64) *LocationUpdate {
+	if v != nil {
+		_u.SetLongitude(*v)
 	}
-	return lu
+	return _u
 }
 
-// AddLongitude adds f to the "longitude" field.
-func (lu *LocationUpdate) AddLongitude(f float64) *LocationUpdate {
-	lu.mutation.AddLongitude(f)
-	return lu
+// AddLongitude adds value to the "longitude" field.
+func (_u *LocationUpdate) AddLongitude(v float64) *LocationUpdate {
+	_u.mutation.AddLongitude(v)
+	return _u
 }
 
 // SetLatitude sets the "latitude" field.
-func (lu *LocationUpdate) SetLatitude(f float64) *LocationUpdate {
-	lu.mutation.ResetLatitude()
-	lu.mutation.SetLatitude(f)
-	return lu
+func (_u *LocationUpdate) SetLatitude(v float64) *LocationUpdate {
+	_u.mutation.ResetLatitude()
+	_u.mutation.SetLatitude(v)
+	return _u
 }
 
 // SetNillableLatitude sets the "latitude" field if the given value is not nil.
-func (lu *LocationUpdate) SetNillableLatitude(f *float64) *LocationUpdate {
-	if f != nil {
-		lu.SetLatitude(*f)
+func (_u *LocationUpdate) SetNillableLatitude(v *float64) *LocationUpdate {
+	if v != nil {
+		_u.SetLatitude(*v)
 	}
-	return lu
+	return _u
 }
 
-// AddLatitude adds f to the "latitude" field.
-func (lu *LocationUpdate) AddLatitude(f float64) *LocationUpdate {
-	lu.mutation.AddLatitude(f)
-	return lu
+// AddLatitude adds value to the "latitude" field.
+func (_u *LocationUpdate) AddLatitude(v float64) *LocationUpdate {
+	_u.mutation.AddLatitude(v)
+	return _u
 }
 
 // SetZip sets the "zip" field.
-func (lu *LocationUpdate) SetZip(s string) *LocationUpdate {
-	lu.mutation.SetZip(s)
-	return lu
+func (_u *LocationUpdate) SetZip(v string) *LocationUpdate {
+	_u.mutation.SetZip(v)
+	return _u
 }
 
 // SetNillableZip sets the "zip" field if the given value is not nil.
-func (lu *LocationUpdate) SetNillableZip(s *string) *LocationUpdate {
-	if s != nil {
-		lu.SetZip(*s)
+func (_u *LocationUpdate) SetNillableZip(v *string) *LocationUpdate {
+	if v != nil {
+		_u.SetZip(*v)
 	}
-	return lu
+	return _u
 }
 
 // SetWorkingTime sets the "working_time" field.
-func (lu *LocationUpdate) SetWorkingTime(s string) *LocationUpdate {
-	lu.mutation.SetWorkingTime(s)
-	return lu
-}
-
-// SetNillableWorkingTime sets the "working_time" field if the given value is not nil.
-func (lu *LocationUpdate) SetNillableWorkingTime(s *string) *LocationUpdate {
-	if s != nil {
-		lu.SetWorkingTime(*s)
-	}
-	return lu
+func (_u *LocationUpdate) SetWorkingTime(v *schema.WorkingTime) *LocationUpdate {
+	_u.mutation.SetWorkingTime(v)
+	return _u
 }
 
 // SetVendorID sets the "vendor" edge to the Vendor entity by ID.
-func (lu *LocationUpdate) SetVendorID(id int) *LocationUpdate {
-	lu.mutation.SetVendorID(id)
-	return lu
+func (_u *LocationUpdate) SetVendorID(id int) *LocationUpdate {
+	_u.mutation.SetVendorID(id)
+	return _u
 }
 
 // SetNillableVendorID sets the "vendor" edge to the Vendor entity by ID if the given value is not nil.
-func (lu *LocationUpdate) SetNillableVendorID(id *int) *LocationUpdate {
+func (_u *LocationUpdate) SetNillableVendorID(id *int) *LocationUpdate {
 	if id != nil {
-		lu = lu.SetVendorID(*id)
+		_u = _u.SetVendorID(*id)
 	}
-	return lu
+	return _u
 }
 
 // SetVendor sets the "vendor" edge to the Vendor entity.
-func (lu *LocationUpdate) SetVendor(v *Vendor) *LocationUpdate {
-	return lu.SetVendorID(v.ID)
+func (_u *LocationUpdate) SetVendor(v *Vendor) *LocationUpdate {
+	return _u.SetVendorID(v.ID)
 }
 
 // Mutation returns the LocationMutation object of the builder.
-func (lu *LocationUpdate) Mutation() *LocationMutation {
-	return lu.mutation
+func (_u *LocationUpdate) Mutation() *LocationMutation {
+	return _u.mutation
 }
 
 // ClearVendor clears the "vendor" edge to the Vendor entity.
-func (lu *LocationUpdate) ClearVendor() *LocationUpdate {
-	lu.mutation.ClearVendor()
-	return lu
+func (_u *LocationUpdate) ClearVendor() *LocationUpdate {
+	_u.mutation.ClearVendor()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (lu *LocationUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, lu.sqlSave, lu.mutation, lu.hooks)
+func (_u *LocationUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (lu *LocationUpdate) SaveX(ctx context.Context) int {
-	affected, err := lu.Save(ctx)
+func (_u *LocationUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -171,52 +164,52 @@ func (lu *LocationUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (lu *LocationUpdate) Exec(ctx context.Context) error {
-	_, err := lu.Save(ctx)
+func (_u *LocationUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (lu *LocationUpdate) ExecX(ctx context.Context) {
-	if err := lu.Exec(ctx); err != nil {
+func (_u *LocationUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *LocationUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(location.Table, location.Columns, sqlgraph.NewFieldSpec(location.FieldID, field.TypeInt))
-	if ps := lu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := lu.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(location.FieldName, field.TypeString, value)
 	}
-	if value, ok := lu.mutation.Address(); ok {
+	if value, ok := _u.mutation.Address(); ok {
 		_spec.SetField(location.FieldAddress, field.TypeString, value)
 	}
-	if value, ok := lu.mutation.Longitude(); ok {
+	if value, ok := _u.mutation.Longitude(); ok {
 		_spec.SetField(location.FieldLongitude, field.TypeFloat64, value)
 	}
-	if value, ok := lu.mutation.AddedLongitude(); ok {
+	if value, ok := _u.mutation.AddedLongitude(); ok {
 		_spec.AddField(location.FieldLongitude, field.TypeFloat64, value)
 	}
-	if value, ok := lu.mutation.Latitude(); ok {
+	if value, ok := _u.mutation.Latitude(); ok {
 		_spec.SetField(location.FieldLatitude, field.TypeFloat64, value)
 	}
-	if value, ok := lu.mutation.AddedLatitude(); ok {
+	if value, ok := _u.mutation.AddedLatitude(); ok {
 		_spec.AddField(location.FieldLatitude, field.TypeFloat64, value)
 	}
-	if value, ok := lu.mutation.Zip(); ok {
+	if value, ok := _u.mutation.Zip(); ok {
 		_spec.SetField(location.FieldZip, field.TypeString, value)
 	}
-	if value, ok := lu.mutation.WorkingTime(); ok {
-		_spec.SetField(location.FieldWorkingTime, field.TypeString, value)
+	if value, ok := _u.mutation.WorkingTime(); ok {
+		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)
 	}
-	if lu.mutation.VendorCleared() {
+	if _u.mutation.VendorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -229,7 +222,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.VendorIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.VendorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -245,7 +238,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, lu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{location.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -253,8 +246,8 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	lu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // LocationUpdateOne is the builder for updating a single Location entity.
@@ -266,154 +259,146 @@ type LocationUpdateOne struct {
 }
 
 // SetName sets the "name" field.
-func (luo *LocationUpdateOne) SetName(s string) *LocationUpdateOne {
-	luo.mutation.SetName(s)
-	return luo
+func (_u *LocationUpdateOne) SetName(v string) *LocationUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (luo *LocationUpdateOne) SetNillableName(s *string) *LocationUpdateOne {
-	if s != nil {
-		luo.SetName(*s)
+func (_u *LocationUpdateOne) SetNillableName(v *string) *LocationUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return luo
+	return _u
 }
 
 // SetAddress sets the "address" field.
-func (luo *LocationUpdateOne) SetAddress(s string) *LocationUpdateOne {
-	luo.mutation.SetAddress(s)
-	return luo
+func (_u *LocationUpdateOne) SetAddress(v string) *LocationUpdateOne {
+	_u.mutation.SetAddress(v)
+	return _u
 }
 
 // SetNillableAddress sets the "address" field if the given value is not nil.
-func (luo *LocationUpdateOne) SetNillableAddress(s *string) *LocationUpdateOne {
-	if s != nil {
-		luo.SetAddress(*s)
+func (_u *LocationUpdateOne) SetNillableAddress(v *string) *LocationUpdateOne {
+	if v != nil {
+		_u.SetAddress(*v)
 	}
-	return luo
+	return _u
 }
 
 // SetLongitude sets the "longitude" field.
-func (luo *LocationUpdateOne) SetLongitude(f float64) *LocationUpdateOne {
-	luo.mutation.ResetLongitude()
-	luo.mutation.SetLongitude(f)
-	return luo
+func (_u *LocationUpdateOne) SetLongitude(v float64) *LocationUpdateOne {
+	_u.mutation.ResetLongitude()
+	_u.mutation.SetLongitude(v)
+	return _u
 }
 
 // SetNillableLongitude sets the "longitude" field if the given value is not nil.
-func (luo *LocationUpdateOne) SetNillableLongitude(f *float64) *LocationUpdateOne {
-	if f != nil {
-		luo.SetLongitude(*f)
+func (_u *LocationUpdateOne) SetNillableLongitude(v *float64) *LocationUpdateOne {
+	if v != nil {
+		_u.SetLongitude(*v)
 	}
-	return luo
+	return _u
 }
 
-// AddLongitude adds f to the "longitude" field.
-func (luo *LocationUpdateOne) AddLongitude(f float64) *LocationUpdateOne {
-	luo.mutation.AddLongitude(f)
-	return luo
+// AddLongitude adds value to the "longitude" field.
+func (_u *LocationUpdateOne) AddLongitude(v float64) *LocationUpdateOne {
+	_u.mutation.AddLongitude(v)
+	return _u
 }
 
 // SetLatitude sets the "latitude" field.
-func (luo *LocationUpdateOne) SetLatitude(f float64) *LocationUpdateOne {
-	luo.mutation.ResetLatitude()
-	luo.mutation.SetLatitude(f)
-	return luo
+func (_u *LocationUpdateOne) SetLatitude(v float64) *LocationUpdateOne {
+	_u.mutation.ResetLatitude()
+	_u.mutation.SetLatitude(v)
+	return _u
 }
 
 // SetNillableLatitude sets the "latitude" field if the given value is not nil.
-func (luo *LocationUpdateOne) SetNillableLatitude(f *float64) *LocationUpdateOne {
-	if f != nil {
-		luo.SetLatitude(*f)
+func (_u *LocationUpdateOne) SetNillableLatitude(v *float64) *LocationUpdateOne {
+	if v != nil {
+		_u.SetLatitude(*v)
 	}
-	return luo
+	return _u
 }
 
-// AddLatitude adds f to the "latitude" field.
-func (luo *LocationUpdateOne) AddLatitude(f float64) *LocationUpdateOne {
-	luo.mutation.AddLatitude(f)
-	return luo
+// AddLatitude adds value to the "latitude" field.
+func (_u *LocationUpdateOne) AddLatitude(v float64) *LocationUpdateOne {
+	_u.mutation.AddLatitude(v)
+	return _u
 }
 
 // SetZip sets the "zip" field.
-func (luo *LocationUpdateOne) SetZip(s string) *LocationUpdateOne {
-	luo.mutation.SetZip(s)
-	return luo
+func (_u *LocationUpdateOne) SetZip(v string) *LocationUpdateOne {
+	_u.mutation.SetZip(v)
+	return _u
 }
 
 // SetNillableZip sets the "zip" field if the given value is not nil.
-func (luo *LocationUpdateOne) SetNillableZip(s *string) *LocationUpdateOne {
-	if s != nil {
-		luo.SetZip(*s)
+func (_u *LocationUpdateOne) SetNillableZip(v *string) *LocationUpdateOne {
+	if v != nil {
+		_u.SetZip(*v)
 	}
-	return luo
+	return _u
 }
 
 // SetWorkingTime sets the "working_time" field.
-func (luo *LocationUpdateOne) SetWorkingTime(s string) *LocationUpdateOne {
-	luo.mutation.SetWorkingTime(s)
-	return luo
-}
-
-// SetNillableWorkingTime sets the "working_time" field if the given value is not nil.
-func (luo *LocationUpdateOne) SetNillableWorkingTime(s *string) *LocationUpdateOne {
-	if s != nil {
-		luo.SetWorkingTime(*s)
-	}
-	return luo
+func (_u *LocationUpdateOne) SetWorkingTime(v *schema.WorkingTime) *LocationUpdateOne {
+	_u.mutation.SetWorkingTime(v)
+	return _u
 }
 
 // SetVendorID sets the "vendor" edge to the Vendor entity by ID.
-func (luo *LocationUpdateOne) SetVendorID(id int) *LocationUpdateOne {
-	luo.mutation.SetVendorID(id)
-	return luo
+func (_u *LocationUpdateOne) SetVendorID(id int) *LocationUpdateOne {
+	_u.mutation.SetVendorID(id)
+	return _u
 }
 
 // SetNillableVendorID sets the "vendor" edge to the Vendor entity by ID if the given value is not nil.
-func (luo *LocationUpdateOne) SetNillableVendorID(id *int) *LocationUpdateOne {
+func (_u *LocationUpdateOne) SetNillableVendorID(id *int) *LocationUpdateOne {
 	if id != nil {
-		luo = luo.SetVendorID(*id)
+		_u = _u.SetVendorID(*id)
 	}
-	return luo
+	return _u
 }
 
 // SetVendor sets the "vendor" edge to the Vendor entity.
-func (luo *LocationUpdateOne) SetVendor(v *Vendor) *LocationUpdateOne {
-	return luo.SetVendorID(v.ID)
+func (_u *LocationUpdateOne) SetVendor(v *Vendor) *LocationUpdateOne {
+	return _u.SetVendorID(v.ID)
 }
 
 // Mutation returns the LocationMutation object of the builder.
-func (luo *LocationUpdateOne) Mutation() *LocationMutation {
-	return luo.mutation
+func (_u *LocationUpdateOne) Mutation() *LocationMutation {
+	return _u.mutation
 }
 
 // ClearVendor clears the "vendor" edge to the Vendor entity.
-func (luo *LocationUpdateOne) ClearVendor() *LocationUpdateOne {
-	luo.mutation.ClearVendor()
-	return luo
+func (_u *LocationUpdateOne) ClearVendor() *LocationUpdateOne {
+	_u.mutation.ClearVendor()
+	return _u
 }
 
 // Where appends a list predicates to the LocationUpdate builder.
-func (luo *LocationUpdateOne) Where(ps ...predicate.Location) *LocationUpdateOne {
-	luo.mutation.Where(ps...)
-	return luo
+func (_u *LocationUpdateOne) Where(ps ...predicate.Location) *LocationUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (luo *LocationUpdateOne) Select(field string, fields ...string) *LocationUpdateOne {
-	luo.fields = append([]string{field}, fields...)
-	return luo
+func (_u *LocationUpdateOne) Select(field string, fields ...string) *LocationUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated Location entity.
-func (luo *LocationUpdateOne) Save(ctx context.Context) (*Location, error) {
-	return withHooks(ctx, luo.sqlSave, luo.mutation, luo.hooks)
+func (_u *LocationUpdateOne) Save(ctx context.Context) (*Location, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (luo *LocationUpdateOne) SaveX(ctx context.Context) *Location {
-	node, err := luo.Save(ctx)
+func (_u *LocationUpdateOne) SaveX(ctx context.Context) *Location {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -421,26 +406,26 @@ func (luo *LocationUpdateOne) SaveX(ctx context.Context) *Location {
 }
 
 // Exec executes the query on the entity.
-func (luo *LocationUpdateOne) Exec(ctx context.Context) error {
-	_, err := luo.Save(ctx)
+func (_u *LocationUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (luo *LocationUpdateOne) ExecX(ctx context.Context) {
-	if err := luo.Exec(ctx); err != nil {
+func (_u *LocationUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err error) {
+func (_u *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err error) {
 	_spec := sqlgraph.NewUpdateSpec(location.Table, location.Columns, sqlgraph.NewFieldSpec(location.FieldID, field.TypeInt))
-	id, ok := luo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Location.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := luo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, location.FieldID)
 		for _, f := range fields {
@@ -452,38 +437,38 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err
 			}
 		}
 	}
-	if ps := luo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := luo.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(location.FieldName, field.TypeString, value)
 	}
-	if value, ok := luo.mutation.Address(); ok {
+	if value, ok := _u.mutation.Address(); ok {
 		_spec.SetField(location.FieldAddress, field.TypeString, value)
 	}
-	if value, ok := luo.mutation.Longitude(); ok {
+	if value, ok := _u.mutation.Longitude(); ok {
 		_spec.SetField(location.FieldLongitude, field.TypeFloat64, value)
 	}
-	if value, ok := luo.mutation.AddedLongitude(); ok {
+	if value, ok := _u.mutation.AddedLongitude(); ok {
 		_spec.AddField(location.FieldLongitude, field.TypeFloat64, value)
 	}
-	if value, ok := luo.mutation.Latitude(); ok {
+	if value, ok := _u.mutation.Latitude(); ok {
 		_spec.SetField(location.FieldLatitude, field.TypeFloat64, value)
 	}
-	if value, ok := luo.mutation.AddedLatitude(); ok {
+	if value, ok := _u.mutation.AddedLatitude(); ok {
 		_spec.AddField(location.FieldLatitude, field.TypeFloat64, value)
 	}
-	if value, ok := luo.mutation.Zip(); ok {
+	if value, ok := _u.mutation.Zip(); ok {
 		_spec.SetField(location.FieldZip, field.TypeString, value)
 	}
-	if value, ok := luo.mutation.WorkingTime(); ok {
-		_spec.SetField(location.FieldWorkingTime, field.TypeString, value)
+	if value, ok := _u.mutation.WorkingTime(); ok {
+		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)
 	}
-	if luo.mutation.VendorCleared() {
+	if _u.mutation.VendorCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -496,7 +481,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.VendorIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.VendorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -512,10 +497,10 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &Location{config: luo.config}
+	_node = &Location{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, luo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{location.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -523,6 +508,6 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err
 		}
 		return nil, err
 	}
-	luo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

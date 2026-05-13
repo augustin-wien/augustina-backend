@@ -93,6 +93,11 @@ func LicenseGroup(v string) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldLicenseGroup, v))
 }
 
+// Type applies equality check predicate on the "Type" field. It's identical to TypeEQ.
+func Type(v string) predicate.Item {
+	return predicate.Item(sql.FieldEQ(FieldType, v))
+}
+
 // IsPDFItem applies equality check predicate on the "IsPDFItem" field. It's identical to IsPDFItemEQ.
 func IsPDFItem(v bool) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldIsPDFItem, v))
@@ -441,6 +446,71 @@ func LicenseGroupEqualFold(v string) predicate.Item {
 // LicenseGroupContainsFold applies the ContainsFold predicate on the "LicenseGroup" field.
 func LicenseGroupContainsFold(v string) predicate.Item {
 	return predicate.Item(sql.FieldContainsFold(FieldLicenseGroup, v))
+}
+
+// TypeEQ applies the EQ predicate on the "Type" field.
+func TypeEQ(v string) predicate.Item {
+	return predicate.Item(sql.FieldEQ(FieldType, v))
+}
+
+// TypeNEQ applies the NEQ predicate on the "Type" field.
+func TypeNEQ(v string) predicate.Item {
+	return predicate.Item(sql.FieldNEQ(FieldType, v))
+}
+
+// TypeIn applies the In predicate on the "Type" field.
+func TypeIn(vs ...string) predicate.Item {
+	return predicate.Item(sql.FieldIn(FieldType, vs...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "Type" field.
+func TypeNotIn(vs ...string) predicate.Item {
+	return predicate.Item(sql.FieldNotIn(FieldType, vs...))
+}
+
+// TypeGT applies the GT predicate on the "Type" field.
+func TypeGT(v string) predicate.Item {
+	return predicate.Item(sql.FieldGT(FieldType, v))
+}
+
+// TypeGTE applies the GTE predicate on the "Type" field.
+func TypeGTE(v string) predicate.Item {
+	return predicate.Item(sql.FieldGTE(FieldType, v))
+}
+
+// TypeLT applies the LT predicate on the "Type" field.
+func TypeLT(v string) predicate.Item {
+	return predicate.Item(sql.FieldLT(FieldType, v))
+}
+
+// TypeLTE applies the LTE predicate on the "Type" field.
+func TypeLTE(v string) predicate.Item {
+	return predicate.Item(sql.FieldLTE(FieldType, v))
+}
+
+// TypeContains applies the Contains predicate on the "Type" field.
+func TypeContains(v string) predicate.Item {
+	return predicate.Item(sql.FieldContains(FieldType, v))
+}
+
+// TypeHasPrefix applies the HasPrefix predicate on the "Type" field.
+func TypeHasPrefix(v string) predicate.Item {
+	return predicate.Item(sql.FieldHasPrefix(FieldType, v))
+}
+
+// TypeHasSuffix applies the HasSuffix predicate on the "Type" field.
+func TypeHasSuffix(v string) predicate.Item {
+	return predicate.Item(sql.FieldHasSuffix(FieldType, v))
+}
+
+// TypeEqualFold applies the EqualFold predicate on the "Type" field.
+func TypeEqualFold(v string) predicate.Item {
+	return predicate.Item(sql.FieldEqualFold(FieldType, v))
+}
+
+// TypeContainsFold applies the ContainsFold predicate on the "Type" field.
+func TypeContainsFold(v string) predicate.Item {
+	return predicate.Item(sql.FieldContainsFold(FieldType, v))
 }
 
 // IsPDFItemEQ applies the EQ predicate on the "IsPDFItem" field.

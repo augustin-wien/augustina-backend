@@ -15,9 +15,11 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/augustin-wien/augustina-backend/ent/abonement"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
+	"github.com/augustin-wien/augustina-backend/ent/customer"
 	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
@@ -36,12 +38,16 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Abonement is the client for interacting with the Abonement builders.
+	Abonement *AbonementClient
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
 	// BlockedIP is the client for interacting with the BlockedIP builders.
 	BlockedIP *BlockedIPClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
+	// Customer is the client for interacting with the Customer builders.
+	Customer *CustomerClient
 	// DBSettings is the client for interacting with the DBSettings builders.
 	DBSettings *DBSettingsClient
 	// Item is the client for interacting with the Item builders.
@@ -75,9 +81,11 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Abonement = NewAbonementClient(c.config)
 	c.Account = NewAccountClient(c.config)
 	c.BlockedIP = NewBlockedIPClient(c.config)
 	c.Comment = NewCommentClient(c.config)
+	c.Customer = NewCustomerClient(c.config)
 	c.DBSettings = NewDBSettingsClient(c.config)
 	c.Item = NewItemClient(c.config)
 	c.Location = NewLocationClient(c.config)
@@ -181,9 +189,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
+		Abonement:    NewAbonementClient(cfg),
 		Account:      NewAccountClient(cfg),
 		BlockedIP:    NewBlockedIPClient(cfg),
 		Comment:      NewCommentClient(cfg),
+		Customer:     NewCustomerClient(cfg),
 		DBSettings:   NewDBSettingsClient(cfg),
 		Item:         NewItemClient(cfg),
 		Location:     NewLocationClient(cfg),
@@ -214,9 +224,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
+		Abonement:    NewAbonementClient(cfg),
 		Account:      NewAccountClient(cfg),
 		BlockedIP:    NewBlockedIPClient(cfg),
 		Comment:      NewCommentClient(cfg),
+		Customer:     NewCustomerClient(cfg),
 		DBSettings:   NewDBSettingsClient(cfg),
 		Item:         NewItemClient(cfg),
 		Location:     NewLocationClient(cfg),
@@ -234,7 +246,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Account.
+//		Abonement.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -257,9 +269,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Account, c.BlockedIP, c.Comment, c.DBSettings, c.Item, c.Location,
-		c.MailTemplate, c.Order, c.OrderEntry, c.PDF, c.PDFDownload, c.Payment,
-		c.Settings, c.Vendor,
+		c.Abonement, c.Account, c.BlockedIP, c.Comment, c.Customer, c.DBSettings,
+		c.Item, c.Location, c.MailTemplate, c.Order, c.OrderEntry, c.PDF,
+		c.PDFDownload, c.Payment, c.Settings, c.Vendor,
 	} {
 		n.Use(hooks...)
 	}
@@ -269,9 +281,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Account, c.BlockedIP, c.Comment, c.DBSettings, c.Item, c.Location,
-		c.MailTemplate, c.Order, c.OrderEntry, c.PDF, c.PDFDownload, c.Payment,
-		c.Settings, c.Vendor,
+		c.Abonement, c.Account, c.BlockedIP, c.Comment, c.Customer, c.DBSettings,
+		c.Item, c.Location, c.MailTemplate, c.Order, c.OrderEntry, c.PDF,
+		c.PDFDownload, c.Payment, c.Settings, c.Vendor,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -280,12 +292,16 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AbonementMutation:
+		return c.Abonement.mutate(ctx, m)
 	case *AccountMutation:
 		return c.Account.mutate(ctx, m)
 	case *BlockedIPMutation:
 		return c.BlockedIP.mutate(ctx, m)
 	case *CommentMutation:
 		return c.Comment.mutate(ctx, m)
+	case *CustomerMutation:
+		return c.Customer.mutate(ctx, m)
 	case *DBSettingsMutation:
 		return c.DBSettings.mutate(ctx, m)
 	case *ItemMutation:
@@ -310,6 +326,171 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Vendor.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AbonementClient is a client for the Abonement schema.
+type AbonementClient struct {
+	config
+}
+
+// NewAbonementClient returns a client for the Abonement from the given config.
+func NewAbonementClient(c config) *AbonementClient {
+	return &AbonementClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `abonement.Hooks(f(g(h())))`.
+func (c *AbonementClient) Use(hooks ...Hook) {
+	c.hooks.Abonement = append(c.hooks.Abonement, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `abonement.Intercept(f(g(h())))`.
+func (c *AbonementClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Abonement = append(c.inters.Abonement, interceptors...)
+}
+
+// Create returns a builder for creating a Abonement entity.
+func (c *AbonementClient) Create() *AbonementCreate {
+	mutation := newAbonementMutation(c.config, OpCreate)
+	return &AbonementCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Abonement entities.
+func (c *AbonementClient) CreateBulk(builders ...*AbonementCreate) *AbonementCreateBulk {
+	return &AbonementCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AbonementClient) MapCreateBulk(slice any, setFunc func(*AbonementCreate, int)) *AbonementCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AbonementCreateBulk{err: fmt.Errorf("calling to AbonementClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AbonementCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AbonementCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Abonement.
+func (c *AbonementClient) Update() *AbonementUpdate {
+	mutation := newAbonementMutation(c.config, OpUpdate)
+	return &AbonementUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AbonementClient) UpdateOne(_m *Abonement) *AbonementUpdateOne {
+	mutation := newAbonementMutation(c.config, OpUpdateOne, withAbonement(_m))
+	return &AbonementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AbonementClient) UpdateOneID(id int) *AbonementUpdateOne {
+	mutation := newAbonementMutation(c.config, OpUpdateOne, withAbonementID(id))
+	return &AbonementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Abonement.
+func (c *AbonementClient) Delete() *AbonementDelete {
+	mutation := newAbonementMutation(c.config, OpDelete)
+	return &AbonementDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AbonementClient) DeleteOne(_m *Abonement) *AbonementDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AbonementClient) DeleteOneID(id int) *AbonementDeleteOne {
+	builder := c.Delete().Where(abonement.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AbonementDeleteOne{builder}
+}
+
+// Query returns a query builder for Abonement.
+func (c *AbonementClient) Query() *AbonementQuery {
+	return &AbonementQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAbonement},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Abonement entity by its id.
+func (c *AbonementClient) Get(ctx context.Context, id int) (*Abonement, error) {
+	return c.Query().Where(abonement.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AbonementClient) GetX(ctx context.Context, id int) *Abonement {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCustomer queries the customer edge of a Abonement.
+func (c *AbonementClient) QueryCustomer(_m *Abonement) *CustomerQuery {
+	query := (&CustomerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(abonement.Table, abonement.FieldID, id),
+			sqlgraph.To(customer.Table, customer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, abonement.CustomerTable, abonement.CustomerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryItem queries the item edge of a Abonement.
+func (c *AbonementClient) QueryItem(_m *Abonement) *ItemQuery {
+	query := (&ItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(abonement.Table, abonement.FieldID, id),
+			sqlgraph.To(item.Table, item.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, abonement.ItemTable, abonement.ItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AbonementClient) Hooks() []Hook {
+	return c.hooks.Abonement
+}
+
+// Interceptors returns the client interceptors.
+func (c *AbonementClient) Interceptors() []Interceptor {
+	return c.inters.Abonement
+}
+
+func (c *AbonementClient) mutate(ctx context.Context, m *AbonementMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AbonementCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AbonementUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AbonementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AbonementDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Abonement mutation op: %q", m.Op())
 	}
 }
 
@@ -368,8 +549,8 @@ func (c *AccountClient) Update() *AccountUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *AccountClient) UpdateOne(a *Account) *AccountUpdateOne {
-	mutation := newAccountMutation(c.config, OpUpdateOne, withAccount(a))
+func (c *AccountClient) UpdateOne(_m *Account) *AccountUpdateOne {
+	mutation := newAccountMutation(c.config, OpUpdateOne, withAccount(_m))
 	return &AccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -386,8 +567,8 @@ func (c *AccountClient) Delete() *AccountDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *AccountClient) DeleteOne(a *Account) *AccountDeleteOne {
-	return c.DeleteOneID(a.ID)
+func (c *AccountClient) DeleteOne(_m *Account) *AccountDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -422,16 +603,16 @@ func (c *AccountClient) GetX(ctx context.Context, id int) *Account {
 }
 
 // QueryVendor queries the vendor edge of a Account.
-func (c *AccountClient) QueryVendor(a *Account) *VendorQuery {
+func (c *AccountClient) QueryVendor(_m *Account) *VendorQuery {
 	query := (&VendorClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := a.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(account.Table, account.FieldID, id),
 			sqlgraph.To(vendor.Table, vendor.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, account.VendorTable, account.VendorColumn),
 		)
-		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -517,8 +698,8 @@ func (c *BlockedIPClient) Update() *BlockedIPUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *BlockedIPClient) UpdateOne(bi *BlockedIP) *BlockedIPUpdateOne {
-	mutation := newBlockedIPMutation(c.config, OpUpdateOne, withBlockedIP(bi))
+func (c *BlockedIPClient) UpdateOne(_m *BlockedIP) *BlockedIPUpdateOne {
+	mutation := newBlockedIPMutation(c.config, OpUpdateOne, withBlockedIP(_m))
 	return &BlockedIPUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -535,8 +716,8 @@ func (c *BlockedIPClient) Delete() *BlockedIPDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *BlockedIPClient) DeleteOne(bi *BlockedIP) *BlockedIPDeleteOne {
-	return c.DeleteOneID(bi.ID)
+func (c *BlockedIPClient) DeleteOne(_m *BlockedIP) *BlockedIPDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -650,8 +831,8 @@ func (c *CommentClient) Update() *CommentUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *CommentClient) UpdateOne(co *Comment) *CommentUpdateOne {
-	mutation := newCommentMutation(c.config, OpUpdateOne, withComment(co))
+func (c *CommentClient) UpdateOne(_m *Comment) *CommentUpdateOne {
+	mutation := newCommentMutation(c.config, OpUpdateOne, withComment(_m))
 	return &CommentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -668,8 +849,8 @@ func (c *CommentClient) Delete() *CommentDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *CommentClient) DeleteOne(co *Comment) *CommentDeleteOne {
-	return c.DeleteOneID(co.ID)
+func (c *CommentClient) DeleteOne(_m *Comment) *CommentDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -704,16 +885,16 @@ func (c *CommentClient) GetX(ctx context.Context, id int) *Comment {
 }
 
 // QueryVendor queries the vendor edge of a Comment.
-func (c *CommentClient) QueryVendor(co *Comment) *VendorQuery {
+func (c *CommentClient) QueryVendor(_m *Comment) *VendorQuery {
 	query := (&VendorClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := co.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(comment.Table, comment.FieldID, id),
 			sqlgraph.To(vendor.Table, vendor.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, comment.VendorTable, comment.VendorColumn),
 		)
-		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -741,6 +922,155 @@ func (c *CommentClient) mutate(ctx context.Context, m *CommentMutation) (Value, 
 		return (&CommentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Comment mutation op: %q", m.Op())
+	}
+}
+
+// CustomerClient is a client for the Customer schema.
+type CustomerClient struct {
+	config
+}
+
+// NewCustomerClient returns a client for the Customer from the given config.
+func NewCustomerClient(c config) *CustomerClient {
+	return &CustomerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `customer.Hooks(f(g(h())))`.
+func (c *CustomerClient) Use(hooks ...Hook) {
+	c.hooks.Customer = append(c.hooks.Customer, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `customer.Intercept(f(g(h())))`.
+func (c *CustomerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Customer = append(c.inters.Customer, interceptors...)
+}
+
+// Create returns a builder for creating a Customer entity.
+func (c *CustomerClient) Create() *CustomerCreate {
+	mutation := newCustomerMutation(c.config, OpCreate)
+	return &CustomerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Customer entities.
+func (c *CustomerClient) CreateBulk(builders ...*CustomerCreate) *CustomerCreateBulk {
+	return &CustomerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CustomerClient) MapCreateBulk(slice any, setFunc func(*CustomerCreate, int)) *CustomerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CustomerCreateBulk{err: fmt.Errorf("calling to CustomerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CustomerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CustomerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Customer.
+func (c *CustomerClient) Update() *CustomerUpdate {
+	mutation := newCustomerMutation(c.config, OpUpdate)
+	return &CustomerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CustomerClient) UpdateOne(_m *Customer) *CustomerUpdateOne {
+	mutation := newCustomerMutation(c.config, OpUpdateOne, withCustomer(_m))
+	return &CustomerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CustomerClient) UpdateOneID(id int) *CustomerUpdateOne {
+	mutation := newCustomerMutation(c.config, OpUpdateOne, withCustomerID(id))
+	return &CustomerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Customer.
+func (c *CustomerClient) Delete() *CustomerDelete {
+	mutation := newCustomerMutation(c.config, OpDelete)
+	return &CustomerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CustomerClient) DeleteOne(_m *Customer) *CustomerDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CustomerClient) DeleteOneID(id int) *CustomerDeleteOne {
+	builder := c.Delete().Where(customer.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CustomerDeleteOne{builder}
+}
+
+// Query returns a query builder for Customer.
+func (c *CustomerClient) Query() *CustomerQuery {
+	return &CustomerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCustomer},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Customer entity by its id.
+func (c *CustomerClient) Get(ctx context.Context, id int) (*Customer, error) {
+	return c.Query().Where(customer.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CustomerClient) GetX(ctx context.Context, id int) *Customer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAbonements queries the abonements edge of a Customer.
+func (c *CustomerClient) QueryAbonements(_m *Customer) *AbonementQuery {
+	query := (&AbonementClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(customer.Table, customer.FieldID, id),
+			sqlgraph.To(abonement.Table, abonement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, customer.AbonementsTable, customer.AbonementsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CustomerClient) Hooks() []Hook {
+	return c.hooks.Customer
+}
+
+// Interceptors returns the client interceptors.
+func (c *CustomerClient) Interceptors() []Interceptor {
+	return c.inters.Customer
+}
+
+func (c *CustomerClient) mutate(ctx context.Context, m *CustomerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CustomerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CustomerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CustomerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CustomerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Customer mutation op: %q", m.Op())
 	}
 }
 
@@ -799,8 +1129,8 @@ func (c *DBSettingsClient) Update() *DBSettingsUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *DBSettingsClient) UpdateOne(ds *DBSettings) *DBSettingsUpdateOne {
-	mutation := newDBSettingsMutation(c.config, OpUpdateOne, withDBSettings(ds))
+func (c *DBSettingsClient) UpdateOne(_m *DBSettings) *DBSettingsUpdateOne {
+	mutation := newDBSettingsMutation(c.config, OpUpdateOne, withDBSettings(_m))
 	return &DBSettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -817,8 +1147,8 @@ func (c *DBSettingsClient) Delete() *DBSettingsDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *DBSettingsClient) DeleteOne(ds *DBSettings) *DBSettingsDeleteOne {
-	return c.DeleteOneID(ds.ID)
+func (c *DBSettingsClient) DeleteOne(_m *DBSettings) *DBSettingsDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -932,8 +1262,8 @@ func (c *ItemClient) Update() *ItemUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ItemClient) UpdateOne(i *Item) *ItemUpdateOne {
-	mutation := newItemMutation(c.config, OpUpdateOne, withItem(i))
+func (c *ItemClient) UpdateOne(_m *Item) *ItemUpdateOne {
+	mutation := newItemMutation(c.config, OpUpdateOne, withItem(_m))
 	return &ItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -950,8 +1280,8 @@ func (c *ItemClient) Delete() *ItemDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ItemClient) DeleteOne(i *Item) *ItemDeleteOne {
-	return c.DeleteOneID(i.ID)
+func (c *ItemClient) DeleteOne(_m *Item) *ItemDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -986,32 +1316,32 @@ func (c *ItemClient) GetX(ctx context.Context, id int) *Item {
 }
 
 // QueryLicenseItem queries the LicenseItem edge of a Item.
-func (c *ItemClient) QueryLicenseItem(i *Item) *ItemQuery {
+func (c *ItemClient) QueryLicenseItem(_m *Item) *ItemQuery {
 	query := (&ItemClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := i.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(item.Table, item.FieldID, id),
 			sqlgraph.To(item.Table, item.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, item.LicenseItemTable, item.LicenseItemColumn),
 		)
-		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryPDF queries the PDF edge of a Item.
-func (c *ItemClient) QueryPDF(i *Item) *PDFQuery {
+func (c *ItemClient) QueryPDF(_m *Item) *PDFQuery {
 	query := (&PDFClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := i.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(item.Table, item.FieldID, id),
 			sqlgraph.To(pdf.Table, pdf.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, item.PDFTable, item.PDFColumn),
 		)
-		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -1097,8 +1427,8 @@ func (c *LocationClient) Update() *LocationUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *LocationClient) UpdateOne(l *Location) *LocationUpdateOne {
-	mutation := newLocationMutation(c.config, OpUpdateOne, withLocation(l))
+func (c *LocationClient) UpdateOne(_m *Location) *LocationUpdateOne {
+	mutation := newLocationMutation(c.config, OpUpdateOne, withLocation(_m))
 	return &LocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1115,8 +1445,8 @@ func (c *LocationClient) Delete() *LocationDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *LocationClient) DeleteOne(l *Location) *LocationDeleteOne {
-	return c.DeleteOneID(l.ID)
+func (c *LocationClient) DeleteOne(_m *Location) *LocationDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1151,16 +1481,16 @@ func (c *LocationClient) GetX(ctx context.Context, id int) *Location {
 }
 
 // QueryVendor queries the vendor edge of a Location.
-func (c *LocationClient) QueryVendor(l *Location) *VendorQuery {
+func (c *LocationClient) QueryVendor(_m *Location) *VendorQuery {
 	query := (&VendorClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := l.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(location.Table, location.FieldID, id),
 			sqlgraph.To(vendor.Table, vendor.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, location.VendorTable, location.VendorColumn),
 		)
-		fromV = sqlgraph.Neighbors(l.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -1246,8 +1576,8 @@ func (c *MailTemplateClient) Update() *MailTemplateUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *MailTemplateClient) UpdateOne(mt *MailTemplate) *MailTemplateUpdateOne {
-	mutation := newMailTemplateMutation(c.config, OpUpdateOne, withMailTemplate(mt))
+func (c *MailTemplateClient) UpdateOne(_m *MailTemplate) *MailTemplateUpdateOne {
+	mutation := newMailTemplateMutation(c.config, OpUpdateOne, withMailTemplate(_m))
 	return &MailTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1264,8 +1594,8 @@ func (c *MailTemplateClient) Delete() *MailTemplateDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *MailTemplateClient) DeleteOne(mt *MailTemplate) *MailTemplateDeleteOne {
-	return c.DeleteOneID(mt.ID)
+func (c *MailTemplateClient) DeleteOne(_m *MailTemplate) *MailTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1379,8 +1709,8 @@ func (c *OrderClient) Update() *OrderUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *OrderClient) UpdateOne(o *Order) *OrderUpdateOne {
-	mutation := newOrderMutation(c.config, OpUpdateOne, withOrder(o))
+func (c *OrderClient) UpdateOne(_m *Order) *OrderUpdateOne {
+	mutation := newOrderMutation(c.config, OpUpdateOne, withOrder(_m))
 	return &OrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1397,8 +1727,8 @@ func (c *OrderClient) Delete() *OrderDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *OrderClient) DeleteOne(o *Order) *OrderDeleteOne {
-	return c.DeleteOneID(o.ID)
+func (c *OrderClient) DeleteOne(_m *Order) *OrderDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1433,32 +1763,32 @@ func (c *OrderClient) GetX(ctx context.Context, id int) *Order {
 }
 
 // QueryEntries queries the entries edge of a Order.
-func (c *OrderClient) QueryEntries(o *Order) *OrderEntryQuery {
+func (c *OrderClient) QueryEntries(_m *Order) *OrderEntryQuery {
 	query := (&OrderEntryClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := o.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(order.Table, order.FieldID, id),
 			sqlgraph.To(orderentry.Table, orderentry.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.EntriesTable, order.EntriesColumn),
 		)
-		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryPayments queries the payments edge of a Order.
-func (c *OrderClient) QueryPayments(o *Order) *PaymentQuery {
+func (c *OrderClient) QueryPayments(_m *Order) *PaymentQuery {
 	query := (&PaymentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := o.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(order.Table, order.FieldID, id),
 			sqlgraph.To(payment.Table, payment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.PaymentsTable, order.PaymentsColumn),
 		)
-		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -1544,8 +1874,8 @@ func (c *OrderEntryClient) Update() *OrderEntryUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *OrderEntryClient) UpdateOne(oe *OrderEntry) *OrderEntryUpdateOne {
-	mutation := newOrderEntryMutation(c.config, OpUpdateOne, withOrderEntry(oe))
+func (c *OrderEntryClient) UpdateOne(_m *OrderEntry) *OrderEntryUpdateOne {
+	mutation := newOrderEntryMutation(c.config, OpUpdateOne, withOrderEntry(_m))
 	return &OrderEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1562,8 +1892,8 @@ func (c *OrderEntryClient) Delete() *OrderEntryDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *OrderEntryClient) DeleteOne(oe *OrderEntry) *OrderEntryDeleteOne {
-	return c.DeleteOneID(oe.ID)
+func (c *OrderEntryClient) DeleteOne(_m *OrderEntry) *OrderEntryDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1598,64 +1928,64 @@ func (c *OrderEntryClient) GetX(ctx context.Context, id int) *OrderEntry {
 }
 
 // QueryOrder queries the order edge of a OrderEntry.
-func (c *OrderEntryClient) QueryOrder(oe *OrderEntry) *OrderQuery {
+func (c *OrderEntryClient) QueryOrder(_m *OrderEntry) *OrderQuery {
 	query := (&OrderClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := oe.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(orderentry.Table, orderentry.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderentry.OrderTable, orderentry.OrderColumn),
 		)
-		fromV = sqlgraph.Neighbors(oe.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryItem queries the item edge of a OrderEntry.
-func (c *OrderEntryClient) QueryItem(oe *OrderEntry) *ItemQuery {
+func (c *OrderEntryClient) QueryItem(_m *OrderEntry) *ItemQuery {
 	query := (&ItemClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := oe.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(orderentry.Table, orderentry.FieldID, id),
 			sqlgraph.To(item.Table, item.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, orderentry.ItemTable, orderentry.ItemColumn),
 		)
-		fromV = sqlgraph.Neighbors(oe.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QuerySender queries the sender edge of a OrderEntry.
-func (c *OrderEntryClient) QuerySender(oe *OrderEntry) *AccountQuery {
+func (c *OrderEntryClient) QuerySender(_m *OrderEntry) *AccountQuery {
 	query := (&AccountClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := oe.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(orderentry.Table, orderentry.FieldID, id),
 			sqlgraph.To(account.Table, account.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, orderentry.SenderTable, orderentry.SenderColumn),
 		)
-		fromV = sqlgraph.Neighbors(oe.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryReceiver queries the receiver edge of a OrderEntry.
-func (c *OrderEntryClient) QueryReceiver(oe *OrderEntry) *AccountQuery {
+func (c *OrderEntryClient) QueryReceiver(_m *OrderEntry) *AccountQuery {
 	query := (&AccountClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := oe.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(orderentry.Table, orderentry.FieldID, id),
 			sqlgraph.To(account.Table, account.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, orderentry.ReceiverTable, orderentry.ReceiverColumn),
 		)
-		fromV = sqlgraph.Neighbors(oe.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -1741,8 +2071,8 @@ func (c *PDFClient) Update() *PDFUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *PDFClient) UpdateOne(pd *PDF) *PDFUpdateOne {
-	mutation := newPDFMutation(c.config, OpUpdateOne, withPDF(pd))
+func (c *PDFClient) UpdateOne(_m *PDF) *PDFUpdateOne {
+	mutation := newPDFMutation(c.config, OpUpdateOne, withPDF(_m))
 	return &PDFUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1759,8 +2089,8 @@ func (c *PDFClient) Delete() *PDFDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *PDFClient) DeleteOne(pd *PDF) *PDFDeleteOne {
-	return c.DeleteOneID(pd.ID)
+func (c *PDFClient) DeleteOne(_m *PDF) *PDFDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1874,8 +2204,8 @@ func (c *PDFDownloadClient) Update() *PDFDownloadUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *PDFDownloadClient) UpdateOne(pd *PDFDownload) *PDFDownloadUpdateOne {
-	mutation := newPDFDownloadMutation(c.config, OpUpdateOne, withPDFDownload(pd))
+func (c *PDFDownloadClient) UpdateOne(_m *PDFDownload) *PDFDownloadUpdateOne {
+	mutation := newPDFDownloadMutation(c.config, OpUpdateOne, withPDFDownload(_m))
 	return &PDFDownloadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1892,8 +2222,8 @@ func (c *PDFDownloadClient) Delete() *PDFDownloadDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *PDFDownloadClient) DeleteOne(pd *PDFDownload) *PDFDownloadDeleteOne {
-	return c.DeleteOneID(pd.ID)
+func (c *PDFDownloadClient) DeleteOne(_m *PDFDownload) *PDFDownloadDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -2007,8 +2337,8 @@ func (c *PaymentClient) Update() *PaymentUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *PaymentClient) UpdateOne(pa *Payment) *PaymentUpdateOne {
-	mutation := newPaymentMutation(c.config, OpUpdateOne, withPayment(pa))
+func (c *PaymentClient) UpdateOne(_m *Payment) *PaymentUpdateOne {
+	mutation := newPaymentMutation(c.config, OpUpdateOne, withPayment(_m))
 	return &PaymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2025,8 +2355,8 @@ func (c *PaymentClient) Delete() *PaymentDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *PaymentClient) DeleteOne(pa *Payment) *PaymentDeleteOne {
-	return c.DeleteOneID(pa.ID)
+func (c *PaymentClient) DeleteOne(_m *Payment) *PaymentDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -2061,48 +2391,48 @@ func (c *PaymentClient) GetX(ctx context.Context, id int) *Payment {
 }
 
 // QueryOrder queries the order edge of a Payment.
-func (c *PaymentClient) QueryOrder(pa *Payment) *OrderQuery {
+func (c *PaymentClient) QueryOrder(_m *Payment) *OrderQuery {
 	query := (&OrderClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := pa.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(payment.Table, payment.FieldID, id),
 			sqlgraph.To(order.Table, order.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, payment.OrderTable, payment.OrderColumn),
 		)
-		fromV = sqlgraph.Neighbors(pa.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryParent queries the parent edge of a Payment.
-func (c *PaymentClient) QueryParent(pa *Payment) *PaymentQuery {
+func (c *PaymentClient) QueryParent(_m *Payment) *PaymentQuery {
 	query := (&PaymentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := pa.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(payment.Table, payment.FieldID, id),
 			sqlgraph.To(payment.Table, payment.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, payment.ParentTable, payment.ParentColumn),
 		)
-		fromV = sqlgraph.Neighbors(pa.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryChildren queries the children edge of a Payment.
-func (c *PaymentClient) QueryChildren(pa *Payment) *PaymentQuery {
+func (c *PaymentClient) QueryChildren(_m *Payment) *PaymentQuery {
 	query := (&PaymentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := pa.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(payment.Table, payment.FieldID, id),
 			sqlgraph.To(payment.Table, payment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, payment.ChildrenTable, payment.ChildrenColumn),
 		)
-		fromV = sqlgraph.Neighbors(pa.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -2188,8 +2518,8 @@ func (c *SettingsClient) Update() *SettingsUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *SettingsClient) UpdateOne(s *Settings) *SettingsUpdateOne {
-	mutation := newSettingsMutation(c.config, OpUpdateOne, withSettings(s))
+func (c *SettingsClient) UpdateOne(_m *Settings) *SettingsUpdateOne {
+	mutation := newSettingsMutation(c.config, OpUpdateOne, withSettings(_m))
 	return &SettingsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2206,8 +2536,8 @@ func (c *SettingsClient) Delete() *SettingsDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *SettingsClient) DeleteOne(s *Settings) *SettingsDeleteOne {
-	return c.DeleteOneID(s.ID)
+func (c *SettingsClient) DeleteOne(_m *Settings) *SettingsDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -2242,16 +2572,16 @@ func (c *SettingsClient) GetX(ctx context.Context, id int) *Settings {
 }
 
 // QueryMainItem queries the MainItem edge of a Settings.
-func (c *SettingsClient) QueryMainItem(s *Settings) *ItemQuery {
+func (c *SettingsClient) QueryMainItem(_m *Settings) *ItemQuery {
 	query := (&ItemClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := s.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(settings.Table, settings.FieldID, id),
 			sqlgraph.To(item.Table, item.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, settings.MainItemTable, settings.MainItemColumn),
 		)
-		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -2337,8 +2667,8 @@ func (c *VendorClient) Update() *VendorUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *VendorClient) UpdateOne(v *Vendor) *VendorUpdateOne {
-	mutation := newVendorMutation(c.config, OpUpdateOne, withVendor(v))
+func (c *VendorClient) UpdateOne(_m *Vendor) *VendorUpdateOne {
+	mutation := newVendorMutation(c.config, OpUpdateOne, withVendor(_m))
 	return &VendorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2355,8 +2685,8 @@ func (c *VendorClient) Delete() *VendorDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *VendorClient) DeleteOne(v *Vendor) *VendorDeleteOne {
-	return c.DeleteOneID(v.ID)
+func (c *VendorClient) DeleteOne(_m *Vendor) *VendorDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -2391,48 +2721,48 @@ func (c *VendorClient) GetX(ctx context.Context, id int) *Vendor {
 }
 
 // QueryLocations queries the locations edge of a Vendor.
-func (c *VendorClient) QueryLocations(v *Vendor) *LocationQuery {
+func (c *VendorClient) QueryLocations(_m *Vendor) *LocationQuery {
 	query := (&LocationClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := v.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(vendor.Table, vendor.FieldID, id),
 			sqlgraph.To(location.Table, location.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, vendor.LocationsTable, vendor.LocationsColumn),
 		)
-		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryComments queries the comments edge of a Vendor.
-func (c *VendorClient) QueryComments(v *Vendor) *CommentQuery {
+func (c *VendorClient) QueryComments(_m *Vendor) *CommentQuery {
 	query := (&CommentClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := v.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(vendor.Table, vendor.FieldID, id),
 			sqlgraph.To(comment.Table, comment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, vendor.CommentsTable, vendor.CommentsColumn),
 		)
-		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryAccounts queries the accounts edge of a Vendor.
-func (c *VendorClient) QueryAccounts(v *Vendor) *AccountQuery {
+func (c *VendorClient) QueryAccounts(_m *Vendor) *AccountQuery {
 	query := (&AccountClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := v.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(vendor.Table, vendor.FieldID, id),
 			sqlgraph.To(account.Table, account.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, vendor.AccountsTable, vendor.AccountsColumn),
 		)
-		fromV = sqlgraph.Neighbors(v.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -2466,11 +2796,13 @@ func (c *VendorClient) mutate(ctx context.Context, m *VendorMutation) (Value, er
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Account, BlockedIP, Comment, DBSettings, Item, Location, MailTemplate, Order,
-		OrderEntry, PDF, PDFDownload, Payment, Settings, Vendor []ent.Hook
+		Abonement, Account, BlockedIP, Comment, Customer, DBSettings, Item, Location,
+		MailTemplate, Order, OrderEntry, PDF, PDFDownload, Payment, Settings,
+		Vendor []ent.Hook
 	}
 	inters struct {
-		Account, BlockedIP, Comment, DBSettings, Item, Location, MailTemplate, Order,
-		OrderEntry, PDF, PDFDownload, Payment, Settings, Vendor []ent.Interceptor
+		Abonement, Account, BlockedIP, Comment, Customer, DBSettings, Item, Location,
+		MailTemplate, Order, OrderEntry, PDF, PDFDownload, Payment, Settings,
+		Vendor []ent.Interceptor
 	}
 )

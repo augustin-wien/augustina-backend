@@ -9,6 +9,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/ent"
+	schema "github.com/augustin-wien/augustina-backend/ent/schema"
 	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/stretchr/testify/require"
@@ -139,12 +140,15 @@ func TestVendors(t *testing.T) {
 		HasBankAccount: true,
 		Locations: []*ent.Location{
 			{
-				Name:        "test",
-				Address:     "test",
-				Longitude:   10.0,
-				Latitude:    20.0,
-				Zip:         "1234",
-				WorkingTime: "G",
+				Name:      "test",
+				Address:   "test",
+				Longitude: 10.0,
+				Latitude:  20.0,
+				Zip:       "1234",
+				WorkingTime: &schema.WorkingTime{
+					Mode:      "whole_week",
+					WholeWeek: true,
+				},
 			},
 		},
 		Comments: []*ent.Comment{
@@ -233,7 +237,7 @@ func TestQueryOrders(t *testing.T) {
 	utils.CheckError(t, err)
 	receiverVendorID, err := Db.CreateVendor(Vendor{LicenseID: null.StringFrom("receiver")})
 	utils.CheckError(t, err)
-	itemID, err := Db.CreateItem(Item{Name: "test-item", Description: "Auto-created test item", Price: 1})
+	itemID, err := Db.CreateItem(Item{Name: "test-item", Description: "Auto-created test item", Price: 1, Type: "normal_item"})
 	utils.CheckError(t, err)
 
 	senderAccount, err := Db.GetAccountByVendorID(senderVendorID)
@@ -380,9 +384,9 @@ func TestVendorTwoPaymentsBalance(t *testing.T) {
 	utils.CheckError(t, err)
 
 	// Create two items with different prices
-	itemA, err := Db.CreateItem(Item{Name: "item-A", Description: "A", Price: 100})
+	itemA, err := Db.CreateItem(Item{Name: "item-A", Description: "A", Price: 100, Type: "normal_item"})
 	utils.CheckError(t, err)
-	itemB, err := Db.CreateItem(Item{Name: "item-B", Description: "B", Price: 200})
+	itemB, err := Db.CreateItem(Item{Name: "item-B", Description: "B", Price: 200, Type: "normal_item"})
 	utils.CheckError(t, err)
 
 	// Create two separate payments (one for each item)

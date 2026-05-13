@@ -129,6 +129,32 @@ func AdminAuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// CustomerAuthMiddleware is a middleware to check if the request is authorized as customer
+func CustomerAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// ignore for options request
+		if r.Method == "OPTIONS" {
+			next.ServeHTTP(w, r)
+			return // skip
+		}
+
+		if r.Header.Get("X-Auth-User-Validated") == "false" {
+			log.Info("CustomerAuthMiddleware: No validated user", r.Header.Get("X-Auth-User"))
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		if r.Header.Get("X-Auth-Groups-"+keycloak.KeycloakClient.CustomerGroup) == "" && r.Header.Get("X-Auth-Roles-customer") == "" && r.Header.Get("X-Auth-Roles-admin") == "" {
+			log.Infof("CustomerAuthMiddleware: User %v has no customer role", r.Header.Get("X-Auth-User"))
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // FlourAuthMiddleware is a middleware to check if the request is authorized as admin
 func FlourAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -23,99 +23,99 @@ type BlockedIPUpdate struct {
 }
 
 // Where appends a list predicates to the BlockedIPUpdate builder.
-func (biu *BlockedIPUpdate) Where(ps ...predicate.BlockedIP) *BlockedIPUpdate {
-	biu.mutation.Where(ps...)
-	return biu
+func (_u *BlockedIPUpdate) Where(ps ...predicate.BlockedIP) *BlockedIPUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetIP sets the "ip" field.
-func (biu *BlockedIPUpdate) SetIP(s string) *BlockedIPUpdate {
-	biu.mutation.SetIP(s)
-	return biu
+func (_u *BlockedIPUpdate) SetIP(v string) *BlockedIPUpdate {
+	_u.mutation.SetIP(v)
+	return _u
 }
 
 // SetNillableIP sets the "ip" field if the given value is not nil.
-func (biu *BlockedIPUpdate) SetNillableIP(s *string) *BlockedIPUpdate {
-	if s != nil {
-		biu.SetIP(*s)
+func (_u *BlockedIPUpdate) SetNillableIP(v *string) *BlockedIPUpdate {
+	if v != nil {
+		_u.SetIP(*v)
 	}
-	return biu
+	return _u
 }
 
 // SetStrikes sets the "strikes" field.
-func (biu *BlockedIPUpdate) SetStrikes(i int) *BlockedIPUpdate {
-	biu.mutation.ResetStrikes()
-	biu.mutation.SetStrikes(i)
-	return biu
+func (_u *BlockedIPUpdate) SetStrikes(v int) *BlockedIPUpdate {
+	_u.mutation.ResetStrikes()
+	_u.mutation.SetStrikes(v)
+	return _u
 }
 
 // SetNillableStrikes sets the "strikes" field if the given value is not nil.
-func (biu *BlockedIPUpdate) SetNillableStrikes(i *int) *BlockedIPUpdate {
-	if i != nil {
-		biu.SetStrikes(*i)
+func (_u *BlockedIPUpdate) SetNillableStrikes(v *int) *BlockedIPUpdate {
+	if v != nil {
+		_u.SetStrikes(*v)
 	}
-	return biu
+	return _u
 }
 
-// AddStrikes adds i to the "strikes" field.
-func (biu *BlockedIPUpdate) AddStrikes(i int) *BlockedIPUpdate {
-	biu.mutation.AddStrikes(i)
-	return biu
+// AddStrikes adds value to the "strikes" field.
+func (_u *BlockedIPUpdate) AddStrikes(v int) *BlockedIPUpdate {
+	_u.mutation.AddStrikes(v)
+	return _u
 }
 
 // SetBlockExpiresAt sets the "block_expires_at" field.
-func (biu *BlockedIPUpdate) SetBlockExpiresAt(t time.Time) *BlockedIPUpdate {
-	biu.mutation.SetBlockExpiresAt(t)
-	return biu
+func (_u *BlockedIPUpdate) SetBlockExpiresAt(v time.Time) *BlockedIPUpdate {
+	_u.mutation.SetBlockExpiresAt(v)
+	return _u
 }
 
 // SetNillableBlockExpiresAt sets the "block_expires_at" field if the given value is not nil.
-func (biu *BlockedIPUpdate) SetNillableBlockExpiresAt(t *time.Time) *BlockedIPUpdate {
-	if t != nil {
-		biu.SetBlockExpiresAt(*t)
+func (_u *BlockedIPUpdate) SetNillableBlockExpiresAt(v *time.Time) *BlockedIPUpdate {
+	if v != nil {
+		_u.SetBlockExpiresAt(*v)
 	}
-	return biu
+	return _u
 }
 
 // ClearBlockExpiresAt clears the value of the "block_expires_at" field.
-func (biu *BlockedIPUpdate) ClearBlockExpiresAt() *BlockedIPUpdate {
-	biu.mutation.ClearBlockExpiresAt()
-	return biu
+func (_u *BlockedIPUpdate) ClearBlockExpiresAt() *BlockedIPUpdate {
+	_u.mutation.ClearBlockExpiresAt()
+	return _u
 }
 
 // SetReason sets the "reason" field.
-func (biu *BlockedIPUpdate) SetReason(s string) *BlockedIPUpdate {
-	biu.mutation.SetReason(s)
-	return biu
+func (_u *BlockedIPUpdate) SetReason(v string) *BlockedIPUpdate {
+	_u.mutation.SetReason(v)
+	return _u
 }
 
 // SetNillableReason sets the "reason" field if the given value is not nil.
-func (biu *BlockedIPUpdate) SetNillableReason(s *string) *BlockedIPUpdate {
-	if s != nil {
-		biu.SetReason(*s)
+func (_u *BlockedIPUpdate) SetNillableReason(v *string) *BlockedIPUpdate {
+	if v != nil {
+		_u.SetReason(*v)
 	}
-	return biu
+	return _u
 }
 
 // ClearReason clears the value of the "reason" field.
-func (biu *BlockedIPUpdate) ClearReason() *BlockedIPUpdate {
-	biu.mutation.ClearReason()
-	return biu
+func (_u *BlockedIPUpdate) ClearReason() *BlockedIPUpdate {
+	_u.mutation.ClearReason()
+	return _u
 }
 
 // Mutation returns the BlockedIPMutation object of the builder.
-func (biu *BlockedIPUpdate) Mutation() *BlockedIPMutation {
-	return biu.mutation
+func (_u *BlockedIPUpdate) Mutation() *BlockedIPMutation {
+	return _u.mutation
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (biu *BlockedIPUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, biu.sqlSave, biu.mutation, biu.hooks)
+func (_u *BlockedIPUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (biu *BlockedIPUpdate) SaveX(ctx context.Context) int {
-	affected, err := biu.Save(ctx)
+func (_u *BlockedIPUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -123,21 +123,21 @@ func (biu *BlockedIPUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (biu *BlockedIPUpdate) Exec(ctx context.Context) error {
-	_, err := biu.Save(ctx)
+func (_u *BlockedIPUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (biu *BlockedIPUpdate) ExecX(ctx context.Context) {
-	if err := biu.Exec(ctx); err != nil {
+func (_u *BlockedIPUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (biu *BlockedIPUpdate) check() error {
-	if v, ok := biu.mutation.IP(); ok {
+func (_u *BlockedIPUpdate) check() error {
+	if v, ok := _u.mutation.IP(); ok {
 		if err := blockedip.IPValidator(v); err != nil {
 			return &ValidationError{Name: "ip", err: fmt.Errorf(`ent: validator failed for field "BlockedIP.ip": %w`, err)}
 		}
@@ -145,40 +145,40 @@ func (biu *BlockedIPUpdate) check() error {
 	return nil
 }
 
-func (biu *BlockedIPUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := biu.check(); err != nil {
-		return n, err
+func (_u *BlockedIPUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(blockedip.Table, blockedip.Columns, sqlgraph.NewFieldSpec(blockedip.FieldID, field.TypeInt))
-	if ps := biu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := biu.mutation.IP(); ok {
+	if value, ok := _u.mutation.IP(); ok {
 		_spec.SetField(blockedip.FieldIP, field.TypeString, value)
 	}
-	if value, ok := biu.mutation.Strikes(); ok {
+	if value, ok := _u.mutation.Strikes(); ok {
 		_spec.SetField(blockedip.FieldStrikes, field.TypeInt, value)
 	}
-	if value, ok := biu.mutation.AddedStrikes(); ok {
+	if value, ok := _u.mutation.AddedStrikes(); ok {
 		_spec.AddField(blockedip.FieldStrikes, field.TypeInt, value)
 	}
-	if value, ok := biu.mutation.BlockExpiresAt(); ok {
+	if value, ok := _u.mutation.BlockExpiresAt(); ok {
 		_spec.SetField(blockedip.FieldBlockExpiresAt, field.TypeTime, value)
 	}
-	if biu.mutation.BlockExpiresAtCleared() {
+	if _u.mutation.BlockExpiresAtCleared() {
 		_spec.ClearField(blockedip.FieldBlockExpiresAt, field.TypeTime)
 	}
-	if value, ok := biu.mutation.Reason(); ok {
+	if value, ok := _u.mutation.Reason(); ok {
 		_spec.SetField(blockedip.FieldReason, field.TypeString, value)
 	}
-	if biu.mutation.ReasonCleared() {
+	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(blockedip.FieldReason, field.TypeString)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, biu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{blockedip.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -186,8 +186,8 @@ func (biu *BlockedIPUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	biu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // BlockedIPUpdateOne is the builder for updating a single BlockedIP entity.
@@ -199,106 +199,106 @@ type BlockedIPUpdateOne struct {
 }
 
 // SetIP sets the "ip" field.
-func (biuo *BlockedIPUpdateOne) SetIP(s string) *BlockedIPUpdateOne {
-	biuo.mutation.SetIP(s)
-	return biuo
+func (_u *BlockedIPUpdateOne) SetIP(v string) *BlockedIPUpdateOne {
+	_u.mutation.SetIP(v)
+	return _u
 }
 
 // SetNillableIP sets the "ip" field if the given value is not nil.
-func (biuo *BlockedIPUpdateOne) SetNillableIP(s *string) *BlockedIPUpdateOne {
-	if s != nil {
-		biuo.SetIP(*s)
+func (_u *BlockedIPUpdateOne) SetNillableIP(v *string) *BlockedIPUpdateOne {
+	if v != nil {
+		_u.SetIP(*v)
 	}
-	return biuo
+	return _u
 }
 
 // SetStrikes sets the "strikes" field.
-func (biuo *BlockedIPUpdateOne) SetStrikes(i int) *BlockedIPUpdateOne {
-	biuo.mutation.ResetStrikes()
-	biuo.mutation.SetStrikes(i)
-	return biuo
+func (_u *BlockedIPUpdateOne) SetStrikes(v int) *BlockedIPUpdateOne {
+	_u.mutation.ResetStrikes()
+	_u.mutation.SetStrikes(v)
+	return _u
 }
 
 // SetNillableStrikes sets the "strikes" field if the given value is not nil.
-func (biuo *BlockedIPUpdateOne) SetNillableStrikes(i *int) *BlockedIPUpdateOne {
-	if i != nil {
-		biuo.SetStrikes(*i)
+func (_u *BlockedIPUpdateOne) SetNillableStrikes(v *int) *BlockedIPUpdateOne {
+	if v != nil {
+		_u.SetStrikes(*v)
 	}
-	return biuo
+	return _u
 }
 
-// AddStrikes adds i to the "strikes" field.
-func (biuo *BlockedIPUpdateOne) AddStrikes(i int) *BlockedIPUpdateOne {
-	biuo.mutation.AddStrikes(i)
-	return biuo
+// AddStrikes adds value to the "strikes" field.
+func (_u *BlockedIPUpdateOne) AddStrikes(v int) *BlockedIPUpdateOne {
+	_u.mutation.AddStrikes(v)
+	return _u
 }
 
 // SetBlockExpiresAt sets the "block_expires_at" field.
-func (biuo *BlockedIPUpdateOne) SetBlockExpiresAt(t time.Time) *BlockedIPUpdateOne {
-	biuo.mutation.SetBlockExpiresAt(t)
-	return biuo
+func (_u *BlockedIPUpdateOne) SetBlockExpiresAt(v time.Time) *BlockedIPUpdateOne {
+	_u.mutation.SetBlockExpiresAt(v)
+	return _u
 }
 
 // SetNillableBlockExpiresAt sets the "block_expires_at" field if the given value is not nil.
-func (biuo *BlockedIPUpdateOne) SetNillableBlockExpiresAt(t *time.Time) *BlockedIPUpdateOne {
-	if t != nil {
-		biuo.SetBlockExpiresAt(*t)
+func (_u *BlockedIPUpdateOne) SetNillableBlockExpiresAt(v *time.Time) *BlockedIPUpdateOne {
+	if v != nil {
+		_u.SetBlockExpiresAt(*v)
 	}
-	return biuo
+	return _u
 }
 
 // ClearBlockExpiresAt clears the value of the "block_expires_at" field.
-func (biuo *BlockedIPUpdateOne) ClearBlockExpiresAt() *BlockedIPUpdateOne {
-	biuo.mutation.ClearBlockExpiresAt()
-	return biuo
+func (_u *BlockedIPUpdateOne) ClearBlockExpiresAt() *BlockedIPUpdateOne {
+	_u.mutation.ClearBlockExpiresAt()
+	return _u
 }
 
 // SetReason sets the "reason" field.
-func (biuo *BlockedIPUpdateOne) SetReason(s string) *BlockedIPUpdateOne {
-	biuo.mutation.SetReason(s)
-	return biuo
+func (_u *BlockedIPUpdateOne) SetReason(v string) *BlockedIPUpdateOne {
+	_u.mutation.SetReason(v)
+	return _u
 }
 
 // SetNillableReason sets the "reason" field if the given value is not nil.
-func (biuo *BlockedIPUpdateOne) SetNillableReason(s *string) *BlockedIPUpdateOne {
-	if s != nil {
-		biuo.SetReason(*s)
+func (_u *BlockedIPUpdateOne) SetNillableReason(v *string) *BlockedIPUpdateOne {
+	if v != nil {
+		_u.SetReason(*v)
 	}
-	return biuo
+	return _u
 }
 
 // ClearReason clears the value of the "reason" field.
-func (biuo *BlockedIPUpdateOne) ClearReason() *BlockedIPUpdateOne {
-	biuo.mutation.ClearReason()
-	return biuo
+func (_u *BlockedIPUpdateOne) ClearReason() *BlockedIPUpdateOne {
+	_u.mutation.ClearReason()
+	return _u
 }
 
 // Mutation returns the BlockedIPMutation object of the builder.
-func (biuo *BlockedIPUpdateOne) Mutation() *BlockedIPMutation {
-	return biuo.mutation
+func (_u *BlockedIPUpdateOne) Mutation() *BlockedIPMutation {
+	return _u.mutation
 }
 
 // Where appends a list predicates to the BlockedIPUpdate builder.
-func (biuo *BlockedIPUpdateOne) Where(ps ...predicate.BlockedIP) *BlockedIPUpdateOne {
-	biuo.mutation.Where(ps...)
-	return biuo
+func (_u *BlockedIPUpdateOne) Where(ps ...predicate.BlockedIP) *BlockedIPUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (biuo *BlockedIPUpdateOne) Select(field string, fields ...string) *BlockedIPUpdateOne {
-	biuo.fields = append([]string{field}, fields...)
-	return biuo
+func (_u *BlockedIPUpdateOne) Select(field string, fields ...string) *BlockedIPUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated BlockedIP entity.
-func (biuo *BlockedIPUpdateOne) Save(ctx context.Context) (*BlockedIP, error) {
-	return withHooks(ctx, biuo.sqlSave, biuo.mutation, biuo.hooks)
+func (_u *BlockedIPUpdateOne) Save(ctx context.Context) (*BlockedIP, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (biuo *BlockedIPUpdateOne) SaveX(ctx context.Context) *BlockedIP {
-	node, err := biuo.Save(ctx)
+func (_u *BlockedIPUpdateOne) SaveX(ctx context.Context) *BlockedIP {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -306,21 +306,21 @@ func (biuo *BlockedIPUpdateOne) SaveX(ctx context.Context) *BlockedIP {
 }
 
 // Exec executes the query on the entity.
-func (biuo *BlockedIPUpdateOne) Exec(ctx context.Context) error {
-	_, err := biuo.Save(ctx)
+func (_u *BlockedIPUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (biuo *BlockedIPUpdateOne) ExecX(ctx context.Context) {
-	if err := biuo.Exec(ctx); err != nil {
+func (_u *BlockedIPUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (biuo *BlockedIPUpdateOne) check() error {
-	if v, ok := biuo.mutation.IP(); ok {
+func (_u *BlockedIPUpdateOne) check() error {
+	if v, ok := _u.mutation.IP(); ok {
 		if err := blockedip.IPValidator(v); err != nil {
 			return &ValidationError{Name: "ip", err: fmt.Errorf(`ent: validator failed for field "BlockedIP.ip": %w`, err)}
 		}
@@ -328,17 +328,17 @@ func (biuo *BlockedIPUpdateOne) check() error {
 	return nil
 }
 
-func (biuo *BlockedIPUpdateOne) sqlSave(ctx context.Context) (_node *BlockedIP, err error) {
-	if err := biuo.check(); err != nil {
+func (_u *BlockedIPUpdateOne) sqlSave(ctx context.Context) (_node *BlockedIP, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(blockedip.Table, blockedip.Columns, sqlgraph.NewFieldSpec(blockedip.FieldID, field.TypeInt))
-	id, ok := biuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "BlockedIP.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := biuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, blockedip.FieldID)
 		for _, f := range fields {
@@ -350,38 +350,38 @@ func (biuo *BlockedIPUpdateOne) sqlSave(ctx context.Context) (_node *BlockedIP, 
 			}
 		}
 	}
-	if ps := biuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := biuo.mutation.IP(); ok {
+	if value, ok := _u.mutation.IP(); ok {
 		_spec.SetField(blockedip.FieldIP, field.TypeString, value)
 	}
-	if value, ok := biuo.mutation.Strikes(); ok {
+	if value, ok := _u.mutation.Strikes(); ok {
 		_spec.SetField(blockedip.FieldStrikes, field.TypeInt, value)
 	}
-	if value, ok := biuo.mutation.AddedStrikes(); ok {
+	if value, ok := _u.mutation.AddedStrikes(); ok {
 		_spec.AddField(blockedip.FieldStrikes, field.TypeInt, value)
 	}
-	if value, ok := biuo.mutation.BlockExpiresAt(); ok {
+	if value, ok := _u.mutation.BlockExpiresAt(); ok {
 		_spec.SetField(blockedip.FieldBlockExpiresAt, field.TypeTime, value)
 	}
-	if biuo.mutation.BlockExpiresAtCleared() {
+	if _u.mutation.BlockExpiresAtCleared() {
 		_spec.ClearField(blockedip.FieldBlockExpiresAt, field.TypeTime)
 	}
-	if value, ok := biuo.mutation.Reason(); ok {
+	if value, ok := _u.mutation.Reason(); ok {
 		_spec.SetField(blockedip.FieldReason, field.TypeString, value)
 	}
-	if biuo.mutation.ReasonCleared() {
+	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(blockedip.FieldReason, field.TypeString)
 	}
-	_node = &BlockedIP{config: biuo.config}
+	_node = &BlockedIP{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, biuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{blockedip.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -389,6 +389,6 @@ func (biuo *BlockedIPUpdateOne) sqlSave(ctx context.Context) (_node *BlockedIP, 
 		}
 		return nil, err
 	}
-	biuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

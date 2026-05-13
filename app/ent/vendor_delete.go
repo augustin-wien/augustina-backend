@@ -20,56 +20,56 @@ type VendorDelete struct {
 }
 
 // Where appends a list predicates to the VendorDelete builder.
-func (vd *VendorDelete) Where(ps ...predicate.Vendor) *VendorDelete {
-	vd.mutation.Where(ps...)
-	return vd
+func (_d *VendorDelete) Where(ps ...predicate.Vendor) *VendorDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (vd *VendorDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, vd.sqlExec, vd.mutation, vd.hooks)
+func (_d *VendorDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (vd *VendorDelete) ExecX(ctx context.Context) int {
-	n, err := vd.Exec(ctx)
+func (_d *VendorDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (vd *VendorDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *VendorDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(vendor.Table, sqlgraph.NewFieldSpec(vendor.FieldID, field.TypeInt))
-	if ps := vd.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, vd.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	vd.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // VendorDeleteOne is the builder for deleting a single Vendor entity.
 type VendorDeleteOne struct {
-	vd *VendorDelete
+	_d *VendorDelete
 }
 
 // Where appends a list predicates to the VendorDelete builder.
-func (vdo *VendorDeleteOne) Where(ps ...predicate.Vendor) *VendorDeleteOne {
-	vdo.vd.mutation.Where(ps...)
-	return vdo
+func (_d *VendorDeleteOne) Where(ps ...predicate.Vendor) *VendorDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (vdo *VendorDeleteOne) Exec(ctx context.Context) error {
-	n, err := vdo.vd.Exec(ctx)
+func (_d *VendorDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (vdo *VendorDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (vdo *VendorDeleteOne) ExecX(ctx context.Context) {
-	if err := vdo.Exec(ctx); err != nil {
+func (_d *VendorDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

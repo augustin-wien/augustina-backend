@@ -21,352 +21,366 @@ type SettingsCreate struct {
 }
 
 // SetAGBUrl sets the "AGBUrl" field.
-func (sc *SettingsCreate) SetAGBUrl(s string) *SettingsCreate {
-	sc.mutation.SetAGBUrl(s)
-	return sc
+func (_c *SettingsCreate) SetAGBUrl(v string) *SettingsCreate {
+	_c.mutation.SetAGBUrl(v)
+	return _c
 }
 
 // SetNillableAGBUrl sets the "AGBUrl" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableAGBUrl(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetAGBUrl(*s)
+func (_c *SettingsCreate) SetNillableAGBUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetAGBUrl(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetColor sets the "Color" field.
-func (sc *SettingsCreate) SetColor(s string) *SettingsCreate {
-	sc.mutation.SetColor(s)
-	return sc
+func (_c *SettingsCreate) SetColor(v string) *SettingsCreate {
+	_c.mutation.SetColor(v)
+	return _c
 }
 
 // SetNillableColor sets the "Color" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableColor(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetColor(*s)
+func (_c *SettingsCreate) SetNillableColor(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetColor(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetFontColor sets the "FontColor" field.
-func (sc *SettingsCreate) SetFontColor(s string) *SettingsCreate {
-	sc.mutation.SetFontColor(s)
-	return sc
+func (_c *SettingsCreate) SetFontColor(v string) *SettingsCreate {
+	_c.mutation.SetFontColor(v)
+	return _c
 }
 
 // SetNillableFontColor sets the "FontColor" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableFontColor(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetFontColor(*s)
+func (_c *SettingsCreate) SetNillableFontColor(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetFontColor(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetLogo sets the "Logo" field.
-func (sc *SettingsCreate) SetLogo(s string) *SettingsCreate {
-	sc.mutation.SetLogo(s)
-	return sc
+func (_c *SettingsCreate) SetLogo(v string) *SettingsCreate {
+	_c.mutation.SetLogo(v)
+	return _c
 }
 
 // SetNillableLogo sets the "Logo" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableLogo(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetLogo(*s)
+func (_c *SettingsCreate) SetNillableLogo(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetLogo(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetMaxOrderAmount sets the "MaxOrderAmount" field.
-func (sc *SettingsCreate) SetMaxOrderAmount(i int) *SettingsCreate {
-	sc.mutation.SetMaxOrderAmount(i)
-	return sc
+func (_c *SettingsCreate) SetMaxOrderAmount(v int) *SettingsCreate {
+	_c.mutation.SetMaxOrderAmount(v)
+	return _c
 }
 
 // SetNillableMaxOrderAmount sets the "MaxOrderAmount" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableMaxOrderAmount(i *int) *SettingsCreate {
-	if i != nil {
-		sc.SetMaxOrderAmount(*i)
+func (_c *SettingsCreate) SetNillableMaxOrderAmount(v *int) *SettingsCreate {
+	if v != nil {
+		_c.SetMaxOrderAmount(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetOrgaCoversTransactionCosts sets the "OrgaCoversTransactionCosts" field.
-func (sc *SettingsCreate) SetOrgaCoversTransactionCosts(b bool) *SettingsCreate {
-	sc.mutation.SetOrgaCoversTransactionCosts(b)
-	return sc
+func (_c *SettingsCreate) SetOrgaCoversTransactionCosts(v bool) *SettingsCreate {
+	_c.mutation.SetOrgaCoversTransactionCosts(v)
+	return _c
 }
 
 // SetNillableOrgaCoversTransactionCosts sets the "OrgaCoversTransactionCosts" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableOrgaCoversTransactionCosts(b *bool) *SettingsCreate {
-	if b != nil {
-		sc.SetOrgaCoversTransactionCosts(*b)
+func (_c *SettingsCreate) SetNillableOrgaCoversTransactionCosts(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetOrgaCoversTransactionCosts(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetWebshopIsClosed sets the "WebshopIsClosed" field.
-func (sc *SettingsCreate) SetWebshopIsClosed(b bool) *SettingsCreate {
-	sc.mutation.SetWebshopIsClosed(b)
-	return sc
+func (_c *SettingsCreate) SetWebshopIsClosed(v bool) *SettingsCreate {
+	_c.mutation.SetWebshopIsClosed(v)
+	return _c
 }
 
 // SetNillableWebshopIsClosed sets the "WebshopIsClosed" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableWebshopIsClosed(b *bool) *SettingsCreate {
-	if b != nil {
-		sc.SetWebshopIsClosed(*b)
+func (_c *SettingsCreate) SetNillableWebshopIsClosed(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetWebshopIsClosed(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetVendorNotFoundHelpUrl sets the "VendorNotFoundHelpUrl" field.
-func (sc *SettingsCreate) SetVendorNotFoundHelpUrl(s string) *SettingsCreate {
-	sc.mutation.SetVendorNotFoundHelpUrl(s)
-	return sc
+func (_c *SettingsCreate) SetVendorNotFoundHelpUrl(v string) *SettingsCreate {
+	_c.mutation.SetVendorNotFoundHelpUrl(v)
+	return _c
 }
 
 // SetNillableVendorNotFoundHelpUrl sets the "VendorNotFoundHelpUrl" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableVendorNotFoundHelpUrl(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetVendorNotFoundHelpUrl(*s)
+func (_c *SettingsCreate) SetNillableVendorNotFoundHelpUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetVendorNotFoundHelpUrl(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetMaintainanceModeHelpUrl sets the "MaintainanceModeHelpUrl" field.
-func (sc *SettingsCreate) SetMaintainanceModeHelpUrl(s string) *SettingsCreate {
-	sc.mutation.SetMaintainanceModeHelpUrl(s)
-	return sc
+func (_c *SettingsCreate) SetMaintainanceModeHelpUrl(v string) *SettingsCreate {
+	_c.mutation.SetMaintainanceModeHelpUrl(v)
+	return _c
 }
 
 // SetNillableMaintainanceModeHelpUrl sets the "MaintainanceModeHelpUrl" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableMaintainanceModeHelpUrl(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetMaintainanceModeHelpUrl(*s)
+func (_c *SettingsCreate) SetNillableMaintainanceModeHelpUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetMaintainanceModeHelpUrl(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetVendorEmailPostfix sets the "VendorEmailPostfix" field.
-func (sc *SettingsCreate) SetVendorEmailPostfix(s string) *SettingsCreate {
-	sc.mutation.SetVendorEmailPostfix(s)
-	return sc
+func (_c *SettingsCreate) SetVendorEmailPostfix(v string) *SettingsCreate {
+	_c.mutation.SetVendorEmailPostfix(v)
+	return _c
 }
 
 // SetNillableVendorEmailPostfix sets the "VendorEmailPostfix" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableVendorEmailPostfix(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetVendorEmailPostfix(*s)
+func (_c *SettingsCreate) SetNillableVendorEmailPostfix(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetVendorEmailPostfix(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetNewspaperName sets the "NewspaperName" field.
-func (sc *SettingsCreate) SetNewspaperName(s string) *SettingsCreate {
-	sc.mutation.SetNewspaperName(s)
-	return sc
+func (_c *SettingsCreate) SetNewspaperName(v string) *SettingsCreate {
+	_c.mutation.SetNewspaperName(v)
+	return _c
 }
 
 // SetNillableNewspaperName sets the "NewspaperName" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableNewspaperName(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetNewspaperName(*s)
+func (_c *SettingsCreate) SetNillableNewspaperName(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetNewspaperName(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetQRCodeUrl sets the "QRCodeUrl" field.
-func (sc *SettingsCreate) SetQRCodeUrl(s string) *SettingsCreate {
-	sc.mutation.SetQRCodeUrl(s)
-	return sc
+func (_c *SettingsCreate) SetQRCodeUrl(v string) *SettingsCreate {
+	_c.mutation.SetQRCodeUrl(v)
+	return _c
 }
 
 // SetNillableQRCodeUrl sets the "QRCodeUrl" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableQRCodeUrl(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetQRCodeUrl(*s)
+func (_c *SettingsCreate) SetNillableQRCodeUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetQRCodeUrl(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetQRCodeLogoImgUrl sets the "QRCodeLogoImgUrl" field.
-func (sc *SettingsCreate) SetQRCodeLogoImgUrl(s string) *SettingsCreate {
-	sc.mutation.SetQRCodeLogoImgUrl(s)
-	return sc
+func (_c *SettingsCreate) SetQRCodeLogoImgUrl(v string) *SettingsCreate {
+	_c.mutation.SetQRCodeLogoImgUrl(v)
+	return _c
 }
 
 // SetNillableQRCodeLogoImgUrl sets the "QRCodeLogoImgUrl" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableQRCodeLogoImgUrl(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetQRCodeLogoImgUrl(*s)
+func (_c *SettingsCreate) SetNillableQRCodeLogoImgUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetQRCodeLogoImgUrl(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetMapCenterLat sets the "MapCenterLat" field.
-func (sc *SettingsCreate) SetMapCenterLat(f float64) *SettingsCreate {
-	sc.mutation.SetMapCenterLat(f)
-	return sc
+func (_c *SettingsCreate) SetMapCenterLat(v float64) *SettingsCreate {
+	_c.mutation.SetMapCenterLat(v)
+	return _c
 }
 
 // SetNillableMapCenterLat sets the "MapCenterLat" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableMapCenterLat(f *float64) *SettingsCreate {
-	if f != nil {
-		sc.SetMapCenterLat(*f)
+func (_c *SettingsCreate) SetNillableMapCenterLat(v *float64) *SettingsCreate {
+	if v != nil {
+		_c.SetMapCenterLat(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetMapCenterLong sets the "MapCenterLong" field.
-func (sc *SettingsCreate) SetMapCenterLong(f float64) *SettingsCreate {
-	sc.mutation.SetMapCenterLong(f)
-	return sc
+func (_c *SettingsCreate) SetMapCenterLong(v float64) *SettingsCreate {
+	_c.mutation.SetMapCenterLong(v)
+	return _c
 }
 
 // SetNillableMapCenterLong sets the "MapCenterLong" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableMapCenterLong(f *float64) *SettingsCreate {
-	if f != nil {
-		sc.SetMapCenterLong(*f)
+func (_c *SettingsCreate) SetNillableMapCenterLong(v *float64) *SettingsCreate {
+	if v != nil {
+		_c.SetMapCenterLong(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetUseVendorLicenseIdInShop sets the "UseVendorLicenseIdInShop" field.
-func (sc *SettingsCreate) SetUseVendorLicenseIdInShop(b bool) *SettingsCreate {
-	sc.mutation.SetUseVendorLicenseIdInShop(b)
-	return sc
+func (_c *SettingsCreate) SetUseVendorLicenseIdInShop(v bool) *SettingsCreate {
+	_c.mutation.SetUseVendorLicenseIdInShop(v)
+	return _c
 }
 
 // SetNillableUseVendorLicenseIdInShop sets the "UseVendorLicenseIdInShop" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableUseVendorLicenseIdInShop(b *bool) *SettingsCreate {
-	if b != nil {
-		sc.SetUseVendorLicenseIdInShop(*b)
+func (_c *SettingsCreate) SetNillableUseVendorLicenseIdInShop(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetUseVendorLicenseIdInShop(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetFavicon sets the "Favicon" field.
-func (sc *SettingsCreate) SetFavicon(s string) *SettingsCreate {
-	sc.mutation.SetFavicon(s)
-	return sc
+func (_c *SettingsCreate) SetFavicon(v string) *SettingsCreate {
+	_c.mutation.SetFavicon(v)
+	return _c
 }
 
 // SetNillableFavicon sets the "Favicon" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableFavicon(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetFavicon(*s)
+func (_c *SettingsCreate) SetNillableFavicon(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetFavicon(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetQRCodeSettings sets the "QRCodeSettings" field.
-func (sc *SettingsCreate) SetQRCodeSettings(s string) *SettingsCreate {
-	sc.mutation.SetQRCodeSettings(s)
-	return sc
+func (_c *SettingsCreate) SetQRCodeSettings(v string) *SettingsCreate {
+	_c.mutation.SetQRCodeSettings(v)
+	return _c
 }
 
 // SetNillableQRCodeSettings sets the "QRCodeSettings" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableQRCodeSettings(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetQRCodeSettings(*s)
+func (_c *SettingsCreate) SetNillableQRCodeSettings(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetQRCodeSettings(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetQRCodeEnableLogo sets the "QRCodeEnableLogo" field.
-func (sc *SettingsCreate) SetQRCodeEnableLogo(b bool) *SettingsCreate {
-	sc.mutation.SetQRCodeEnableLogo(b)
-	return sc
+func (_c *SettingsCreate) SetQRCodeEnableLogo(v bool) *SettingsCreate {
+	_c.mutation.SetQRCodeEnableLogo(v)
+	return _c
 }
 
 // SetNillableQRCodeEnableLogo sets the "QRCodeEnableLogo" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableQRCodeEnableLogo(b *bool) *SettingsCreate {
-	if b != nil {
-		sc.SetQRCodeEnableLogo(*b)
+func (_c *SettingsCreate) SetNillableQRCodeEnableLogo(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetQRCodeEnableLogo(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetUseTipInsteadOfDonation sets the "UseTipInsteadOfDonation" field.
-func (sc *SettingsCreate) SetUseTipInsteadOfDonation(b bool) *SettingsCreate {
-	sc.mutation.SetUseTipInsteadOfDonation(b)
-	return sc
+func (_c *SettingsCreate) SetUseTipInsteadOfDonation(v bool) *SettingsCreate {
+	_c.mutation.SetUseTipInsteadOfDonation(v)
+	return _c
 }
 
 // SetNillableUseTipInsteadOfDonation sets the "UseTipInsteadOfDonation" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableUseTipInsteadOfDonation(b *bool) *SettingsCreate {
-	if b != nil {
-		sc.SetUseTipInsteadOfDonation(*b)
+func (_c *SettingsCreate) SetNillableUseTipInsteadOfDonation(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetUseTipInsteadOfDonation(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetShopLanding sets the "ShopLanding" field.
-func (sc *SettingsCreate) SetShopLanding(b bool) *SettingsCreate {
-	sc.mutation.SetShopLanding(b)
-	return sc
+func (_c *SettingsCreate) SetShopLanding(v bool) *SettingsCreate {
+	_c.mutation.SetShopLanding(v)
+	return _c
 }
 
 // SetNillableShopLanding sets the "ShopLanding" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableShopLanding(b *bool) *SettingsCreate {
-	if b != nil {
-		sc.SetShopLanding(*b)
+func (_c *SettingsCreate) SetNillableShopLanding(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetShopLanding(*v)
 	}
-	return sc
+	return _c
 }
 
 // SetDigitalItemsUrl sets the "DigitalItemsUrl" field.
-func (sc *SettingsCreate) SetDigitalItemsUrl(s string) *SettingsCreate {
-	sc.mutation.SetDigitalItemsUrl(s)
-	return sc
+func (_c *SettingsCreate) SetDigitalItemsUrl(v string) *SettingsCreate {
+	_c.mutation.SetDigitalItemsUrl(v)
+	return _c
 }
 
 // SetNillableDigitalItemsUrl sets the "DigitalItemsUrl" field if the given value is not nil.
-func (sc *SettingsCreate) SetNillableDigitalItemsUrl(s *string) *SettingsCreate {
-	if s != nil {
-		sc.SetDigitalItemsUrl(*s)
+func (_c *SettingsCreate) SetNillableDigitalItemsUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetDigitalItemsUrl(*v)
 	}
-	return sc
+	return _c
+}
+
+// SetAbonementUrl sets the "AbonementUrl" field.
+func (_c *SettingsCreate) SetAbonementUrl(v string) *SettingsCreate {
+	_c.mutation.SetAbonementUrl(v)
+	return _c
+}
+
+// SetNillableAbonementUrl sets the "AbonementUrl" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableAbonementUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetAbonementUrl(*v)
+	}
+	return _c
 }
 
 // SetID sets the "id" field.
-func (sc *SettingsCreate) SetID(i int) *SettingsCreate {
-	sc.mutation.SetID(i)
-	return sc
+func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
-func (sc *SettingsCreate) SetMainItemID(id int) *SettingsCreate {
-	sc.mutation.SetMainItemID(id)
-	return sc
+func (_c *SettingsCreate) SetMainItemID(id int) *SettingsCreate {
+	_c.mutation.SetMainItemID(id)
+	return _c
 }
 
 // SetNillableMainItemID sets the "MainItem" edge to the Item entity by ID if the given value is not nil.
-func (sc *SettingsCreate) SetNillableMainItemID(id *int) *SettingsCreate {
+func (_c *SettingsCreate) SetNillableMainItemID(id *int) *SettingsCreate {
 	if id != nil {
-		sc = sc.SetMainItemID(*id)
+		_c = _c.SetMainItemID(*id)
 	}
-	return sc
+	return _c
 }
 
 // SetMainItem sets the "MainItem" edge to the Item entity.
-func (sc *SettingsCreate) SetMainItem(i *Item) *SettingsCreate {
-	return sc.SetMainItemID(i.ID)
+func (_c *SettingsCreate) SetMainItem(v *Item) *SettingsCreate {
+	return _c.SetMainItemID(v.ID)
 }
 
 // Mutation returns the SettingsMutation object of the builder.
-func (sc *SettingsCreate) Mutation() *SettingsMutation {
-	return sc.mutation
+func (_c *SettingsCreate) Mutation() *SettingsMutation {
+	return _c.mutation
 }
 
 // Save creates the Settings in the database.
-func (sc *SettingsCreate) Save(ctx context.Context) (*Settings, error) {
-	sc.defaults()
-	return withHooks(ctx, sc.sqlSave, sc.mutation, sc.hooks)
+func (_c *SettingsCreate) Save(ctx context.Context) (*Settings, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (sc *SettingsCreate) SaveX(ctx context.Context) *Settings {
-	v, err := sc.Save(ctx)
+func (_c *SettingsCreate) SaveX(ctx context.Context) *Settings {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -374,179 +388,186 @@ func (sc *SettingsCreate) SaveX(ctx context.Context) *Settings {
 }
 
 // Exec executes the query.
-func (sc *SettingsCreate) Exec(ctx context.Context) error {
-	_, err := sc.Save(ctx)
+func (_c *SettingsCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (sc *SettingsCreate) ExecX(ctx context.Context) {
-	if err := sc.Exec(ctx); err != nil {
+func (_c *SettingsCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (sc *SettingsCreate) defaults() {
-	if _, ok := sc.mutation.AGBUrl(); !ok {
+func (_c *SettingsCreate) defaults() {
+	if _, ok := _c.mutation.AGBUrl(); !ok {
 		v := settings.DefaultAGBUrl
-		sc.mutation.SetAGBUrl(v)
+		_c.mutation.SetAGBUrl(v)
 	}
-	if _, ok := sc.mutation.Color(); !ok {
+	if _, ok := _c.mutation.Color(); !ok {
 		v := settings.DefaultColor
-		sc.mutation.SetColor(v)
+		_c.mutation.SetColor(v)
 	}
-	if _, ok := sc.mutation.FontColor(); !ok {
+	if _, ok := _c.mutation.FontColor(); !ok {
 		v := settings.DefaultFontColor
-		sc.mutation.SetFontColor(v)
+		_c.mutation.SetFontColor(v)
 	}
-	if _, ok := sc.mutation.Logo(); !ok {
+	if _, ok := _c.mutation.Logo(); !ok {
 		v := settings.DefaultLogo
-		sc.mutation.SetLogo(v)
+		_c.mutation.SetLogo(v)
 	}
-	if _, ok := sc.mutation.MaxOrderAmount(); !ok {
+	if _, ok := _c.mutation.MaxOrderAmount(); !ok {
 		v := settings.DefaultMaxOrderAmount
-		sc.mutation.SetMaxOrderAmount(v)
+		_c.mutation.SetMaxOrderAmount(v)
 	}
-	if _, ok := sc.mutation.OrgaCoversTransactionCosts(); !ok {
+	if _, ok := _c.mutation.OrgaCoversTransactionCosts(); !ok {
 		v := settings.DefaultOrgaCoversTransactionCosts
-		sc.mutation.SetOrgaCoversTransactionCosts(v)
+		_c.mutation.SetOrgaCoversTransactionCosts(v)
 	}
-	if _, ok := sc.mutation.WebshopIsClosed(); !ok {
+	if _, ok := _c.mutation.WebshopIsClosed(); !ok {
 		v := settings.DefaultWebshopIsClosed
-		sc.mutation.SetWebshopIsClosed(v)
+		_c.mutation.SetWebshopIsClosed(v)
 	}
-	if _, ok := sc.mutation.VendorNotFoundHelpUrl(); !ok {
+	if _, ok := _c.mutation.VendorNotFoundHelpUrl(); !ok {
 		v := settings.DefaultVendorNotFoundHelpUrl
-		sc.mutation.SetVendorNotFoundHelpUrl(v)
+		_c.mutation.SetVendorNotFoundHelpUrl(v)
 	}
-	if _, ok := sc.mutation.MaintainanceModeHelpUrl(); !ok {
+	if _, ok := _c.mutation.MaintainanceModeHelpUrl(); !ok {
 		v := settings.DefaultMaintainanceModeHelpUrl
-		sc.mutation.SetMaintainanceModeHelpUrl(v)
+		_c.mutation.SetMaintainanceModeHelpUrl(v)
 	}
-	if _, ok := sc.mutation.VendorEmailPostfix(); !ok {
+	if _, ok := _c.mutation.VendorEmailPostfix(); !ok {
 		v := settings.DefaultVendorEmailPostfix
-		sc.mutation.SetVendorEmailPostfix(v)
+		_c.mutation.SetVendorEmailPostfix(v)
 	}
-	if _, ok := sc.mutation.NewspaperName(); !ok {
+	if _, ok := _c.mutation.NewspaperName(); !ok {
 		v := settings.DefaultNewspaperName
-		sc.mutation.SetNewspaperName(v)
+		_c.mutation.SetNewspaperName(v)
 	}
-	if _, ok := sc.mutation.QRCodeUrl(); !ok {
+	if _, ok := _c.mutation.QRCodeUrl(); !ok {
 		v := settings.DefaultQRCodeUrl
-		sc.mutation.SetQRCodeUrl(v)
+		_c.mutation.SetQRCodeUrl(v)
 	}
-	if _, ok := sc.mutation.QRCodeLogoImgUrl(); !ok {
+	if _, ok := _c.mutation.QRCodeLogoImgUrl(); !ok {
 		v := settings.DefaultQRCodeLogoImgUrl
-		sc.mutation.SetQRCodeLogoImgUrl(v)
+		_c.mutation.SetQRCodeLogoImgUrl(v)
 	}
-	if _, ok := sc.mutation.MapCenterLat(); !ok {
+	if _, ok := _c.mutation.MapCenterLat(); !ok {
 		v := settings.DefaultMapCenterLat
-		sc.mutation.SetMapCenterLat(v)
+		_c.mutation.SetMapCenterLat(v)
 	}
-	if _, ok := sc.mutation.MapCenterLong(); !ok {
+	if _, ok := _c.mutation.MapCenterLong(); !ok {
 		v := settings.DefaultMapCenterLong
-		sc.mutation.SetMapCenterLong(v)
+		_c.mutation.SetMapCenterLong(v)
 	}
-	if _, ok := sc.mutation.UseVendorLicenseIdInShop(); !ok {
+	if _, ok := _c.mutation.UseVendorLicenseIdInShop(); !ok {
 		v := settings.DefaultUseVendorLicenseIdInShop
-		sc.mutation.SetUseVendorLicenseIdInShop(v)
+		_c.mutation.SetUseVendorLicenseIdInShop(v)
 	}
-	if _, ok := sc.mutation.Favicon(); !ok {
+	if _, ok := _c.mutation.Favicon(); !ok {
 		v := settings.DefaultFavicon
-		sc.mutation.SetFavicon(v)
+		_c.mutation.SetFavicon(v)
 	}
-	if _, ok := sc.mutation.QRCodeSettings(); !ok {
+	if _, ok := _c.mutation.QRCodeSettings(); !ok {
 		v := settings.DefaultQRCodeSettings
-		sc.mutation.SetQRCodeSettings(v)
+		_c.mutation.SetQRCodeSettings(v)
 	}
-	if _, ok := sc.mutation.QRCodeEnableLogo(); !ok {
+	if _, ok := _c.mutation.QRCodeEnableLogo(); !ok {
 		v := settings.DefaultQRCodeEnableLogo
-		sc.mutation.SetQRCodeEnableLogo(v)
+		_c.mutation.SetQRCodeEnableLogo(v)
 	}
-	if _, ok := sc.mutation.UseTipInsteadOfDonation(); !ok {
+	if _, ok := _c.mutation.UseTipInsteadOfDonation(); !ok {
 		v := settings.DefaultUseTipInsteadOfDonation
-		sc.mutation.SetUseTipInsteadOfDonation(v)
+		_c.mutation.SetUseTipInsteadOfDonation(v)
 	}
-	if _, ok := sc.mutation.ShopLanding(); !ok {
+	if _, ok := _c.mutation.ShopLanding(); !ok {
 		v := settings.DefaultShopLanding
-		sc.mutation.SetShopLanding(v)
+		_c.mutation.SetShopLanding(v)
 	}
-	if _, ok := sc.mutation.DigitalItemsUrl(); !ok {
+	if _, ok := _c.mutation.DigitalItemsUrl(); !ok {
 		v := settings.DefaultDigitalItemsUrl
-		sc.mutation.SetDigitalItemsUrl(v)
+		_c.mutation.SetDigitalItemsUrl(v)
+	}
+	if _, ok := _c.mutation.AbonementUrl(); !ok {
+		v := settings.DefaultAbonementUrl
+		_c.mutation.SetAbonementUrl(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (sc *SettingsCreate) check() error {
-	if _, ok := sc.mutation.AGBUrl(); !ok {
+func (_c *SettingsCreate) check() error {
+	if _, ok := _c.mutation.AGBUrl(); !ok {
 		return &ValidationError{Name: "AGBUrl", err: errors.New(`ent: missing required field "Settings.AGBUrl"`)}
 	}
-	if _, ok := sc.mutation.Color(); !ok {
+	if _, ok := _c.mutation.Color(); !ok {
 		return &ValidationError{Name: "Color", err: errors.New(`ent: missing required field "Settings.Color"`)}
 	}
-	if _, ok := sc.mutation.FontColor(); !ok {
+	if _, ok := _c.mutation.FontColor(); !ok {
 		return &ValidationError{Name: "FontColor", err: errors.New(`ent: missing required field "Settings.FontColor"`)}
 	}
-	if _, ok := sc.mutation.Logo(); !ok {
+	if _, ok := _c.mutation.Logo(); !ok {
 		return &ValidationError{Name: "Logo", err: errors.New(`ent: missing required field "Settings.Logo"`)}
 	}
-	if _, ok := sc.mutation.MaxOrderAmount(); !ok {
+	if _, ok := _c.mutation.MaxOrderAmount(); !ok {
 		return &ValidationError{Name: "MaxOrderAmount", err: errors.New(`ent: missing required field "Settings.MaxOrderAmount"`)}
 	}
-	if _, ok := sc.mutation.OrgaCoversTransactionCosts(); !ok {
+	if _, ok := _c.mutation.OrgaCoversTransactionCosts(); !ok {
 		return &ValidationError{Name: "OrgaCoversTransactionCosts", err: errors.New(`ent: missing required field "Settings.OrgaCoversTransactionCosts"`)}
 	}
-	if _, ok := sc.mutation.WebshopIsClosed(); !ok {
+	if _, ok := _c.mutation.WebshopIsClosed(); !ok {
 		return &ValidationError{Name: "WebshopIsClosed", err: errors.New(`ent: missing required field "Settings.WebshopIsClosed"`)}
 	}
-	if _, ok := sc.mutation.VendorNotFoundHelpUrl(); !ok {
+	if _, ok := _c.mutation.VendorNotFoundHelpUrl(); !ok {
 		return &ValidationError{Name: "VendorNotFoundHelpUrl", err: errors.New(`ent: missing required field "Settings.VendorNotFoundHelpUrl"`)}
 	}
-	if _, ok := sc.mutation.MaintainanceModeHelpUrl(); !ok {
+	if _, ok := _c.mutation.MaintainanceModeHelpUrl(); !ok {
 		return &ValidationError{Name: "MaintainanceModeHelpUrl", err: errors.New(`ent: missing required field "Settings.MaintainanceModeHelpUrl"`)}
 	}
-	if _, ok := sc.mutation.VendorEmailPostfix(); !ok {
+	if _, ok := _c.mutation.VendorEmailPostfix(); !ok {
 		return &ValidationError{Name: "VendorEmailPostfix", err: errors.New(`ent: missing required field "Settings.VendorEmailPostfix"`)}
 	}
-	if _, ok := sc.mutation.NewspaperName(); !ok {
+	if _, ok := _c.mutation.NewspaperName(); !ok {
 		return &ValidationError{Name: "NewspaperName", err: errors.New(`ent: missing required field "Settings.NewspaperName"`)}
 	}
-	if _, ok := sc.mutation.QRCodeUrl(); !ok {
+	if _, ok := _c.mutation.QRCodeUrl(); !ok {
 		return &ValidationError{Name: "QRCodeUrl", err: errors.New(`ent: missing required field "Settings.QRCodeUrl"`)}
 	}
-	if _, ok := sc.mutation.QRCodeLogoImgUrl(); !ok {
+	if _, ok := _c.mutation.QRCodeLogoImgUrl(); !ok {
 		return &ValidationError{Name: "QRCodeLogoImgUrl", err: errors.New(`ent: missing required field "Settings.QRCodeLogoImgUrl"`)}
 	}
-	if _, ok := sc.mutation.MapCenterLat(); !ok {
+	if _, ok := _c.mutation.MapCenterLat(); !ok {
 		return &ValidationError{Name: "MapCenterLat", err: errors.New(`ent: missing required field "Settings.MapCenterLat"`)}
 	}
-	if _, ok := sc.mutation.MapCenterLong(); !ok {
+	if _, ok := _c.mutation.MapCenterLong(); !ok {
 		return &ValidationError{Name: "MapCenterLong", err: errors.New(`ent: missing required field "Settings.MapCenterLong"`)}
 	}
-	if _, ok := sc.mutation.UseVendorLicenseIdInShop(); !ok {
+	if _, ok := _c.mutation.UseVendorLicenseIdInShop(); !ok {
 		return &ValidationError{Name: "UseVendorLicenseIdInShop", err: errors.New(`ent: missing required field "Settings.UseVendorLicenseIdInShop"`)}
 	}
-	if _, ok := sc.mutation.Favicon(); !ok {
+	if _, ok := _c.mutation.Favicon(); !ok {
 		return &ValidationError{Name: "Favicon", err: errors.New(`ent: missing required field "Settings.Favicon"`)}
 	}
-	if _, ok := sc.mutation.QRCodeSettings(); !ok {
+	if _, ok := _c.mutation.QRCodeSettings(); !ok {
 		return &ValidationError{Name: "QRCodeSettings", err: errors.New(`ent: missing required field "Settings.QRCodeSettings"`)}
 	}
-	if _, ok := sc.mutation.QRCodeEnableLogo(); !ok {
+	if _, ok := _c.mutation.QRCodeEnableLogo(); !ok {
 		return &ValidationError{Name: "QRCodeEnableLogo", err: errors.New(`ent: missing required field "Settings.QRCodeEnableLogo"`)}
 	}
-	if _, ok := sc.mutation.UseTipInsteadOfDonation(); !ok {
+	if _, ok := _c.mutation.UseTipInsteadOfDonation(); !ok {
 		return &ValidationError{Name: "UseTipInsteadOfDonation", err: errors.New(`ent: missing required field "Settings.UseTipInsteadOfDonation"`)}
 	}
-	if _, ok := sc.mutation.ShopLanding(); !ok {
+	if _, ok := _c.mutation.ShopLanding(); !ok {
 		return &ValidationError{Name: "ShopLanding", err: errors.New(`ent: missing required field "Settings.ShopLanding"`)}
 	}
-	if _, ok := sc.mutation.DigitalItemsUrl(); !ok {
+	if _, ok := _c.mutation.DigitalItemsUrl(); !ok {
 		return &ValidationError{Name: "DigitalItemsUrl", err: errors.New(`ent: missing required field "Settings.DigitalItemsUrl"`)}
 	}
-	if v, ok := sc.mutation.ID(); ok {
+	if _, ok := _c.mutation.AbonementUrl(); !ok {
+		return &ValidationError{Name: "AbonementUrl", err: errors.New(`ent: missing required field "Settings.AbonementUrl"`)}
+	}
+	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Settings.id": %w`, err)}
 		}
@@ -554,12 +575,12 @@ func (sc *SettingsCreate) check() error {
 	return nil
 }
 
-func (sc *SettingsCreate) sqlSave(ctx context.Context) (*Settings, error) {
-	if err := sc.check(); err != nil {
+func (_c *SettingsCreate) sqlSave(ctx context.Context) (*Settings, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := sc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, sc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -569,109 +590,113 @@ func (sc *SettingsCreate) sqlSave(ctx context.Context) (*Settings, error) {
 		id := _spec.ID.Value.(int64)
 		_node.ID = int(id)
 	}
-	sc.mutation.id = &_node.ID
-	sc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (sc *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
+func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	var (
-		_node = &Settings{config: sc.config}
+		_node = &Settings{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(settings.Table, sqlgraph.NewFieldSpec(settings.FieldID, field.TypeInt))
 	)
-	if id, ok := sc.mutation.ID(); ok {
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := sc.mutation.AGBUrl(); ok {
+	if value, ok := _c.mutation.AGBUrl(); ok {
 		_spec.SetField(settings.FieldAGBUrl, field.TypeString, value)
 		_node.AGBUrl = value
 	}
-	if value, ok := sc.mutation.Color(); ok {
+	if value, ok := _c.mutation.Color(); ok {
 		_spec.SetField(settings.FieldColor, field.TypeString, value)
 		_node.Color = value
 	}
-	if value, ok := sc.mutation.FontColor(); ok {
+	if value, ok := _c.mutation.FontColor(); ok {
 		_spec.SetField(settings.FieldFontColor, field.TypeString, value)
 		_node.FontColor = value
 	}
-	if value, ok := sc.mutation.Logo(); ok {
+	if value, ok := _c.mutation.Logo(); ok {
 		_spec.SetField(settings.FieldLogo, field.TypeString, value)
 		_node.Logo = value
 	}
-	if value, ok := sc.mutation.MaxOrderAmount(); ok {
+	if value, ok := _c.mutation.MaxOrderAmount(); ok {
 		_spec.SetField(settings.FieldMaxOrderAmount, field.TypeInt, value)
 		_node.MaxOrderAmount = value
 	}
-	if value, ok := sc.mutation.OrgaCoversTransactionCosts(); ok {
+	if value, ok := _c.mutation.OrgaCoversTransactionCosts(); ok {
 		_spec.SetField(settings.FieldOrgaCoversTransactionCosts, field.TypeBool, value)
 		_node.OrgaCoversTransactionCosts = value
 	}
-	if value, ok := sc.mutation.WebshopIsClosed(); ok {
+	if value, ok := _c.mutation.WebshopIsClosed(); ok {
 		_spec.SetField(settings.FieldWebshopIsClosed, field.TypeBool, value)
 		_node.WebshopIsClosed = value
 	}
-	if value, ok := sc.mutation.VendorNotFoundHelpUrl(); ok {
+	if value, ok := _c.mutation.VendorNotFoundHelpUrl(); ok {
 		_spec.SetField(settings.FieldVendorNotFoundHelpUrl, field.TypeString, value)
 		_node.VendorNotFoundHelpUrl = value
 	}
-	if value, ok := sc.mutation.MaintainanceModeHelpUrl(); ok {
+	if value, ok := _c.mutation.MaintainanceModeHelpUrl(); ok {
 		_spec.SetField(settings.FieldMaintainanceModeHelpUrl, field.TypeString, value)
 		_node.MaintainanceModeHelpUrl = value
 	}
-	if value, ok := sc.mutation.VendorEmailPostfix(); ok {
+	if value, ok := _c.mutation.VendorEmailPostfix(); ok {
 		_spec.SetField(settings.FieldVendorEmailPostfix, field.TypeString, value)
 		_node.VendorEmailPostfix = value
 	}
-	if value, ok := sc.mutation.NewspaperName(); ok {
+	if value, ok := _c.mutation.NewspaperName(); ok {
 		_spec.SetField(settings.FieldNewspaperName, field.TypeString, value)
 		_node.NewspaperName = value
 	}
-	if value, ok := sc.mutation.QRCodeUrl(); ok {
+	if value, ok := _c.mutation.QRCodeUrl(); ok {
 		_spec.SetField(settings.FieldQRCodeUrl, field.TypeString, value)
 		_node.QRCodeUrl = value
 	}
-	if value, ok := sc.mutation.QRCodeLogoImgUrl(); ok {
+	if value, ok := _c.mutation.QRCodeLogoImgUrl(); ok {
 		_spec.SetField(settings.FieldQRCodeLogoImgUrl, field.TypeString, value)
 		_node.QRCodeLogoImgUrl = value
 	}
-	if value, ok := sc.mutation.MapCenterLat(); ok {
+	if value, ok := _c.mutation.MapCenterLat(); ok {
 		_spec.SetField(settings.FieldMapCenterLat, field.TypeFloat64, value)
 		_node.MapCenterLat = value
 	}
-	if value, ok := sc.mutation.MapCenterLong(); ok {
+	if value, ok := _c.mutation.MapCenterLong(); ok {
 		_spec.SetField(settings.FieldMapCenterLong, field.TypeFloat64, value)
 		_node.MapCenterLong = value
 	}
-	if value, ok := sc.mutation.UseVendorLicenseIdInShop(); ok {
+	if value, ok := _c.mutation.UseVendorLicenseIdInShop(); ok {
 		_spec.SetField(settings.FieldUseVendorLicenseIdInShop, field.TypeBool, value)
 		_node.UseVendorLicenseIdInShop = value
 	}
-	if value, ok := sc.mutation.Favicon(); ok {
+	if value, ok := _c.mutation.Favicon(); ok {
 		_spec.SetField(settings.FieldFavicon, field.TypeString, value)
 		_node.Favicon = value
 	}
-	if value, ok := sc.mutation.QRCodeSettings(); ok {
+	if value, ok := _c.mutation.QRCodeSettings(); ok {
 		_spec.SetField(settings.FieldQRCodeSettings, field.TypeString, value)
 		_node.QRCodeSettings = value
 	}
-	if value, ok := sc.mutation.QRCodeEnableLogo(); ok {
+	if value, ok := _c.mutation.QRCodeEnableLogo(); ok {
 		_spec.SetField(settings.FieldQRCodeEnableLogo, field.TypeBool, value)
 		_node.QRCodeEnableLogo = value
 	}
-	if value, ok := sc.mutation.UseTipInsteadOfDonation(); ok {
+	if value, ok := _c.mutation.UseTipInsteadOfDonation(); ok {
 		_spec.SetField(settings.FieldUseTipInsteadOfDonation, field.TypeBool, value)
 		_node.UseTipInsteadOfDonation = value
 	}
-	if value, ok := sc.mutation.ShopLanding(); ok {
+	if value, ok := _c.mutation.ShopLanding(); ok {
 		_spec.SetField(settings.FieldShopLanding, field.TypeBool, value)
 		_node.ShopLanding = value
 	}
-	if value, ok := sc.mutation.DigitalItemsUrl(); ok {
+	if value, ok := _c.mutation.DigitalItemsUrl(); ok {
 		_spec.SetField(settings.FieldDigitalItemsUrl, field.TypeString, value)
 		_node.DigitalItemsUrl = value
 	}
-	if nodes := sc.mutation.MainItemIDs(); len(nodes) > 0 {
+	if value, ok := _c.mutation.AbonementUrl(); ok {
+		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
+		_node.AbonementUrl = value
+	}
+	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -699,16 +724,16 @@ type SettingsCreateBulk struct {
 }
 
 // Save creates the Settings entities in the database.
-func (scb *SettingsCreateBulk) Save(ctx context.Context) ([]*Settings, error) {
-	if scb.err != nil {
-		return nil, scb.err
+func (_c *SettingsCreateBulk) Save(ctx context.Context) ([]*Settings, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(scb.builders))
-	nodes := make([]*Settings, len(scb.builders))
-	mutators := make([]Mutator, len(scb.builders))
-	for i := range scb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*Settings, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := scb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*SettingsMutation)
@@ -722,11 +747,11 @@ func (scb *SettingsCreateBulk) Save(ctx context.Context) ([]*Settings, error) {
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, scb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, scb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -750,7 +775,7 @@ func (scb *SettingsCreateBulk) Save(ctx context.Context) ([]*Settings, error) {
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, scb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -758,8 +783,8 @@ func (scb *SettingsCreateBulk) Save(ctx context.Context) ([]*Settings, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (scb *SettingsCreateBulk) SaveX(ctx context.Context) []*Settings {
-	v, err := scb.Save(ctx)
+func (_c *SettingsCreateBulk) SaveX(ctx context.Context) []*Settings {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -767,14 +792,14 @@ func (scb *SettingsCreateBulk) SaveX(ctx context.Context) []*Settings {
 }
 
 // Exec executes the query.
-func (scb *SettingsCreateBulk) Exec(ctx context.Context) error {
-	_, err := scb.Save(ctx)
+func (_c *SettingsCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (scb *SettingsCreateBulk) ExecX(ctx context.Context) {
-	if err := scb.Exec(ctx); err != nil {
+func (_c *SettingsCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
