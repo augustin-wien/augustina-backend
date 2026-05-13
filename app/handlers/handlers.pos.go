@@ -70,6 +70,14 @@ func CreatePOSOrder(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, errors.New("only normal_item and issue types are allowed in POS"), http.StatusBadRequest)
 			return
 		}
+		if item.IsPDFItem {
+			utils.ErrorJSON(w, errors.New("PDF/digital items are not allowed in POS"), http.StatusBadRequest)
+			return
+		}
+		if item.LicenseItem.Valid {
+			utils.ErrorJSON(w, errors.New("items requiring a digital license are not allowed in POS"), http.StatusBadRequest)
+			return
+		}
 		total += item.Price * e.Quantity
 	}
 
