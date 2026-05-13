@@ -1,7 +1,5 @@
--- Add Backoffice to the AccountType enum
-ALTER TYPE AccountType ADD VALUE IF NOT EXISTS 'Backoffice';
-
--- Insert Backoffice vendor + account if they don't exist yet
+-- Insert Backoffice vendor + account for existing databases.
+-- New installs already get this via InitiateAccounts() in Go.
 INSERT INTO vendor (keycloakid, urlid, licenseid, firstname, lastname, email, lastpayout, isdisabled, language, telephone, registrationdate, vendorsince, onlinemap, hassmartphone, hasbankaccount, accountproofurl, debt, isdeleted)
 SELECT '', '', 'Backoffice', '', '', 'Backoffice@augustina.cc', NOW(), false, '', '', '', '', false, false, false, '', '', false
 WHERE NOT EXISTS (SELECT 1 FROM vendor WHERE licenseid = 'Backoffice');
