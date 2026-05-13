@@ -312,6 +312,7 @@ var (
 		{Name: "receiver", Type: field.TypeInt},
 		{Name: "order_entry", Type: field.TypeInt, Nullable: true},
 		{Name: "item", Type: field.TypeInt, Nullable: true},
+		{Name: "is_pos", Type: field.TypeBool, Default: false},
 		{Name: "paymentorder", Type: field.TypeInt, Nullable: true},
 		{Name: "payout", Type: field.TypeInt, Nullable: true},
 	}
@@ -323,13 +324,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "payment_paymentorder_payments",
-				Columns:    []*schema.Column{PaymentColumns[11]},
+				Columns:    []*schema.Column{PaymentColumns[12]},
 				RefColumns: []*schema.Column{PaymentorderColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "payment_payment_children",
-				Columns:    []*schema.Column{PaymentColumns[12]},
+				Columns:    []*schema.Column{PaymentColumns[13]},
 				RefColumns: []*schema.Column{PaymentColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -361,6 +362,7 @@ var (
 		{Name: "shoplanding", Type: field.TypeBool, Default: false},
 		{Name: "digitalitemsurl", Type: field.TypeString, Default: "https://augustina.cc/digital-items"},
 		{Name: "abonementurl", Type: field.TypeString, Default: ""},
+		{Name: "posenabled", Type: field.TypeBool, Default: true},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -371,7 +373,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[24]},
+				Columns:    []*schema.Column{SettingsColumns[25]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

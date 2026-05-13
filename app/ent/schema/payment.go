@@ -44,6 +44,9 @@ func (Payment) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			StorageKey("payout"),
+		field.Bool("is_pos").
+			Default(false).
+			StorageKey("is_pos"),
 	}
 }
 

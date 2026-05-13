@@ -126,6 +126,7 @@ type Payment struct {
 	Order        null.Int `swaggertype:"integer" db:"paymentorder"`
 	OrderEntry   null.Int `swaggertype:"integer"`
 	IsSale       bool
+	IsPOS        bool
 	Payout       null.Int  `swaggertype:"integer"` // Connected payout payment
 	IsPayoutFor  []Payment `db:"ispayoutfor"`      // Connected payout payment
 	Item         null.Int  `swaggertype:"integer"`

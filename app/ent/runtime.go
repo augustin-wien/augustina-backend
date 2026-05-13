@@ -184,6 +184,10 @@ func init() {
 	pdfdownload.IDValidator = pdfdownloadDescID.Validators[0].(func(int) error)
 	paymentFields := schema.Payment{}.Fields()
 	_ = paymentFields
+	// paymentDescIsPos is the schema descriptor for is_pos field.
+	paymentDescIsPos := paymentFields[13].Descriptor()
+	// payment.DefaultIsPos holds the default value on creation for the is_pos field.
+	payment.DefaultIsPos = paymentDescIsPos.Default.(bool)
 	// paymentDescID is the schema descriptor for id field.
 	paymentDescID := paymentFields[0].Descriptor()
 	// payment.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -282,6 +286,10 @@ func init() {
 	settingsDescAbonementUrl := settingsFields[23].Descriptor()
 	// settings.DefaultAbonementUrl holds the default value on creation for the AbonementUrl field.
 	settings.DefaultAbonementUrl = settingsDescAbonementUrl.Default.(string)
+	// settingsDescPOSEnabled is the schema descriptor for POSEnabled field.
+	settingsDescPOSEnabled := settingsFields[24].Descriptor()
+	// settings.DefaultPOSEnabled holds the default value on creation for the POSEnabled field.
+	settings.DefaultPOSEnabled = settingsDescPOSEnabled.Default.(bool)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

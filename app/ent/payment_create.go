@@ -125,6 +125,20 @@ func (_c *PaymentCreate) SetNillablePayoutID(v *int) *PaymentCreate {
 	return _c
 }
 
+// SetIsPos sets the "is_pos" field.
+func (_c *PaymentCreate) SetIsPos(v bool) *PaymentCreate {
+	_c.mutation.SetIsPos(v)
+	return _c
+}
+
+// SetNillableIsPos sets the "is_pos" field if the given value is not nil.
+func (_c *PaymentCreate) SetNillableIsPos(v *bool) *PaymentCreate {
+	if v != nil {
+		_c.SetIsPos(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *PaymentCreate) SetID(v int) *PaymentCreate {
 	_c.mutation.SetID(v)
@@ -177,6 +191,7 @@ func (_c *PaymentCreate) Mutation() *PaymentMutation {
 
 // Save creates the Payment in the database.
 func (_c *PaymentCreate) Save(ctx context.Context) (*Payment, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -199,6 +214,14 @@ func (_c *PaymentCreate) Exec(ctx context.Context) error {
 func (_c *PaymentCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *PaymentCreate) defaults() {
+	if _, ok := _c.mutation.IsPos(); !ok {
+		v := payment.DefaultIsPos
+		_c.mutation.SetIsPos(v)
 	}
 }
 
@@ -227,6 +250,9 @@ func (_c *PaymentCreate) check() error {
 	}
 	if _, ok := _c.mutation.ReceiverID(); !ok {
 		return &ValidationError{Name: "receiver_id", err: errors.New(`ent: missing required field "Payment.receiver_id"`)}
+	}
+	if _, ok := _c.mutation.IsPos(); !ok {
+		return &ValidationError{Name: "is_pos", err: errors.New(`ent: missing required field "Payment.is_pos"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := payment.IDValidator(v); err != nil {
@@ -305,6 +331,10 @@ func (_c *PaymentCreate) createSpec() (*Payment, *sqlgraph.CreateSpec) {
 		_spec.SetField(payment.FieldItemID, field.TypeInt, value)
 		_node.ItemID = &value
 	}
+	if value, ok := _c.mutation.IsPos(); ok {
+		_spec.SetField(payment.FieldIsPos, field.TypeBool, value)
+		_node.IsPos = value
+	}
 	if nodes := _c.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -376,6 +406,7 @@ func (_c *PaymentCreateBulk) Save(ctx context.Context) ([]*Payment, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PaymentMutation)
 				if !ok {

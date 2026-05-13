@@ -58,6 +58,8 @@ const (
 	FieldDigitalItemsUrl = "digitalitemsurl"
 	// FieldAbonementUrl holds the string denoting the abonementurl field in the database.
 	FieldAbonementUrl = "abonementurl"
+	// FieldPOSEnabled holds the string denoting the posenabled field in the database.
+	FieldPOSEnabled = "posenabled"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -97,6 +99,7 @@ var Columns = []string{
 	FieldShopLanding,
 	FieldDigitalItemsUrl,
 	FieldAbonementUrl,
+	FieldPOSEnabled,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -167,6 +170,8 @@ var (
 	DefaultDigitalItemsUrl string
 	// DefaultAbonementUrl holds the default value on creation for the "AbonementUrl" field.
 	DefaultAbonementUrl string
+	// DefaultPOSEnabled holds the default value on creation for the "POSEnabled" field.
+	DefaultPOSEnabled bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -292,6 +297,11 @@ func ByDigitalItemsUrl(opts ...sql.OrderTermOption) OrderOption {
 // ByAbonementUrl orders the results by the AbonementUrl field.
 func ByAbonementUrl(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAbonementUrl, opts...).ToFunc()
+}
+
+// ByPOSEnabled orders the results by the POSEnabled field.
+func ByPOSEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPOSEnabled, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

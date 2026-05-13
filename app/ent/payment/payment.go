@@ -36,6 +36,8 @@ const (
 	FieldItemID = "item"
 	// FieldPayoutID holds the string denoting the payout_id field in the database.
 	FieldPayoutID = "payout"
+	// FieldIsPos holds the string denoting the is_pos field in the database.
+	FieldIsPos = "is_pos"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
@@ -76,6 +78,7 @@ var Columns = []string{
 	FieldOrderEntryID,
 	FieldItemID,
 	FieldPayoutID,
+	FieldIsPos,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -89,6 +92,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultIsPos holds the default value on creation for the "is_pos" field.
+	DefaultIsPos bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -159,6 +164,11 @@ func ByItemID(opts ...sql.OrderTermOption) OrderOption {
 // ByPayoutID orders the results by the payout_id field.
 func ByPayoutID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPayoutID, opts...).ToFunc()
+}
+
+// ByIsPos orders the results by the is_pos field.
+func ByIsPos(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsPos, opts...).ToFunc()
 }
 
 // ByOrderField orders the results by order field.

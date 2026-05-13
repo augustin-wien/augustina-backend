@@ -67,7 +67,7 @@ func (db *Database) CreateSpecialVendorAccount(vendor Vendor) (vendorID int, err
 	if vendor.LicenseID.Valid && vendor.LicenseID.String != "" {
 		accountName = vendor.LicenseID.String
 		switch vendor.LicenseID.String {
-		case "Cash", "Orga", "UserAnon", "Paypal", "VivaWallet":
+		case "Cash", "Orga", "UserAnon", "Paypal", "VivaWallet", "Backoffice":
 			accountType = vendor.LicenseID.String
 		default:
 			accountType = "Vendor"

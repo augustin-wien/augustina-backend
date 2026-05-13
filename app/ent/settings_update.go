@@ -371,6 +371,20 @@ func (_u *SettingsUpdate) SetNillableAbonementUrl(v *string) *SettingsUpdate {
 	return _u
 }
 
+// SetPOSEnabled sets the "POSEnabled" field.
+func (_u *SettingsUpdate) SetPOSEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetPOSEnabled(v)
+	return _u
+}
+
+// SetNillablePOSEnabled sets the "POSEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillablePOSEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetPOSEnabled(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -514,6 +528,9 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AbonementUrl(); ok {
 		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.POSEnabled(); ok {
+		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -907,6 +924,20 @@ func (_u *SettingsUpdateOne) SetNillableAbonementUrl(v *string) *SettingsUpdateO
 	return _u
 }
 
+// SetPOSEnabled sets the "POSEnabled" field.
+func (_u *SettingsUpdateOne) SetPOSEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetPOSEnabled(v)
+	return _u
+}
+
+// SetNillablePOSEnabled sets the "POSEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillablePOSEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetPOSEnabled(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -1080,6 +1111,9 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.AbonementUrl(); ok {
 		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.POSEnabled(); ok {
+		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

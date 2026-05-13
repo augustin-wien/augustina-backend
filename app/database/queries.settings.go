@@ -82,7 +82,8 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetUseTipInsteadOfDonation(settings.UseTipInsteadOfDonation).
 		SetShopLanding(settings.ShopLanding).
 		SetDigitalItemsUrl(settings.DigitalItemsUrl).
-		SetAbonementUrl(settings.AbonementUrl)
+		SetAbonementUrl(settings.AbonementUrl).
+		SetPOSEnabled(settings.POSEnabled)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {

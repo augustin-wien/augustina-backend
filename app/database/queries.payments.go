@@ -14,7 +14,7 @@ import (
 // Payments -------------------------------------------------------------------
 
 // ListPayments returns the payments from the database
-func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool, filterSales bool, filterNoPayout bool) (payments []Payment, err error) {
+func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLicenseID string, filterPayouts bool, filterSales bool, filterNoPayout bool, excludeBackoffice bool, excludePOS bool) (payments []Payment, err error) {
 	ctx := context.Background()
 
 	// Start query
@@ -63,6 +63,19 @@ func (db *Database) ListPayments(minDate time.Time, maxDate time.Time, vendorLic
 	}
 	if filterSales {
 		q.Where(entpayment.IsSale(true))
+	}
+	if excludeBackoffice {
+		backofficeID, err := db.GetAccountTypeID("Backoffice")
+		if err != nil {
+			return nil, err
+		}
+		q.Where(
+			entpayment.SenderIDNEQ(backofficeID),
+			entpayment.ReceiverIDNEQ(backofficeID),
+		)
+	}
+	if excludePOS {
+		q.Where(entpayment.IsPos(false))
 	}
 
 	// Order by timestamp
@@ -211,7 +224,7 @@ func (db *Database) ListPaymentsForCustomer(customerEmail string) (payments []Pa
 
 // ListPaymentsForPayout returns sales payments that have not been paid out yet
 func (db *Database) ListPaymentsForPayout(minDate time.Time, maxDate time.Time, vendorLicenseID string) (payments []Payment, err error) {
-	return db.ListPayments(minDate, maxDate, vendorLicenseID, false, false, true)
+	return db.ListPayments(minDate, maxDate, vendorLicenseID, false, false, true, false, true)
 }
 
 // GetPayment returns the payment with the given ID
@@ -258,6 +271,7 @@ func (db *Database) PaymentEntIntoPayment(p *ent.Payment) Payment {
 		Amount:       p.Amount,
 		AuthorizedBy: p.AuthorizedBy,
 		IsSale:       p.IsSale,
+		IsPOS:        p.IsPos,
 		Quantity:     p.Quantity,
 		Price:        p.Price,
 	}
@@ -288,6 +302,7 @@ func createPaymentTx(tx *ent.Tx, payment Payment) (paymentID int, err error) {
 		SetAmount(payment.Amount).
 		SetAuthorizedBy(payment.AuthorizedBy).
 		SetIsSale(payment.IsSale).
+		SetIsPos(payment.IsPOS).
 		SetQuantity(payment.Quantity).
 		SetPrice(payment.Price).
 		SetTimestamp(time.Now())
