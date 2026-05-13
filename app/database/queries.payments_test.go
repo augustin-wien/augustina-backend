@@ -73,7 +73,7 @@ func Test_ListPayments_Performance(t *testing.T) {
 	minDate := time.Now().Add(-2 * time.Hour)
 	maxDate := time.Now().Add(2 * time.Hour)
 
-	fetchedPayments, err := Db.ListPayments(minDate, maxDate, "", false, false, false)
+	fetchedPayments, err := Db.ListPayments(minDate, maxDate, "", false, false, false, false, false)
 	require.NoError(t, err)
 
 	duration := time.Since(start)
@@ -134,7 +134,7 @@ func Test_ListPayments_Correctness(t *testing.T) {
 	// - 1 Payout payment (IsSale=false, Sender=Vendor, Receiver=Cash)
 	// - The Payout payment should have IsPayoutFor populated with the 10 sales
 
-	results, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	results, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false, false, false)
 	require.NoError(t, err)
 
 	var payoutPayment *Payment
@@ -207,7 +207,7 @@ func Test_ListPayments_VendorFilter_HijackSafe(t *testing.T) {
 	minDate := time.Now().Add(-24 * time.Hour)
 	maxDate := time.Now().Add(24 * time.Hour)
 
-	payments, err := Db.ListPayments(minDate, maxDate, vendor1Lic, false, false, false)
+	payments, err := Db.ListPayments(minDate, maxDate, vendor1Lic, false, false, false, false, false)
 	require.NoError(t, err)
 	require.Len(t, payments, 1)
 	require.Equal(t, 100, payments[0].Amount)
@@ -217,7 +217,7 @@ func Test_ListPayments_VendorFilter_HijackSafe(t *testing.T) {
 	// Since GetVendorByLicenseID uses ent (ORM) which uses parameterized queries,
 	// this should simply fail to find the vendor and return an error.
 	hijackPayload := "10000000' OR '1'='1"
-	paymentsHijack, err := Db.ListPayments(minDate, maxDate, hijackPayload, false, false, false)
+	paymentsHijack, err := Db.ListPayments(minDate, maxDate, hijackPayload, false, false, false, false, false)
 
 	// Expectation: Error because vendor not found (LicenseID equality check fails), OR empty list if strict.
 	// Current implementation returns error if vendor not found.
@@ -227,7 +227,7 @@ func Test_ListPayments_VendorFilter_HijackSafe(t *testing.T) {
 
 	// 4. Test Partial Match (should not work)
 	partialPayload := "100000"
-	paymentsPartial, err := Db.ListPayments(minDate, maxDate, partialPayload, false, false, false)
+	paymentsPartial, err := Db.ListPayments(minDate, maxDate, partialPayload, false, false, false, false, false)
 	require.Error(t, err)
 	require.Nil(t, paymentsPartial)
 }

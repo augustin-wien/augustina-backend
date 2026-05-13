@@ -69,7 +69,7 @@ func ListVendorUsageStatistics(w http.ResponseWriter, r *http.Request) {
 		vendorAccountByAccountID[account.ID] = vendor.ID
 	}
 
-	payments, err := database.Db.ListPayments(minDate, maxDate, "", false, false, false)
+	payments, err := database.Db.ListPayments(minDate, maxDate, "", false, false, false, true, true)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
