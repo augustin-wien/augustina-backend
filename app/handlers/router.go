@@ -206,6 +206,7 @@ func GetRouter() (r *chi.Mux) {
 				r.Delete("/{vendorid}/comments/{id}/", DeleteVendorComment)
 				r.Patch("/{vendorid}/comments/{id}/", UpdateVendorComment)
 
+				r.Post("/{licenseID}/pos-order/", CreatePOSOrder)
 				r.Route("/{id}", func(r chi.Router) {
 					r.Put("/", UpdateVendor)
 					r.Delete("/", DeleteVendor)
