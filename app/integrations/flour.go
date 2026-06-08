@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
@@ -56,8 +57,14 @@ func sendJSONToFlourWebhook(payload interface{}) error {
 			return fmt.Errorf("failed to create request: %v", err)
 		}
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Odoo-Database", "huk_odoo19")
 		if token := config.Config.FlourWebhookToken; token != "" {
 			req.Header.Set("Authorization", "Bearer "+token)
+			log.Debug("sendJSONToFlourWebhook: Added Authorization header to request")
+		}
+
+		if dump, dumpErr := httputil.DumpRequestOut(req, true); dumpErr == nil {
+			log.Debugf("sendJSONToFlourWebhook: HTTP request:\n%s", string(dump))
 		}
 
 		// Send the request
