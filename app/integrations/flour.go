@@ -102,6 +102,7 @@ type FlourPayloadItem struct {
 	Quantity int    `json:"quantity"`
 	Price    int    `json:"price"`
 	Name     string `json:"name,omitempty"`
+	Type     string `json:"type,omitempty"`
 }
 
 func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry, vendor database.Vendor, price int) error {
@@ -119,10 +120,12 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 		totalPrice += itemPrice * item.Quantity
 
 		itemName := ""
+		itemType := ""
 		if dbItem, err := getItemByID(item.Item); err != nil {
 			log.Errorf("SendPaymentToFlour: Failed to fetch item name for item %d: %v", item.Item, err)
 		} else {
 			itemName = dbItem.Name
+			itemType = dbItem.Type
 		}
 
 		flourItems = append(flourItems, FlourPayloadItem{
@@ -130,6 +133,7 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 			Quantity: item.Quantity,
 			Price:    itemPrice,
 			Name:     itemName,
+			Type:     itemType,
 		})
 	}
 	// Create a new payload
