@@ -75,9 +75,13 @@ func sendJSONToFlourWebhook(payload interface{}) error {
 		} else {
 			resp.Body.Close()
 
-			// Check for 200 OK status
 			if resp.StatusCode == http.StatusOK || resp.StatusCode == 201 {
 				log.Info("sendJSONToFlourWebhook: Successfully sent flour JSON payload")
+				return nil
+			}
+
+			if resp.StatusCode == http.StatusUnprocessableEntity {
+				log.Infof("sendJSONToFlourWebhook: Received 422 Unprocessable Entity, treating as non-fatal")
 				return nil
 			}
 
