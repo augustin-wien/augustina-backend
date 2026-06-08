@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/utils"
@@ -163,7 +164,10 @@ func CreatePOSOrder(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	// Per-item sale records (for POS history / item tracking)
+	// Per-item bookkeeping records (is_sale=true, is_pos=true).
+	// createPaymentTx skips account-balance updates for these, so they don't
+	// affect the vendor's credit balance — the actual money flow is captured
+	// by the balance-chain and cash payments above.
 	for _, e := range req.Entries {
 		item, _ := database.Db.GetItem(e.Item)
 		payments = append(payments, database.Payment{
@@ -185,4 +189,51 @@ func CreatePOSOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = utils.WriteJSON(w, http.StatusOK, map[string]bool{"success": true})
+}
+
+// ListAllPOSOrders godoc
+//
+//	@Summary		List all POS orders across all vendors
+//	@Tags			pos
+//	@Produce		json
+//	@Param			from	query		string	false	"Start date (RFC3339)"
+//	@Param			to		query		string	false	"End date (RFC3339)"
+//	@Success		200		{array}		database.POSOrder
+//	@Router			/pos-orders/ [get]
+func ListAllPOSOrders(w http.ResponseWriter, r *http.Request) {
+	var minDate, maxDate time.Time
+	if v := r.URL.Query().Get("from"); v != "" {
+		if t, err := time.Parse(time.RFC3339, v); err == nil {
+			minDate = t
+		}
+	}
+	if v := r.URL.Query().Get("to"); v != "" {
+		if t, err := time.Parse(time.RFC3339, v); err == nil {
+			maxDate = t
+		}
+	}
+	orders, err := database.Db.ListAllPOSOrders(minDate, maxDate)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond(w, nil, orders)
+}
+
+// ListPOSOrdersForVendor godoc
+//
+//	@Summary		List recent POS orders for a vendor
+//	@Tags			pos
+//	@Produce		json
+//	@Param			licenseID	path		string	true	"Vendor license ID"
+//	@Success		200			{array}		database.POSOrder
+//	@Router			/vendors/{licenseID}/pos-orders/ [get]
+func ListPOSOrdersForVendor(w http.ResponseWriter, r *http.Request) {
+	licenseID := chi.URLParam(r, "licenseID")
+	orders, err := database.Db.ListPOSOrdersForVendor(licenseID, 20)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond(w, nil, orders)
 }

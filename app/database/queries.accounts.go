@@ -268,7 +268,9 @@ func (db *Database) UpdateAccountBalanceByOpenPayments(vendorID int) (payoutAmou
 
 	senderQuery := tx.Payment.Query().
 		Where(entpayment.SenderID(vendorAccount.ID)).
-		Where(entpayment.PayoutIDIsNil())
+		Where(entpayment.PayoutIDIsNil()).
+		// POS sale records are bookkeeping-only and must not affect the vendor balance.
+		Where(entpayment.Not(entpayment.And(entpayment.IsPos(true), entpayment.IsSale(true))))
 
 	if cashAccountID != 0 {
 		senderQuery = senderQuery.Where(entpayment.ReceiverIDNEQ(cashAccountID))
