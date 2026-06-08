@@ -1072,8 +1072,6 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 
 type createPaymentPayoutRequest struct {
 	VendorLicenseID string
-	From            time.Time
-	To              time.Time
 }
 
 // CreatePaymentPayout godoc
@@ -1114,7 +1112,7 @@ func CreatePaymentPayout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get amount of money for payout
-	paymentsToBePaidOut, err := database.Db.ListPaymentsForPayout(payoutData.From, payoutData.To, payoutData.VendorLicenseID)
+	paymentsToBePaidOut, err := database.Db.ListPaymentsForPayout(time.Time{}, time.Time{}, payoutData.VendorLicenseID)
 	if err != nil {
 		log.Error("CreatePaymentPayout: list payments for payout ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
