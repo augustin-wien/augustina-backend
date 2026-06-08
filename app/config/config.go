@@ -46,6 +46,7 @@ type config struct {
 	AllowInsecureSMTP                 bool
 	SentryDSN                         string
 	FlourWebhookURL                   string
+	FlourWebhookToken                 string
 	DEBUG_payments                    bool // For debugging purposes, not used in production
 }
 
@@ -95,6 +96,7 @@ func InitConfig() error {
 		FrontendURL:                       getEnv("FRONTEND_URL", ""),
 		SentryDSN:                         getEnv("SENTRY_DSN", ""),
 		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),
+		FlourWebhookToken:                 getEnv("FLOUR_WEBHOOK_TOKEN", ""),
 		DEBUG_payments:                    (getEnv("DEBUG_payments", "false") == "true"),
 	}
 	return nil
