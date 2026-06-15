@@ -115,6 +115,11 @@ func PayoutID(v int) predicate.Payment {
 	return predicate.Payment(sql.FieldEQ(FieldPayoutID, v))
 }
 
+// IsPos applies equality check predicate on the "is_pos" field. It's identical to IsPosEQ.
+func IsPos(v bool) predicate.Payment {
+	return predicate.Payment(sql.FieldEQ(FieldIsPos, v))
+}
+
 // TimestampEQ applies the EQ predicate on the "timestamp" field.
 func TimestampEQ(v time.Time) predicate.Payment {
 	return predicate.Payment(sql.FieldEQ(FieldTimestamp, v))
@@ -588,6 +593,16 @@ func PayoutIDIsNil() predicate.Payment {
 // PayoutIDNotNil applies the NotNil predicate on the "payout_id" field.
 func PayoutIDNotNil() predicate.Payment {
 	return predicate.Payment(sql.FieldNotNull(FieldPayoutID))
+}
+
+// IsPosEQ applies the EQ predicate on the "is_pos" field.
+func IsPosEQ(v bool) predicate.Payment {
+	return predicate.Payment(sql.FieldEQ(FieldIsPos, v))
+}
+
+// IsPosNEQ applies the NEQ predicate on the "is_pos" field.
+func IsPosNEQ(v bool) predicate.Payment {
+	return predicate.Payment(sql.FieldNEQ(FieldIsPos, v))
 }
 
 // HasOrder applies the HasEdge predicate on the "order" edge.

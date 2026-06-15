@@ -226,6 +226,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("ShopLanding is not a boolean"), http.StatusBadRequest)
 				return
 			}
+		} else if key == "POSEnabled" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("POSEnabled is not a boolean")
+				utils.ErrorJSON(w, errors.New("POSEnabled is not a boolean"), http.StatusBadRequest)
+				return
+			}
 		} else {
 			fieldsClean[key] = value[0]
 		}

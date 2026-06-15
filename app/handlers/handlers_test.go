@@ -978,7 +978,7 @@ func TestOrders(t *testing.T) {
 	e := <-errc
 	utils.CheckError(t, e)
 	// Check payments
-	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false, false, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -1039,7 +1039,7 @@ func TestOrders(t *testing.T) {
 	}
 
 	// Clean up after test
-	paymentOrder, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	paymentOrder, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false, false, false)
 	utils.CheckError(t, err)
 	for _, payment := range paymentOrder {
 		database.Db.DeletePayment(payment.ID)
@@ -1311,7 +1311,7 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 	require.NoError(t, err)
 
 	// check payments: should only create payments once (license + item)
-	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false, false, false)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(payments))
 
@@ -1464,7 +1464,7 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 	require.EqualValues(t, 1, atomic.LoadInt32(&digitalCount))
 
 	// cleanup
-	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false, false, false)
 	require.NoError(t, err)
 	for _, payment := range payments {
 		database.Db.DeletePayment(payment.ID)

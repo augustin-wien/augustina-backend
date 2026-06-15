@@ -897,7 +897,7 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get payments with filter parameters
-	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, payout, sales, false)
+	payments, err := database.Db.ListPayments(minDate, maxDate, vendor, payout, sales, false, true, true)
 	respond(w, err, payments)
 }
 
@@ -958,7 +958,7 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get payments with filter parameters
-	payments, err := database.Db.ListPayments(minDate, maxDate, "", false, false, false)
+	payments, err := database.Db.ListPayments(minDate, maxDate, "", false, false, false, true, true)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

@@ -42,6 +42,8 @@ type Payment struct {
 	ItemID *int `json:"item_id,omitempty"`
 	// PayoutID holds the value of the "payout_id" field.
 	PayoutID *int `json:"payout_id,omitempty"`
+	// IsPos holds the value of the "is_pos" field.
+	IsPos bool `json:"is_pos,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PaymentQuery when eager-loading is set.
 	Edges        PaymentEdges `json:"edges"`
@@ -97,7 +99,7 @@ func (*Payment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case payment.FieldIsSale:
+		case payment.FieldIsSale, payment.FieldIsPos:
 			values[i] = new(sql.NullBool)
 		case payment.FieldID, payment.FieldAmount, payment.FieldQuantity, payment.FieldPrice, payment.FieldSenderID, payment.FieldReceiverID, payment.FieldOrderID, payment.FieldOrderEntryID, payment.FieldItemID, payment.FieldPayoutID:
 			values[i] = new(sql.NullInt64)
@@ -202,6 +204,12 @@ func (_m *Payment) assignValues(columns []string, values []any) error {
 				_m.PayoutID = new(int)
 				*_m.PayoutID = int(value.Int64)
 			}
+		case payment.FieldIsPos:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_pos", values[i])
+			} else if value.Valid {
+				_m.IsPos = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -296,6 +304,9 @@ func (_m *Payment) String() string {
 		builder.WriteString("payout_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("is_pos=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsPos))
 	builder.WriteByte(')')
 	return builder.String()
 }

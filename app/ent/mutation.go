@@ -9627,6 +9627,7 @@ type PaymentMutation struct {
 	addorder_entry_id *int
 	item_id           *int
 	additem_id        *int
+	is_pos            *bool
 	clearedFields     map[string]struct{}
 	_order            *int
 	cleared_order     bool
@@ -10370,6 +10371,42 @@ func (m *PaymentMutation) ResetPayoutID() {
 	delete(m.clearedFields, payment.FieldPayoutID)
 }
 
+// SetIsPos sets the "is_pos" field.
+func (m *PaymentMutation) SetIsPos(b bool) {
+	m.is_pos = &b
+}
+
+// IsPos returns the value of the "is_pos" field in the mutation.
+func (m *PaymentMutation) IsPos() (r bool, exists bool) {
+	v := m.is_pos
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPos returns the old "is_pos" field's value of the Payment entity.
+// If the Payment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PaymentMutation) OldIsPos(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPos is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPos requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPos: %w", err)
+	}
+	return oldValue.IsPos, nil
+}
+
+// ResetIsPos resets all changes to the "is_pos" field.
+func (m *PaymentMutation) ResetIsPos() {
+	m.is_pos = nil
+}
+
 // ClearOrder clears the "order" edge to the Order entity.
 func (m *PaymentMutation) ClearOrder() {
 	m.cleared_order = true
@@ -10525,7 +10562,7 @@ func (m *PaymentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PaymentMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.timestamp != nil {
 		fields = append(fields, payment.FieldTimestamp)
 	}
@@ -10562,6 +10599,9 @@ func (m *PaymentMutation) Fields() []string {
 	if m.parent != nil {
 		fields = append(fields, payment.FieldPayoutID)
 	}
+	if m.is_pos != nil {
+		fields = append(fields, payment.FieldIsPos)
+	}
 	return fields
 }
 
@@ -10594,6 +10634,8 @@ func (m *PaymentMutation) Field(name string) (ent.Value, bool) {
 		return m.ItemID()
 	case payment.FieldPayoutID:
 		return m.PayoutID()
+	case payment.FieldIsPos:
+		return m.IsPos()
 	}
 	return nil, false
 }
@@ -10627,6 +10669,8 @@ func (m *PaymentMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldItemID(ctx)
 	case payment.FieldPayoutID:
 		return m.OldPayoutID(ctx)
+	case payment.FieldIsPos:
+		return m.OldIsPos(ctx)
 	}
 	return nil, fmt.Errorf("unknown Payment field %s", name)
 }
@@ -10719,6 +10763,13 @@ func (m *PaymentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPayoutID(v)
+		return nil
+	case payment.FieldIsPos:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPos(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Payment field %s", name)
@@ -10919,6 +10970,9 @@ func (m *PaymentMutation) ResetField(name string) error {
 	case payment.FieldPayoutID:
 		m.ResetPayoutID()
 		return nil
+	case payment.FieldIsPos:
+		m.ResetIsPos()
+		return nil
 	}
 	return fmt.Errorf("unknown Payment field %s", name)
 }
@@ -11075,6 +11129,7 @@ type SettingsMutation struct {
 	_ShopLanding                *bool
 	_DigitalItemsUrl            *string
 	_AbonementUrl               *string
+	_POSEnabled                 *bool
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -12075,6 +12130,42 @@ func (m *SettingsMutation) ResetAbonementUrl() {
 	m._AbonementUrl = nil
 }
 
+// SetPOSEnabled sets the "POSEnabled" field.
+func (m *SettingsMutation) SetPOSEnabled(b bool) {
+	m._POSEnabled = &b
+}
+
+// POSEnabled returns the value of the "POSEnabled" field in the mutation.
+func (m *SettingsMutation) POSEnabled() (r bool, exists bool) {
+	v := m._POSEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPOSEnabled returns the old "POSEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldPOSEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPOSEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPOSEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPOSEnabled: %w", err)
+	}
+	return oldValue.POSEnabled, nil
+}
+
+// ResetPOSEnabled resets all changes to the "POSEnabled" field.
+func (m *SettingsMutation) ResetPOSEnabled() {
+	m._POSEnabled = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -12148,7 +12239,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 24)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -12218,6 +12309,9 @@ func (m *SettingsMutation) Fields() []string {
 	if m._AbonementUrl != nil {
 		fields = append(fields, settings.FieldAbonementUrl)
 	}
+	if m._POSEnabled != nil {
+		fields = append(fields, settings.FieldPOSEnabled)
+	}
 	return fields
 }
 
@@ -12272,6 +12366,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.DigitalItemsUrl()
 	case settings.FieldAbonementUrl:
 		return m.AbonementUrl()
+	case settings.FieldPOSEnabled:
+		return m.POSEnabled()
 	}
 	return nil, false
 }
@@ -12327,6 +12423,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldDigitalItemsUrl(ctx)
 	case settings.FieldAbonementUrl:
 		return m.OldAbonementUrl(ctx)
+	case settings.FieldPOSEnabled:
+		return m.OldPOSEnabled(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -12497,6 +12595,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAbonementUrl(v)
 		return nil
+	case settings.FieldPOSEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPOSEnabled(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -12653,6 +12758,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldAbonementUrl:
 		m.ResetAbonementUrl()
+		return nil
+	case settings.FieldPOSEnabled:
+		m.ResetPOSEnabled()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

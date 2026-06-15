@@ -282,7 +282,7 @@ func TestQueryOrders(t *testing.T) {
 	require.Equal(t, 2, len(order1.Entries))
 
 	// Check payment results
-	payments, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	payments, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false, false, false)
 	utils.CheckError(t, err)
 	require.Equal(t, 2, len(payments))
 
@@ -323,7 +323,7 @@ func TestQueryOrders(t *testing.T) {
 	require.Equal(t, 2, len(order22.Entries))
 
 	// Check payment results
-	payments2, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false)
+	payments2, err := Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false, false, false)
 	utils.CheckError(t, err)
 	require.Equal(t, 4, len(payments2))
 
@@ -433,7 +433,7 @@ func TestVendorTwoPaymentsBalance(t *testing.T) {
 	require.Equal(t, cashBefore.Balance+total, cashAfter.Balance)
 
 	// Cleanup payments for deterministic DB state
-	payments, err := Db.ListPayments(time.Time{}, time.Time{}, vendorLicenseId, false, false, false)
+	payments, err := Db.ListPayments(time.Time{}, time.Time{}, vendorLicenseId, false, false, false, false, false)
 	utils.CheckError(t, err)
 	for _, p := range payments {
 		_ = Db.DeletePayment(p.ID)

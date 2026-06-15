@@ -63,6 +63,8 @@ type Settings struct {
 	DigitalItemsUrl string `json:"DigitalItemsUrl"`
 	// AbonementUrl holds the value of the "AbonementUrl" field.
 	AbonementUrl string `json:"AbonementUrl"`
+	// POSEnabled holds the value of the "POSEnabled" field.
+	POSEnabled bool `json:"POSEnabled"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -95,7 +97,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldPOSEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
@@ -264,6 +266,12 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.AbonementUrl = value.String
 			}
+		case settings.FieldPOSEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field POSEnabled", values[i])
+			} else if value.Valid {
+				_m.POSEnabled = value.Bool
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -380,6 +388,9 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("AbonementUrl=")
 	builder.WriteString(_m.AbonementUrl)
+	builder.WriteString(", ")
+	builder.WriteString("POSEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.POSEnabled))
 	builder.WriteByte(')')
 	return builder.String()
 }

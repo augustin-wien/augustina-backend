@@ -22,7 +22,7 @@ func (Account) Fields() []ent.Field {
 			Optional(),
 		field.Float("balance").
 			Default(0),
-		field.String("type"), // "Cash", "Orga", "UserAnon", "Paypal", "VivaWallet", "Vendor", "UserAuth"
+		field.String("type"), // "Cash", "Orga", "UserAnon", "Paypal", "VivaWallet", "Vendor", "UserAuth", "Backoffice"
 		field.String("user_id").
 			Optional().
 			StorageKey("userid"),

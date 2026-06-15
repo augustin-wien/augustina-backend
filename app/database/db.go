@@ -87,6 +87,8 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		`ALTER TABLE "vendor" ADD COLUMN IF NOT EXISTS "isdeleted" BOOLEAN NOT NULL DEFAULT FALSE;`,
 		`ALTER TABLE "vendor" ADD COLUMN IF NOT EXISTS "accountproofurl" VARCHAR(255) NOT NULL DEFAULT '';`,
 		`ALTER TABLE "vendor" ADD COLUMN IF NOT EXISTS "debt" VARCHAR(255) NOT NULL DEFAULT '';`,
+		`ALTER TABLE "payment" ADD COLUMN IF NOT EXISTS "is_pos" BOOLEAN NOT NULL DEFAULT FALSE;`,
+		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "posenabled" BOOLEAN NOT NULL DEFAULT FALSE;`,
 	}
 
 	for _, q := range queries {

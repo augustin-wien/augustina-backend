@@ -82,6 +82,9 @@ func (Settings) Fields() []ent.Field {
 		field.String("AbonementUrl").
 			StorageKey("abonementurl").
 			Default(""),
+		field.Bool("POSEnabled").
+			StorageKey("posenabled").
+			Default(true),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

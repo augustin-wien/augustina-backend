@@ -270,6 +270,20 @@ func (_u *PaymentUpdate) ClearPayoutID() *PaymentUpdate {
 	return _u
 }
 
+// SetIsPos sets the "is_pos" field.
+func (_u *PaymentUpdate) SetIsPos(v bool) *PaymentUpdate {
+	_u.mutation.SetIsPos(v)
+	return _u
+}
+
+// SetNillableIsPos sets the "is_pos" field if the given value is not nil.
+func (_u *PaymentUpdate) SetNillableIsPos(v *bool) *PaymentUpdate {
+	if v != nil {
+		_u.SetIsPos(*v)
+	}
+	return _u
+}
+
 // SetOrder sets the "order" edge to the Order entity.
 func (_u *PaymentUpdate) SetOrder(v *Order) *PaymentUpdate {
 	return _u.SetOrderID(v.ID)
@@ -439,6 +453,9 @@ func (_u *PaymentUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ItemIDCleared() {
 		_spec.ClearField(payment.FieldItemID, field.TypeInt)
+	}
+	if value, ok := _u.mutation.IsPos(); ok {
+		_spec.SetField(payment.FieldIsPos, field.TypeBool, value)
 	}
 	if _u.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -804,6 +821,20 @@ func (_u *PaymentUpdateOne) ClearPayoutID() *PaymentUpdateOne {
 	return _u
 }
 
+// SetIsPos sets the "is_pos" field.
+func (_u *PaymentUpdateOne) SetIsPos(v bool) *PaymentUpdateOne {
+	_u.mutation.SetIsPos(v)
+	return _u
+}
+
+// SetNillableIsPos sets the "is_pos" field if the given value is not nil.
+func (_u *PaymentUpdateOne) SetNillableIsPos(v *bool) *PaymentUpdateOne {
+	if v != nil {
+		_u.SetIsPos(*v)
+	}
+	return _u
+}
+
 // SetOrder sets the "order" edge to the Order entity.
 func (_u *PaymentUpdateOne) SetOrder(v *Order) *PaymentUpdateOne {
 	return _u.SetOrderID(v.ID)
@@ -1003,6 +1034,9 @@ func (_u *PaymentUpdateOne) sqlSave(ctx context.Context) (_node *Payment, err er
 	}
 	if _u.mutation.ItemIDCleared() {
 		_spec.ClearField(payment.FieldItemID, field.TypeInt)
+	}
+	if value, ok := _u.mutation.IsPos(); ok {
+		_spec.SetField(payment.FieldIsPos, field.TypeBool, value)
 	}
 	if _u.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -2,7 +2,6 @@
 
 # File directories
 /app/img/*
-!/app/img/demo_*.jpg
 /app/pdf/*
 doc/
 
