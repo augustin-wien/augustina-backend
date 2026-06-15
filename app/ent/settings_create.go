@@ -356,6 +356,48 @@ func (_c *SettingsCreate) SetNillablePOSEnabled(v *bool) *SettingsCreate {
 	return _c
 }
 
+// SetWordPressInviteURL sets the "WordPressInviteURL" field.
+func (_c *SettingsCreate) SetWordPressInviteURL(v string) *SettingsCreate {
+	_c.mutation.SetWordPressInviteURL(v)
+	return _c
+}
+
+// SetNillableWordPressInviteURL sets the "WordPressInviteURL" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableWordPressInviteURL(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetWordPressInviteURL(*v)
+	}
+	return _c
+}
+
+// SetWordPressInviteAPIKey sets the "WordPressInviteAPIKey" field.
+func (_c *SettingsCreate) SetWordPressInviteAPIKey(v string) *SettingsCreate {
+	_c.mutation.SetWordPressInviteAPIKey(v)
+	return _c
+}
+
+// SetNillableWordPressInviteAPIKey sets the "WordPressInviteAPIKey" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableWordPressInviteAPIKey(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetWordPressInviteAPIKey(*v)
+	}
+	return _c
+}
+
+// SetWordPressInviteTTL sets the "WordPressInviteTTL" field.
+func (_c *SettingsCreate) SetWordPressInviteTTL(v int) *SettingsCreate {
+	_c.mutation.SetWordPressInviteTTL(v)
+	return _c
+}
+
+// SetNillableWordPressInviteTTL sets the "WordPressInviteTTL" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableWordPressInviteTTL(v *int) *SettingsCreate {
+	if v != nil {
+		_c.SetWordPressInviteTTL(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
 	_c.mutation.SetID(v)
@@ -512,6 +554,18 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultPOSEnabled
 		_c.mutation.SetPOSEnabled(v)
 	}
+	if _, ok := _c.mutation.WordPressInviteURL(); !ok {
+		v := settings.DefaultWordPressInviteURL
+		_c.mutation.SetWordPressInviteURL(v)
+	}
+	if _, ok := _c.mutation.WordPressInviteAPIKey(); !ok {
+		v := settings.DefaultWordPressInviteAPIKey
+		_c.mutation.SetWordPressInviteAPIKey(v)
+	}
+	if _, ok := _c.mutation.WordPressInviteTTL(); !ok {
+		v := settings.DefaultWordPressInviteTTL
+		_c.mutation.SetWordPressInviteTTL(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -587,6 +641,15 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.POSEnabled(); !ok {
 		return &ValidationError{Name: "POSEnabled", err: errors.New(`ent: missing required field "Settings.POSEnabled"`)}
+	}
+	if _, ok := _c.mutation.WordPressInviteURL(); !ok {
+		return &ValidationError{Name: "WordPressInviteURL", err: errors.New(`ent: missing required field "Settings.WordPressInviteURL"`)}
+	}
+	if _, ok := _c.mutation.WordPressInviteAPIKey(); !ok {
+		return &ValidationError{Name: "WordPressInviteAPIKey", err: errors.New(`ent: missing required field "Settings.WordPressInviteAPIKey"`)}
+	}
+	if _, ok := _c.mutation.WordPressInviteTTL(); !ok {
+		return &ValidationError{Name: "WordPressInviteTTL", err: errors.New(`ent: missing required field "Settings.WordPressInviteTTL"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -720,6 +783,18 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.POSEnabled(); ok {
 		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)
 		_node.POSEnabled = value
+	}
+	if value, ok := _c.mutation.WordPressInviteURL(); ok {
+		_spec.SetField(settings.FieldWordPressInviteURL, field.TypeString, value)
+		_node.WordPressInviteURL = value
+	}
+	if value, ok := _c.mutation.WordPressInviteAPIKey(); ok {
+		_spec.SetField(settings.FieldWordPressInviteAPIKey, field.TypeString, value)
+		_node.WordPressInviteAPIKey = value
+	}
+	if value, ok := _c.mutation.WordPressInviteTTL(); ok {
+		_spec.SetField(settings.FieldWordPressInviteTTL, field.TypeInt, value)
+		_node.WordPressInviteTTL = value
 	}
 	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

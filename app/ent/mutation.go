@@ -11130,6 +11130,10 @@ type SettingsMutation struct {
 	_DigitalItemsUrl            *string
 	_AbonementUrl               *string
 	_POSEnabled                 *bool
+	_WordPressInviteURL         *string
+	_WordPressInviteAPIKey      *string
+	_WordPressInviteTTL         *int
+	add_WordPressInviteTTL      *int
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -12166,6 +12170,134 @@ func (m *SettingsMutation) ResetPOSEnabled() {
 	m._POSEnabled = nil
 }
 
+// SetWordPressInviteURL sets the "WordPressInviteURL" field.
+func (m *SettingsMutation) SetWordPressInviteURL(s string) {
+	m._WordPressInviteURL = &s
+}
+
+// WordPressInviteURL returns the value of the "WordPressInviteURL" field in the mutation.
+func (m *SettingsMutation) WordPressInviteURL() (r string, exists bool) {
+	v := m._WordPressInviteURL
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWordPressInviteURL returns the old "WordPressInviteURL" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldWordPressInviteURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWordPressInviteURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWordPressInviteURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWordPressInviteURL: %w", err)
+	}
+	return oldValue.WordPressInviteURL, nil
+}
+
+// ResetWordPressInviteURL resets all changes to the "WordPressInviteURL" field.
+func (m *SettingsMutation) ResetWordPressInviteURL() {
+	m._WordPressInviteURL = nil
+}
+
+// SetWordPressInviteAPIKey sets the "WordPressInviteAPIKey" field.
+func (m *SettingsMutation) SetWordPressInviteAPIKey(s string) {
+	m._WordPressInviteAPIKey = &s
+}
+
+// WordPressInviteAPIKey returns the value of the "WordPressInviteAPIKey" field in the mutation.
+func (m *SettingsMutation) WordPressInviteAPIKey() (r string, exists bool) {
+	v := m._WordPressInviteAPIKey
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWordPressInviteAPIKey returns the old "WordPressInviteAPIKey" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldWordPressInviteAPIKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWordPressInviteAPIKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWordPressInviteAPIKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWordPressInviteAPIKey: %w", err)
+	}
+	return oldValue.WordPressInviteAPIKey, nil
+}
+
+// ResetWordPressInviteAPIKey resets all changes to the "WordPressInviteAPIKey" field.
+func (m *SettingsMutation) ResetWordPressInviteAPIKey() {
+	m._WordPressInviteAPIKey = nil
+}
+
+// SetWordPressInviteTTL sets the "WordPressInviteTTL" field.
+func (m *SettingsMutation) SetWordPressInviteTTL(i int) {
+	m._WordPressInviteTTL = &i
+	m.add_WordPressInviteTTL = nil
+}
+
+// WordPressInviteTTL returns the value of the "WordPressInviteTTL" field in the mutation.
+func (m *SettingsMutation) WordPressInviteTTL() (r int, exists bool) {
+	v := m._WordPressInviteTTL
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWordPressInviteTTL returns the old "WordPressInviteTTL" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldWordPressInviteTTL(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWordPressInviteTTL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWordPressInviteTTL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWordPressInviteTTL: %w", err)
+	}
+	return oldValue.WordPressInviteTTL, nil
+}
+
+// AddWordPressInviteTTL adds i to the "WordPressInviteTTL" field.
+func (m *SettingsMutation) AddWordPressInviteTTL(i int) {
+	if m.add_WordPressInviteTTL != nil {
+		*m.add_WordPressInviteTTL += i
+	} else {
+		m.add_WordPressInviteTTL = &i
+	}
+}
+
+// AddedWordPressInviteTTL returns the value that was added to the "WordPressInviteTTL" field in this mutation.
+func (m *SettingsMutation) AddedWordPressInviteTTL() (r int, exists bool) {
+	v := m.add_WordPressInviteTTL
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetWordPressInviteTTL resets all changes to the "WordPressInviteTTL" field.
+func (m *SettingsMutation) ResetWordPressInviteTTL() {
+	m._WordPressInviteTTL = nil
+	m.add_WordPressInviteTTL = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -12239,7 +12371,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 27)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -12312,6 +12444,15 @@ func (m *SettingsMutation) Fields() []string {
 	if m._POSEnabled != nil {
 		fields = append(fields, settings.FieldPOSEnabled)
 	}
+	if m._WordPressInviteURL != nil {
+		fields = append(fields, settings.FieldWordPressInviteURL)
+	}
+	if m._WordPressInviteAPIKey != nil {
+		fields = append(fields, settings.FieldWordPressInviteAPIKey)
+	}
+	if m._WordPressInviteTTL != nil {
+		fields = append(fields, settings.FieldWordPressInviteTTL)
+	}
 	return fields
 }
 
@@ -12368,6 +12509,12 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.AbonementUrl()
 	case settings.FieldPOSEnabled:
 		return m.POSEnabled()
+	case settings.FieldWordPressInviteURL:
+		return m.WordPressInviteURL()
+	case settings.FieldWordPressInviteAPIKey:
+		return m.WordPressInviteAPIKey()
+	case settings.FieldWordPressInviteTTL:
+		return m.WordPressInviteTTL()
 	}
 	return nil, false
 }
@@ -12425,6 +12572,12 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldAbonementUrl(ctx)
 	case settings.FieldPOSEnabled:
 		return m.OldPOSEnabled(ctx)
+	case settings.FieldWordPressInviteURL:
+		return m.OldWordPressInviteURL(ctx)
+	case settings.FieldWordPressInviteAPIKey:
+		return m.OldWordPressInviteAPIKey(ctx)
+	case settings.FieldWordPressInviteTTL:
+		return m.OldWordPressInviteTTL(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -12602,6 +12755,27 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPOSEnabled(v)
 		return nil
+	case settings.FieldWordPressInviteURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWordPressInviteURL(v)
+		return nil
+	case settings.FieldWordPressInviteAPIKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWordPressInviteAPIKey(v)
+		return nil
+	case settings.FieldWordPressInviteTTL:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWordPressInviteTTL(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -12619,6 +12793,9 @@ func (m *SettingsMutation) AddedFields() []string {
 	if m.add_MapCenterLong != nil {
 		fields = append(fields, settings.FieldMapCenterLong)
 	}
+	if m.add_WordPressInviteTTL != nil {
+		fields = append(fields, settings.FieldWordPressInviteTTL)
+	}
 	return fields
 }
 
@@ -12633,6 +12810,8 @@ func (m *SettingsMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedMapCenterLat()
 	case settings.FieldMapCenterLong:
 		return m.AddedMapCenterLong()
+	case settings.FieldWordPressInviteTTL:
+		return m.AddedWordPressInviteTTL()
 	}
 	return nil, false
 }
@@ -12662,6 +12841,13 @@ func (m *SettingsMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddMapCenterLong(v)
+		return nil
+	case settings.FieldWordPressInviteTTL:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWordPressInviteTTL(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Settings numeric field %s", name)
@@ -12761,6 +12947,15 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldPOSEnabled:
 		m.ResetPOSEnabled()
+		return nil
+	case settings.FieldWordPressInviteURL:
+		m.ResetWordPressInviteURL()
+		return nil
+	case settings.FieldWordPressInviteAPIKey:
+		m.ResetWordPressInviteAPIKey()
+		return nil
+	case settings.FieldWordPressInviteTTL:
+		m.ResetWordPressInviteTTL()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

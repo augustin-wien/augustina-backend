@@ -60,6 +60,12 @@ const (
 	FieldAbonementUrl = "abonementurl"
 	// FieldPOSEnabled holds the string denoting the posenabled field in the database.
 	FieldPOSEnabled = "posenabled"
+	// FieldWordPressInviteURL holds the string denoting the wordpressinviteurl field in the database.
+	FieldWordPressInviteURL = "wordpressinviteurl"
+	// FieldWordPressInviteAPIKey holds the string denoting the wordpressinviteapikey field in the database.
+	FieldWordPressInviteAPIKey = "wordpressinviteapikey"
+	// FieldWordPressInviteTTL holds the string denoting the wordpressinvitettl field in the database.
+	FieldWordPressInviteTTL = "wordpressinvitettl"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -100,6 +106,9 @@ var Columns = []string{
 	FieldDigitalItemsUrl,
 	FieldAbonementUrl,
 	FieldPOSEnabled,
+	FieldWordPressInviteURL,
+	FieldWordPressInviteAPIKey,
+	FieldWordPressInviteTTL,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -172,6 +181,12 @@ var (
 	DefaultAbonementUrl string
 	// DefaultPOSEnabled holds the default value on creation for the "POSEnabled" field.
 	DefaultPOSEnabled bool
+	// DefaultWordPressInviteURL holds the default value on creation for the "WordPressInviteURL" field.
+	DefaultWordPressInviteURL string
+	// DefaultWordPressInviteAPIKey holds the default value on creation for the "WordPressInviteAPIKey" field.
+	DefaultWordPressInviteAPIKey string
+	// DefaultWordPressInviteTTL holds the default value on creation for the "WordPressInviteTTL" field.
+	DefaultWordPressInviteTTL int
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -302,6 +317,21 @@ func ByAbonementUrl(opts ...sql.OrderTermOption) OrderOption {
 // ByPOSEnabled orders the results by the POSEnabled field.
 func ByPOSEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPOSEnabled, opts...).ToFunc()
+}
+
+// ByWordPressInviteURL orders the results by the WordPressInviteURL field.
+func ByWordPressInviteURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWordPressInviteURL, opts...).ToFunc()
+}
+
+// ByWordPressInviteAPIKey orders the results by the WordPressInviteAPIKey field.
+func ByWordPressInviteAPIKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWordPressInviteAPIKey, opts...).ToFunc()
+}
+
+// ByWordPressInviteTTL orders the results by the WordPressInviteTTL field.
+func ByWordPressInviteTTL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWordPressInviteTTL, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

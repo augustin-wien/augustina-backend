@@ -173,6 +173,21 @@ func POSEnabled(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldPOSEnabled, v))
 }
 
+// WordPressInviteURL applies equality check predicate on the "WordPressInviteURL" field. It's identical to WordPressInviteURLEQ.
+func WordPressInviteURL(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteAPIKey applies equality check predicate on the "WordPressInviteAPIKey" field. It's identical to WordPressInviteAPIKeyEQ.
+func WordPressInviteAPIKey(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteTTL applies equality check predicate on the "WordPressInviteTTL" field. It's identical to WordPressInviteTTLEQ.
+func WordPressInviteTTL(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldWordPressInviteTTL, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1271,6 +1286,176 @@ func POSEnabledEQ(v bool) predicate.Settings {
 // POSEnabledNEQ applies the NEQ predicate on the "POSEnabled" field.
 func POSEnabledNEQ(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldNEQ(FieldPOSEnabled, v))
+}
+
+// WordPressInviteURLEQ applies the EQ predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLNEQ applies the NEQ predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLIn applies the In predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldWordPressInviteURL, vs...))
+}
+
+// WordPressInviteURLNotIn applies the NotIn predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldWordPressInviteURL, vs...))
+}
+
+// WordPressInviteURLGT applies the GT predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLGTE applies the GTE predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLLT applies the LT predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLLTE applies the LTE predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLContains applies the Contains predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLHasPrefix applies the HasPrefix predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLHasSuffix applies the HasSuffix predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLEqualFold applies the EqualFold predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteURLContainsFold applies the ContainsFold predicate on the "WordPressInviteURL" field.
+func WordPressInviteURLContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldWordPressInviteURL, v))
+}
+
+// WordPressInviteAPIKeyEQ applies the EQ predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyNEQ applies the NEQ predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyIn applies the In predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldWordPressInviteAPIKey, vs...))
+}
+
+// WordPressInviteAPIKeyNotIn applies the NotIn predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldWordPressInviteAPIKey, vs...))
+}
+
+// WordPressInviteAPIKeyGT applies the GT predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyGTE applies the GTE predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyLT applies the LT predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyLTE applies the LTE predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyContains applies the Contains predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyHasPrefix applies the HasPrefix predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyHasSuffix applies the HasSuffix predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyEqualFold applies the EqualFold predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteAPIKeyContainsFold applies the ContainsFold predicate on the "WordPressInviteAPIKey" field.
+func WordPressInviteAPIKeyContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldWordPressInviteAPIKey, v))
+}
+
+// WordPressInviteTTLEQ applies the EQ predicate on the "WordPressInviteTTL" field.
+func WordPressInviteTTLEQ(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldWordPressInviteTTL, v))
+}
+
+// WordPressInviteTTLNEQ applies the NEQ predicate on the "WordPressInviteTTL" field.
+func WordPressInviteTTLNEQ(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldWordPressInviteTTL, v))
+}
+
+// WordPressInviteTTLIn applies the In predicate on the "WordPressInviteTTL" field.
+func WordPressInviteTTLIn(vs ...int) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldWordPressInviteTTL, vs...))
+}
+
+// WordPressInviteTTLNotIn applies the NotIn predicate on the "WordPressInviteTTL" field.
+func WordPressInviteTTLNotIn(vs ...int) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldWordPressInviteTTL, vs...))
+}
+
+// WordPressInviteTTLGT applies the GT predicate on the "WordPressInviteTTL" field.
+func WordPressInviteTTLGT(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldWordPressInviteTTL, v))
+}
+
+// WordPressInviteTTLGTE applies the GTE predicate on the "WordPressInviteTTL" field.
+func WordPressInviteTTLGTE(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldWordPressInviteTTL, v))
+}
+
+// WordPressInviteTTLLT applies the LT predicate on the "WordPressInviteTTL" field.
+func WordPressInviteTTLLT(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldWordPressInviteTTL, v))
+}
+
+// WordPressInviteTTLLTE applies the LTE predicate on the "WordPressInviteTTL" field.
+func WordPressInviteTTLLTE(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldWordPressInviteTTL, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.
