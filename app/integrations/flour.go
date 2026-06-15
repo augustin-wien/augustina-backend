@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
@@ -56,6 +57,15 @@ func sendJSONToFlourWebhook(payload interface{}) error {
 			return fmt.Errorf("failed to create request: %v", err)
 		}
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Odoo-Database", "huk_odoo19")
+		if token := config.Config.FlourWebhookToken; token != "" {
+			req.Header.Set("Authorization", "Bearer "+token)
+			log.Debug("sendJSONToFlourWebhook: Added Authorization header to request")
+		}
+
+		if dump, dumpErr := httputil.DumpRequestOut(req, true); dumpErr == nil {
+			log.Debugf("sendJSONToFlourWebhook: HTTP request:\n%s", string(dump))
+		}
 
 		// Send the request
 		client := &http.Client{}
@@ -63,11 +73,15 @@ func sendJSONToFlourWebhook(payload interface{}) error {
 		if err != nil {
 			log.Errorf("sendJSONToFlourWebhook: Request failed: %v\n", err)
 		} else {
-			defer resp.Body.Close()
+			resp.Body.Close()
 
-			// Check for 200 OK status
 			if resp.StatusCode == http.StatusOK || resp.StatusCode == 201 {
 				log.Info("sendJSONToFlourWebhook: Successfully sent flour JSON payload")
+				return nil
+			}
+
+			if resp.StatusCode == http.StatusUnprocessableEntity {
+				log.Infof("sendJSONToFlourWebhook: Received 422 Unprocessable Entity, treating as non-fatal")
 				return nil
 			}
 

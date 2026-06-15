@@ -150,6 +150,14 @@ func GetRouter() (r *chi.Mux) {
 			r.Route("/payments", func(r chi.Router) {
 				r.Post("/payout/", CreatePaymentPayout)
 			})
+			r.Route("/items", func(r chi.Router) {
+				r.Get("/", ListItemsBackoffice)
+				r.Post("/", CreateItem)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Put("/", UpdateItem)
+					r.Delete("/", DeleteItem)
+				})
+			})
 		})
 
 	}

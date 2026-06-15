@@ -51,6 +51,7 @@ services:
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       SENTRY_DSN: ${SENTRY_DSN}
       FLOUR_WEBHOOK_URL: ${FLOUR_WEBHOOK_URL}
+      FLOUR_WEBHOOK_TOKEN: ${FLOUR_WEBHOOK_TOKEN}
     depends_on:
       augustin-db:
         condition: service_healthy
