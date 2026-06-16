@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"mime/multipart"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"strconv"
@@ -1824,4 +1826,86 @@ func TestListUnverifiedOrders(t *testing.T) {
 
 	require.Len(t, orders, 1)
 	require.Equal(t, "unverified@example.com", orders[0].CustomerEmail.String)
+}
+
+// TestVerifyPaymentOrder_InviteURL checks that the verify endpoint returns a WordPress
+// one-time login URL for new users when WordPressInviteURL is configured.
+func TestVerifyPaymentOrder_InviteURL(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	err := database.Db.InitEmptyTestDb()
+	require.NoError(t, err)
+
+	// Fake WordPress invite API
+	const fakeInviteURL = "https://wordpress.test/invite/abc123"
+	wpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"url":"` + fakeInviteURL + `"}`))
+	}))
+	defer wpServer.Close()
+
+	// Configure settings to use the fake server
+	settings, err := database.Db.GetSettings()
+	require.NoError(t, err)
+	settings.WordPressInviteURL = wpServer.URL
+	settings.WordPressInviteAPIKey = "test-api-key"
+	settings.WordPressInviteTTL = 604800
+	settings.MaxOrderAmount = 10000
+	err = database.Db.UpdateSettings(settings)
+	require.NoError(t, err)
+	defer func() {
+		s, _ := database.Db.GetSettings()
+		if s != nil {
+			s.WordPressInviteURL = ""
+			s.WordPressInviteAPIKey = ""
+			_ = database.Db.UpdateSettings(s)
+		}
+	}()
+
+	// Ensure mail templates exist
+	err = database.Db.CreateOrUpdateMailTemplate("digitalLicenceItemTemplate.html", "Your license", "Access: {{.URL}}{{if .InviteURL}} Login: {{.InviteURL}}{{end}}")
+	require.NoError(t, err)
+	err = database.Db.CreateOrUpdateMailTemplate("welcome", "Welcome", "Welcome!")
+	require.NoError(t, err)
+	err = database.Db.CreateOrUpdateMailTemplate("abonementConfirmation", "Abo", "Abo confirmed{{if .InviteURL}} Login: {{.InviteURL}}{{end}}")
+	require.NoError(t, err)
+
+	// Create vendor and item with license
+	vendorLicenseID := "testwpinvite"
+	createTestVendor(t, vendorLicenseID)
+	itemIDStr, _ := CreateTestItemWithLicense(t)
+
+	customerEmail := "wpinvite_newuser@example.com"
+	keycloak.KeycloakClient.DeleteUser(customerEmail)
+	defer keycloak.KeycloakClient.DeleteUser(customerEmail)
+
+	// Create order
+	itemIDInt, _ := strconv.Atoi(itemIDStr)
+	reqData := createOrderRequest{
+		Entries:         []createOrderRequestEntry{{Item: itemIDInt, Quantity: 1}},
+		VendorLicenseID: vendorLicenseID,
+		CustomerEmail:   null.StringFrom(customerEmail),
+	}
+	res := utils.TestRequest(t, r, "POST", "/api/orders/", reqData, 200)
+	var orderResp createOrderResponse
+	err = json.Unmarshal(res.Body.Bytes(), &orderResp)
+	require.NoError(t, err)
+
+	u, err := url.Parse(orderResp.SmartCheckoutURL)
+	require.NoError(t, err)
+	orderCode := u.Query().Get("s")
+	require.NotEmpty(t, orderCode)
+
+	// Verify in development mode (calls VerifyOrderAndCreatePayments + returns response)
+	origDev := config.Config.Development
+	config.Config.Development = true
+	defer func() { config.Config.Development = origDev }()
+
+	resVerify := utils.TestRequestStr(t, r, "GET", "/api/orders/verify/?s="+orderCode+"&t=0", "", 200)
+
+	var verifyResp VerifyPaymentOrderResponse
+	err = json.Unmarshal(resVerify.Body.Bytes(), &verifyResp)
+	require.NoError(t, err)
+	require.Equal(t, fakeInviteURL, verifyResp.InviteURL, "InviteURL should be set for a new user")
 }
