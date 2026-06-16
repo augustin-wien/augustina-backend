@@ -12,6 +12,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/utils"
+	"github.com/augustin-wien/augustina-backend/wordpress"
 
 	"github.com/go-chi/chi/v5"
 	"gopkg.in/guregu/null.v4"
@@ -464,6 +465,7 @@ type VerifyPaymentOrderResponse struct {
 	PurchasedItems   []database.OrderEntry
 	TotalSum         int
 	PDFDownloadLinks *[]database.PDFDownloadLinks
+	InviteURL        string
 }
 
 // paymentsResponse is the payload returned by ListPaymentsForPayout
@@ -572,6 +574,26 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Declare first name from vendor
 		verifyPaymentOrderResponse.FirstName = vendor.FirstName
+	}
+
+	// Generate a WordPress one-time login link for new users who bought a digital/abonement item.
+	// "New user" means the customer record was created within the last 10 minutes.
+	if settings.WordPressInviteURL != "" && order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
+		customer, customerErr := database.Db.GetCustomerByEmail(order.CustomerEmail.String)
+		if customerErr == nil && customer != nil && customer.CreatedAt != nil &&
+			time.Since(*customer.CreatedAt) < 10*time.Minute {
+			inviteURL, wpErr := wordpress.CreateInvite(
+				settings.WordPressInviteURL,
+				settings.WordPressInviteAPIKey,
+				order.CustomerEmail.String,
+				settings.WordPressInviteTTL,
+			)
+			if wpErr != nil {
+				log.Error("VerifyPaymentOrder: failed to create WordPress invite: ", wpErr)
+			} else {
+				verifyPaymentOrderResponse.InviteURL = inviteURL
+			}
+		}
 	}
 
 	// Create response
