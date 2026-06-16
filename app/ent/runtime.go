@@ -286,20 +286,24 @@ func init() {
 	settingsDescAbonementUrl := settingsFields[23].Descriptor()
 	// settings.DefaultAbonementUrl holds the default value on creation for the AbonementUrl field.
 	settings.DefaultAbonementUrl = settingsDescAbonementUrl.Default.(string)
+	// settingsDescAbonementEnabled is the schema descriptor for AbonementEnabled field.
+	settingsDescAbonementEnabled := settingsFields[24].Descriptor()
+	// settings.DefaultAbonementEnabled holds the default value on creation for the AbonementEnabled field.
+	settings.DefaultAbonementEnabled = settingsDescAbonementEnabled.Default.(bool)
 	// settingsDescPOSEnabled is the schema descriptor for POSEnabled field.
-	settingsDescPOSEnabled := settingsFields[24].Descriptor()
+	settingsDescPOSEnabled := settingsFields[25].Descriptor()
 	// settings.DefaultPOSEnabled holds the default value on creation for the POSEnabled field.
 	settings.DefaultPOSEnabled = settingsDescPOSEnabled.Default.(bool)
 	// settingsDescWordPressInviteURL is the schema descriptor for WordPressInviteURL field.
-	settingsDescWordPressInviteURL := settingsFields[25].Descriptor()
+	settingsDescWordPressInviteURL := settingsFields[26].Descriptor()
 	// settings.DefaultWordPressInviteURL holds the default value on creation for the WordPressInviteURL field.
 	settings.DefaultWordPressInviteURL = settingsDescWordPressInviteURL.Default.(string)
 	// settingsDescWordPressInviteAPIKey is the schema descriptor for WordPressInviteAPIKey field.
-	settingsDescWordPressInviteAPIKey := settingsFields[26].Descriptor()
+	settingsDescWordPressInviteAPIKey := settingsFields[27].Descriptor()
 	// settings.DefaultWordPressInviteAPIKey holds the default value on creation for the WordPressInviteAPIKey field.
 	settings.DefaultWordPressInviteAPIKey = settingsDescWordPressInviteAPIKey.Default.(string)
 	// settingsDescWordPressInviteTTL is the schema descriptor for WordPressInviteTTL field.
-	settingsDescWordPressInviteTTL := settingsFields[27].Descriptor()
+	settingsDescWordPressInviteTTL := settingsFields[28].Descriptor()
 	// settings.DefaultWordPressInviteTTL holds the default value on creation for the WordPressInviteTTL field.
 	settings.DefaultWordPressInviteTTL = settingsDescWordPressInviteTTL.Default.(int)
 	// settingsDescID is the schema descriptor for id field.

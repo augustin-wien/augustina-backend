@@ -83,6 +83,7 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetShopLanding(settings.ShopLanding).
 		SetDigitalItemsUrl(settings.DigitalItemsUrl).
 		SetAbonementUrl(settings.AbonementUrl).
+		SetAbonementEnabled(settings.AbonementEnabled).
 		SetPOSEnabled(settings.POSEnabled).
 		SetWordPressInviteURL(settings.WordPressInviteURL).
 		SetWordPressInviteAPIKey(settings.WordPressInviteAPIKey).

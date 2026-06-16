@@ -371,6 +371,20 @@ func (_u *SettingsUpdate) SetNillableAbonementUrl(v *string) *SettingsUpdate {
 	return _u
 }
 
+// SetAbonementEnabled sets the "AbonementEnabled" field.
+func (_u *SettingsUpdate) SetAbonementEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetAbonementEnabled(v)
+	return _u
+}
+
+// SetNillableAbonementEnabled sets the "AbonementEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableAbonementEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetAbonementEnabled(*v)
+	}
+	return _u
+}
+
 // SetPOSEnabled sets the "POSEnabled" field.
 func (_u *SettingsUpdate) SetPOSEnabled(v bool) *SettingsUpdate {
 	_u.mutation.SetPOSEnabled(v)
@@ -577,6 +591,9 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AbonementUrl(); ok {
 		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AbonementEnabled(); ok {
+		_spec.SetField(settings.FieldAbonementEnabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.POSEnabled(); ok {
 		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)
@@ -985,6 +1002,20 @@ func (_u *SettingsUpdateOne) SetNillableAbonementUrl(v *string) *SettingsUpdateO
 	return _u
 }
 
+// SetAbonementEnabled sets the "AbonementEnabled" field.
+func (_u *SettingsUpdateOne) SetAbonementEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetAbonementEnabled(v)
+	return _u
+}
+
+// SetNillableAbonementEnabled sets the "AbonementEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableAbonementEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetAbonementEnabled(*v)
+	}
+	return _u
+}
+
 // SetPOSEnabled sets the "POSEnabled" field.
 func (_u *SettingsUpdateOne) SetPOSEnabled(v bool) *SettingsUpdateOne {
 	_u.mutation.SetPOSEnabled(v)
@@ -1221,6 +1252,9 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.AbonementUrl(); ok {
 		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AbonementEnabled(); ok {
+		_spec.SetField(settings.FieldAbonementEnabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.POSEnabled(); ok {
 		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)

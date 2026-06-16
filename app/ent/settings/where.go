@@ -168,6 +168,11 @@ func AbonementUrl(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAbonementUrl, v))
 }
 
+// AbonementEnabled applies equality check predicate on the "AbonementEnabled" field. It's identical to AbonementEnabledEQ.
+func AbonementEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAbonementEnabled, v))
+}
+
 // POSEnabled applies equality check predicate on the "POSEnabled" field. It's identical to POSEnabledEQ.
 func POSEnabled(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldPOSEnabled, v))
@@ -1276,6 +1281,16 @@ func AbonementUrlEqualFold(v string) predicate.Settings {
 // AbonementUrlContainsFold applies the ContainsFold predicate on the "AbonementUrl" field.
 func AbonementUrlContainsFold(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldContainsFold(FieldAbonementUrl, v))
+}
+
+// AbonementEnabledEQ applies the EQ predicate on the "AbonementEnabled" field.
+func AbonementEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAbonementEnabled, v))
+}
+
+// AbonementEnabledNEQ applies the NEQ predicate on the "AbonementEnabled" field.
+func AbonementEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldAbonementEnabled, v))
 }
 
 // POSEnabledEQ applies the EQ predicate on the "POSEnabled" field.

@@ -82,6 +82,9 @@ func (Settings) Fields() []ent.Field {
 		field.String("AbonementUrl").
 			StorageKey("abonementurl").
 			Default(""),
+		field.Bool("AbonementEnabled").
+			StorageKey("abonementenabled").
+			Default(false),
 		field.Bool("POSEnabled").
 			StorageKey("posenabled").
 			Default(true),

@@ -11129,6 +11129,7 @@ type SettingsMutation struct {
 	_ShopLanding                *bool
 	_DigitalItemsUrl            *string
 	_AbonementUrl               *string
+	_AbonementEnabled           *bool
 	_POSEnabled                 *bool
 	_WordPressInviteURL         *string
 	_WordPressInviteAPIKey      *string
@@ -12134,6 +12135,42 @@ func (m *SettingsMutation) ResetAbonementUrl() {
 	m._AbonementUrl = nil
 }
 
+// SetAbonementEnabled sets the "AbonementEnabled" field.
+func (m *SettingsMutation) SetAbonementEnabled(b bool) {
+	m._AbonementEnabled = &b
+}
+
+// AbonementEnabled returns the value of the "AbonementEnabled" field in the mutation.
+func (m *SettingsMutation) AbonementEnabled() (r bool, exists bool) {
+	v := m._AbonementEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAbonementEnabled returns the old "AbonementEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldAbonementEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAbonementEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAbonementEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAbonementEnabled: %w", err)
+	}
+	return oldValue.AbonementEnabled, nil
+}
+
+// ResetAbonementEnabled resets all changes to the "AbonementEnabled" field.
+func (m *SettingsMutation) ResetAbonementEnabled() {
+	m._AbonementEnabled = nil
+}
+
 // SetPOSEnabled sets the "POSEnabled" field.
 func (m *SettingsMutation) SetPOSEnabled(b bool) {
 	m._POSEnabled = &b
@@ -12371,7 +12408,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 27)
+	fields := make([]string, 0, 28)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -12441,6 +12478,9 @@ func (m *SettingsMutation) Fields() []string {
 	if m._AbonementUrl != nil {
 		fields = append(fields, settings.FieldAbonementUrl)
 	}
+	if m._AbonementEnabled != nil {
+		fields = append(fields, settings.FieldAbonementEnabled)
+	}
 	if m._POSEnabled != nil {
 		fields = append(fields, settings.FieldPOSEnabled)
 	}
@@ -12507,6 +12547,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.DigitalItemsUrl()
 	case settings.FieldAbonementUrl:
 		return m.AbonementUrl()
+	case settings.FieldAbonementEnabled:
+		return m.AbonementEnabled()
 	case settings.FieldPOSEnabled:
 		return m.POSEnabled()
 	case settings.FieldWordPressInviteURL:
@@ -12570,6 +12612,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldDigitalItemsUrl(ctx)
 	case settings.FieldAbonementUrl:
 		return m.OldAbonementUrl(ctx)
+	case settings.FieldAbonementEnabled:
+		return m.OldAbonementEnabled(ctx)
 	case settings.FieldPOSEnabled:
 		return m.OldPOSEnabled(ctx)
 	case settings.FieldWordPressInviteURL:
@@ -12747,6 +12791,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAbonementUrl(v)
+		return nil
+	case settings.FieldAbonementEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAbonementEnabled(v)
 		return nil
 	case settings.FieldPOSEnabled:
 		v, ok := value.(bool)
@@ -12944,6 +12995,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldAbonementUrl:
 		m.ResetAbonementUrl()
+		return nil
+	case settings.FieldAbonementEnabled:
+		m.ResetAbonementEnabled()
 		return nil
 	case settings.FieldPOSEnabled:
 		m.ResetPOSEnabled()

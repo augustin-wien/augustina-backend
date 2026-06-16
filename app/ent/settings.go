@@ -63,6 +63,8 @@ type Settings struct {
 	DigitalItemsUrl string `json:"DigitalItemsUrl"`
 	// AbonementUrl holds the value of the "AbonementUrl" field.
 	AbonementUrl string `json:"AbonementUrl"`
+	// AbonementEnabled holds the value of the "AbonementEnabled" field.
+	AbonementEnabled bool `json:"AbonementEnabled"`
 	// POSEnabled holds the value of the "POSEnabled" field.
 	POSEnabled bool `json:"POSEnabled"`
 	// WordPressInviteURL holds the value of the "WordPressInviteURL" field.
@@ -103,7 +105,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldPOSEnabled:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
@@ -272,6 +274,12 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.AbonementUrl = value.String
 			}
+		case settings.FieldAbonementEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field AbonementEnabled", values[i])
+			} else if value.Valid {
+				_m.AbonementEnabled = value.Bool
+			}
 		case settings.FieldPOSEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field POSEnabled", values[i])
@@ -412,6 +420,9 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("AbonementUrl=")
 	builder.WriteString(_m.AbonementUrl)
+	builder.WriteString(", ")
+	builder.WriteString("AbonementEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AbonementEnabled))
 	builder.WriteString(", ")
 	builder.WriteString("POSEnabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.POSEnabled))

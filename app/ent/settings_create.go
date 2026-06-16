@@ -342,6 +342,20 @@ func (_c *SettingsCreate) SetNillableAbonementUrl(v *string) *SettingsCreate {
 	return _c
 }
 
+// SetAbonementEnabled sets the "AbonementEnabled" field.
+func (_c *SettingsCreate) SetAbonementEnabled(v bool) *SettingsCreate {
+	_c.mutation.SetAbonementEnabled(v)
+	return _c
+}
+
+// SetNillableAbonementEnabled sets the "AbonementEnabled" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableAbonementEnabled(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetAbonementEnabled(*v)
+	}
+	return _c
+}
+
 // SetPOSEnabled sets the "POSEnabled" field.
 func (_c *SettingsCreate) SetPOSEnabled(v bool) *SettingsCreate {
 	_c.mutation.SetPOSEnabled(v)
@@ -550,6 +564,10 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultAbonementUrl
 		_c.mutation.SetAbonementUrl(v)
 	}
+	if _, ok := _c.mutation.AbonementEnabled(); !ok {
+		v := settings.DefaultAbonementEnabled
+		_c.mutation.SetAbonementEnabled(v)
+	}
 	if _, ok := _c.mutation.POSEnabled(); !ok {
 		v := settings.DefaultPOSEnabled
 		_c.mutation.SetPOSEnabled(v)
@@ -638,6 +656,9 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.AbonementUrl(); !ok {
 		return &ValidationError{Name: "AbonementUrl", err: errors.New(`ent: missing required field "Settings.AbonementUrl"`)}
+	}
+	if _, ok := _c.mutation.AbonementEnabled(); !ok {
+		return &ValidationError{Name: "AbonementEnabled", err: errors.New(`ent: missing required field "Settings.AbonementEnabled"`)}
 	}
 	if _, ok := _c.mutation.POSEnabled(); !ok {
 		return &ValidationError{Name: "POSEnabled", err: errors.New(`ent: missing required field "Settings.POSEnabled"`)}
@@ -779,6 +800,10 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.AbonementUrl(); ok {
 		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
 		_node.AbonementUrl = value
+	}
+	if value, ok := _c.mutation.AbonementEnabled(); ok {
+		_spec.SetField(settings.FieldAbonementEnabled, field.TypeBool, value)
+		_node.AbonementEnabled = value
 	}
 	if value, ok := _c.mutation.POSEnabled(); ok {
 		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)
