@@ -32,7 +32,69 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
+    - name: Load .env into GitHub Actions environment
+      shell: bash
+      run: |
+        if [ ! -f .env.example ]; then
+          echo ".env.example not found in repository root" >&2
+          exit 1
+        fi
+
+        # Normalize line endings to LF in a temp file, then read it
+        TMP_ENV=$(mktemp)
+        tr -d '\r' < .env.example > "$TMP_ENV"
+
+        # Export environment for this step so we can validate
+        set -o allexport
+        # shellcheck disable=SC1090
+        source "$TMP_ENV"
+        set +o allexport
+
+        # Persist parsed variables to $GITHUB_ENV for subsequent steps
+        # Ignore comments and blank lines, trim surrounding quotes from values
+        grep -v '^[[:space:]]*#' "$TMP_ENV" | sed '/^[[:space:]]*$/d' | while IFS='=' read -r name value; do
+          # Skip lines that don't contain '='
+          if [ -z "$name" ] || [ -z "${value+set}" ]; then
+            continue
+          fi
+          # Trim leading and trailing whitespace from name
+          name=$(echo "$name" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          # Remove surrounding single or double quotes
+          value="${value%\"}"; value="${value#\"}"
+          value="${value%\'}"; value="${value#\'}"
+          echo "$name=$value" >> $GITHUB_ENV
+        done
+
+        rm -f "$TMP_ENV"
+
+    - name: Validate DB environment variables
+      shell: bash
+      run: |
+        # Set safe defaults if missing
+        : "${POSTGRES_USER:=postgres}"
+        : "${POSTGRES_DB:=postgres}"
+        : "${POSTGRES_PORT:=5432}"
+
+        # Ensure POSTGRES_PORT is digits only
+        if ! printf '%s' "$POSTGRES_PORT" | grep -qE '^[0-9]+$'; then
+          echo "POSTGRES_PORT must be a number, got: '$POSTGRES_PORT'" >&2
+          exit 1
+        fi
+
+        # Persist defaults back to $GITHUB_ENV
+        echo "POSTGRES_USER=$POSTGRES_USER" >> $GITHUB_ENV
+        echo "POSTGRES_DB=$POSTGRES_DB" >> $GITHUB_ENV
+        echo "POSTGRES_PORT=$POSTGRES_PORT" >> $GITHUB_ENV
+
+        # Do not print secrets; print only non-sensitive keys
+        echo "POSTGRES_USER=$POSTGRES_USER"
+        echo "POSTGRES_PORT=$POSTGRES_PORT"
+
+    - name: Dump DB-related env keys (non-secret)
+      run: |
+        env | sort | grep -E 'POSTGRES|DB_|PG' || true
 
     - name: Login to Docker Hub
       uses: docker/login-action@v1
@@ -47,7 +109,7 @@ jobs:
         if [ -d docker ]; then
           cp .env.example docker/.env || true
         fi
-      # /home/runner/work/augustin-backend/augustin-backend/docker/.env.parser
+      # /home/runner/work/augustina-backend/augustin-backend/docker/.env.parser
 
     - name: Build keycloak image
       run: docker compose up -d keycloak
