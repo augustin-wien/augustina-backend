@@ -1530,20 +1530,19 @@ func TestPaymentPayout(t *testing.T) {
 		})
 
 	utils.CheckError(t, err)
-	// Create invalid payout
+	// Create invalid payout: vendor with no open payments → amount = 0 → 400
+	emptyVendorID := createTestVendor(t, "testpayoutEmpty")
+	defer keycloak.KeycloakClient.DeleteUser("testpayoutEmpty@example.com")
 	f := createPaymentPayoutRequest{
-		VendorLicenseID: vendorLicenseId,
-		From:            time.Now().Add(time.Duration(-200) * time.Hour),
-		To:              time.Now().Add(time.Duration(-100) * time.Hour),
+		VendorLicenseID: "testpayoutEmpty",
 	}
+	_ = emptyVendorID
 	res := utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
 
-	// Create payments via API
+	// Create valid payout
 	f = createPaymentPayoutRequest{
 		VendorLicenseID: vendorLicenseId,
-		From:            time.Now().Add(time.Duration(-100) * time.Hour),
-		To:              time.Now().Add(time.Duration(+100) * time.Hour),
 	}
 
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
