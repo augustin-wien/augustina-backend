@@ -1500,6 +1500,14 @@ func timeRequest(t *testing.T, from int, to int, expectedLength int) {
 
 // TestPaymentPayout tests CRUD operations on payment payouts
 func TestPaymentPayout(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+
 	keycloak.KeycloakClient.DeleteUser("testpaymentpayout@example.com")
 	keycloak.KeycloakClient.DeleteUser("testotherlicenseid@example.com")
 

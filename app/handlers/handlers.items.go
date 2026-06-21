@@ -432,16 +432,16 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Security check to disable updating Item of ID 2 and 3, which are essential for donations and transaction costs
+	if ItemID == 2 || ItemID == 3 {
+		utils.ErrorJSON(w, errors.New("nice try! You are not allowed to update this item"), http.StatusBadRequest)
+		return
+	}
+
 	existingItem, err := database.Db.GetItemIncludingDisabled(ItemID)
 	if err != nil {
 		log.Error("UpdateItem: failed to load current item", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	// Security check to disable updating Item of ID 2 and 3, which are essential for donations and transaction costs
-	if ItemID == 2 || ItemID == 3 {
-		utils.ErrorJSON(w, errors.New("nice try! You are not allowed to update this item"), http.StatusBadRequest)
 		return
 	}
 
