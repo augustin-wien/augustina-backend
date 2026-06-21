@@ -942,6 +942,11 @@ func TestOrders(t *testing.T) {
 
 	// Use the created order rather than relying on a fixed order code
 	order := orders[0]
+	// In environments where the Viva checkout URL is used (?ref= format), s= is absent;
+	// fall back to the order code stored in the DB.
+	if orderCode == "" {
+		orderCode = order.OrderCode.String
+	}
 	// Test order amount
 	orderTotal := order.GetTotal()
 	require.Equal(t, orderTotal, 20*2)
@@ -1886,6 +1891,11 @@ func TestVerifyPaymentOrder_InviteURL(t *testing.T) {
 	customerEmail := "wpinvite_newuser@example.com"
 	keycloak.KeycloakClient.DeleteUser(customerEmail)
 	defer keycloak.KeycloakClient.DeleteUser(customerEmail)
+
+	// Enable debug payment mode so the order gets a deterministic ?s= checkout URL
+	origDebug := config.Config.DEBUG_payments
+	config.Config.DEBUG_payments = true
+	defer func() { config.Config.DEBUG_payments = origDebug }()
 
 	// Create order
 	itemIDInt, _ := strconv.Atoi(itemIDStr)
