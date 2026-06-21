@@ -1094,6 +1094,8 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 
 type createPaymentPayoutRequest struct {
 	VendorLicenseID string
+	From            interface{} `json:"From,omitempty"`
+	To              interface{} `json:"To,omitempty"`
 }
 
 // CreatePaymentPayout godoc
