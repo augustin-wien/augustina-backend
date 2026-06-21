@@ -1,0 +1,4 @@
+ALTER TABLE settings
+    ADD COLUMN IF NOT EXISTS wordpressinviteurl    TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS wordpressinviteapikey TEXT NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS wordpressinvitettl    INT  NOT NULL DEFAULT 604800;

@@ -12,6 +12,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/utils"
+	"github.com/augustin-wien/augustina-backend/wordpress"
 
 	"github.com/go-chi/chi/v5"
 	"gopkg.in/guregu/null.v4"
@@ -343,7 +344,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 		if config.Config.DEBUG_payments {
 			log.Info("DEBUG_payments is enabled, skipping payment order creation")
-			OrderCode = strconv.Itoa(utils.GenerateRandomNumber()) // Set OrderCode to a random number for testing purposes
+			OrderCode = strconv.Itoa(utils.GenerateRandomNumber())
 		} else {
 			accessToken, err := paymentprovider.AuthenticateToVivaWallet()
 			if err != nil {
@@ -358,6 +359,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	} else if config.Config.Development {
+		OrderCode = strconv.Itoa(utils.GenerateRandomNumber())
 	}
 
 	// Save order to database
@@ -378,8 +381,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Create response
 	checkoutURL := config.Config.VivaWalletSmartCheckoutURL + OrderCode
-	if config.Config.DEBUG_payments {
-		log.Info("DEBUG_payments is enabled, using test URL")
+	if config.Config.DEBUG_payments || config.Config.Development {
 		checkoutURL = "http://localhost:5173/success?t=" + OrderCode + "&s=" + OrderCode + "&lang=en-GB&eventId=0&eci=1"
 	}
 	// Add color code to URL
@@ -464,6 +466,7 @@ type VerifyPaymentOrderResponse struct {
 	PurchasedItems   []database.OrderEntry
 	TotalSum         int
 	PDFDownloadLinks *[]database.PDFDownloadLinks
+	InviteURL        string
 }
 
 // paymentsResponse is the payload returned by ListPaymentsForPayout
@@ -572,6 +575,26 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Declare first name from vendor
 		verifyPaymentOrderResponse.FirstName = vendor.FirstName
+	}
+
+	// Generate a WordPress one-time login link for new users who bought a digital/abonement item.
+	// "New user" means the customer record was created within the last 10 minutes.
+	if settings.WordPressInviteURL != "" && order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
+		customer, customerErr := database.Db.GetCustomerByEmail(order.CustomerEmail.String)
+		if customerErr == nil && customer != nil && customer.CreatedAt != nil &&
+			time.Since(*customer.CreatedAt) < 10*time.Minute {
+			inviteURL, wpErr := wordpress.CreateInvite(
+				settings.WordPressInviteURL,
+				settings.WordPressInviteAPIKey,
+				order.CustomerEmail.String,
+				settings.WordPressInviteTTL,
+			)
+			if wpErr != nil {
+				log.Error("VerifyPaymentOrder: failed to create WordPress invite: ", wpErr)
+			} else {
+				verifyPaymentOrderResponse.InviteURL = inviteURL
+			}
+		}
 	}
 
 	// Create response
@@ -1072,6 +1095,8 @@ func CreatePayments(w http.ResponseWriter, r *http.Request) {
 
 type createPaymentPayoutRequest struct {
 	VendorLicenseID string
+	From            interface{} `json:"From,omitempty"`
+	To              interface{} `json:"To,omitempty"`
 }
 
 // CreatePaymentPayout godoc

@@ -52,6 +52,8 @@ services:
       SENTRY_DSN: ${SENTRY_DSN}
       FLOUR_WEBHOOK_URL: ${FLOUR_WEBHOOK_URL}
       FLOUR_WEBHOOK_TOKEN: ${FLOUR_WEBHOOK_TOKEN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       augustin-db:
         condition: service_healthy

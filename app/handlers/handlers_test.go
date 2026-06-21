@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"mime/multipart"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"strconv"
@@ -940,6 +942,11 @@ func TestOrders(t *testing.T) {
 
 	// Use the created order rather than relying on a fixed order code
 	order := orders[0]
+	// In environments where the Viva checkout URL is used (?ref= format), s= is absent;
+	// fall back to the order code stored in the DB.
+	if orderCode == "" {
+		orderCode = order.OrderCode.String
+	}
 	// Test order amount
 	orderTotal := order.GetTotal()
 	require.Equal(t, orderTotal, 20*2)
@@ -1498,6 +1505,14 @@ func timeRequest(t *testing.T, from int, to int, expectedLength int) {
 
 // TestPaymentPayout tests CRUD operations on payment payouts
 func TestPaymentPayout(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+
 	keycloak.KeycloakClient.DeleteUser("testpaymentpayout@example.com")
 	keycloak.KeycloakClient.DeleteUser("testotherlicenseid@example.com")
 
@@ -1528,20 +1543,19 @@ func TestPaymentPayout(t *testing.T) {
 		})
 
 	utils.CheckError(t, err)
-	// Create invalid payout
+	// Create invalid payout: vendor with no open payments → amount = 0 → 400
+	emptyVendorID := createTestVendor(t, "testpayoutEmpty")
+	defer keycloak.KeycloakClient.DeleteUser("testpayoutEmpty@example.com")
 	f := createPaymentPayoutRequest{
-		VendorLicenseID: vendorLicenseId,
-		From:            time.Now().Add(time.Duration(-200) * time.Hour),
-		To:              time.Now().Add(time.Duration(-100) * time.Hour),
+		VendorLicenseID: "testpayoutEmpty",
 	}
+	_ = emptyVendorID
 	res := utils.TestRequestWithAuth(t, r, "POST", "/api/payments/payout/", f, 400, adminUserToken)
 	require.Equal(t, res.Body.String(), `{"error":{"message":"payout amount must be bigger than 0"}}`)
 
-	// Create payments via API
+	// Create valid payout
 	f = createPaymentPayoutRequest{
 		VendorLicenseID: vendorLicenseId,
-		From:            time.Now().Add(time.Duration(-100) * time.Hour),
-		To:              time.Now().Add(time.Duration(+100) * time.Hour),
 	}
 
 	account, err := database.Db.GetAccountByVendorID(vendorIDInt)
@@ -1824,4 +1838,91 @@ func TestListUnverifiedOrders(t *testing.T) {
 
 	require.Len(t, orders, 1)
 	require.Equal(t, "unverified@example.com", orders[0].CustomerEmail.String)
+}
+
+// TestVerifyPaymentOrder_InviteURL checks that the verify endpoint returns a WordPress
+// one-time login URL for new users when WordPressInviteURL is configured.
+func TestVerifyPaymentOrder_InviteURL(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	err := database.Db.InitEmptyTestDb()
+	require.NoError(t, err)
+
+	// Fake WordPress invite API
+	const fakeInviteURL = "https://wordpress.test/invite/abc123"
+	wpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"url":"` + fakeInviteURL + `"}`))
+	}))
+	defer wpServer.Close()
+
+	// Configure settings to use the fake server
+	settings, err := database.Db.GetSettings()
+	require.NoError(t, err)
+	settings.WordPressInviteURL = wpServer.URL
+	settings.WordPressInviteAPIKey = "test-api-key"
+	settings.WordPressInviteTTL = 604800
+	settings.MaxOrderAmount = 10000
+	err = database.Db.UpdateSettings(settings)
+	require.NoError(t, err)
+	defer func() {
+		s, _ := database.Db.GetSettings()
+		if s != nil {
+			s.WordPressInviteURL = ""
+			s.WordPressInviteAPIKey = ""
+			_ = database.Db.UpdateSettings(s)
+		}
+	}()
+
+	// Ensure mail templates exist
+	err = database.Db.CreateOrUpdateMailTemplate("digitalLicenceItemTemplate.html", "Your license", "Access: {{.URL}}{{if .InviteURL}} Login: {{.InviteURL}}{{end}}")
+	require.NoError(t, err)
+	err = database.Db.CreateOrUpdateMailTemplate("welcome", "Welcome", "Welcome!")
+	require.NoError(t, err)
+	err = database.Db.CreateOrUpdateMailTemplate("abonementConfirmation", "Abo", "Abo confirmed{{if .InviteURL}} Login: {{.InviteURL}}{{end}}")
+	require.NoError(t, err)
+
+	// Create vendor and item with license
+	vendorLicenseID := "testwpinvite"
+	createTestVendor(t, vendorLicenseID)
+	itemIDStr, _ := CreateTestItemWithLicense(t)
+
+	customerEmail := "wpinvite_newuser@example.com"
+	keycloak.KeycloakClient.DeleteUser(customerEmail)
+	defer keycloak.KeycloakClient.DeleteUser(customerEmail)
+
+	// Enable debug payment mode so the order gets a deterministic ?s= checkout URL
+	origDebug := config.Config.DEBUG_payments
+	config.Config.DEBUG_payments = true
+	defer func() { config.Config.DEBUG_payments = origDebug }()
+
+	// Create order
+	itemIDInt, _ := strconv.Atoi(itemIDStr)
+	reqData := createOrderRequest{
+		Entries:         []createOrderRequestEntry{{Item: itemIDInt, Quantity: 1}},
+		VendorLicenseID: vendorLicenseID,
+		CustomerEmail:   null.StringFrom(customerEmail),
+	}
+	res := utils.TestRequest(t, r, "POST", "/api/orders/", reqData, 200)
+	var orderResp createOrderResponse
+	err = json.Unmarshal(res.Body.Bytes(), &orderResp)
+	require.NoError(t, err)
+
+	u, err := url.Parse(orderResp.SmartCheckoutURL)
+	require.NoError(t, err)
+	orderCode := u.Query().Get("s")
+	require.NotEmpty(t, orderCode)
+
+	// Verify in development mode (calls VerifyOrderAndCreatePayments + returns response)
+	origDev := config.Config.Development
+	config.Config.Development = true
+	defer func() { config.Config.Development = origDev }()
+
+	resVerify := utils.TestRequestStr(t, r, "GET", "/api/orders/verify/?s="+orderCode+"&t=0", "", 200)
+
+	var verifyResp VerifyPaymentOrderResponse
+	err = json.Unmarshal(resVerify.Body.Bytes(), &verifyResp)
+	require.NoError(t, err)
+	require.Equal(t, fakeInviteURL, verifyResp.InviteURL, "InviteURL should be set for a new user")
 }

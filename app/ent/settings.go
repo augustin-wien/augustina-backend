@@ -63,8 +63,16 @@ type Settings struct {
 	DigitalItemsUrl string `json:"DigitalItemsUrl"`
 	// AbonementUrl holds the value of the "AbonementUrl" field.
 	AbonementUrl string `json:"AbonementUrl"`
+	// AbonementEnabled holds the value of the "AbonementEnabled" field.
+	AbonementEnabled bool `json:"AbonementEnabled"`
 	// POSEnabled holds the value of the "POSEnabled" field.
 	POSEnabled bool `json:"POSEnabled"`
+	// WordPressInviteURL holds the value of the "WordPressInviteURL" field.
+	WordPressInviteURL string `json:"WordPressInviteURL"`
+	// WordPressInviteAPIKey holds the value of the "WordPressInviteAPIKey" field.
+	WordPressInviteAPIKey string `json:"WordPressInviteAPIKey"`
+	// WordPressInviteTTL holds the value of the "WordPressInviteTTL" field.
+	WordPressInviteTTL int `json:"WordPressInviteTTL"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -97,13 +105,13 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldPOSEnabled:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
-		case settings.FieldID, settings.FieldMaxOrderAmount:
+		case settings.FieldID, settings.FieldMaxOrderAmount, settings.FieldWordPressInviteTTL:
 			values[i] = new(sql.NullInt64)
-		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl:
+		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey:
 			values[i] = new(sql.NullString)
 		case settings.ForeignKeys[0]: // mainitem
 			values[i] = new(sql.NullInt64)
@@ -266,11 +274,35 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.AbonementUrl = value.String
 			}
+		case settings.FieldAbonementEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field AbonementEnabled", values[i])
+			} else if value.Valid {
+				_m.AbonementEnabled = value.Bool
+			}
 		case settings.FieldPOSEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field POSEnabled", values[i])
 			} else if value.Valid {
 				_m.POSEnabled = value.Bool
+			}
+		case settings.FieldWordPressInviteURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field WordPressInviteURL", values[i])
+			} else if value.Valid {
+				_m.WordPressInviteURL = value.String
+			}
+		case settings.FieldWordPressInviteAPIKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field WordPressInviteAPIKey", values[i])
+			} else if value.Valid {
+				_m.WordPressInviteAPIKey = value.String
+			}
+		case settings.FieldWordPressInviteTTL:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field WordPressInviteTTL", values[i])
+			} else if value.Valid {
+				_m.WordPressInviteTTL = int(value.Int64)
 			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -389,8 +421,20 @@ func (_m *Settings) String() string {
 	builder.WriteString("AbonementUrl=")
 	builder.WriteString(_m.AbonementUrl)
 	builder.WriteString(", ")
+	builder.WriteString("AbonementEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AbonementEnabled))
+	builder.WriteString(", ")
 	builder.WriteString("POSEnabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.POSEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("WordPressInviteURL=")
+	builder.WriteString(_m.WordPressInviteURL)
+	builder.WriteString(", ")
+	builder.WriteString("WordPressInviteAPIKey=")
+	builder.WriteString(_m.WordPressInviteAPIKey)
+	builder.WriteString(", ")
+	builder.WriteString("WordPressInviteTTL=")
+	builder.WriteString(fmt.Sprintf("%v", _m.WordPressInviteTTL))
 	builder.WriteByte(')')
 	return builder.String()
 }

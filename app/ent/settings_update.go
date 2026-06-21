@@ -371,6 +371,20 @@ func (_u *SettingsUpdate) SetNillableAbonementUrl(v *string) *SettingsUpdate {
 	return _u
 }
 
+// SetAbonementEnabled sets the "AbonementEnabled" field.
+func (_u *SettingsUpdate) SetAbonementEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetAbonementEnabled(v)
+	return _u
+}
+
+// SetNillableAbonementEnabled sets the "AbonementEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableAbonementEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetAbonementEnabled(*v)
+	}
+	return _u
+}
+
 // SetPOSEnabled sets the "POSEnabled" field.
 func (_u *SettingsUpdate) SetPOSEnabled(v bool) *SettingsUpdate {
 	_u.mutation.SetPOSEnabled(v)
@@ -382,6 +396,55 @@ func (_u *SettingsUpdate) SetNillablePOSEnabled(v *bool) *SettingsUpdate {
 	if v != nil {
 		_u.SetPOSEnabled(*v)
 	}
+	return _u
+}
+
+// SetWordPressInviteURL sets the "WordPressInviteURL" field.
+func (_u *SettingsUpdate) SetWordPressInviteURL(v string) *SettingsUpdate {
+	_u.mutation.SetWordPressInviteURL(v)
+	return _u
+}
+
+// SetNillableWordPressInviteURL sets the "WordPressInviteURL" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableWordPressInviteURL(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetWordPressInviteURL(*v)
+	}
+	return _u
+}
+
+// SetWordPressInviteAPIKey sets the "WordPressInviteAPIKey" field.
+func (_u *SettingsUpdate) SetWordPressInviteAPIKey(v string) *SettingsUpdate {
+	_u.mutation.SetWordPressInviteAPIKey(v)
+	return _u
+}
+
+// SetNillableWordPressInviteAPIKey sets the "WordPressInviteAPIKey" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableWordPressInviteAPIKey(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetWordPressInviteAPIKey(*v)
+	}
+	return _u
+}
+
+// SetWordPressInviteTTL sets the "WordPressInviteTTL" field.
+func (_u *SettingsUpdate) SetWordPressInviteTTL(v int) *SettingsUpdate {
+	_u.mutation.ResetWordPressInviteTTL()
+	_u.mutation.SetWordPressInviteTTL(v)
+	return _u
+}
+
+// SetNillableWordPressInviteTTL sets the "WordPressInviteTTL" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableWordPressInviteTTL(v *int) *SettingsUpdate {
+	if v != nil {
+		_u.SetWordPressInviteTTL(*v)
+	}
+	return _u
+}
+
+// AddWordPressInviteTTL adds value to the "WordPressInviteTTL" field.
+func (_u *SettingsUpdate) AddWordPressInviteTTL(v int) *SettingsUpdate {
+	_u.mutation.AddWordPressInviteTTL(v)
 	return _u
 }
 
@@ -529,8 +592,23 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AbonementUrl(); ok {
 		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.AbonementEnabled(); ok {
+		_spec.SetField(settings.FieldAbonementEnabled, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.POSEnabled(); ok {
 		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.WordPressInviteURL(); ok {
+		_spec.SetField(settings.FieldWordPressInviteURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WordPressInviteAPIKey(); ok {
+		_spec.SetField(settings.FieldWordPressInviteAPIKey, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WordPressInviteTTL(); ok {
+		_spec.SetField(settings.FieldWordPressInviteTTL, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedWordPressInviteTTL(); ok {
+		_spec.AddField(settings.FieldWordPressInviteTTL, field.TypeInt, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -924,6 +1002,20 @@ func (_u *SettingsUpdateOne) SetNillableAbonementUrl(v *string) *SettingsUpdateO
 	return _u
 }
 
+// SetAbonementEnabled sets the "AbonementEnabled" field.
+func (_u *SettingsUpdateOne) SetAbonementEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetAbonementEnabled(v)
+	return _u
+}
+
+// SetNillableAbonementEnabled sets the "AbonementEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableAbonementEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetAbonementEnabled(*v)
+	}
+	return _u
+}
+
 // SetPOSEnabled sets the "POSEnabled" field.
 func (_u *SettingsUpdateOne) SetPOSEnabled(v bool) *SettingsUpdateOne {
 	_u.mutation.SetPOSEnabled(v)
@@ -935,6 +1027,55 @@ func (_u *SettingsUpdateOne) SetNillablePOSEnabled(v *bool) *SettingsUpdateOne {
 	if v != nil {
 		_u.SetPOSEnabled(*v)
 	}
+	return _u
+}
+
+// SetWordPressInviteURL sets the "WordPressInviteURL" field.
+func (_u *SettingsUpdateOne) SetWordPressInviteURL(v string) *SettingsUpdateOne {
+	_u.mutation.SetWordPressInviteURL(v)
+	return _u
+}
+
+// SetNillableWordPressInviteURL sets the "WordPressInviteURL" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableWordPressInviteURL(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetWordPressInviteURL(*v)
+	}
+	return _u
+}
+
+// SetWordPressInviteAPIKey sets the "WordPressInviteAPIKey" field.
+func (_u *SettingsUpdateOne) SetWordPressInviteAPIKey(v string) *SettingsUpdateOne {
+	_u.mutation.SetWordPressInviteAPIKey(v)
+	return _u
+}
+
+// SetNillableWordPressInviteAPIKey sets the "WordPressInviteAPIKey" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableWordPressInviteAPIKey(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetWordPressInviteAPIKey(*v)
+	}
+	return _u
+}
+
+// SetWordPressInviteTTL sets the "WordPressInviteTTL" field.
+func (_u *SettingsUpdateOne) SetWordPressInviteTTL(v int) *SettingsUpdateOne {
+	_u.mutation.ResetWordPressInviteTTL()
+	_u.mutation.SetWordPressInviteTTL(v)
+	return _u
+}
+
+// SetNillableWordPressInviteTTL sets the "WordPressInviteTTL" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableWordPressInviteTTL(v *int) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetWordPressInviteTTL(*v)
+	}
+	return _u
+}
+
+// AddWordPressInviteTTL adds value to the "WordPressInviteTTL" field.
+func (_u *SettingsUpdateOne) AddWordPressInviteTTL(v int) *SettingsUpdateOne {
+	_u.mutation.AddWordPressInviteTTL(v)
 	return _u
 }
 
@@ -1112,8 +1253,23 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	if value, ok := _u.mutation.AbonementUrl(); ok {
 		_spec.SetField(settings.FieldAbonementUrl, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.AbonementEnabled(); ok {
+		_spec.SetField(settings.FieldAbonementEnabled, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.POSEnabled(); ok {
 		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.WordPressInviteURL(); ok {
+		_spec.SetField(settings.FieldWordPressInviteURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WordPressInviteAPIKey(); ok {
+		_spec.SetField(settings.FieldWordPressInviteAPIKey, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.WordPressInviteTTL(); ok {
+		_spec.SetField(settings.FieldWordPressInviteTTL, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedWordPressInviteTTL(); ok {
+		_spec.AddField(settings.FieldWordPressInviteTTL, field.TypeInt, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

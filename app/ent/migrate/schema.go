@@ -362,7 +362,11 @@ var (
 		{Name: "shoplanding", Type: field.TypeBool, Default: false},
 		{Name: "digitalitemsurl", Type: field.TypeString, Default: "https://augustina.cc/digital-items"},
 		{Name: "abonementurl", Type: field.TypeString, Default: ""},
+		{Name: "abonementenabled", Type: field.TypeBool, Default: false},
 		{Name: "posenabled", Type: field.TypeBool, Default: true},
+		{Name: "wordpressinviteurl", Type: field.TypeString, Default: ""},
+		{Name: "wordpressinviteapikey", Type: field.TypeString, Default: ""},
+		{Name: "wordpressinvitettl", Type: field.TypeInt, Default: 604800},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -373,7 +377,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[25]},
+				Columns:    []*schema.Column{SettingsColumns[29]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

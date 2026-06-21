@@ -14,6 +14,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/payment"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
+	"github.com/augustin-wien/augustina-backend/wordpress"
 	"go.uber.org/zap"
 	"gopkg.in/guregu/null.v4"
 )
@@ -380,6 +381,13 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		gotCustomer := false
 		customerAssigned := false
 		sentDigitalLicenceEmail := false
+		inviteURL := ""
+
+		// Load settings once to read WordPress invite config.
+		wpSettings, wpSettingsErr := db.GetSettings()
+		if wpSettingsErr != nil {
+			log.Error("VerifyOrderAndCreatePayments: failed to load settings for WP invite: ", orderID, wpSettingsErr)
+		}
 
 		for _, entry := range o.Entries {
 			item, err := db.GetItemTx(tx, entry.Item)
@@ -400,6 +408,20 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						dbCustomer, err = db.GetOrCreateCustomerByEmail(o.CustomerEmail.String, customerID)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to get/create customer db record: ", orderID, err)
+						}
+
+						// Fetch a one-time WordPress login link once per order.
+						if wpSettingsErr == nil && wpSettings != nil && wpSettings.WordPressInviteURL != "" {
+							inviteURL, err = wordpress.CreateInvite(
+								wpSettings.WordPressInviteURL,
+								wpSettings.WordPressInviteAPIKey,
+								o.CustomerEmail.String,
+								wpSettings.WordPressInviteTTL,
+							)
+							if err != nil {
+								log.Error("VerifyOrderAndCreatePayments: failed to create WordPress invite: ", orderID, err)
+								inviteURL = ""
+							}
 						}
 					}
 
@@ -446,6 +468,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 								"FromDate":     createdAbo.FromDate.Format("2006-01-02"),
 								"ToDate":       createdAbo.ToDate.Format("2006-01-02"),
 								"Status":       createdAbo.Status,
+								"InviteURL":    inviteURL,
 							}
 							aboMail, aboMailErr := BuildEmailRequestFromTemplate("abonementConfirmation", []string{dbCustomer.Email}, aboTemplateData)
 							if aboMailErr != nil {
@@ -483,11 +506,13 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					// Send email with link to the license item once per order
 					if !sentDigitalLicenceEmail {
 						templateData := struct {
-							URL   string
-							EMAIL string
+							URL       string
+							EMAIL     string
+							InviteURL string
 						}{
-							URL:   config.Config.OnlinePaperUrl,
-							EMAIL: o.CustomerEmail.String,
+							URL:       config.Config.OnlinePaperUrl,
+							EMAIL:     o.CustomerEmail.String,
+							InviteURL: inviteURL,
 						}
 
 						receivers := []string{o.CustomerEmail.String}

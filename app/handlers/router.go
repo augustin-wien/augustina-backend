@@ -203,6 +203,7 @@ func GetRouter() (r *chi.Mux) {
 				r.Use(middlewares.AuthMiddleware)
 				r.Use(middlewares.AdminAuthMiddleware)
 				r.Get("/", ListVendors)
+				r.Post("/recalculate-balances/", RecalculateAllVendorBalances)
 				r.Get("/statistics/", ListVendorUsageStatistics)
 				r.Post("/", CreateVendor)
 				r.Get("/{vendorid}/locations/", ListVendorLocations)

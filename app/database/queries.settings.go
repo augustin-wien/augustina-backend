@@ -83,7 +83,11 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetShopLanding(settings.ShopLanding).
 		SetDigitalItemsUrl(settings.DigitalItemsUrl).
 		SetAbonementUrl(settings.AbonementUrl).
-		SetPOSEnabled(settings.POSEnabled)
+		SetAbonementEnabled(settings.AbonementEnabled).
+		SetPOSEnabled(settings.POSEnabled).
+		SetWordPressInviteURL(settings.WordPressInviteURL).
+		SetWordPressInviteAPIKey(settings.WordPressInviteAPIKey).
+		SetWordPressInviteTTL(settings.WordPressInviteTTL)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {

@@ -48,7 +48,7 @@ test:
 	@docker compose run --rm -w /app augustin go test -p 1 ./...
 	@echo "Tests passed."
 
-build: build-frontend build-backend
+build: update-docker-containers build-frontend build-backend
 
 push: push-frontend push-backend
 

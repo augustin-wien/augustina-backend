@@ -82,9 +82,21 @@ func (Settings) Fields() []ent.Field {
 		field.String("AbonementUrl").
 			StorageKey("abonementurl").
 			Default(""),
+		field.Bool("AbonementEnabled").
+			StorageKey("abonementenabled").
+			Default(false),
 		field.Bool("POSEnabled").
 			StorageKey("posenabled").
 			Default(true),
+		field.String("WordPressInviteURL").
+			StorageKey("wordpressinviteurl").
+			Default(""),
+		field.String("WordPressInviteAPIKey").
+			StorageKey("wordpressinviteapikey").
+			Default(""),
+		field.Int("WordPressInviteTTL").
+			StorageKey("wordpressinvitettl").
+			Default(604800),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

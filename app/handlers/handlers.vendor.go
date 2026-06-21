@@ -79,6 +79,23 @@ func ListVendors(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, vendors)
 }
 
+// RecalculateAllVendorBalances godoc
+//
+//	@Summary		Recalculate all vendor balances
+//	@Description	Recomputes each vendor's cached balance from their open payments
+//	@Tags			Vendors
+//	@Security		KeycloakAuth
+//	@Success		200
+//	@Router			/vendors/recalculate-balances/ [post]
+func RecalculateAllVendorBalances(w http.ResponseWriter, r *http.Request) {
+	if err := database.Db.RecalculateAllVendorBalances(); err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	vendors, err := database.Db.ListVendors()
+	respond(w, err, vendors)
+}
+
 // CreateVendor godoc
 //
 //	 	@Summary 		Create Vendor

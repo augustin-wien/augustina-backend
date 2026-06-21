@@ -299,3 +299,17 @@ func (db *Database) UpdateAccountBalanceByOpenPayments(vendorID int) (payoutAmou
 
 	return openPaymentsSum, err
 }
+
+// RecalculateAllVendorBalances recalculates and persists the balance for every vendor
+func (db *Database) RecalculateAllVendorBalances() error {
+	vendors, err := db.ListVendors()
+	if err != nil {
+		return err
+	}
+	for _, v := range vendors {
+		if _, err := db.UpdateAccountBalanceByOpenPayments(v.ID); err != nil {
+			log.Errorf("RecalculateAllVendorBalances: vendor %d: %v", v.ID, err)
+		}
+	}
+	return nil
+}
