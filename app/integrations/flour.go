@@ -142,10 +142,17 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 			itemType = dbItem.Type
 		}
 
+		flourQuantity := item.Quantity
+		flourPrice := itemPrice
+		if itemType == "donation" {
+			flourPrice = itemPrice * item.Quantity
+			flourQuantity = 1
+		}
+
 		flourItems = append(flourItems, FlourPayloadItem{
 			ID:       item.Item,
-			Quantity: item.Quantity,
-			Price:    itemPrice,
+			Quantity: flourQuantity,
+			Price:    flourPrice,
 			Name:     itemName,
 			Type:     itemType,
 		})

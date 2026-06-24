@@ -311,14 +311,20 @@ func TestSendPaymentToFlourPayloadStructure(t *testing.T) {
 	require.Equal(t, 2000, payload.Items[0].Price)
 }
 
-// TestSendPaymentToFlourDonationWithMultipleQuantities tests 100 cents donation with multiple items and quantities
+// TestSendPaymentToFlourDonationWithMultipleQuantities tests that a donation item is sent as quantity=1
+// with the full price, instead of 200x 1-cent entries.
 func TestSendPaymentToFlourDonationWithMultipleQuantities(t *testing.T) {
-	// Mock getItemByID
+	// Mock getItemByID — item 2 is a donation
 	originalGetItemByID := getItemByID
 	getItemByID = func(id int) (database.Item, error) {
+		itemType := "normal_item"
+		if id == 2 {
+			itemType = "donation"
+		}
 		return database.Item{
 			ID:   id,
 			Name: "Test Item",
+			Type: itemType,
 		}, nil
 	}
 	defer func() { getItemByID = originalGetItemByID }()
@@ -342,10 +348,10 @@ func TestSendPaymentToFlourDonationWithMultipleQuantities(t *testing.T) {
 		require.Equal(t, 5, receivedPayload.Items[0].Quantity)
 		require.Equal(t, 50, receivedPayload.Items[0].Price)
 
-		// Item 2: Donation to charity (quantity 1, price -100 cents, receiver is charity not vendor)
+		// Item 2: Donation to charity — collapsed to quantity=1 with full price
 		require.Equal(t, 2, receivedPayload.Items[1].ID)
-		require.Equal(t, 100, receivedPayload.Items[1].Quantity)
-		require.Equal(t, -1, receivedPayload.Items[1].Price)
+		require.Equal(t, 1, receivedPayload.Items[1].Quantity)
+		require.Equal(t, -100, receivedPayload.Items[1].Price)
 
 		// Item 3: Service fee (quantity 1, price -50 cents, receiver is not vendor)
 		require.Equal(t, 3, receivedPayload.Items[2].ID)
