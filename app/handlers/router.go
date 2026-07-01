@@ -128,7 +128,7 @@ func GetRouter() (r *chi.Mux) {
 		r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))
 	}
 
-	// Flour integration - NO strict security middlewares (BlockBadUserAgents, BlockFakeBrowsers, BlockMaliciousPatterns)
+	// Flour integration (legacy) - NO strict security middlewares
 	// to allow external software like Flour to communicate without being blocked
 	if config.Config.FlourWebhookURL != "" {
 		log.Infof("Flour integration enabled: %s", config.Config.FlourWebhookURL)
@@ -136,6 +136,31 @@ func GetRouter() (r *chi.Mux) {
 		r.Route("/api/flour", func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.FlourAuthMiddleware)
+			r.Route("/vendors", func(r chi.Router) {
+
+				r.Put("/license/{licenseID}/", UpdateVendorByLicenseID)
+				r.Get("/license/{licenseID}/", GetVendorByLicenseID)
+
+				r.Put("/{id}/", UpdateVendor)
+				r.Delete("/{id}/", DeleteVendor)
+				r.Get("/{id}/", GetVendor)
+				r.Post("/", CreateVendor)
+
+			})
+			r.Route("/payments", func(r chi.Router) {
+				r.Post("/payout/", CreatePaymentPayout)
+			})
+		})
+	}
+
+	// Odoo integration - NO strict security middlewares (BlockBadUserAgents, BlockFakeBrowsers, BlockMaliciousPatterns)
+	// to allow external software like Odoo to communicate without being blocked
+	if config.Config.OdooWebhookURL != "" {
+		log.Infof("Odoo integration enabled: %s", config.Config.OdooWebhookURL)
+
+		r.Route("/api/odoo", func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.OdooAuthMiddleware)
 			r.Route("/vendors", func(r chi.Router) {
 
 				r.Put("/license/{licenseID}/", UpdateVendorByLicenseID)
@@ -257,7 +282,7 @@ func GetRouter() (r *chi.Mux) {
 				r.Get("/unverified/", ListUnverifiedOrders)
 				r.Get("/unverified/code/{orderCode}/verify/", AdminVerifyPaymentOrderByCode)
 				r.Post("/unverified/code/{orderCode}/transactionID/", AdminAddTransactionIDToOrder)
-				r.Post("/resend/{orderID}/", ResendFlourWebhook)
+				r.Post("/resend/{orderID}/", ResendOdooWebhook)
 			})
 		})
 

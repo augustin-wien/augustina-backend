@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/integrations"
 	"github.com/go-chi/chi/v5"
@@ -18,8 +20,8 @@ type resendResponse struct {
 	SentAt  string `json:"sent_at"`
 }
 
-// ResendFlourWebhook triggers resending the Flour webhook for a given order ID.
-func ResendFlourWebhook(w http.ResponseWriter, r *http.Request) {
+// ResendOdooWebhook triggers resending the Odoo webhook for a given order ID.
+func ResendOdooWebhook(w http.ResponseWriter, r *http.Request) {
 	orderIDStr := chi.URLParam(r, "orderID")
 	orderID, err := strconv.Atoi(orderIDStr)
 	if err != nil || orderID <= 0 {
@@ -39,19 +41,31 @@ func ResendFlourWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Compute total sum consistent with integrations.SendPaymentToFlour logic
 	totalSum := 0
 	for _, item := range order.Entries {
 		itemPrice := item.Price
-		if item.Receiver != vendor.ID {
+		if item.Receiver <= 5 {
 			itemPrice = -itemPrice
 		}
 		totalSum += itemPrice * item.Quantity
 	}
 
-	// Send webhook
-	if err := integrations.SendPaymentToFlour(order.ID, order.Timestamp, order.Entries, vendor, totalSum); err != nil {
-		http.Error(w, "failed to send webhook", http.StatusBadGateway)
+	var errs []error
+
+	if config.Config.FlourWebhookURL != "" {
+		if err := integrations.SendPaymentToFlour(order.ID, order.Timestamp, order.Entries, vendor, totalSum); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if config.Config.OdooWebhookURL != "" {
+		if err := integrations.SendPaymentToOdoo(order.ID, order.Timestamp, order.Entries, vendor, totalSum); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		http.Error(w, errors.Join(errs...).Error(), http.StatusBadGateway)
 		return
 	}
 
