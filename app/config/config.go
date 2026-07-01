@@ -47,6 +47,8 @@ type config struct {
 	SentryDSN                         string
 	FlourWebhookURL                   string
 	FlourWebhookToken                 string
+	OdooWebhookURL                    string
+	OdooWebhookToken                  string
 	DEBUG_payments                    bool // For debugging purposes, not used in production
 }
 
@@ -97,6 +99,8 @@ func InitConfig() error {
 		SentryDSN:                         getEnv("SENTRY_DSN", ""),
 		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),
 		FlourWebhookToken:                 getEnv("FLOUR_WEBHOOK_TOKEN", ""),
+		OdooWebhookURL:                    getEnv("ODOO_WEBHOOK_URL", ""),
+		OdooWebhookToken:                  getEnv("ODOO_WEBHOOK_TOKEN", ""),
 		DEBUG_payments:                    (getEnv("DEBUG_payments", "false") == "true"),
 	}
 	return nil

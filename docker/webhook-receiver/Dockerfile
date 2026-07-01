@@ -14,16 +14,29 @@ if (!fs.existsSync(logDir)) {
 }
 
 const server = http.createServer((req, res) => {
+  if (req.method === "GET" && req.url === "/logs") {
+    try {
+      const files = fs.readdirSync(logDir).filter(f => f.endsWith(".log")).sort();
+      const logs = files.map(f => fs.readFileSync(path.join(logDir, f), "utf8")).join("");
+      res.writeHead(200, {"Content-Type": "text/plain"});
+      res.end(logs || "(no webhooks received yet)");
+    } catch (e) {
+      res.writeHead(200, {"Content-Type": "text/plain"});
+      res.end("(no webhooks received yet)");
+    }
+    return;
+  }
+
   let body = "";
   req.on("data", chunk => { body += chunk; });
   req.on("end", () => {
     const timestamp = new Date().toISOString();
     const logFile = path.join(logDir, `webhooks-${new Date().toISOString().split("T")[0]}.log`);
     const logEntry = `[${timestamp}] ${req.method} ${req.url}\nHeaders: ${JSON.stringify(req.headers)}\nBody: ${body}\n\n`;
-    
+
     fs.appendFileSync(logFile, logEntry);
     console.log(`[${timestamp}] Webhook received: ${req.method} ${req.url}`);
-    
+
     res.writeHead(200, {"Content-Type": "application/json"});
     res.end(JSON.stringify({ status: "ok", received: timestamp }));
   });
