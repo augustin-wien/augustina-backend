@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -49,7 +50,11 @@ type config struct {
 	FlourWebhookToken                 string
 	OdooWebhookURL                    string
 	OdooWebhookToken                  string
-	DEBUG_payments                    bool // For debugging purposes, not used in production
+	// TrustedProxies is a list of proxy IPs whose X-Forwarded-For / X-Real-Ip headers may be
+	// trusted for client IP resolution. When empty, those headers are trusted unconditionally
+	// (legacy behavior); when set, they are only honored for requests coming from a listed proxy.
+	TrustedProxies []string
+	DEBUG_payments bool // For debugging purposes, not used in production
 }
 
 // Config is the global configuration variable
@@ -101,9 +106,23 @@ func InitConfig() error {
 		FlourWebhookToken:                 getEnv("FLOUR_WEBHOOK_TOKEN", ""),
 		OdooWebhookURL:                    getEnv("ODOO_WEBHOOK_URL", ""),
 		OdooWebhookToken:                  getEnv("ODOO_WEBHOOK_TOKEN", ""),
+		TrustedProxies:                    getEnvStringSlice("TRUSTED_PROXIES", ""),
 		DEBUG_payments:                    (getEnv("DEBUG_payments", "false") == "true"),
 	}
 	return nil
+}
+
+// getEnvStringSlice returns the comma-separated value of the environment variable key as a
+// slice of trimmed, non-empty strings, or the parsed fallback if the variable is not set.
+func getEnvStringSlice(key, fallback string) []string {
+	raw := getEnv(key, fallback)
+	var out []string
+	for _, part := range strings.Split(raw, ",") {
+		if trimmed := strings.TrimSpace(part); trimmed != "" {
+			out = append(out, trimmed)
+		}
+	}
+	return out
 }
 
 // Validate checks required configuration values and returns an error if any

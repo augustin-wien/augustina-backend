@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -189,6 +190,23 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// sanitizeUploadFilename derives a safe base name and extension from a client-supplied
+// upload filename. It strips any directory components and rejects names that still contain
+// path separators or traversal sequences, preventing writes outside the intended directory.
+func sanitizeUploadFilename(filename string) (base, ext string, err error) {
+	clean := filepath.Base(filename) // strips any directory components
+	parts := strings.Split(clean, ".")
+	if len(parts) < 2 {
+		return "", "", errors.New("invalid filename")
+	}
+	base = parts[0]
+	ext = parts[len(parts)-1]
+	if base == "" || ext == "" || strings.ContainsAny(base, `/\`) || strings.Contains(base, "..") {
+		return "", "", errors.New("invalid filename")
+	}
+	return base, ext, nil
+}
+
 func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
 	// Get file from image field
 	file, header, err := r.FormFile("Image")
@@ -197,9 +215,9 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	}
 	defer file.Close()
 
-	// Debugging
-	name := strings.Split(header.Filename, ".")
-	if len(name) < 2 {
+	// Sanitize the client-supplied filename to prevent path traversal
+	base, ext, err := sanitizeUploadFilename(header.Filename)
+	if err != nil {
 		log.Error("updateItemImage: image name is wrong")
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
@@ -217,7 +235,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	// Generate unique filename
 	i := 0
 	for {
-		path = "img/" + name[0] + "_" + strconv.Itoa(i) + "." + name[len(name)-1]
+		path = "img/" + base + "_" + strconv.Itoa(i) + "." + ext
 		_, err = os.Stat(dir + "/" + path)
 		if errors.Is(err, os.ErrNotExist) {
 			break
@@ -262,9 +280,9 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err err
 	}
 	defer file.Close()
 
-	// Debugging
-	name := strings.Split(header.Filename, ".")
-	if len(name) < 2 {
+	// Sanitize the client-supplied filename to prevent path traversal
+	base, ext, err := sanitizeUploadFilename(header.Filename)
+	if err != nil {
 		log.Error("handleItemPDF: pdf name is wrong")
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
@@ -284,7 +302,7 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err err
 	}
 	// Add a human readable timestamp to the filename to make it unique
 	timeStamp := time.Now().Format("2006-01-02_15-04-05.000")
-	path := "pdf/" + timeStamp + "_" + name[0] + "." + name[len(name)-1]
+	path := "pdf/" + timeStamp + "_" + base + "." + ext
 	_, err = os.Stat(dir + "/pdf")
 	if errors.Is(err, os.ErrNotExist) {
 		err = os.Mkdir(dir+"/pdf", 0755)
