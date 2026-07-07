@@ -1217,6 +1217,8 @@ func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 	err = paymentprovider.HandlePaymentSuccessfulResponse(paymentSuccessful)
 	if err != nil {
 		log.Error("VivaWalletWebhookSuccess: handle payment failed: ", err)
+		// Non-2xx tells VivaWallet the delivery failed so it retries the webhook
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
 

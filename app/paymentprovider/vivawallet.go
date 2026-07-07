@@ -218,6 +218,36 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 // HandlePaymentSuccessfulResponse handles the webhook response for a successful payment
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest) (err error) {
 
+	// Get the order before verifying with VivaWallet, so the real transaction ID
+	// is stored even if verification fails. Otherwise the order keeps its
+	// "manual-" placeholder ID and can never be verified against VivaWallet later.
+	var order database.Order
+	// Retry getting order from database to avoid race conditions
+	for i := 0; i < 5; i++ {
+		order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentSuccessful.EventData.OrderCode, 10))
+		if err == nil {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	if err != nil {
+		log.Error("HandlePaymentSuccessfulResponse: failed to get order: ", err, " for order code ", paymentSuccessful.EventData.OrderCode)
+		return err
+	}
+
+	// VivaWallet retries webhook deliveries, so a duplicate delivery for an
+	// already verified order is a no-op, not an error
+	if order.Verified {
+		log.Info("HandlePaymentSuccessfulResponse: order already verified, skipping order ", order.ID)
+		return nil
+	}
+
+	err = database.Db.SetOrderTransactionID(order.ID, paymentSuccessful.EventData.TransactionID)
+	if err != nil {
+		log.Error("HandlePaymentSuccessfulResponse: SetOrderTransactionID: ", err)
+		return err
+	}
+
 	// Set everything up for the request
 	var transactionVerificationResponse TransactionVerificationResponse
 
@@ -254,18 +284,6 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		transactionVerificationResponse.TransactionTypeID = paymentSuccessful.EventData.TransactionTypeID
 	}
 
-	var order database.Order
-
-	order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(transactionVerificationResponse.OrderCode, 10))
-	if err != nil {
-		log.Error("HandlePaymentSuccessfulResponse: failed to get order", err)
-		return err
-	}
-	err = database.Db.SetOrderTransactionID(order.ID, paymentSuccessful.EventData.TransactionID)
-	if err != nil {
-		log.Error("HandlePaymentSuccessfulResponse: SetOrderTransactionID: ", err)
-		return err
-	}
 	// 1. Check: Verify that webhook request and API response match all three fields
 
 	if transactionVerificationResponse.OrderCode != paymentSuccessful.EventData.OrderCode {
@@ -283,24 +301,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		return errors.New("HandlePaymentSuccessfulResponse: status id mismatch")
 	}
 
-	// 2. Check: Verify that order can be found by ordercode and order is not already set verified in database
-	// Retry getting order from database to avoid race conditions
-	for i := 0; i < 5; i++ {
-		order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentSuccessful.EventData.OrderCode, 10))
-		if err == nil {
-			break
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
-	if err != nil {
-		log.Error("HandlePaymentSuccessfulResponse: Getting order from database failed: ", err, " for order code ", paymentSuccessful.EventData.OrderCode)
-	}
-
-	if order.Verified {
-		return errors.New("order already verified")
-	}
-
-	// 3. Check: Verify amount matches with the ones in the database
+	// 2. Check: Verify amount matches with the ones in the database
 
 	// Sum up all prices of orderentries and compare with amount
 	var sum float64
