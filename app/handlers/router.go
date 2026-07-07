@@ -143,7 +143,7 @@ func GetRouter() (r *chi.Mux) {
 	if config.Config.FlourWebhookURL != "" {
 		log.Infof("Flour integration enabled: %s", config.Config.FlourWebhookURL)
 
-		r.Route("/api/flour", func(r chi.Router) {
+		r.Route("/api/flour_old", func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.FlourAuthMiddleware)
 			r.Route("/vendors", func(r chi.Router) {
@@ -168,7 +168,7 @@ func GetRouter() (r *chi.Mux) {
 	if config.Config.OdooWebhookURL != "" {
 		log.Infof("Odoo integration enabled: %s", config.Config.OdooWebhookURL)
 
-		r.Route("/api/odoo", func(r chi.Router) {
+		r.Route("/api/flour", func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.OdooAuthMiddleware)
 			r.Route("/vendors", func(r chi.Router) {
