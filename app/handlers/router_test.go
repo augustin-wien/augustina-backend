@@ -75,4 +75,50 @@ func TestCORSBehavior(t *testing.T) {
 	if got := rec3.Header().Get("Access-Control-Allow-Origin"); got != "" {
 		t.Fatalf("expected disallowed origin to receive no Access-Control-Allow-Origin but got %q", got)
 	}
+
+	// Lookalike localhost origin (attacker-controlled domain) must be rejected.
+	req4 := httptest.NewRequest("OPTIONS", "/api/hello/", nil)
+	req4.Header.Set("Origin", "http://localhost.evil.com")
+	req4.Header.Set("Access-Control-Request-Method", "GET")
+	rec4 := httptest.NewRecorder()
+	r.ServeHTTP(rec4, req4)
+	if got := rec4.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("expected lookalike localhost origin to be rejected but got %q", got)
+	}
+}
+
+// TestIsAllowedOrigin exercises the origin allowlist directly, including the lookalike
+// domains that a naive prefix check would have accepted.
+func TestIsAllowedOrigin(t *testing.T) {
+	const frontend = "https://shop.example.org"
+
+	allowed := []string{
+		frontend,
+		"http://localhost",
+		"http://localhost:3000",
+		"https://localhost:5173",
+		"http://127.0.0.1:8080",
+		"http://[::1]:3000",
+	}
+	for _, origin := range allowed {
+		if !isAllowedOrigin(frontend, origin) {
+			t.Errorf("expected origin %q to be allowed", origin)
+		}
+	}
+
+	rejected := []string{
+		"",
+		"http://localhost.evil.com",
+		"http://localhostx",
+		"http://notlocalhost.com",
+		"https://evil.com",
+		"http://localhost@evil.com",
+		"ftp://localhost",
+		"https://shop.example.org.evil.com",
+	}
+	for _, origin := range rejected {
+		if isAllowedOrigin(frontend, origin) {
+			t.Errorf("expected origin %q to be rejected", origin)
+		}
+	}
 }

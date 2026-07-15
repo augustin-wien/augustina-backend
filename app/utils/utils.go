@@ -4,6 +4,7 @@ import (
 	"context"
 	crand "crypto/rand"
 	"math/big"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
@@ -193,16 +194,69 @@ func GetUnixTime() int64 {
 	return time.Now().Unix()
 }
 
-// ReadUserIP returns the user's IP address
+// hostOnly returns the host portion of an address, stripping any port. It falls back to the
+// input unchanged when there is no port to split.
+func hostOnly(addr string) string {
+	if host, _, err := net.SplitHostPort(addr); err == nil {
+		return host
+	}
+	return addr
+}
+
+// ReadUserIP returns the user's IP address.
+//
+// The X-Real-Ip and X-Forwarded-For headers are client-supplied and therefore spoofable.
+// When config.TrustedProxies is empty, the legacy behavior is preserved (headers trusted
+// unconditionally). When it is populated, those headers are only honored for requests that
+// actually originate from a trusted proxy; otherwise the direct RemoteAddr is used. This
+// prevents attackers from poisoning the IP blocklist or evading IP-based blocks/rate limits
+// by forging these headers.
 func ReadUserIP(r *http.Request) string {
-	IPAddress := r.Header.Get("X-Real-Ip")
-	if IPAddress == "" {
-		IPAddress = r.Header.Get("X-Forwarded-For")
+	trustedProxies := config.Config.TrustedProxies
+
+	// Legacy behavior: no configured proxies means trust the forwarding headers as-is.
+	if len(trustedProxies) == 0 {
+		if ip := r.Header.Get("X-Real-Ip"); ip != "" {
+			return ip
+		}
+		if ip := r.Header.Get("X-Forwarded-For"); ip != "" {
+			return ip
+		}
+		return r.RemoteAddr
 	}
-	if IPAddress == "" {
-		IPAddress = r.RemoteAddr
+
+	remoteHost := hostOnly(r.RemoteAddr)
+
+	trusted := make(map[string]struct{}, len(trustedProxies))
+	for _, p := range trustedProxies {
+		trusted[p] = struct{}{}
 	}
-	return IPAddress
+
+	// Only honor forwarding headers when the immediate peer is a trusted proxy.
+	if _, ok := trusted[remoteHost]; !ok {
+		return remoteHost
+	}
+
+	// Walk X-Forwarded-For from right to left and return the first address that is not
+	// itself a trusted proxy - that is the closest non-proxy client the chain saw.
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		parts := strings.Split(xff, ",")
+		for i := len(parts) - 1; i >= 0; i-- {
+			ip := strings.TrimSpace(parts[i])
+			if ip == "" {
+				continue
+			}
+			if _, ok := trusted[ip]; !ok {
+				return ip
+			}
+		}
+	}
+
+	// Fall back to X-Real-Ip, then to the trusted proxy address itself.
+	if ip := strings.TrimSpace(r.Header.Get("X-Real-Ip")); ip != "" {
+		return ip
+	}
+	return remoteHost
 }
 
 func FileExists(path string) bool {

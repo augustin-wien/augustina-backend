@@ -11,6 +11,21 @@ import (
 
 var log = utils.GetLogger()
 
+// clearIncomingAuthHeaders removes any client-supplied X-Auth-* headers so they
+// cannot be forged. Only AuthMiddleware is allowed to set these headers, and only
+// from a validated Keycloak token. Stripping the whole X-Auth-* namespace (instead
+// of a hardcoded denylist) prevents privilege escalation via headers like
+// X-Auth-Roles-backoffice or X-Auth-Groups-customer that the authorization
+// middlewares trust.
+func clearIncomingAuthHeaders(r *http.Request) {
+	for name := range r.Header {
+		if strings.HasPrefix(http.CanonicalHeaderKey(name), "X-Auth-") {
+			r.Header.Del(name)
+		}
+	}
+	r.Header.Set("X-Auth-User-Validated", "false")
+}
+
 // AuthMiddleware is a middleware to check if the request is authorized
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -20,6 +35,10 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return // skip
 		}
+
+		// Strip any client-supplied X-Auth-* headers before doing anything else so
+		// they cannot be used to forge identity, roles, or groups.
+		clearIncomingAuthHeaders(r)
 
 		if r.Header.Get("Authorization") == "" {
 			log.Info("AuthMiddleware: No Authorization header on auth from incoming request ", utils.ReadUserIP(r))
@@ -31,16 +50,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		if len(splitToken) == 2 {
 			userToken = splitToken[1]
 		}
-		// unset all possible user headers for security reasons
-		r.Header.Set("X-Auth-User-Validated", "false")
-		r.Header.Del("X-Auth-User")
-		r.Header.Del("X-Auth-User-Email")
-		r.Header.Del("X-Auth-Roles-vendor")
-		r.Header.Del("X-Auth-Roles-admin")
-		r.Header.Del("X-Auth-Roles-flour")
-		r.Header.Del("X-Auth-Roles-odoo")
-		r.Header.Del("X-Auth-Groups-Vendors")
-		r.Header.Del("X-Auth-Groups-Admins")
 
 		userinfo, err := keycloak.KeycloakClient.GetUserInfo(userToken)
 		if err != nil {

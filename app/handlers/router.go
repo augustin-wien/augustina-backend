@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"strings"
+	"net/url"
 	"time"
 
 	_ "github.com/swaggo/files" // swagger embed files
@@ -18,6 +18,27 @@ import (
 	"github.com/go-chi/httprate"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
+
+// isAllowedOrigin reports whether the given CORS origin is permitted. It allows the
+// configured frontend URL (exact match) and any localhost/loopback origin, matching on the
+// parsed host so that lookalike domains such as "http://localhost.evil.com" are rejected.
+func isAllowedOrigin(frontendURL, origin string) bool {
+	if origin == "" {
+		return false
+	}
+	if origin == frontendURL {
+		return true
+	}
+	u, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return false
+	}
+	host := u.Hostname() // strips any port
+	return host == "localhost" || host == "127.0.0.1" || host == "::1"
+}
 
 // GetRouter creates a new chi Router and mounts all handlers
 func GetRouter() (r *chi.Mux) {
@@ -40,29 +61,18 @@ func GetRouter() (r *chi.Mux) {
 		log.Fatal("FRONTEND_URL is not set in config")
 	}
 
-	// Sanitize and validate frontend URL from config to avoid accidentally allowing wildcards
-	// Use a conservative AllowOriginFunc instead of permissive origin globs. This prevents
-	// unintended wildcard matching like "http://localhost:*" which may be treated inconsistently
-	// by different CORS implementations.
-	allowOriginFunc := func(r *http.Request, origin string) bool {
-		if origin == frontendURL {
-			return true
-		}
-		// Allow localhost origins (both http and https) but require the origin to start with
-		// the scheme and host to prevent wildcards in the config value itself.
-		if strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "https://localhost") {
-			return true
-		}
-		return false
-	}
-
+	// Use a conservative AllowOriginFunc instead of permissive origin globs. isAllowedOrigin
+	// parses the origin and matches on the exact host so that attacker-controlled domains
+	// such as "http://localhost.evil.com" cannot slip past a naive prefix check.
 	corsHandler := cors.Handler(cors.Options{
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300,
-		AllowOriginFunc:  allowOriginFunc,
+		AllowOriginFunc: func(r *http.Request, origin string) bool {
+			return isAllowedOrigin(frontendURL, origin)
+		},
 	})
 
 	// Use CORS handler with Chi router
@@ -133,7 +143,7 @@ func GetRouter() (r *chi.Mux) {
 	if config.Config.FlourWebhookURL != "" {
 		log.Infof("Flour integration enabled: %s", config.Config.FlourWebhookURL)
 
-		r.Route("/api/flour", func(r chi.Router) {
+		r.Route("/api/flour_old", func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.FlourAuthMiddleware)
 			r.Route("/vendors", func(r chi.Router) {
@@ -158,7 +168,7 @@ func GetRouter() (r *chi.Mux) {
 	if config.Config.OdooWebhookURL != "" {
 		log.Infof("Odoo integration enabled: %s", config.Config.OdooWebhookURL)
 
-		r.Route("/api/odoo", func(r chi.Router) {
+		r.Route("/api/flour", func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.OdooAuthMiddleware)
 			r.Route("/vendors", func(r chi.Router) {
