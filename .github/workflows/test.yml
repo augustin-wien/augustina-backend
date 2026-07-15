@@ -72,7 +72,7 @@ jobs:
         exit 1
 
     - name: Build
-      run: go install github.com/jackc/tern/v2@latest && cd app && go build -o ../build/
+      run: go install github.com/jackc/tern/v2@v2.4.1 && cd app && go build -o ../build/
     - name: Wait for keycloak to start
       run: |
         while ! curl --connect-timeout 5 -v --max-time 10 --retry 5 --retry-connrefused  --retry-delay 0 --retry-max-time 40 http://localhost:8080

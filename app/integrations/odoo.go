@@ -35,7 +35,6 @@ func sendJSONToOdooWebhook(payload interface{}) error {
 			return fmt.Errorf("failed to create request: %v", err)
 		}
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Odoo-Database", "huk_odoo19")
 		if token := config.Config.OdooWebhookToken; token != "" {
 			req.Header.Set("Authorization", "Bearer "+token)
 			log.Debug("sendJSONToOdooWebhook: Added Authorization header to request")
