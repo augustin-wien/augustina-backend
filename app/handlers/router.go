@@ -226,6 +226,7 @@ func GetRouter() (r *chi.Mux) {
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.AuthMiddleware)
 				r.Use(middlewares.AdminAuthMiddleware)
+				r.Get("/admin/", getSettingsAdmin)
 				r.Put("/", updateSettings)
 				r.Put("/css/", updateCSS)
 			})
