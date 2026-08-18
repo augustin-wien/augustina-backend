@@ -20,9 +20,15 @@ import (
 )
 
 // isAllowedOrigin reports whether the given CORS origin is permitted. It allows the
-// configured frontend URL (exact match) and any localhost/loopback origin, matching on the
-// parsed host so that lookalike domains such as "http://localhost.evil.com" are rejected.
-func isAllowedOrigin(frontendURL, origin string) bool {
+// configured frontend URL (exact match), and — only when allowLocalhost is set — any
+// localhost/loopback origin, matching on the parsed host so that lookalike domains such as
+// "http://localhost.evil.com" are rejected.
+//
+// allowLocalhost is tied to development mode on purpose. Together with AllowCredentials, a
+// blanket localhost allowance means any page served from the visitor's own machine — a local
+// dev server, an Electron app, some tool's built-in web UI — can make credentialed requests
+// against a production API and read the answers.
+func isAllowedOrigin(frontendURL, origin string, allowLocalhost bool) bool {
 	if origin == "" {
 		return false
 	}
@@ -34,6 +40,9 @@ func isAllowedOrigin(frontendURL, origin string) bool {
 		return false
 	}
 	if u.Scheme != "http" && u.Scheme != "https" {
+		return false
+	}
+	if !allowLocalhost {
 		return false
 	}
 	host := u.Hostname() // strips any port
@@ -71,7 +80,7 @@ func GetRouter() (r *chi.Mux) {
 		AllowCredentials: true,
 		MaxAge:           300,
 		AllowOriginFunc: func(r *http.Request, origin string) bool {
-			return isAllowedOrigin(frontendURL, origin)
+			return isAllowedOrigin(frontendURL, origin, config.Config.Development)
 		},
 	})
 

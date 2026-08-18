@@ -101,7 +101,7 @@ func TestIsAllowedOrigin(t *testing.T) {
 		"http://[::1]:3000",
 	}
 	for _, origin := range allowed {
-		if !isAllowedOrigin(frontend, origin) {
+		if !isAllowedOrigin(frontend, origin, true) {
 			t.Errorf("expected origin %q to be allowed", origin)
 		}
 	}
@@ -117,8 +117,65 @@ func TestIsAllowedOrigin(t *testing.T) {
 		"https://shop.example.org.evil.com",
 	}
 	for _, origin := range rejected {
-		if isAllowedOrigin(frontend, origin) {
+		if isAllowedOrigin(frontend, origin, true) {
 			t.Errorf("expected origin %q to be rejected", origin)
 		}
+	}
+}
+
+// TestIsAllowedOriginWithoutLocalhost pins the production behaviour: outside development the
+// loopback origins are no longer trusted. Combined with AllowCredentials, trusting them there
+// would let any page served from the visitor's own machine talk to the production API.
+func TestIsAllowedOriginWithoutLocalhost(t *testing.T) {
+	const frontend = "https://shop.example.org"
+
+	if !isAllowedOrigin(frontend, frontend, false) {
+		t.Errorf("expected the configured frontend to stay allowed")
+	}
+
+	rejected := []string{
+		"http://localhost",
+		"http://localhost:3000",
+		"https://localhost:5173",
+		"http://127.0.0.1:8080",
+		"http://[::1]:3000",
+	}
+	for _, origin := range rejected {
+		if isAllowedOrigin(frontend, origin, false) {
+			t.Errorf("expected origin %q to be rejected outside development", origin)
+		}
+	}
+}
+
+// TestCORSRejectsLocalhostOutsideDevelopment drives the same thing through the real router.
+func TestCORSRejectsLocalhostOutsideDevelopment(t *testing.T) {
+	config.Config.FrontendURL = "http://example-frontend.local"
+
+	// Restore whatever the other tests in this package rely on.
+	original := config.Config.Development
+	config.Config.Development = false
+	defer func() { config.Config.Development = original }()
+
+	r := GetRouter()
+
+	req := httptest.NewRequest("OPTIONS", "/api/hello/", nil)
+	req.Header.Set("Origin", "http://localhost:3000")
+	req.Header.Set("Access-Control-Request-Method", "GET")
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("expected localhost origin to be rejected outside development but got %q", got)
+	}
+
+	// The configured frontend still works.
+	req2 := httptest.NewRequest("OPTIONS", "/api/hello/", nil)
+	req2.Header.Set("Origin", "http://example-frontend.local")
+	req2.Header.Set("Access-Control-Request-Method", "GET")
+	rec2 := httptest.NewRecorder()
+	r.ServeHTTP(rec2, req2)
+
+	if got := rec2.Header().Get("Access-Control-Allow-Origin"); got != "http://example-frontend.local" {
+		t.Fatalf("expected the configured frontend to stay allowed, got %q", got)
 	}
 }

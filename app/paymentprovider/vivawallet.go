@@ -216,6 +216,18 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 }
 
 // HandlePaymentSuccessfulResponse handles the webhook response for a successful payment
+// isSimulatedTransaction reports whether a webhook may skip verification against the VivaWallet
+// API because it was produced by the local development simulation.
+//
+// The development check is what makes this safe, and it must not be dropped. The webhook endpoint
+// is unauthenticated by necessity, and anyone can create an order and read back its order code,
+// so without it an attacker could post a "dev-simulation-" transaction id and have an unpaid
+// order marked as paid: the simulated branch fills the verification response from the request
+// itself, which makes every subsequent comparison compare the payload against itself.
+func isSimulatedTransaction(transactionID string) bool {
+	return config.Config.Development && strings.HasPrefix(transactionID, "dev-simulation-")
+}
+
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest) (err error) {
 
 	// Get the order before verifying with VivaWallet, so the real transaction ID
@@ -252,7 +264,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	var transactionVerificationResponse TransactionVerificationResponse
 
 	// Check if this is a development simulation webhook
-	isSimulation := strings.HasPrefix(paymentSuccessful.EventData.TransactionID, "dev-simulation-")
+	isSimulation := isSimulatedTransaction(paymentSuccessful.EventData.TransactionID)
 
 	// Skip VivaWallet verification for simulated webhooks in development mode
 	if !isSimulation {
