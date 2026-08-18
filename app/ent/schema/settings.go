@@ -97,6 +97,18 @@ func (Settings) Fields() []ent.Field {
 		field.Int("WordPressInviteTTL").
 			StorageKey("wordpressinvitettl").
 			Default(604800),
+		// Linked next to the terms in the shop. Empty means no link is shown.
+		field.String("PrivacyPolicyUrl").
+			StorageKey("privacypolicyurl").
+			Default(""),
+		// Matomo is opt-in per tenant: tracking only starts once both the url and the site id
+		// are set, so an empty default means no tracking at all.
+		field.String("MatomoUrl").
+			StorageKey("matomourl").
+			Default(""),
+		field.String("MatomoSiteId").
+			StorageKey("matomositeid").
+			Default(""),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

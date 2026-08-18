@@ -306,6 +306,18 @@ func init() {
 	settingsDescWordPressInviteTTL := settingsFields[28].Descriptor()
 	// settings.DefaultWordPressInviteTTL holds the default value on creation for the WordPressInviteTTL field.
 	settings.DefaultWordPressInviteTTL = settingsDescWordPressInviteTTL.Default.(int)
+	// settingsDescPrivacyPolicyUrl is the schema descriptor for PrivacyPolicyUrl field.
+	settingsDescPrivacyPolicyUrl := settingsFields[29].Descriptor()
+	// settings.DefaultPrivacyPolicyUrl holds the default value on creation for the PrivacyPolicyUrl field.
+	settings.DefaultPrivacyPolicyUrl = settingsDescPrivacyPolicyUrl.Default.(string)
+	// settingsDescMatomoUrl is the schema descriptor for MatomoUrl field.
+	settingsDescMatomoUrl := settingsFields[30].Descriptor()
+	// settings.DefaultMatomoUrl holds the default value on creation for the MatomoUrl field.
+	settings.DefaultMatomoUrl = settingsDescMatomoUrl.Default.(string)
+	// settingsDescMatomoSiteId is the schema descriptor for MatomoSiteId field.
+	settingsDescMatomoSiteId := settingsFields[31].Descriptor()
+	// settings.DefaultMatomoSiteId holds the default value on creation for the MatomoSiteId field.
+	settings.DefaultMatomoSiteId = settingsDescMatomoSiteId.Default.(string)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

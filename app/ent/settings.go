@@ -73,6 +73,12 @@ type Settings struct {
 	WordPressInviteAPIKey string `json:"WordPressInviteAPIKey"`
 	// WordPressInviteTTL holds the value of the "WordPressInviteTTL" field.
 	WordPressInviteTTL int `json:"WordPressInviteTTL"`
+	// PrivacyPolicyUrl holds the value of the "PrivacyPolicyUrl" field.
+	PrivacyPolicyUrl string `json:"PrivacyPolicyUrl"`
+	// MatomoUrl holds the value of the "MatomoUrl" field.
+	MatomoUrl string `json:"MatomoUrl"`
+	// MatomoSiteId holds the value of the "MatomoSiteId" field.
+	MatomoSiteId string `json:"MatomoSiteId"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -111,7 +117,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case settings.FieldID, settings.FieldMaxOrderAmount, settings.FieldWordPressInviteTTL:
 			values[i] = new(sql.NullInt64)
-		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey:
+		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId:
 			values[i] = new(sql.NullString)
 		case settings.ForeignKeys[0]: // mainitem
 			values[i] = new(sql.NullInt64)
@@ -304,6 +310,24 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.WordPressInviteTTL = int(value.Int64)
 			}
+		case settings.FieldPrivacyPolicyUrl:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field PrivacyPolicyUrl", values[i])
+			} else if value.Valid {
+				_m.PrivacyPolicyUrl = value.String
+			}
+		case settings.FieldMatomoUrl:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field MatomoUrl", values[i])
+			} else if value.Valid {
+				_m.MatomoUrl = value.String
+			}
+		case settings.FieldMatomoSiteId:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field MatomoSiteId", values[i])
+			} else if value.Valid {
+				_m.MatomoSiteId = value.String
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -435,6 +459,15 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("WordPressInviteTTL=")
 	builder.WriteString(fmt.Sprintf("%v", _m.WordPressInviteTTL))
+	builder.WriteString(", ")
+	builder.WriteString("PrivacyPolicyUrl=")
+	builder.WriteString(_m.PrivacyPolicyUrl)
+	builder.WriteString(", ")
+	builder.WriteString("MatomoUrl=")
+	builder.WriteString(_m.MatomoUrl)
+	builder.WriteString(", ")
+	builder.WriteString("MatomoSiteId=")
+	builder.WriteString(_m.MatomoSiteId)
 	builder.WriteByte(')')
 	return builder.String()
 }

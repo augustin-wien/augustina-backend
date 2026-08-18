@@ -448,6 +448,48 @@ func (_u *SettingsUpdate) AddWordPressInviteTTL(v int) *SettingsUpdate {
 	return _u
 }
 
+// SetPrivacyPolicyUrl sets the "PrivacyPolicyUrl" field.
+func (_u *SettingsUpdate) SetPrivacyPolicyUrl(v string) *SettingsUpdate {
+	_u.mutation.SetPrivacyPolicyUrl(v)
+	return _u
+}
+
+// SetNillablePrivacyPolicyUrl sets the "PrivacyPolicyUrl" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillablePrivacyPolicyUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetPrivacyPolicyUrl(*v)
+	}
+	return _u
+}
+
+// SetMatomoUrl sets the "MatomoUrl" field.
+func (_u *SettingsUpdate) SetMatomoUrl(v string) *SettingsUpdate {
+	_u.mutation.SetMatomoUrl(v)
+	return _u
+}
+
+// SetNillableMatomoUrl sets the "MatomoUrl" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableMatomoUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetMatomoUrl(*v)
+	}
+	return _u
+}
+
+// SetMatomoSiteId sets the "MatomoSiteId" field.
+func (_u *SettingsUpdate) SetMatomoSiteId(v string) *SettingsUpdate {
+	_u.mutation.SetMatomoSiteId(v)
+	return _u
+}
+
+// SetNillableMatomoSiteId sets the "MatomoSiteId" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableMatomoSiteId(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetMatomoSiteId(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -609,6 +651,15 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedWordPressInviteTTL(); ok {
 		_spec.AddField(settings.FieldWordPressInviteTTL, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.PrivacyPolicyUrl(); ok {
+		_spec.SetField(settings.FieldPrivacyPolicyUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MatomoUrl(); ok {
+		_spec.SetField(settings.FieldMatomoUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MatomoSiteId(); ok {
+		_spec.SetField(settings.FieldMatomoSiteId, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1079,6 +1130,48 @@ func (_u *SettingsUpdateOne) AddWordPressInviteTTL(v int) *SettingsUpdateOne {
 	return _u
 }
 
+// SetPrivacyPolicyUrl sets the "PrivacyPolicyUrl" field.
+func (_u *SettingsUpdateOne) SetPrivacyPolicyUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetPrivacyPolicyUrl(v)
+	return _u
+}
+
+// SetNillablePrivacyPolicyUrl sets the "PrivacyPolicyUrl" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillablePrivacyPolicyUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetPrivacyPolicyUrl(*v)
+	}
+	return _u
+}
+
+// SetMatomoUrl sets the "MatomoUrl" field.
+func (_u *SettingsUpdateOne) SetMatomoUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetMatomoUrl(v)
+	return _u
+}
+
+// SetNillableMatomoUrl sets the "MatomoUrl" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableMatomoUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetMatomoUrl(*v)
+	}
+	return _u
+}
+
+// SetMatomoSiteId sets the "MatomoSiteId" field.
+func (_u *SettingsUpdateOne) SetMatomoSiteId(v string) *SettingsUpdateOne {
+	_u.mutation.SetMatomoSiteId(v)
+	return _u
+}
+
+// SetNillableMatomoSiteId sets the "MatomoSiteId" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableMatomoSiteId(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetMatomoSiteId(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -1270,6 +1363,15 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.AddedWordPressInviteTTL(); ok {
 		_spec.AddField(settings.FieldWordPressInviteTTL, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.PrivacyPolicyUrl(); ok {
+		_spec.SetField(settings.FieldPrivacyPolicyUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MatomoUrl(); ok {
+		_spec.SetField(settings.FieldMatomoUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MatomoSiteId(); ok {
+		_spec.SetField(settings.FieldMatomoSiteId, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

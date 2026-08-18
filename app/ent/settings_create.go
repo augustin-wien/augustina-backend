@@ -412,6 +412,48 @@ func (_c *SettingsCreate) SetNillableWordPressInviteTTL(v *int) *SettingsCreate 
 	return _c
 }
 
+// SetPrivacyPolicyUrl sets the "PrivacyPolicyUrl" field.
+func (_c *SettingsCreate) SetPrivacyPolicyUrl(v string) *SettingsCreate {
+	_c.mutation.SetPrivacyPolicyUrl(v)
+	return _c
+}
+
+// SetNillablePrivacyPolicyUrl sets the "PrivacyPolicyUrl" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillablePrivacyPolicyUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetPrivacyPolicyUrl(*v)
+	}
+	return _c
+}
+
+// SetMatomoUrl sets the "MatomoUrl" field.
+func (_c *SettingsCreate) SetMatomoUrl(v string) *SettingsCreate {
+	_c.mutation.SetMatomoUrl(v)
+	return _c
+}
+
+// SetNillableMatomoUrl sets the "MatomoUrl" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableMatomoUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetMatomoUrl(*v)
+	}
+	return _c
+}
+
+// SetMatomoSiteId sets the "MatomoSiteId" field.
+func (_c *SettingsCreate) SetMatomoSiteId(v string) *SettingsCreate {
+	_c.mutation.SetMatomoSiteId(v)
+	return _c
+}
+
+// SetNillableMatomoSiteId sets the "MatomoSiteId" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableMatomoSiteId(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetMatomoSiteId(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
 	_c.mutation.SetID(v)
@@ -584,6 +626,18 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultWordPressInviteTTL
 		_c.mutation.SetWordPressInviteTTL(v)
 	}
+	if _, ok := _c.mutation.PrivacyPolicyUrl(); !ok {
+		v := settings.DefaultPrivacyPolicyUrl
+		_c.mutation.SetPrivacyPolicyUrl(v)
+	}
+	if _, ok := _c.mutation.MatomoUrl(); !ok {
+		v := settings.DefaultMatomoUrl
+		_c.mutation.SetMatomoUrl(v)
+	}
+	if _, ok := _c.mutation.MatomoSiteId(); !ok {
+		v := settings.DefaultMatomoSiteId
+		_c.mutation.SetMatomoSiteId(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -671,6 +725,15 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.WordPressInviteTTL(); !ok {
 		return &ValidationError{Name: "WordPressInviteTTL", err: errors.New(`ent: missing required field "Settings.WordPressInviteTTL"`)}
+	}
+	if _, ok := _c.mutation.PrivacyPolicyUrl(); !ok {
+		return &ValidationError{Name: "PrivacyPolicyUrl", err: errors.New(`ent: missing required field "Settings.PrivacyPolicyUrl"`)}
+	}
+	if _, ok := _c.mutation.MatomoUrl(); !ok {
+		return &ValidationError{Name: "MatomoUrl", err: errors.New(`ent: missing required field "Settings.MatomoUrl"`)}
+	}
+	if _, ok := _c.mutation.MatomoSiteId(); !ok {
+		return &ValidationError{Name: "MatomoSiteId", err: errors.New(`ent: missing required field "Settings.MatomoSiteId"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -820,6 +883,18 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.WordPressInviteTTL(); ok {
 		_spec.SetField(settings.FieldWordPressInviteTTL, field.TypeInt, value)
 		_node.WordPressInviteTTL = value
+	}
+	if value, ok := _c.mutation.PrivacyPolicyUrl(); ok {
+		_spec.SetField(settings.FieldPrivacyPolicyUrl, field.TypeString, value)
+		_node.PrivacyPolicyUrl = value
+	}
+	if value, ok := _c.mutation.MatomoUrl(); ok {
+		_spec.SetField(settings.FieldMatomoUrl, field.TypeString, value)
+		_node.MatomoUrl = value
+	}
+	if value, ok := _c.mutation.MatomoSiteId(); ok {
+		_spec.SetField(settings.FieldMatomoSiteId, field.TypeString, value)
+		_node.MatomoSiteId = value
 	}
 	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

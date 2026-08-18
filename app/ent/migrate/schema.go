@@ -367,6 +367,9 @@ var (
 		{Name: "wordpressinviteurl", Type: field.TypeString, Default: ""},
 		{Name: "wordpressinviteapikey", Type: field.TypeString, Default: ""},
 		{Name: "wordpressinvitettl", Type: field.TypeInt, Default: 604800},
+		{Name: "privacypolicyurl", Type: field.TypeString, Default: ""},
+		{Name: "matomourl", Type: field.TypeString, Default: ""},
+		{Name: "matomositeid", Type: field.TypeString, Default: ""},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -377,7 +380,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[29]},
+				Columns:    []*schema.Column{SettingsColumns[32]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

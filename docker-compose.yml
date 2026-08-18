@@ -271,9 +271,86 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  # Matomo for testing the optional analytics integration. Nothing depends on it — the frontend
+  # only tracks once MatomoUrl and MatomoSiteId are filled in under Backoffice > Settings.
+  # matomo-init installs it unattended, so there is no installer to click through.
+  matomo-db:
+    image: mariadb:11
+    container_name: matomo-db
+    command: --max-allowed-packet=64MB
+    environment:
+      - MARIADB_DATABASE=${MATOMO_DB_NAME:-matomo}
+      - MARIADB_USER=${MATOMO_DB_USER:-matomo}
+      - MARIADB_PASSWORD=${MATOMO_DB_PASSWORD:-password}
+      - MARIADB_ROOT_PASSWORD=${MATOMO_DB_ROOT_PASSWORD:-password}
+    volumes:
+      - matomo_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  matomo:
+    image: matomo:5-apache
+    container_name: matomo
+    ports:
+      - "8092:80"
+    environment:
+      - MATOMO_DATABASE_HOST=matomo-db
+      - MATOMO_DATABASE_ADAPTER=mysql
+      - MATOMO_DATABASE_USERNAME=${MATOMO_DB_USER:-matomo}
+      - MATOMO_DATABASE_PASSWORD=${MATOMO_DB_PASSWORD:-password}
+      - MATOMO_DATABASE_DBNAME=${MATOMO_DB_NAME:-matomo}
+    volumes:
+      - matomo_data:/var/www/html
+    depends_on:
+      matomo-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "-o", "/dev/null", "http://localhost/index.php"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  # Walks the Matomo web installer once, then exits. Idempotent: on an already installed
+  # instance it does nothing.
+  matomo-init:
+    image: curlimages/curl:latest
+    container_name: matomo-init
+    user: 0:0
+    entrypoint: ["sh", "/matomo-init/entrypoint.sh"]
+    volumes:
+      - ./docker/matomo-init/:/matomo-init/
+      # Needed to add the browser-facing host to trusted_hosts after the install.
+      - matomo_data:/var/www/html
+    environment:
+      - MATOMO_URL=http://matomo
+      - MATOMO_URL_EXTERNAL=http://localhost:8092
+      - MATOMO_DATABASE_HOST=matomo-db
+      - MATOMO_DATABASE_USERNAME=${MATOMO_DB_USER:-matomo}
+      - MATOMO_DATABASE_PASSWORD=${MATOMO_DB_PASSWORD:-password}
+      - MATOMO_DATABASE_DBNAME=${MATOMO_DB_NAME:-matomo}
+      - MATOMO_ADMIN_USER=${MATOMO_ADMIN_USER:-admin}
+      - MATOMO_ADMIN_PASSWORD=${MATOMO_ADMIN_PASSWORD:-Test123!matomo}
+      - MATOMO_ADMIN_EMAIL=${MATOMO_ADMIN_EMAIL:-admin@example.com}
+      - MATOMO_SITE_NAME=${MATOMO_SITE_NAME:-Augustin}
+      - MATOMO_SITE_URL=${MATOMO_SITE_URL:-http://localhost:5173}
+      - MATOMO_SITE_TIMEZONE=${MATOMO_SITE_TIMEZONE:-Europe/Vienna}
+    depends_on:
+      matomo:
+        condition: service_healthy
+    restart: "no"
+
 volumes:
   dbdata:
   wp_data:
   wp_db_data:
   dbdata-test:
   webhook-logs:
+  matomo_data:
+  matomo_db_data:
