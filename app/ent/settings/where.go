@@ -193,6 +193,21 @@ func WordPressInviteTTL(v int) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldWordPressInviteTTL, v))
 }
 
+// PrivacyPolicyUrl applies equality check predicate on the "PrivacyPolicyUrl" field. It's identical to PrivacyPolicyUrlEQ.
+func PrivacyPolicyUrl(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldPrivacyPolicyUrl, v))
+}
+
+// MatomoUrl applies equality check predicate on the "MatomoUrl" field. It's identical to MatomoUrlEQ.
+func MatomoUrl(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldMatomoUrl, v))
+}
+
+// MatomoSiteId applies equality check predicate on the "MatomoSiteId" field. It's identical to MatomoSiteIdEQ.
+func MatomoSiteId(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldMatomoSiteId, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1471,6 +1486,201 @@ func WordPressInviteTTLLT(v int) predicate.Settings {
 // WordPressInviteTTLLTE applies the LTE predicate on the "WordPressInviteTTL" field.
 func WordPressInviteTTLLTE(v int) predicate.Settings {
 	return predicate.Settings(sql.FieldLTE(FieldWordPressInviteTTL, v))
+}
+
+// PrivacyPolicyUrlEQ applies the EQ predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlNEQ applies the NEQ predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlIn applies the In predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldPrivacyPolicyUrl, vs...))
+}
+
+// PrivacyPolicyUrlNotIn applies the NotIn predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldPrivacyPolicyUrl, vs...))
+}
+
+// PrivacyPolicyUrlGT applies the GT predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlGTE applies the GTE predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlLT applies the LT predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlLTE applies the LTE predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlContains applies the Contains predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlHasPrefix applies the HasPrefix predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlHasSuffix applies the HasSuffix predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlEqualFold applies the EqualFold predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldPrivacyPolicyUrl, v))
+}
+
+// PrivacyPolicyUrlContainsFold applies the ContainsFold predicate on the "PrivacyPolicyUrl" field.
+func PrivacyPolicyUrlContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldPrivacyPolicyUrl, v))
+}
+
+// MatomoUrlEQ applies the EQ predicate on the "MatomoUrl" field.
+func MatomoUrlEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldMatomoUrl, v))
+}
+
+// MatomoUrlNEQ applies the NEQ predicate on the "MatomoUrl" field.
+func MatomoUrlNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldMatomoUrl, v))
+}
+
+// MatomoUrlIn applies the In predicate on the "MatomoUrl" field.
+func MatomoUrlIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldMatomoUrl, vs...))
+}
+
+// MatomoUrlNotIn applies the NotIn predicate on the "MatomoUrl" field.
+func MatomoUrlNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldMatomoUrl, vs...))
+}
+
+// MatomoUrlGT applies the GT predicate on the "MatomoUrl" field.
+func MatomoUrlGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldMatomoUrl, v))
+}
+
+// MatomoUrlGTE applies the GTE predicate on the "MatomoUrl" field.
+func MatomoUrlGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldMatomoUrl, v))
+}
+
+// MatomoUrlLT applies the LT predicate on the "MatomoUrl" field.
+func MatomoUrlLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldMatomoUrl, v))
+}
+
+// MatomoUrlLTE applies the LTE predicate on the "MatomoUrl" field.
+func MatomoUrlLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldMatomoUrl, v))
+}
+
+// MatomoUrlContains applies the Contains predicate on the "MatomoUrl" field.
+func MatomoUrlContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldMatomoUrl, v))
+}
+
+// MatomoUrlHasPrefix applies the HasPrefix predicate on the "MatomoUrl" field.
+func MatomoUrlHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldMatomoUrl, v))
+}
+
+// MatomoUrlHasSuffix applies the HasSuffix predicate on the "MatomoUrl" field.
+func MatomoUrlHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldMatomoUrl, v))
+}
+
+// MatomoUrlEqualFold applies the EqualFold predicate on the "MatomoUrl" field.
+func MatomoUrlEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldMatomoUrl, v))
+}
+
+// MatomoUrlContainsFold applies the ContainsFold predicate on the "MatomoUrl" field.
+func MatomoUrlContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldMatomoUrl, v))
+}
+
+// MatomoSiteIdEQ applies the EQ predicate on the "MatomoSiteId" field.
+func MatomoSiteIdEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdNEQ applies the NEQ predicate on the "MatomoSiteId" field.
+func MatomoSiteIdNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdIn applies the In predicate on the "MatomoSiteId" field.
+func MatomoSiteIdIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldMatomoSiteId, vs...))
+}
+
+// MatomoSiteIdNotIn applies the NotIn predicate on the "MatomoSiteId" field.
+func MatomoSiteIdNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldMatomoSiteId, vs...))
+}
+
+// MatomoSiteIdGT applies the GT predicate on the "MatomoSiteId" field.
+func MatomoSiteIdGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdGTE applies the GTE predicate on the "MatomoSiteId" field.
+func MatomoSiteIdGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdLT applies the LT predicate on the "MatomoSiteId" field.
+func MatomoSiteIdLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdLTE applies the LTE predicate on the "MatomoSiteId" field.
+func MatomoSiteIdLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdContains applies the Contains predicate on the "MatomoSiteId" field.
+func MatomoSiteIdContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdHasPrefix applies the HasPrefix predicate on the "MatomoSiteId" field.
+func MatomoSiteIdHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdHasSuffix applies the HasSuffix predicate on the "MatomoSiteId" field.
+func MatomoSiteIdHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdEqualFold applies the EqualFold predicate on the "MatomoSiteId" field.
+func MatomoSiteIdEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldMatomoSiteId, v))
+}
+
+// MatomoSiteIdContainsFold applies the ContainsFold predicate on the "MatomoSiteId" field.
+func MatomoSiteIdContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldMatomoSiteId, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

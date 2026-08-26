@@ -87,7 +87,10 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetPOSEnabled(settings.POSEnabled).
 		SetWordPressInviteURL(settings.WordPressInviteURL).
 		SetWordPressInviteAPIKey(settings.WordPressInviteAPIKey).
-		SetWordPressInviteTTL(settings.WordPressInviteTTL)
+		SetWordPressInviteTTL(settings.WordPressInviteTTL).
+		SetPrivacyPolicyUrl(settings.PrivacyPolicyUrl).
+		SetMatomoUrl(settings.MatomoUrl).
+		SetMatomoSiteId(settings.MatomoSiteId)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {

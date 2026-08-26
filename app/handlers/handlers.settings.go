@@ -26,6 +26,93 @@ type ExtendedSettings struct {
 	Keycloak KeycloakSettings
 }
 
+// PublicSettings is the subset of the settings the shop is allowed to see.
+//
+// The shop needs these before anyone logs in, so /api/settings/ is unauthenticated — which means
+// every field listed here is world readable. That is why this is an explicit allowlist instead of
+// a filter over ent.Settings: a setting added to the schema stays private until someone puts it
+// here on purpose, and credentials (WordPressInviteAPIKey and friends) simply never appear.
+// The backoffice gets the complete entity from /api/settings/admin/ instead.
+type PublicSettings struct {
+	ID                         int
+	AGBUrl                     string
+	Color                      string
+	FontColor                  string
+	Logo                       string
+	Favicon                    string
+	MaxOrderAmount             int
+	OrgaCoversTransactionCosts bool
+	WebshopIsClosed            bool
+	VendorNotFoundHelpUrl      string
+	MaintainanceModeHelpUrl    string
+	VendorEmailPostfix         string
+	NewspaperName              string
+	QRCodeUrl                  string
+	QRCodeLogoImgUrl           string
+	QRCodeSettings             string
+	QRCodeEnableLogo           bool
+	MapCenterLat               float64
+	MapCenterLong              float64
+	UseVendorLicenseIdInShop   bool
+	UseTipInsteadOfDonation    bool
+	ShopLanding                bool
+	DigitalItemsUrl            string
+	AbonementUrl               string
+	AbonementEnabled           bool
+	POSEnabled                 bool
+	PrivacyPolicyUrl           string
+	MatomoUrl                  string
+	MatomoSiteId               string
+	Edges                      ent.SettingsEdges
+}
+
+type ExtendedPublicSettings struct {
+	Settings PublicSettings
+	Keycloak KeycloakSettings
+}
+
+func toPublicSettings(s *ent.Settings) PublicSettings {
+	return PublicSettings{
+		ID:                         s.ID,
+		AGBUrl:                     s.AGBUrl,
+		Color:                      s.Color,
+		FontColor:                  s.FontColor,
+		Logo:                       s.Logo,
+		Favicon:                    s.Favicon,
+		MaxOrderAmount:             s.MaxOrderAmount,
+		OrgaCoversTransactionCosts: s.OrgaCoversTransactionCosts,
+		WebshopIsClosed:            s.WebshopIsClosed,
+		VendorNotFoundHelpUrl:      s.VendorNotFoundHelpUrl,
+		MaintainanceModeHelpUrl:    s.MaintainanceModeHelpUrl,
+		VendorEmailPostfix:         s.VendorEmailPostfix,
+		NewspaperName:              s.NewspaperName,
+		QRCodeUrl:                  s.QRCodeUrl,
+		QRCodeLogoImgUrl:           s.QRCodeLogoImgUrl,
+		QRCodeSettings:             s.QRCodeSettings,
+		QRCodeEnableLogo:           s.QRCodeEnableLogo,
+		MapCenterLat:               s.MapCenterLat,
+		MapCenterLong:              s.MapCenterLong,
+		UseVendorLicenseIdInShop:   s.UseVendorLicenseIdInShop,
+		UseTipInsteadOfDonation:    s.UseTipInsteadOfDonation,
+		ShopLanding:                s.ShopLanding,
+		DigitalItemsUrl:            s.DigitalItemsUrl,
+		AbonementUrl:               s.AbonementUrl,
+		AbonementEnabled:           s.AbonementEnabled,
+		POSEnabled:                 s.POSEnabled,
+		PrivacyPolicyUrl:           s.PrivacyPolicyUrl,
+		MatomoUrl:                  s.MatomoUrl,
+		MatomoSiteId:               s.MatomoSiteId,
+		Edges:                      s.Edges,
+	}
+}
+
+func keycloakSettings() KeycloakSettings {
+	return KeycloakSettings{
+		Realm: config.Config.KeycloakRealm,
+		URL:   config.Config.KeycloakHostname,
+	}
+}
+
 // Settings -------------------------------------------------------------------
 
 // getSettings godoc
@@ -43,16 +130,39 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	exSettings := ExtendedSettings{
-		Settings: settings,
-		Keycloak: KeycloakSettings{
-			Realm: config.Config.KeycloakRealm,
-			URL:   config.Config.KeycloakHostname,
-		},
+	exSettings := ExtendedPublicSettings{
+		Settings: toPublicSettings(settings),
+		Keycloak: keycloakSettings(),
 	}
 	err = utils.WriteJSON(w, http.StatusOK, &exSettings)
 	if err != nil {
 		log.Error("getSettings: ", err)
+	}
+}
+
+// getSettingsAdmin godoc
+//
+//	 	@Summary 		Return all settings
+//		@Description	Return the complete settings including credentials, for the backoffice
+//		@Tags			Core
+//		@Accept			json
+//		@Produce		json
+//		@Success		200
+//		@Security		KeycloakAuth
+//		@Router			/settings/admin/ [get]
+func getSettingsAdmin(w http.ResponseWriter, r *http.Request) {
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	exSettings := ExtendedSettings{
+		Settings: settings,
+		Keycloak: keycloakSettings(),
+	}
+	err = utils.WriteJSON(w, http.StatusOK, &exSettings)
+	if err != nil {
+		log.Error("getSettingsAdmin: ", err)
 	}
 }
 

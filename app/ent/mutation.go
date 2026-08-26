@@ -11135,6 +11135,9 @@ type SettingsMutation struct {
 	_WordPressInviteAPIKey      *string
 	_WordPressInviteTTL         *int
 	add_WordPressInviteTTL      *int
+	_PrivacyPolicyUrl           *string
+	_MatomoUrl                  *string
+	_MatomoSiteId               *string
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -12335,6 +12338,114 @@ func (m *SettingsMutation) ResetWordPressInviteTTL() {
 	m.add_WordPressInviteTTL = nil
 }
 
+// SetPrivacyPolicyUrl sets the "PrivacyPolicyUrl" field.
+func (m *SettingsMutation) SetPrivacyPolicyUrl(s string) {
+	m._PrivacyPolicyUrl = &s
+}
+
+// PrivacyPolicyUrl returns the value of the "PrivacyPolicyUrl" field in the mutation.
+func (m *SettingsMutation) PrivacyPolicyUrl() (r string, exists bool) {
+	v := m._PrivacyPolicyUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrivacyPolicyUrl returns the old "PrivacyPolicyUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldPrivacyPolicyUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrivacyPolicyUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrivacyPolicyUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrivacyPolicyUrl: %w", err)
+	}
+	return oldValue.PrivacyPolicyUrl, nil
+}
+
+// ResetPrivacyPolicyUrl resets all changes to the "PrivacyPolicyUrl" field.
+func (m *SettingsMutation) ResetPrivacyPolicyUrl() {
+	m._PrivacyPolicyUrl = nil
+}
+
+// SetMatomoUrl sets the "MatomoUrl" field.
+func (m *SettingsMutation) SetMatomoUrl(s string) {
+	m._MatomoUrl = &s
+}
+
+// MatomoUrl returns the value of the "MatomoUrl" field in the mutation.
+func (m *SettingsMutation) MatomoUrl() (r string, exists bool) {
+	v := m._MatomoUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMatomoUrl returns the old "MatomoUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldMatomoUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMatomoUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMatomoUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMatomoUrl: %w", err)
+	}
+	return oldValue.MatomoUrl, nil
+}
+
+// ResetMatomoUrl resets all changes to the "MatomoUrl" field.
+func (m *SettingsMutation) ResetMatomoUrl() {
+	m._MatomoUrl = nil
+}
+
+// SetMatomoSiteId sets the "MatomoSiteId" field.
+func (m *SettingsMutation) SetMatomoSiteId(s string) {
+	m._MatomoSiteId = &s
+}
+
+// MatomoSiteId returns the value of the "MatomoSiteId" field in the mutation.
+func (m *SettingsMutation) MatomoSiteId() (r string, exists bool) {
+	v := m._MatomoSiteId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMatomoSiteId returns the old "MatomoSiteId" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldMatomoSiteId(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMatomoSiteId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMatomoSiteId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMatomoSiteId: %w", err)
+	}
+	return oldValue.MatomoSiteId, nil
+}
+
+// ResetMatomoSiteId resets all changes to the "MatomoSiteId" field.
+func (m *SettingsMutation) ResetMatomoSiteId() {
+	m._MatomoSiteId = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -12408,7 +12519,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 28)
+	fields := make([]string, 0, 31)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -12493,6 +12604,15 @@ func (m *SettingsMutation) Fields() []string {
 	if m._WordPressInviteTTL != nil {
 		fields = append(fields, settings.FieldWordPressInviteTTL)
 	}
+	if m._PrivacyPolicyUrl != nil {
+		fields = append(fields, settings.FieldPrivacyPolicyUrl)
+	}
+	if m._MatomoUrl != nil {
+		fields = append(fields, settings.FieldMatomoUrl)
+	}
+	if m._MatomoSiteId != nil {
+		fields = append(fields, settings.FieldMatomoSiteId)
+	}
 	return fields
 }
 
@@ -12557,6 +12677,12 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.WordPressInviteAPIKey()
 	case settings.FieldWordPressInviteTTL:
 		return m.WordPressInviteTTL()
+	case settings.FieldPrivacyPolicyUrl:
+		return m.PrivacyPolicyUrl()
+	case settings.FieldMatomoUrl:
+		return m.MatomoUrl()
+	case settings.FieldMatomoSiteId:
+		return m.MatomoSiteId()
 	}
 	return nil, false
 }
@@ -12622,6 +12748,12 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldWordPressInviteAPIKey(ctx)
 	case settings.FieldWordPressInviteTTL:
 		return m.OldWordPressInviteTTL(ctx)
+	case settings.FieldPrivacyPolicyUrl:
+		return m.OldPrivacyPolicyUrl(ctx)
+	case settings.FieldMatomoUrl:
+		return m.OldMatomoUrl(ctx)
+	case settings.FieldMatomoSiteId:
+		return m.OldMatomoSiteId(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -12827,6 +12959,27 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetWordPressInviteTTL(v)
 		return nil
+	case settings.FieldPrivacyPolicyUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrivacyPolicyUrl(v)
+		return nil
+	case settings.FieldMatomoUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMatomoUrl(v)
+		return nil
+	case settings.FieldMatomoSiteId:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMatomoSiteId(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -13010,6 +13163,15 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldWordPressInviteTTL:
 		m.ResetWordPressInviteTTL()
+		return nil
+	case settings.FieldPrivacyPolicyUrl:
+		m.ResetPrivacyPolicyUrl()
+		return nil
+	case settings.FieldMatomoUrl:
+		m.ResetMatomoUrl()
+		return nil
+	case settings.FieldMatomoSiteId:
+		m.ResetMatomoSiteId()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

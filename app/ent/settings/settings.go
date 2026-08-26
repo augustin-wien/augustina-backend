@@ -68,6 +68,12 @@ const (
 	FieldWordPressInviteAPIKey = "wordpressinviteapikey"
 	// FieldWordPressInviteTTL holds the string denoting the wordpressinvitettl field in the database.
 	FieldWordPressInviteTTL = "wordpressinvitettl"
+	// FieldPrivacyPolicyUrl holds the string denoting the privacypolicyurl field in the database.
+	FieldPrivacyPolicyUrl = "privacypolicyurl"
+	// FieldMatomoUrl holds the string denoting the matomourl field in the database.
+	FieldMatomoUrl = "matomourl"
+	// FieldMatomoSiteId holds the string denoting the matomositeid field in the database.
+	FieldMatomoSiteId = "matomositeid"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -112,6 +118,9 @@ var Columns = []string{
 	FieldWordPressInviteURL,
 	FieldWordPressInviteAPIKey,
 	FieldWordPressInviteTTL,
+	FieldPrivacyPolicyUrl,
+	FieldMatomoUrl,
+	FieldMatomoSiteId,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -192,6 +201,12 @@ var (
 	DefaultWordPressInviteAPIKey string
 	// DefaultWordPressInviteTTL holds the default value on creation for the "WordPressInviteTTL" field.
 	DefaultWordPressInviteTTL int
+	// DefaultPrivacyPolicyUrl holds the default value on creation for the "PrivacyPolicyUrl" field.
+	DefaultPrivacyPolicyUrl string
+	// DefaultMatomoUrl holds the default value on creation for the "MatomoUrl" field.
+	DefaultMatomoUrl string
+	// DefaultMatomoSiteId holds the default value on creation for the "MatomoSiteId" field.
+	DefaultMatomoSiteId string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -342,6 +357,21 @@ func ByWordPressInviteAPIKey(opts ...sql.OrderTermOption) OrderOption {
 // ByWordPressInviteTTL orders the results by the WordPressInviteTTL field.
 func ByWordPressInviteTTL(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWordPressInviteTTL, opts...).ToFunc()
+}
+
+// ByPrivacyPolicyUrl orders the results by the PrivacyPolicyUrl field.
+func ByPrivacyPolicyUrl(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPrivacyPolicyUrl, opts...).ToFunc()
+}
+
+// ByMatomoUrl orders the results by the MatomoUrl field.
+func ByMatomoUrl(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMatomoUrl, opts...).ToFunc()
+}
+
+// ByMatomoSiteId orders the results by the MatomoSiteId field.
+func ByMatomoSiteId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMatomoSiteId, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.
