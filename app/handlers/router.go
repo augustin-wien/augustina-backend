@@ -57,13 +57,6 @@ func GetRouter() (r *chi.Mux) {
 	r.Use(middleware.RequestID)
 	r.Use(middlewares.RequestLogger)
 
-	// Security middlewares: Block suspicious IPs and requests
-	r.Use(middlewares.FilterBlockedIPs)
-	r.Use(middlewares.BlockSuspiciousRequests)
-
-	// Basic rate limiting: limit by IP to 100 requests per minute (tunable)
-	r.Use(httprate.LimitByIP(500, 1*time.Minute))
-
 	// Check that FRONTEND_URL is configured
 	frontendURL := config.Config.FrontendURL
 	if frontendURL == "" {
@@ -84,8 +77,17 @@ func GetRouter() (r *chi.Mux) {
 		},
 	})
 
-	// Use CORS handler with Chi router
+	// Use CORS handler with Chi router. It runs before the blocking middlewares below so
+	// that their responses still carry the CORS headers: a browser shown a bare 403 without
+	// them reports only "No 'Access-Control-Allow-Origin' header", hiding the real status.
 	r.Use(corsHandler)
+
+	// Security middlewares: Block suspicious IPs and requests
+	r.Use(middlewares.FilterBlockedIPs)
+	r.Use(middlewares.BlockSuspiciousRequests)
+
+	// Basic rate limiting: limit by IP to 100 requests per minute (tunable)
+	r.Use(httprate.LimitByIP(500, 1*time.Minute))
 
 	r.Use(middleware.Recoverer)
 
@@ -402,6 +404,24 @@ func GetRouter() (r *chi.Mux) {
 		fsCSS := http.FileServer(http.Dir("public"))
 		r.Handle("/public/*", http.StripPrefix("/public/", fsCSS))
 
+	})
+
+	// Teach the security middlewares which paths this application serves. The scanner
+	// blocklist matches on substrings, several of which also occur in our own routes -
+	// "/admin/" matches "/api/settings/admin/" - and a hit there answers 403 and blocks the
+	// caller's IP for 24 hours. Registered after all routes so the routing tree is complete.
+	middlewares.SetRouteMatcher(func(method, path string) bool {
+		// CORS preflights arrive as OPTIONS, for which no handlers are registered, so match
+		// the methods the preflight could be asking about instead.
+		if method == http.MethodOptions {
+			for _, m := range []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+				if r.Match(chi.NewRouteContext(), m, path) {
+					return true
+				}
+			}
+			return false
+		}
+		return r.Match(chi.NewRouteContext(), method, path)
 	})
 
 	return r
