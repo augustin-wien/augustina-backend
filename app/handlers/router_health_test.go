@@ -12,12 +12,15 @@ import (
 func TestRouterHealthReadyFlour(t *testing.T) {
 	// Preserve and restore config values modified for this test.
 	origFrontend := config.Config.FrontendURL
-	origFlour := config.Config.FlourWebhookURL
+	origOdoo := config.Config.OdooWebhookURL
 	config.Config.FrontendURL = "http://localhost"
-	config.Config.FlourWebhookURL = "http://localhost:8081/flour"
+	// /api/flour is served by the odoo block since the odoo endpoint was renamed to
+	// flour; the odoo webhook URL is what registers it. The flour webhook URL now only
+	// registers the legacy /api/flour_old.
+	config.Config.OdooWebhookURL = "http://localhost:8081/odoo"
 	t.Cleanup(func() {
 		config.Config.FrontendURL = origFrontend
-		config.Config.FlourWebhookURL = origFlour
+		config.Config.OdooWebhookURL = origOdoo
 	})
 
 	router := GetRouter()
@@ -53,12 +56,13 @@ func TestRouterHealthReadyFlour(t *testing.T) {
 // This is important because Flour is external software we don't control.
 func TestHealthAndFlourEndpointsNotBlockedByUserAgent(t *testing.T) {
 	origFrontend := config.Config.FrontendURL
-	origFlour := config.Config.FlourWebhookURL
+	origOdoo := config.Config.OdooWebhookURL
 	config.Config.FrontendURL = "http://localhost"
-	config.Config.FlourWebhookURL = "http://localhost:8081/flour"
+	// See TestRouterHealthReadyFlour: /api/flour comes from the odoo block.
+	config.Config.OdooWebhookURL = "http://localhost:8081/odoo"
 	t.Cleanup(func() {
 		config.Config.FrontendURL = origFrontend
-		config.Config.FlourWebhookURL = origFlour
+		config.Config.OdooWebhookURL = origOdoo
 	})
 
 	router := GetRouter()
