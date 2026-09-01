@@ -58,11 +58,11 @@ services:
       retries: 5
     ports:
       - "7005:5432"
-  pgbackups-augustin-db:
+  pgbackups-augustin-db-cluster:
     image: prodrigestivill/postgres-backup-local
     restart: always
     volumes:
-        - /dockerstorage/convive/augustin-db-backups:/backups
+        - /dockerstorage/convive/augustin-db-cluster-backups:/backups
     depends_on:
       - augustin-db
     environment:
@@ -71,9 +71,10 @@ services:
         - POSTGRES_DB=${DB_NAME}
         - POSTGRES_USER=${DB_USER}
         - POSTGRES_PASSWORD=${DB_PASS}
-        - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
-        - SCHEDULE=@every 3m
-        - BACKUP_KEEP_MINS=1900
+        - POSTGRES_CLUSTER=TRUE
+        - POSTGRES_EXTRA_OPTS=--clean --if-exists
+        - SCHEDULE=@every 1h
+        - BACKUP_KEEP_MINS=1500
         - BACKUP_KEEP_DAYS=7
         - BACKUP_KEEP_WEEKS=4
         - BACKUP_KEEP_MONTHS=6
@@ -138,63 +139,26 @@ services:
       - MYSQL_DATABASE=${WORDPRESS_DB_NAME}
       - MYSQL_USER=${WORDPRESS_DB_USER}
       - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD}
-  wordpress:
-    image: wordpress:latest
-    volumes:
-      - /dockerstorage/convive/augustin-backend/wp_data:/var/www/html
-      - /dockerstorage/convive/augustin-backend/docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
-      - /dockerstorage/convive/augustin-backend/docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
+  # WordPress is on mariadb, which the postgres image cannot dump. With no
+  # MYSQL_DATABASE set this one dumps every database it can see, one file each,
+  # so it needs the root credentials of the wordpress-db service.
+  mysqlbackups-wordpress-db:
+    image: fradelg/mysql-cron-backup
     restart: always
-    environment:
-      - WORDPRESS_DB_HOST=wordpress-db
-      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
-      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
-      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
-      - AUGUSTIN_PLUGIN_URL=${AUGUSTIN_PARSER_URL}
+    volumes:
+      - /dockerstorage/convive/wordpress-db-backups:/backup
     depends_on:
       - wordpress-db
-      - keycloak
-    ports:
-      - "7004:80"
-  wpcli:
-    image: wordpress:cli
-    user: 0:0
-    command: >
-      sh -c " chmod +x /wpcli/entrypoint.sh && /wpcli/entrypoint.sh && tail -f
-      /dev/null"
-    volumes:
-      - /dockerstorage/convive/augustin-backend/wp_data:/var/www/html
-      - /dockerstorage/convive/augustin-backend/docker/wordpress/plugins/augustin-wp-papers:/var/www/html/wp-content/plugins/augustin-wp-papers
-      - /dockerstorage/convive/augustin-backend/docker/wordpress/themes/augustin-wp-theme:/var/www/html/wp-content/themes/augustin-wp-theme
-      - /dockerstorage/convive/augustin-backend/docker/wpcli/:/wpcli/
+    environment:
+      - MYSQL_HOST=wordpress-db
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASS=${WORDPRESS_DB_PASSWORD}
+      - MAX_BACKUPS=48
+      - INIT_BACKUP=1
+      - CRON_TIME=0 * * * *
+      - GZIP_LEVEL=9
 
-    environment:
-      - WORDPRESS_DB_HOST=wordpress-db
-      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
-      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD}
-      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
-    depends_on:
-      - wordpress-db
-      - wordpress
-    links:
-      - wordpress-db
-  parser:
-    build:
-      context: ./docker/augustin-plugin
-    image: dkia/augustin-parser
-    ports:
-      - "7003:8000"
-    volumes:
-      - /dockerstorage/convive/augustin-backend/docker/augustin-plugin-data/sample_data:/sample_data
-      - /dockerstorage/convive/augustin-backend/docker/augustin-plugin-data/pdf-files:/pdf-files
-      - /dockerstorage/convive/augustin-backend/docker/augustin-plugin/:/app
-    environment:
-      - AUGUSTIN_PLUGIN_URL=${AUGUSTIN_PLUGIN_URL}
-      - AUGUSTIN_PLUGIN_PATH=/sample_data/
-      - AUGUSTIN_PLUGIN_SAVE_PATH=/pdf-files/
-      - WP_API_USER=api_user
-    depends_on:
-      - wordpress
 volumes:
   dbdata:
   wp_data:

@@ -4,20 +4,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/augustin-wien/augustina-backend/config"
 )
 
 // TestFlourResendEndpointRouted verifies the resend endpoint is wired and requires auth.
+// The endpoint lives under /api/orders/ and not under the flour prefix: splitting the
+// flour integration into a flour and an odoo plugin moved it there, because it is the
+// backoffice that resends a webhook, not the external software.
 func TestFlourResendEndpointRouted(t *testing.T) {
-	origFlour := config.Config.FlourWebhookURL
-	config.Config.FlourWebhookURL = "http://localhost:8081/flour"
-	defer func() { config.Config.FlourWebhookURL = origFlour }()
-
 	r := GetRouter()
 
-	// Without auth headers, expect 401 due to FlourAuthMiddleware/AuthMiddleware
-	req := httptest.NewRequest(http.MethodPost, "/api/flour/payments/resend/123/", nil)
+	// Without auth headers, expect 401 from AuthMiddleware, or 403 from the user agent
+	// blocking that this route, unlike the flour ones, sits behind.
+	req := httptest.NewRequest(http.MethodPost, "/api/orders/resend/123/", nil)
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 

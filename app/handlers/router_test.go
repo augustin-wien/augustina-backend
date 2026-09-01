@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/middlewares"
 )
 
 // TestSecurityHeaders ensures basic security headers are set by the router middleware.
@@ -177,5 +179,58 @@ func TestCORSRejectsLocalhostOutsideDevelopment(t *testing.T) {
 
 	if got := rec2.Header().Get("Access-Control-Allow-Origin"); got != "http://example-frontend.local" {
 		t.Fatalf("expected the configured frontend to stay allowed, got %q", got)
+	}
+}
+
+// TestLegitimateAdminRouteNotBlocked guards against the scanner blocklist swallowing our own
+// routes: "/api/settings/admin/" contains the suspicious substring "/admin/", which used to
+// answer 403, block the caller's IP for 24h, and - because the block ran before the CORS
+// middleware - surface in the browser as a missing Access-Control-Allow-Origin header.
+func TestLegitimateAdminRouteNotBlocked(t *testing.T) {
+	config.Config.FrontendURL = "http://example-frontend.local"
+	config.Config.Development = true
+
+	r := GetRouter()
+
+	const ip = "203.0.113.7"
+
+	// Preflight for the admin settings route must succeed and carry the CORS headers.
+	pre := httptest.NewRequest("OPTIONS", "/api/settings/admin/", nil)
+	pre.Header.Set("Origin", "http://example-frontend.local")
+	pre.Header.Set("Access-Control-Request-Method", "GET")
+	pre.Header.Set("X-Real-Ip", ip)
+	preRec := httptest.NewRecorder()
+	r.ServeHTTP(preRec, pre)
+
+	if preRec.Code == http.StatusForbidden {
+		t.Fatalf("preflight for /api/settings/admin/ was blocked with 403")
+	}
+	if got := preRec.Header().Get("Access-Control-Allow-Origin"); got != "http://example-frontend.local" {
+		t.Fatalf("expected preflight to carry Access-Control-Allow-Origin, got %q", got)
+	}
+
+	// The request itself must reach the auth middleware (401 without a token) rather than
+	// being rejected as a scanner probe.
+	req := httptest.NewRequest("GET", "/api/settings/admin/", nil)
+	req.Header.Set("Origin", "http://example-frontend.local")
+	req.Header.Set("X-Real-Ip", ip)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 from the auth middleware, got %d", rec.Code)
+	}
+	if middlewares.GlobalBlocker.IsBlocked(ip) {
+		t.Fatalf("legitimate request to /api/settings/admin/ got the caller's IP blocked")
+	}
+
+	// A real scanner probe on a path we do not serve is still blocked.
+	probe := httptest.NewRequest("GET", "/wp-login.php", nil)
+	probe.Header.Set("X-Real-Ip", "203.0.113.8")
+	probeRec := httptest.NewRecorder()
+	r.ServeHTTP(probeRec, probe)
+
+	if probeRec.Code != http.StatusForbidden {
+		t.Fatalf("expected scanner probe to be blocked, got %d", probeRec.Code)
 	}
 }

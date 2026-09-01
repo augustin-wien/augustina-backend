@@ -405,9 +405,40 @@ func FilterBlockedIPs(next http.Handler) http.Handler {
 	})
 }
 
+// knownRouteMatcher reports whether the application itself serves a given method and path.
+// It is nil until the router registers one via SetRouteMatcher.
+var (
+	knownRouteMu      sync.RWMutex
+	knownRouteMatcher func(method, path string) bool
+)
+
+// SetRouteMatcher teaches BlockSuspiciousRequests which paths this application actually
+// serves. Several entries in suspiciousPaths are substrings that also occur in our own
+// routes - "/admin/" matches "/api/settings/admin/", for example - so without this a
+// legitimate request is answered with 403 and the caller's IP blocked for 24 hours.
+func SetRouteMatcher(m func(method, path string) bool) {
+	knownRouteMu.Lock()
+	defer knownRouteMu.Unlock()
+	knownRouteMatcher = m
+}
+
+// isKnownRoute reports whether the request targets a route of this application.
+func isKnownRoute(method, path string) bool {
+	knownRouteMu.RLock()
+	m := knownRouteMatcher
+	knownRouteMu.RUnlock()
+	return m != nil && m(method, path)
+}
+
 // BlockSuspiciousRequests middleware checks for malicious paths and blocks the IP
 func BlockSuspiciousRequests(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// A route we serve ourselves is never a scanner probing for another stack.
+		if isKnownRoute(r.Method, r.URL.Path) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		path := strings.ToLower(r.URL.Path)
 
 		for _, suspicious := range suspiciousPaths {

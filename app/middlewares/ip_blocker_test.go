@@ -326,3 +326,38 @@ func TestIPBlocker(t *testing.T) {
 		assert.True(t, GlobalBlocker.IsBlocked(ip))
 	})
 }
+
+// TestBlockSuspiciousRequestsKnownRoute covers the escape hatch the router installs: a path
+// this application actually serves must not be treated as a scanner probe, even when it
+// contains one of the suspicious substrings ("/admin/" here).
+func TestBlockSuspiciousRequestsKnownRoute(t *testing.T) {
+	GlobalBlocker.mu.Lock()
+	GlobalBlocker.blockedIPs = make(map[string]time.Time)
+	GlobalBlocker.mu.Unlock()
+
+	SetRouteMatcher(func(method, path string) bool {
+		return path == "/api/settings/admin/"
+	})
+	t.Cleanup(func() { SetRouteMatcher(nil) })
+
+	handler := BlockSuspiciousRequests(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest("GET", "/api/settings/admin/", nil)
+	req.Header.Set("X-Real-Ip", "1.2.3.6")
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.False(t, GlobalBlocker.IsBlocked("1.2.3.6"))
+
+	// An unknown path carrying the same substring is still blocked.
+	req2 := httptest.NewRequest("GET", "/admin/config.php", nil)
+	req2.Header.Set("X-Real-Ip", "1.2.3.7")
+	w2 := httptest.NewRecorder()
+	handler.ServeHTTP(w2, req2)
+
+	assert.Equal(t, http.StatusForbidden, w2.Code)
+	assert.True(t, GlobalBlocker.IsBlocked("1.2.3.7"))
+}
