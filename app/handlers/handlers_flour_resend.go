@@ -52,12 +52,6 @@ func ResendOdooWebhook(w http.ResponseWriter, r *http.Request) {
 
 	var errs []error
 
-	if config.Config.FlourWebhookURL != "" {
-		if err := integrations.SendPaymentToFlour(order.ID, order.Timestamp, order.Entries, vendor, totalSum); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
 	if config.Config.OdooWebhookURL != "" {
 		if err := integrations.SendPaymentToOdoo(order.ID, order.Timestamp, order.Entries, vendor, totalSum); err != nil {
 			errs = append(errs, err)
