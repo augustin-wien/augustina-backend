@@ -60,6 +60,7 @@ type PublicSettings struct {
 	AbonementUrl               string
 	AbonementEnabled           bool
 	POSEnabled                 bool
+	OdooEnabled                bool
 	PrivacyPolicyUrl           string
 	MatomoUrl                  string
 	MatomoSiteId               string
@@ -99,6 +100,7 @@ func toPublicSettings(s *ent.Settings) PublicSettings {
 		AbonementUrl:               s.AbonementUrl,
 		AbonementEnabled:           s.AbonementEnabled,
 		POSEnabled:                 s.POSEnabled,
+		OdooEnabled:                config.Config.OdooWebhookURL != "",
 		PrivacyPolicyUrl:           s.PrivacyPolicyUrl,
 		MatomoUrl:                  s.MatomoUrl,
 		MatomoSiteId:               s.MatomoSiteId,
