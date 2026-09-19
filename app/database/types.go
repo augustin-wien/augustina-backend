@@ -98,6 +98,8 @@ type Order struct {
 	Vendor            int
 	Entries           []OrderEntry
 	CustomerEmail     null.String `db:"customeremail"`
+	OdooSyncedAt      null.Time
+	OdooSyncError     null.String
 }
 
 // OrderEntry is a struct that is used for the order_entry table

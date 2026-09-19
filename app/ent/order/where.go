@@ -100,6 +100,16 @@ func CustomerEmail(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldCustomerEmail, v))
 }
 
+// OdooSyncedAt applies equality check predicate on the "odoo_synced_at" field. It's identical to OdooSyncedAtEQ.
+func OdooSyncedAt(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldOdooSyncedAt, v))
+}
+
+// OdooSyncError applies equality check predicate on the "odoo_sync_error" field. It's identical to OdooSyncErrorEQ.
+func OdooSyncError(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldOdooSyncError, v))
+}
+
 // OrderCodeEQ applies the EQ predicate on the "order_code" field.
 func OrderCodeEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrderCode, v))
@@ -568,6 +578,131 @@ func CustomerEmailEqualFold(v string) predicate.Order {
 // CustomerEmailContainsFold applies the ContainsFold predicate on the "customer_email" field.
 func CustomerEmailContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldCustomerEmail, v))
+}
+
+// OdooSyncedAtEQ applies the EQ predicate on the "odoo_synced_at" field.
+func OdooSyncedAtEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldOdooSyncedAt, v))
+}
+
+// OdooSyncedAtNEQ applies the NEQ predicate on the "odoo_synced_at" field.
+func OdooSyncedAtNEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldOdooSyncedAt, v))
+}
+
+// OdooSyncedAtIn applies the In predicate on the "odoo_synced_at" field.
+func OdooSyncedAtIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldOdooSyncedAt, vs...))
+}
+
+// OdooSyncedAtNotIn applies the NotIn predicate on the "odoo_synced_at" field.
+func OdooSyncedAtNotIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldOdooSyncedAt, vs...))
+}
+
+// OdooSyncedAtGT applies the GT predicate on the "odoo_synced_at" field.
+func OdooSyncedAtGT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldOdooSyncedAt, v))
+}
+
+// OdooSyncedAtGTE applies the GTE predicate on the "odoo_synced_at" field.
+func OdooSyncedAtGTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldOdooSyncedAt, v))
+}
+
+// OdooSyncedAtLT applies the LT predicate on the "odoo_synced_at" field.
+func OdooSyncedAtLT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldOdooSyncedAt, v))
+}
+
+// OdooSyncedAtLTE applies the LTE predicate on the "odoo_synced_at" field.
+func OdooSyncedAtLTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldOdooSyncedAt, v))
+}
+
+// OdooSyncedAtIsNil applies the IsNil predicate on the "odoo_synced_at" field.
+func OdooSyncedAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldOdooSyncedAt))
+}
+
+// OdooSyncedAtNotNil applies the NotNil predicate on the "odoo_synced_at" field.
+func OdooSyncedAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldOdooSyncedAt))
+}
+
+// OdooSyncErrorEQ applies the EQ predicate on the "odoo_sync_error" field.
+func OdooSyncErrorEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorNEQ applies the NEQ predicate on the "odoo_sync_error" field.
+func OdooSyncErrorNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorIn applies the In predicate on the "odoo_sync_error" field.
+func OdooSyncErrorIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldOdooSyncError, vs...))
+}
+
+// OdooSyncErrorNotIn applies the NotIn predicate on the "odoo_sync_error" field.
+func OdooSyncErrorNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldOdooSyncError, vs...))
+}
+
+// OdooSyncErrorGT applies the GT predicate on the "odoo_sync_error" field.
+func OdooSyncErrorGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorGTE applies the GTE predicate on the "odoo_sync_error" field.
+func OdooSyncErrorGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorLT applies the LT predicate on the "odoo_sync_error" field.
+func OdooSyncErrorLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorLTE applies the LTE predicate on the "odoo_sync_error" field.
+func OdooSyncErrorLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorContains applies the Contains predicate on the "odoo_sync_error" field.
+func OdooSyncErrorContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorHasPrefix applies the HasPrefix predicate on the "odoo_sync_error" field.
+func OdooSyncErrorHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorHasSuffix applies the HasSuffix predicate on the "odoo_sync_error" field.
+func OdooSyncErrorHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorIsNil applies the IsNil predicate on the "odoo_sync_error" field.
+func OdooSyncErrorIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldOdooSyncError))
+}
+
+// OdooSyncErrorNotNil applies the NotNil predicate on the "odoo_sync_error" field.
+func OdooSyncErrorNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldOdooSyncError))
+}
+
+// OdooSyncErrorEqualFold applies the EqualFold predicate on the "odoo_sync_error" field.
+func OdooSyncErrorEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldOdooSyncError, v))
+}
+
+// OdooSyncErrorContainsFold applies the ContainsFold predicate on the "odoo_sync_error" field.
+func OdooSyncErrorContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldOdooSyncError, v))
 }
 
 // HasEntries applies the HasEdge predicate on the "entries" edge.

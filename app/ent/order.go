@@ -35,6 +35,10 @@ type Order struct {
 	VendorID int `json:"vendor_id,omitempty"`
 	// CustomerEmail holds the value of the "customer_email" field.
 	CustomerEmail *string `json:"customer_email,omitempty"`
+	// OdooSyncedAt holds the value of the "odoo_synced_at" field.
+	OdooSyncedAt *time.Time `json:"odoo_synced_at,omitempty"`
+	// OdooSyncError holds the value of the "odoo_sync_error" field.
+	OdooSyncError *string `json:"odoo_sync_error,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderQuery when eager-loading is set.
 	Edges        OrderEdges `json:"edges"`
@@ -79,9 +83,9 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case order.FieldID, order.FieldTransactionTypeID, order.FieldVendorID:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderCode, order.FieldTransactionID, order.FieldUserID, order.FieldCustomerEmail:
+		case order.FieldOrderCode, order.FieldTransactionID, order.FieldUserID, order.FieldCustomerEmail, order.FieldOdooSyncError:
 			values[i] = new(sql.NullString)
-		case order.FieldVerifiedAt, order.FieldTimestamp:
+		case order.FieldVerifiedAt, order.FieldTimestamp, order.FieldOdooSyncedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -162,6 +166,20 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				_m.CustomerEmail = new(string)
 				*_m.CustomerEmail = value.String
 			}
+		case order.FieldOdooSyncedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field odoo_synced_at", values[i])
+			} else if value.Valid {
+				_m.OdooSyncedAt = new(time.Time)
+				*_m.OdooSyncedAt = value.Time
+			}
+		case order.FieldOdooSyncError:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field odoo_sync_error", values[i])
+			} else if value.Valid {
+				_m.OdooSyncError = new(string)
+				*_m.OdooSyncError = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -240,6 +258,16 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	if v := _m.CustomerEmail; v != nil {
 		builder.WriteString("customer_email=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.OdooSyncedAt; v != nil {
+		builder.WriteString("odoo_synced_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.OdooSyncError; v != nil {
+		builder.WriteString("odoo_sync_error=")
 		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')

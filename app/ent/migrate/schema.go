@@ -219,6 +219,8 @@ var (
 		{Name: "userid", Type: field.TypeString, Nullable: true},
 		{Name: "vendor_id", Type: field.TypeInt},
 		{Name: "customeremail", Type: field.TypeString, Nullable: true},
+		{Name: "odoo_synced_at", Type: field.TypeTime, Nullable: true},
+		{Name: "odoo_sync_error", Type: field.TypeString, Nullable: true},
 	}
 	// PaymentorderTable holds the schema information for the "paymentorder" table.
 	PaymentorderTable = &schema.Table{
