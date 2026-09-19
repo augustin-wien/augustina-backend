@@ -55,6 +55,11 @@ func ResendOdooWebhook(w http.ResponseWriter, r *http.Request) {
 	if config.Config.OdooWebhookURL != "" {
 		if err := integrations.SendPaymentToOdoo(order.ID, order.Timestamp, order.Entries, vendor, totalSum); err != nil {
 			errs = append(errs, err)
+			if dbErr := database.Db.SetOdooSyncFailure(order.ID, err); dbErr != nil {
+				errs = append(errs, dbErr)
+			}
+		} else if dbErr := database.Db.SetOdooSyncSuccess(order.ID); dbErr != nil {
+			errs = append(errs, dbErr)
 		}
 	}
 

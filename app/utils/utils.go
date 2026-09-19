@@ -16,6 +16,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/notifications"
 
+	"github.com/getsentry/sentry-go"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -36,20 +37,99 @@ func GetLogger() *zap.SugaredLogger {
 		consoleEncoder = zapcore.NewConsoleEncoder(productionCfg)
 	}
 
-	notificationCfg := zap.NewDevelopmentEncoderConfig()
-	notificationEncoder := zapcore.NewConsoleEncoder(notificationCfg)
-
 	level := zap.NewAtomicLevelAt(zap.DebugLevel)
 
 	consoleCore := zapcore.NewCore(consoleEncoder, stdout, level)
-	notificationCore := zapcore.NewCore(notificationEncoder, notifications.NotificationsClient, zap.NewAtomicLevelAt(zap.ErrorLevel))
+	alertCore := newAlertCore(zap.NewAtomicLevelAt(zap.ErrorLevel))
 
 	core := zapcore.NewTee(
 		&reqIDCore{core: consoleCore},
-		&reqIDCore{core: notificationCore},
+		&reqIDCore{core: alertCore},
 	)
 
-	return zap.New(core).Sugar()
+	return zap.New(core, zap.AddCaller()).Sugar()
+}
+
+// alertCore is a zapcore.Core that reports Error-and-above log entries to
+// Sentry/GlitchTip, fingerprinted by call site so repeated occurrences of the
+// same error collapse into one issue instead of flooding as distinct ones.
+// Fatal/Panic/DPanic entries additionally trigger a synchronous email, since
+// those precede an os.Exit and can't rely on a background goroutine to finish.
+type alertCore struct {
+	enab   zapcore.LevelEnabler
+	fields []zapcore.Field
+}
+
+func newAlertCore(enab zapcore.LevelEnabler) *alertCore {
+	return &alertCore{enab: enab}
+}
+
+func (a *alertCore) Enabled(l zapcore.Level) bool { return a.enab.Enabled(l) }
+
+func (a *alertCore) With(fields []zapcore.Field) zapcore.Core {
+	merged := make([]zapcore.Field, 0, len(a.fields)+len(fields))
+	merged = append(merged, a.fields...)
+	merged = append(merged, fields...)
+	return &alertCore{enab: a.enab, fields: merged}
+}
+
+func (a *alertCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
+	if a.Enabled(ent.Level) {
+		return ce.AddCore(ent, a)
+	}
+	return ce
+}
+
+func (a *alertCore) Write(ent zapcore.Entry, fields []zapcore.Field) error {
+	all := make([]zapcore.Field, 0, len(a.fields)+len(fields))
+	all = append(all, a.fields...)
+	all = append(all, fields...)
+
+	reportToSentry(ent, all)
+
+	// Fatal precedes an os.Exit called by zap right after this Write returns, so the
+	// email has to be sent synchronously here - a background goroutine would likely
+	// never get to run.
+	if ent.Level >= zapcore.DPanicLevel {
+		notifications.NotificationsClient.SendErrorNotification(ent.Level.CapitalString(), ent.Message)
+		sentry.Flush(2 * time.Second)
+	}
+	return nil
+}
+
+func (a *alertCore) Sync() error { return nil }
+
+func reportToSentry(ent zapcore.Entry, fields []zapcore.Field) {
+	sentry.WithScope(func(scope *sentry.Scope) {
+		scope.SetLevel(sentryLevel(ent.Level))
+		if tenant := os.Getenv("NOTIFICATIONS_PREFIX"); tenant != "" {
+			scope.SetTag("tenant", tenant)
+		}
+		if ent.Caller.Defined {
+			scope.SetFingerprint([]string{ent.Caller.File, strconv.Itoa(ent.Caller.Line)})
+		}
+		if len(fields) > 0 {
+			enc := zapcore.NewMapObjectEncoder()
+			for _, f := range fields {
+				f.AddTo(enc)
+			}
+			scope.SetContext("log_fields", enc.Fields)
+		}
+		sentry.CaptureMessage(ent.Message)
+	})
+}
+
+func sentryLevel(l zapcore.Level) sentry.Level {
+	switch {
+	case l >= zapcore.DPanicLevel:
+		return sentry.LevelFatal
+	case l >= zapcore.ErrorLevel:
+		return sentry.LevelError
+	case l >= zapcore.WarnLevel:
+		return sentry.LevelWarning
+	default:
+		return sentry.LevelInfo
+	}
 }
 
 // context key type for storing request-scoped logger

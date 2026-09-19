@@ -322,6 +322,62 @@ func (db *Database) SetOrderTransactionID(orderID int, transactionID string) (er
 	return
 }
 
+// SetOdooSyncSuccess records that an order's Odoo webhook was delivered successfully,
+// clearing any previously recorded failure.
+func (db *Database) SetOdooSyncSuccess(orderID int) (err error) {
+	err = db.EntClient.Order.UpdateOneID(orderID).
+		SetOdooSyncedAt(time.Now()).
+		ClearOdooSyncError().
+		Exec(context.Background())
+	if err != nil {
+		log.Error("SetOdooSyncSuccess: ", err)
+	}
+	return
+}
+
+// SetOdooSyncFailure records that an order's Odoo webhook delivery failed after retries
+// were exhausted, so the order can be found and resent later instead of relying on logs.
+func (db *Database) SetOdooSyncFailure(orderID int, syncErr error) (err error) {
+	err = db.EntClient.Order.UpdateOneID(orderID).
+		SetOdooSyncError(syncErr.Error()).
+		Exec(context.Background())
+	if err != nil {
+		log.Error("SetOdooSyncFailure: ", err)
+	}
+	return
+}
+
+// GetUnsyncedOrders returns verified orders whose Odoo webhook has not (yet) been
+// delivered successfully, for surfacing as an admin worklist instead of hand-picking
+// order IDs to resend.
+func (db *Database) GetUnsyncedOrders() (orders []Order, err error) {
+	if config.Config.OdooWebhookURL == "" {
+		return nil, nil
+	}
+
+	res, err := db.EntClient.Order.Query().
+		Where(
+			order.Verified(true),
+			order.OdooSyncedAtIsNil(),
+		).
+		Order(ent.Desc(order.FieldTimestamp)).
+		WithEntries(func(q *ent.OrderEntryQuery) {
+			q.WithSender().WithReceiver()
+		}).
+		All(context.Background())
+
+	if err != nil {
+		log.Error("GetUnsyncedOrders: ", err)
+		return nil, err
+	}
+
+	for _, o := range res {
+		orders = append(orders, convertOrder(o))
+	}
+
+	return
+}
+
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
 func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID int) (err error) {
@@ -701,6 +757,12 @@ func convertOrder(e *ent.Order) Order {
 	if e.VerifiedAt != nil {
 		tt := *e.VerifiedAt
 		o.VerifiedAt = null.TimeFrom(tt)
+	}
+	if e.OdooSyncedAt != nil {
+		o.OdooSyncedAt = null.TimeFrom(*e.OdooSyncedAt)
+	}
+	if e.OdooSyncError != nil {
+		o.OdooSyncError = null.StringFrom(*e.OdooSyncError)
 	}
 	for _, entry := range e.Edges.Entries {
 		o.Entries = append(o.Entries, convertOrderEntry(entry))

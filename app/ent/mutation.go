@@ -6301,6 +6301,8 @@ type OrderMutation struct {
 	vendor_id              *int
 	addvendor_id           *int
 	customer_email         *string
+	odoo_synced_at         *time.Time
+	odoo_sync_error        *string
 	clearedFields          map[string]struct{}
 	entries                map[int]struct{}
 	removedentries         map[int]struct{}
@@ -6833,6 +6835,104 @@ func (m *OrderMutation) ResetCustomerEmail() {
 	delete(m.clearedFields, order.FieldCustomerEmail)
 }
 
+// SetOdooSyncedAt sets the "odoo_synced_at" field.
+func (m *OrderMutation) SetOdooSyncedAt(t time.Time) {
+	m.odoo_synced_at = &t
+}
+
+// OdooSyncedAt returns the value of the "odoo_synced_at" field in the mutation.
+func (m *OrderMutation) OdooSyncedAt() (r time.Time, exists bool) {
+	v := m.odoo_synced_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOdooSyncedAt returns the old "odoo_synced_at" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldOdooSyncedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOdooSyncedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOdooSyncedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOdooSyncedAt: %w", err)
+	}
+	return oldValue.OdooSyncedAt, nil
+}
+
+// ClearOdooSyncedAt clears the value of the "odoo_synced_at" field.
+func (m *OrderMutation) ClearOdooSyncedAt() {
+	m.odoo_synced_at = nil
+	m.clearedFields[order.FieldOdooSyncedAt] = struct{}{}
+}
+
+// OdooSyncedAtCleared returns if the "odoo_synced_at" field was cleared in this mutation.
+func (m *OrderMutation) OdooSyncedAtCleared() bool {
+	_, ok := m.clearedFields[order.FieldOdooSyncedAt]
+	return ok
+}
+
+// ResetOdooSyncedAt resets all changes to the "odoo_synced_at" field.
+func (m *OrderMutation) ResetOdooSyncedAt() {
+	m.odoo_synced_at = nil
+	delete(m.clearedFields, order.FieldOdooSyncedAt)
+}
+
+// SetOdooSyncError sets the "odoo_sync_error" field.
+func (m *OrderMutation) SetOdooSyncError(s string) {
+	m.odoo_sync_error = &s
+}
+
+// OdooSyncError returns the value of the "odoo_sync_error" field in the mutation.
+func (m *OrderMutation) OdooSyncError() (r string, exists bool) {
+	v := m.odoo_sync_error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOdooSyncError returns the old "odoo_sync_error" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldOdooSyncError(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOdooSyncError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOdooSyncError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOdooSyncError: %w", err)
+	}
+	return oldValue.OdooSyncError, nil
+}
+
+// ClearOdooSyncError clears the value of the "odoo_sync_error" field.
+func (m *OrderMutation) ClearOdooSyncError() {
+	m.odoo_sync_error = nil
+	m.clearedFields[order.FieldOdooSyncError] = struct{}{}
+}
+
+// OdooSyncErrorCleared returns if the "odoo_sync_error" field was cleared in this mutation.
+func (m *OrderMutation) OdooSyncErrorCleared() bool {
+	_, ok := m.clearedFields[order.FieldOdooSyncError]
+	return ok
+}
+
+// ResetOdooSyncError resets all changes to the "odoo_sync_error" field.
+func (m *OrderMutation) ResetOdooSyncError() {
+	m.odoo_sync_error = nil
+	delete(m.clearedFields, order.FieldOdooSyncError)
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by ids.
 func (m *OrderMutation) AddEntryIDs(ids ...int) {
 	if m.entries == nil {
@@ -6975,7 +7075,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 11)
 	if m.order_code != nil {
 		fields = append(fields, order.FieldOrderCode)
 	}
@@ -7003,6 +7103,12 @@ func (m *OrderMutation) Fields() []string {
 	if m.customer_email != nil {
 		fields = append(fields, order.FieldCustomerEmail)
 	}
+	if m.odoo_synced_at != nil {
+		fields = append(fields, order.FieldOdooSyncedAt)
+	}
+	if m.odoo_sync_error != nil {
+		fields = append(fields, order.FieldOdooSyncError)
+	}
 	return fields
 }
 
@@ -7029,6 +7135,10 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.VendorID()
 	case order.FieldCustomerEmail:
 		return m.CustomerEmail()
+	case order.FieldOdooSyncedAt:
+		return m.OdooSyncedAt()
+	case order.FieldOdooSyncError:
+		return m.OdooSyncError()
 	}
 	return nil, false
 }
@@ -7056,6 +7166,10 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldVendorID(ctx)
 	case order.FieldCustomerEmail:
 		return m.OldCustomerEmail(ctx)
+	case order.FieldOdooSyncedAt:
+		return m.OldOdooSyncedAt(ctx)
+	case order.FieldOdooSyncError:
+		return m.OldOdooSyncError(ctx)
 	}
 	return nil, fmt.Errorf("unknown Order field %s", name)
 }
@@ -7128,6 +7242,20 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCustomerEmail(v)
 		return nil
+	case order.FieldOdooSyncedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOdooSyncedAt(v)
+		return nil
+	case order.FieldOdooSyncError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOdooSyncError(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)
 }
@@ -7197,6 +7325,12 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldCustomerEmail) {
 		fields = append(fields, order.FieldCustomerEmail)
 	}
+	if m.FieldCleared(order.FieldOdooSyncedAt) {
+		fields = append(fields, order.FieldOdooSyncedAt)
+	}
+	if m.FieldCleared(order.FieldOdooSyncError) {
+		fields = append(fields, order.FieldOdooSyncError)
+	}
 	return fields
 }
 
@@ -7222,6 +7356,12 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldCustomerEmail:
 		m.ClearCustomerEmail()
+		return nil
+	case order.FieldOdooSyncedAt:
+		m.ClearOdooSyncedAt()
+		return nil
+	case order.FieldOdooSyncError:
+		m.ClearOdooSyncError()
 		return nil
 	}
 	return fmt.Errorf("unknown Order nullable field %s", name)
@@ -7257,6 +7397,12 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldCustomerEmail:
 		m.ResetCustomerEmail()
+		return nil
+	case order.FieldOdooSyncedAt:
+		m.ResetOdooSyncedAt()
+		return nil
+	case order.FieldOdooSyncError:
+		m.ResetOdooSyncError()
 		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)

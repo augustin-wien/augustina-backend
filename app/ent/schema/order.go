@@ -37,6 +37,12 @@ func (Order) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			StorageKey("customeremail"),
+		field.Time("odoo_synced_at").
+			Optional().
+			Nillable(),
+		field.String("odoo_sync_error").
+			Optional().
+			Nillable(),
 	}
 }
 

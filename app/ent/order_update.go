@@ -194,6 +194,46 @@ func (_u *OrderUpdate) ClearCustomerEmail() *OrderUpdate {
 	return _u
 }
 
+// SetOdooSyncedAt sets the "odoo_synced_at" field.
+func (_u *OrderUpdate) SetOdooSyncedAt(v time.Time) *OrderUpdate {
+	_u.mutation.SetOdooSyncedAt(v)
+	return _u
+}
+
+// SetNillableOdooSyncedAt sets the "odoo_synced_at" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableOdooSyncedAt(v *time.Time) *OrderUpdate {
+	if v != nil {
+		_u.SetOdooSyncedAt(*v)
+	}
+	return _u
+}
+
+// ClearOdooSyncedAt clears the value of the "odoo_synced_at" field.
+func (_u *OrderUpdate) ClearOdooSyncedAt() *OrderUpdate {
+	_u.mutation.ClearOdooSyncedAt()
+	return _u
+}
+
+// SetOdooSyncError sets the "odoo_sync_error" field.
+func (_u *OrderUpdate) SetOdooSyncError(v string) *OrderUpdate {
+	_u.mutation.SetOdooSyncError(v)
+	return _u
+}
+
+// SetNillableOdooSyncError sets the "odoo_sync_error" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableOdooSyncError(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetOdooSyncError(*v)
+	}
+	return _u
+}
+
+// ClearOdooSyncError clears the value of the "odoo_sync_error" field.
+func (_u *OrderUpdate) ClearOdooSyncError() *OrderUpdate {
+	_u.mutation.ClearOdooSyncError()
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdate) AddEntryIDs(ids ...int) *OrderUpdate {
 	_u.mutation.AddEntryIDs(ids...)
@@ -351,6 +391,18 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.CustomerEmailCleared() {
 		_spec.ClearField(order.FieldCustomerEmail, field.TypeString)
+	}
+	if value, ok := _u.mutation.OdooSyncedAt(); ok {
+		_spec.SetField(order.FieldOdooSyncedAt, field.TypeTime, value)
+	}
+	if _u.mutation.OdooSyncedAtCleared() {
+		_spec.ClearField(order.FieldOdooSyncedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.OdooSyncError(); ok {
+		_spec.SetField(order.FieldOdooSyncError, field.TypeString, value)
+	}
+	if _u.mutation.OdooSyncErrorCleared() {
+		_spec.ClearField(order.FieldOdooSyncError, field.TypeString)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -626,6 +678,46 @@ func (_u *OrderUpdateOne) ClearCustomerEmail() *OrderUpdateOne {
 	return _u
 }
 
+// SetOdooSyncedAt sets the "odoo_synced_at" field.
+func (_u *OrderUpdateOne) SetOdooSyncedAt(v time.Time) *OrderUpdateOne {
+	_u.mutation.SetOdooSyncedAt(v)
+	return _u
+}
+
+// SetNillableOdooSyncedAt sets the "odoo_synced_at" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableOdooSyncedAt(v *time.Time) *OrderUpdateOne {
+	if v != nil {
+		_u.SetOdooSyncedAt(*v)
+	}
+	return _u
+}
+
+// ClearOdooSyncedAt clears the value of the "odoo_synced_at" field.
+func (_u *OrderUpdateOne) ClearOdooSyncedAt() *OrderUpdateOne {
+	_u.mutation.ClearOdooSyncedAt()
+	return _u
+}
+
+// SetOdooSyncError sets the "odoo_sync_error" field.
+func (_u *OrderUpdateOne) SetOdooSyncError(v string) *OrderUpdateOne {
+	_u.mutation.SetOdooSyncError(v)
+	return _u
+}
+
+// SetNillableOdooSyncError sets the "odoo_sync_error" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableOdooSyncError(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetOdooSyncError(*v)
+	}
+	return _u
+}
+
+// ClearOdooSyncError clears the value of the "odoo_sync_error" field.
+func (_u *OrderUpdateOne) ClearOdooSyncError() *OrderUpdateOne {
+	_u.mutation.ClearOdooSyncError()
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdateOne) AddEntryIDs(ids ...int) *OrderUpdateOne {
 	_u.mutation.AddEntryIDs(ids...)
@@ -813,6 +905,18 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.CustomerEmailCleared() {
 		_spec.ClearField(order.FieldCustomerEmail, field.TypeString)
+	}
+	if value, ok := _u.mutation.OdooSyncedAt(); ok {
+		_spec.SetField(order.FieldOdooSyncedAt, field.TypeTime, value)
+	}
+	if _u.mutation.OdooSyncedAtCleared() {
+		_spec.ClearField(order.FieldOdooSyncedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.OdooSyncError(); ok {
+		_spec.SetField(order.FieldOdooSyncError, field.TypeString, value)
+	}
+	if _u.mutation.OdooSyncErrorCleared() {
+		_spec.ClearField(order.FieldOdooSyncError, field.TypeString)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -50,6 +50,10 @@ type config struct {
 	FlourWebhookToken                 string
 	OdooWebhookURL                    string
 	OdooWebhookToken                  string
+	// OrderReconcileIntervalMinutes controls how often the background job checks orders that
+	// are still unverified against VivaWallet directly, to catch the case where VivaWallet's
+	// webhook never arrived even though the customer paid. 0 disables the job.
+	OrderReconcileIntervalMinutes int
 	// TrustedProxies is a list of proxy IPs whose X-Forwarded-For / X-Real-Ip headers may be
 	// trusted for client IP resolution. When empty, those headers are trusted unconditionally
 	// (legacy behavior); when set, they are only honored for requests coming from a listed proxy.
@@ -106,6 +110,7 @@ func InitConfig() error {
 		FlourWebhookToken:                 getEnv("FLOUR_WEBHOOK_TOKEN", ""),
 		OdooWebhookURL:                    getEnv("ODOO_WEBHOOK_URL", ""),
 		OdooWebhookToken:                  getEnv("ODOO_WEBHOOK_TOKEN", ""),
+		OrderReconcileIntervalMinutes:     getEnvInt("ORDER_RECONCILE_INTERVAL_MINUTES", 15),
 		TrustedProxies:                    getEnvStringSlice("TRUSTED_PROXIES", ""),
 		DEBUG_payments:                    (getEnv("DEBUG_payments", "false") == "true"),
 	}

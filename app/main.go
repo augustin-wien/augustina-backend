@@ -11,6 +11,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/handlers"
+	"github.com/augustin-wien/augustina-backend/jobs"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/middlewares"
@@ -34,8 +35,28 @@ func main() {
 		log.Fatalf("configuration validation failed: %v", err)
 	}
 
-	sentryEnabled := conf.SentryDSN != ""
-	notifications.InitNotifications(sentryEnabled)
+	notifications.InitNotifications()
+
+	// Initialize Sentry before anything that can log.Fatal (Keycloak, DB), so
+	// startup failures are actually reported instead of only hitting stdout.
+	if conf.SentryDSN != "" {
+		environment := "production"
+		if conf.Development {
+			environment = "development"
+		}
+		if err := sentry.Init(sentry.ClientOptions{
+			Dsn:         conf.SentryDSN,
+			ServerName:  os.Getenv("NOTIFICATIONS_PREFIX"),
+			Environment: environment,
+			Release:     conf.Version,
+		}); err != nil {
+			log.Fatalf("sentry.Init: %s", err)
+		}
+		sentry.CaptureMessage("Server started")
+	}
+	// Flush buffered events before the program terminates.
+	// Set the timeout to the maximum duration the program can afford to wait.
+	defer sentry.Flush(2 * time.Second)
 
 	log.Info("Starting Augustin Server v", conf.Version)
 
@@ -62,17 +83,9 @@ func main() {
 	// Initialize IP Blocker with DB persistence
 	middlewares.InitIPBlocker(database.Db.EntClient)
 
-	if conf.SentryDSN != "" {
-		if err := sentry.Init(sentry.ClientOptions{Dsn: conf.SentryDSN}); err != nil {
-			log.Fatalf("sentry.Init: %s", err)
-		}
-		sentry.CaptureMessage("Server started")
-	}
-	// Flush buffered events before the program terminates.
-	// Set the timeout to the maximum duration the program can afford to wait.
-	defer sentry.Flush(2 * time.Second)
-
 	mailer.Init()
+
+	jobs.StartOrderReconciliation()
 
 	// Initialize server with graceful shutdown
 	srv := &http.Server{

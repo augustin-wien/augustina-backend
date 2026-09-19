@@ -30,6 +30,10 @@ const (
 	FieldVendorID = "vendor_id"
 	// FieldCustomerEmail holds the string denoting the customer_email field in the database.
 	FieldCustomerEmail = "customeremail"
+	// FieldOdooSyncedAt holds the string denoting the odoo_synced_at field in the database.
+	FieldOdooSyncedAt = "odoo_synced_at"
+	// FieldOdooSyncError holds the string denoting the odoo_sync_error field in the database.
+	FieldOdooSyncError = "odoo_sync_error"
 	// EdgeEntries holds the string denoting the entries edge name in mutations.
 	EdgeEntries = "entries"
 	// EdgePayments holds the string denoting the payments edge name in mutations.
@@ -64,6 +68,8 @@ var Columns = []string{
 	FieldUserID,
 	FieldVendorID,
 	FieldCustomerEmail,
+	FieldOdooSyncedAt,
+	FieldOdooSyncError,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -132,6 +138,16 @@ func ByVendorID(opts ...sql.OrderTermOption) OrderOption {
 // ByCustomerEmail orders the results by the customer_email field.
 func ByCustomerEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCustomerEmail, opts...).ToFunc()
+}
+
+// ByOdooSyncedAt orders the results by the odoo_synced_at field.
+func ByOdooSyncedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOdooSyncedAt, opts...).ToFunc()
+}
+
+// ByOdooSyncError orders the results by the odoo_sync_error field.
+func ByOdooSyncError(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOdooSyncError, opts...).ToFunc()
 }
 
 // ByEntriesCount orders the results by entries count.

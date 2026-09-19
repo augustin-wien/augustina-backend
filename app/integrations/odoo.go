@@ -15,7 +15,7 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-func sendJSONToOdooWebhook(payload interface{}) error {
+func sendJSONToOdooWebhook(orderID int, payload interface{}) error {
 	endpoint := config.Config.OdooWebhookURL
 
 	log.Debugf("sendJSONToOdooWebhook: Sending payload to Odoo webhook: %+v", payload)
@@ -31,7 +31,7 @@ func sendJSONToOdooWebhook(payload interface{}) error {
 	for {
 		req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
 		if err != nil {
-			log.Errorf("sendJSONToOdooWebhook: Failed to create request: %v\n", err)
+			log.Errorw("sendJSONToOdooWebhook: Failed to create request", "order_id", orderID, "error", err)
 			return fmt.Errorf("failed to create request: %v", err)
 		}
 		req.Header.Set("Content-Type", "application/json")
@@ -47,7 +47,7 @@ func sendJSONToOdooWebhook(payload interface{}) error {
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			log.Errorf("sendJSONToOdooWebhook: Request failed: %v\n", err)
+			log.Errorw("sendJSONToOdooWebhook: Request failed", "order_id", orderID, "error", err)
 		} else {
 			resp.Body.Close()
 
@@ -142,9 +142,9 @@ func SendPaymentToOdoo(id int, timestamp time.Time, items []database.OrderEntry,
 		log.Debugf("SendPaymentToOdoo: Payload JSON:\n%s", string(payloadJSON))
 	}
 
-	err = sendJSONToOdooWebhook(payload)
+	err = sendJSONToOdooWebhook(id, payload)
 	if err != nil {
-		log.Errorf("Failed to send JSON to Odoo: %v\n", err)
+		log.Errorw("Failed to send JSON to Odoo", "order_id", id, "error", err)
 	}
 	return err
 }

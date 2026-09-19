@@ -386,7 +386,14 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 			}
 			err = integrations.SendPaymentToOdoo(id, timestamp, items, vendor, totalSum)
 			if err != nil {
-				log.Error("Sending payment to Odoo failed: ", err)
+				log.Errorw("Sending payment to Odoo failed", "order_id", id, "error", err)
+				if dbErr := database.Db.SetOdooSyncFailure(id, err); dbErr != nil {
+					log.Errorw("Failed to record Odoo sync failure", "order_id", id, "error", dbErr)
+				}
+				return
+			}
+			if dbErr := database.Db.SetOdooSyncSuccess(id); dbErr != nil {
+				log.Errorw("Failed to record Odoo sync success", "order_id", id, "error", dbErr)
 			}
 		}(order.ID, order.Timestamp, order.Entries, order.Vendor, int(sum))
 	}

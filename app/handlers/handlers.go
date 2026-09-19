@@ -159,6 +159,26 @@ func ListUnverifiedOrders(w http.ResponseWriter, r *http.Request) {
 	respond(w, nil, orders)
 }
 
+// ListUnsyncedOrders godoc
+//
+//	@Summary		List orders whose Odoo webhook has not been delivered
+//	@Description	List verified orders where Odoo webhook delivery failed or never ran, so they can be found and resent instead of guessing order IDs
+//	@Tags			Orders
+//	@Accept			json
+//	@Produce		json
+//	@Security		KeycloakAuth
+//	@Router			/orders/unsynced/ [get]
+//
+// ListUnsyncedOrders API Handler fetching data from database
+func ListUnsyncedOrders(w http.ResponseWriter, r *http.Request) {
+	orders, err := database.Db.GetUnsyncedOrders()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	respond(w, nil, orders)
+}
+
 func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 
 	// Read payment order from request

@@ -108,6 +108,34 @@ func (_c *OrderCreate) SetNillableCustomerEmail(v *string) *OrderCreate {
 	return _c
 }
 
+// SetOdooSyncedAt sets the "odoo_synced_at" field.
+func (_c *OrderCreate) SetOdooSyncedAt(v time.Time) *OrderCreate {
+	_c.mutation.SetOdooSyncedAt(v)
+	return _c
+}
+
+// SetNillableOdooSyncedAt sets the "odoo_synced_at" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableOdooSyncedAt(v *time.Time) *OrderCreate {
+	if v != nil {
+		_c.SetOdooSyncedAt(*v)
+	}
+	return _c
+}
+
+// SetOdooSyncError sets the "odoo_sync_error" field.
+func (_c *OrderCreate) SetOdooSyncError(v string) *OrderCreate {
+	_c.mutation.SetOdooSyncError(v)
+	return _c
+}
+
+// SetNillableOdooSyncError sets the "odoo_sync_error" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableOdooSyncError(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetOdooSyncError(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrderCreate) SetID(v int) *OrderCreate {
 	_c.mutation.SetID(v)
@@ -265,6 +293,14 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.CustomerEmail(); ok {
 		_spec.SetField(order.FieldCustomerEmail, field.TypeString, value)
 		_node.CustomerEmail = &value
+	}
+	if value, ok := _c.mutation.OdooSyncedAt(); ok {
+		_spec.SetField(order.FieldOdooSyncedAt, field.TypeTime, value)
+		_node.OdooSyncedAt = &value
+	}
+	if value, ok := _c.mutation.OdooSyncError(); ok {
+		_spec.SetField(order.FieldOdooSyncError, field.TypeString, value)
+		_node.OdooSyncError = &value
 	}
 	if nodes := _c.mutation.EntriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
