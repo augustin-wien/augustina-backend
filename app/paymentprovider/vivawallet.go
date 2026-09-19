@@ -359,22 +359,6 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		log.Error("Verifying order and creating payments failed: ", err)
 		return err
 	}
-	// flour
-	if config.Config.FlourWebhookURL != "" {
-		log.Info("Flour Webhook set, sending webhook for order", order.ID)
-		go func(id int, timestamp time.Time, items []database.OrderEntry, vendorID int, totalSum int) {
-			vendor, err := database.Db.GetVendor(vendorID)
-			if err != nil {
-				log.Error("Flour webhook: Getting vendor failed: ", err)
-				return
-			}
-			err = integrations.SendPaymentToFlour(id, timestamp, items, vendor, totalSum)
-			if err != nil {
-				log.Error("Sending payment to Flour failed: ", err)
-			}
-		}(order.ID, order.Timestamp, order.Entries, order.Vendor, int(sum))
-	}
-
 	// odoo
 	if config.Config.OdooWebhookURL != "" {
 		log.Info("Odoo Webhook set, sending webhook for order", order.ID)

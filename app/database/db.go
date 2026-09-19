@@ -223,7 +223,9 @@ func (db *Database) initDb(isProduction bool, logInfo bool) (err error) {
 // CloseDbPool closes the database connection pool
 func (db *Database) CloseDbPool() {
 	if db.EntClient != nil {
-		db.EntClient.Close()
+		if err := db.EntClient.Close(); err != nil {
+			log.Error("CloseDbPool failed: ", err)
+		}
 	}
 }
 
@@ -280,7 +282,11 @@ func (db *Database) CheckRolePermissions() error {
 		log.Error("Failed to get current user: ", err)
 		return err
 	}
-	defer rows.Close()
+	defer func() {
+		if cerr := rows.Close(); cerr != nil {
+			log.Error("Failed to close rows: ", cerr)
+		}
+	}()
 	if rows.Next() {
 		if err := rows.Scan(&currentUser); err != nil {
 			log.Error("Failed to scan current user: ", err)
@@ -297,7 +303,11 @@ func (db *Database) CheckRolePermissions() error {
 		log.Error("Failed to check TRUNCATE privilege: ", err)
 		return err
 	}
-	defer rows2.Close()
+	defer func() {
+		if cerr := rows2.Close(); cerr != nil {
+			log.Error("Failed to close rows2: ", cerr)
+		}
+	}()
 	if rows2.Next() {
 		if err := rows2.Scan(&hasTruncate); err != nil {
 			log.Error("Failed to scan permission: ", err)
