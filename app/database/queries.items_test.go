@@ -181,3 +181,52 @@ func TestUpdateItemWithLicense(t *testing.T) {
 	require.False(t, fetched3.LicenseItem.Valid)
 	require.Equal(t, "item-without-license", fetched3.Name)
 }
+
+// TestRecreateOnlineIssueAfterDelete reproduces the bug where deleting an
+// online_issue left both its row and its auto-generated license_item behind
+// as archived/unassigned leftovers. Because "item.name" carries a hard
+// UNIQUE constraint at the DB level (present since the very first schema),
+// neither name can ever be reused by a brand-new row, so recreating an
+// online_issue with the same name always failed with "Item with the same
+// name already exists" — even though the original online_issue was gone.
+// The fix resurrects the leftover rows in place instead of inserting new ones.
+func TestRecreateOnlineIssueAfterDelete(t *testing.T) {
+	Db.InitEmptyTestDb()
+
+	item := Item{
+		Name:         "Ausgabe 1",
+		Description:  "Erste Ausgabe",
+		Price:        300,
+		LicenseGroup: null.NewString("digital_edition", true),
+	}
+
+	issueID, licenseID, err := Db.CreateOnlineIssueWithLicense(item, 50)
+	require.NoError(t, err)
+	require.True(t, issueID > 0)
+	require.True(t, licenseID > 0)
+
+	// Delete the online_issue. The linked license_item is unassigned but
+	// (by design, see TestLicenseUnassignedWhenItemDeleted) not deleted.
+	err = Db.DeleteItem(issueID)
+	require.NoError(t, err)
+
+	// Recreating an online_issue with the exact same name must succeed,
+	// resurrecting both leftover rows in place rather than failing.
+	issueID2, licenseID2, err := Db.CreateOnlineIssueWithLicense(item, 50)
+	require.NoError(t, err)
+	require.True(t, issueID2 > 0)
+	require.Equal(t, issueID, issueID2, "the leftover, archived main item should be resurrected rather than duplicated")
+	require.Equal(t, licenseID, licenseID2, "the leftover, unassigned license_item should be reused rather than duplicated")
+
+	// online_issue items are created disabled=true (published later), so fetch
+	// including disabled items rather than via GetItem.
+	fetchedIssue, err := Db.GetItemIncludingDisabled(issueID2)
+	require.NoError(t, err)
+	require.False(t, fetchedIssue.Archived)
+	require.True(t, fetchedIssue.LicenseItem.Valid)
+	require.Equal(t, int64(licenseID2), fetchedIssue.LicenseItem.ValueOrZero())
+
+	fetchedLicense, err := Db.GetItem(licenseID2)
+	require.NoError(t, err)
+	require.False(t, fetchedLicense.Archived)
+}

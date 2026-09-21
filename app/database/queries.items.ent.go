@@ -245,14 +245,55 @@ func (db *Database) GetLatestPublishedOnlineIssueByLicenseGroup(licenseGroup str
 // CreateItem creates an item in the database
 func (db *Database) CreateItem(item Item) (id int, err error) {
 	ctx := context.Background()
-	// ensure name uniqueness
-	exists, err := db.EntClient.Item.Query().Where(entitem.NameEQ(item.Name)).Exist(ctx)
-	if err != nil {
+
+	// An item with this name may already exist. The "name" column has carried a
+	// hard UNIQUE constraint since the very first schema, so even an archived
+	// (soft-deleted) row permanently occupies its name — it can never be reused
+	// by a brand-new row. If the existing row is archived, resurrect it in place
+	// instead of failing; only reject when an active item already owns the name.
+	existing, err := db.EntClient.Item.Query().Where(entitem.NameEQ(item.Name)).Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
 		log.Error("CreateItem (ent) existence check: ", err)
 		return 0, err
 	}
-	if exists {
-		return 0, errors.New("Item with the same name already exists. Update it or delete it first")
+
+	if err == nil {
+		if !existing.Archived {
+			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			return 0, err
+		}
+		ub := db.EntClient.Item.UpdateOneID(existing.ID).
+			SetDescription(item.Description).
+			SetPrice(float64(item.Price)).
+			SetImage(item.Image).
+			SetArchived(item.Archived).
+			SetDisabled(item.Disabled).
+			SetIsLicenseItem(item.IsLicenseItem).
+			SetLicenseGroup(item.LicenseGroup.String).
+			SetIsPDFItem(item.IsPDFItem).
+			SetItemOrder(item.ItemOrder).
+			SetItemColor(item.ItemColor.String).
+			SetItemTextColor(item.ItemTextColor.String).
+			SetType(item.Type)
+		if item.LicenseItem.Valid {
+			v := int(item.LicenseItem.ValueOrZero())
+			ub = ub.SetNillableLicenseItemID(&v)
+		} else {
+			ub = ub.ClearLicenseItem()
+		}
+		if item.PDF.Valid {
+			v := int(item.PDF.ValueOrZero())
+			ub = ub.SetNillablePDFID(&v)
+		} else {
+			ub = ub.ClearPDF()
+		}
+		e, saveErr := ub.Save(ctx)
+		if saveErr != nil {
+			err = saveErr
+			log.Error("CreateItem (ent) resurrect failed: ", err)
+			return 0, err
+		}
+		return e.ID, nil
 	}
 
 	builder := db.EntClient.Item.Create().SetName(item.Name).SetDescription(item.Description).SetPrice(float64(item.Price)).SetImage(item.Image).SetArchived(item.Archived).SetDisabled(item.Disabled).SetIsLicenseItem(item.IsLicenseItem).SetLicenseGroup(item.LicenseGroup.String).SetIsPDFItem(item.IsPDFItem).SetItemOrder(item.ItemOrder).SetItemColor(item.ItemColor.String).SetItemTextColor(item.ItemTextColor.String).SetType(item.Type)
@@ -315,31 +356,66 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 		Type:          "license_item",
 	}
 
-	licenseExists, err := tx.Item.Query().Where(entitem.NameEQ(licenseItem.Name)).Exist(context.Background())
-	if err != nil {
+	// An item with this name may already exist as a leftover, unassigned
+	// license_item from a previously deleted issue/abonement of the same name
+	// (deleting an item unassigns its license but does not remove it, so that
+	// a license can be reassigned later). Reuse it instead of failing outright;
+	// only reject when the name belongs to something else or is still in use.
+	existingLicense, err := tx.Item.Query().Where(entitem.NameEQ(licenseItem.Name)).Only(context.Background())
+	if err != nil && !ent.IsNotFound(err) {
 		return 0, 0, err
-	}
-	if licenseExists {
-		return 0, 0, errors.New("Item with the same name already exists. Update it or delete it first")
 	}
 
-	licenseEnt, err := tx.Item.Create().
-		SetName(licenseItem.Name).
-		SetDescription(licenseItem.Description).
-		SetPrice(float64(licenseItem.Price)).
-		SetImage(licenseItem.Image).
-		SetArchived(licenseItem.Archived).
-		SetDisabled(licenseItem.Disabled).
-		SetIsLicenseItem(licenseItem.IsLicenseItem).
-		SetLicenseGroup(licenseItem.LicenseGroup.String).
-		SetIsPDFItem(licenseItem.IsPDFItem).
-		SetItemOrder(licenseItem.ItemOrder).
-		SetItemColor(licenseItem.ItemColor.String).
-		SetItemTextColor(licenseItem.ItemTextColor.String).
-		SetType(licenseItem.Type).
-		Save(context.Background())
-	if err != nil {
-		return 0, 0, err
+	var licenseEnt *ent.Item
+	if err == nil {
+		if !existingLicense.IsLicenseItem {
+			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			return 0, 0, err
+		}
+		var hasOwner bool
+		hasOwner, err = tx.Item.Query().Where(entitem.HasLicenseItemWith(entitem.ID(existingLicense.ID))).Exist(context.Background())
+		if err != nil {
+			return 0, 0, err
+		}
+		if hasOwner {
+			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			return 0, 0, err
+		}
+		licenseEnt, err = tx.Item.UpdateOneID(existingLicense.ID).
+			SetDescription(licenseItem.Description).
+			SetPrice(float64(licenseItem.Price)).
+			SetImage(licenseItem.Image).
+			SetArchived(licenseItem.Archived).
+			SetDisabled(licenseItem.Disabled).
+			SetLicenseGroup(licenseItem.LicenseGroup.String).
+			SetIsPDFItem(licenseItem.IsPDFItem).
+			SetItemOrder(licenseItem.ItemOrder).
+			SetItemColor(licenseItem.ItemColor.String).
+			SetItemTextColor(licenseItem.ItemTextColor.String).
+			Save(context.Background())
+		if err != nil {
+			return 0, 0, err
+		}
+	} else {
+		err = nil
+		licenseEnt, err = tx.Item.Create().
+			SetName(licenseItem.Name).
+			SetDescription(licenseItem.Description).
+			SetPrice(float64(licenseItem.Price)).
+			SetImage(licenseItem.Image).
+			SetArchived(licenseItem.Archived).
+			SetDisabled(licenseItem.Disabled).
+			SetIsLicenseItem(licenseItem.IsLicenseItem).
+			SetLicenseGroup(licenseItem.LicenseGroup.String).
+			SetIsPDFItem(licenseItem.IsPDFItem).
+			SetItemOrder(licenseItem.ItemOrder).
+			SetItemColor(licenseItem.ItemColor.String).
+			SetItemTextColor(licenseItem.ItemTextColor.String).
+			SetType(licenseItem.Type).
+			Save(context.Background())
+		if err != nil {
+			return 0, 0, err
+		}
 	}
 
 	item.Type = itemType
@@ -348,41 +424,74 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 	item.IsLicenseItem = false
 	item.LicenseItem = null.IntFrom(int64(licenseEnt.ID))
 
-	mainExists, err := tx.Item.Query().Where(entitem.NameEQ(item.Name)).Exist(context.Background())
-	if err != nil {
+	// Same reasoning as the license lookup above: the "name" column is globally
+	// UNIQUE, so an archived leftover main item (from a previously deleted issue
+	// of the same name) must be resurrected in place rather than blocking creation.
+	existingMain, err := tx.Item.Query().Where(entitem.NameEQ(item.Name)).Only(context.Background())
+	if err != nil && !ent.IsNotFound(err) {
 		return 0, 0, err
 	}
-	if mainExists {
-		return 0, 0, errors.New("Item with the same name already exists. Update it or delete it first")
-	}
 
-	mainBuilder := tx.Item.Create().
-		SetName(item.Name).
-		SetDescription(item.Description).
-		SetPrice(float64(item.Price)).
-		SetImage(item.Image).
-		SetArchived(item.Archived).
-		SetDisabled(item.Disabled).
-		SetIsLicenseItem(item.IsLicenseItem).
-		SetLicenseGroup(item.LicenseGroup.String).
-		SetIsPDFItem(item.IsPDFItem).
-		SetItemOrder(item.ItemOrder).
-		SetItemColor(item.ItemColor.String).
-		SetItemTextColor(item.ItemTextColor.String).
-		SetType(item.Type)
+	var mainEnt *ent.Item
+	if err == nil {
+		if !existingMain.Archived {
+			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			return 0, 0, err
+		}
+		mub := tx.Item.UpdateOneID(existingMain.ID).
+			SetDescription(item.Description).
+			SetPrice(float64(item.Price)).
+			SetImage(item.Image).
+			SetArchived(item.Archived).
+			SetDisabled(item.Disabled).
+			SetIsLicenseItem(item.IsLicenseItem).
+			SetLicenseGroup(item.LicenseGroup.String).
+			SetIsPDFItem(item.IsPDFItem).
+			SetItemOrder(item.ItemOrder).
+			SetItemColor(item.ItemColor.String).
+			SetItemTextColor(item.ItemTextColor.String).
+			SetType(item.Type).
+			SetNillableLicenseItemID(&licenseEnt.ID)
+		if item.PDF.Valid {
+			v := int(item.PDF.ValueOrZero())
+			mub = mub.SetNillablePDFID(&v)
+		} else {
+			mub = mub.ClearPDF()
+		}
+		mainEnt, err = mub.Save(context.Background())
+		if err != nil {
+			return 0, 0, err
+		}
+	} else {
+		err = nil
+		mainBuilder := tx.Item.Create().
+			SetName(item.Name).
+			SetDescription(item.Description).
+			SetPrice(float64(item.Price)).
+			SetImage(item.Image).
+			SetArchived(item.Archived).
+			SetDisabled(item.Disabled).
+			SetIsLicenseItem(item.IsLicenseItem).
+			SetLicenseGroup(item.LicenseGroup.String).
+			SetIsPDFItem(item.IsPDFItem).
+			SetItemOrder(item.ItemOrder).
+			SetItemColor(item.ItemColor.String).
+			SetItemTextColor(item.ItemTextColor.String).
+			SetType(item.Type)
 
-	if item.LicenseItem.Valid {
-		v := int(item.LicenseItem.ValueOrZero())
-		mainBuilder = mainBuilder.SetNillableLicenseItemID(&v)
-	}
-	if item.PDF.Valid {
-		v := int(item.PDF.ValueOrZero())
-		mainBuilder = mainBuilder.SetNillablePDFID(&v)
-	}
+		if item.LicenseItem.Valid {
+			v := int(item.LicenseItem.ValueOrZero())
+			mainBuilder = mainBuilder.SetNillableLicenseItemID(&v)
+		}
+		if item.PDF.Valid {
+			v := int(item.PDF.ValueOrZero())
+			mainBuilder = mainBuilder.SetNillablePDFID(&v)
+		}
 
-	mainEnt, err := mainBuilder.Save(context.Background())
-	if err != nil {
-		return 0, 0, err
+		mainEnt, err = mainBuilder.Save(context.Background())
+		if err != nil {
+			return 0, 0, err
+		}
 	}
 
 	if err = tx.Commit(); err != nil {

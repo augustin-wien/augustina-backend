@@ -149,30 +149,7 @@ func GetRouter() (r *chi.Mux) {
 		r.Handle("/docs/*", http.StripPrefix("/docs/", fsDocs))
 	}
 
-	// Flour integration (legacy) - NO strict security middlewares
-	// to allow external software like Flour to communicate without being blocked
-	if config.Config.FlourWebhookURL != "" {
-		log.Infof("Flour integration enabled: %s", config.Config.FlourWebhookURL)
-
-		r.Route("/api/flour_old", func(r chi.Router) {
-			r.Use(middlewares.AuthMiddleware)
-			r.Use(middlewares.FlourAuthMiddleware)
-			r.Route("/vendors", func(r chi.Router) {
-
-				r.Put("/license/{licenseID}/", UpdateVendorByLicenseID)
-				r.Get("/license/{licenseID}/", GetVendorByLicenseID)
-
-				r.Put("/{id}/", UpdateVendor)
-				r.Delete("/{id}/", DeleteVendor)
-				r.Get("/{id}/", GetVendor)
-				r.Post("/", CreateVendor)
-
-			})
-			r.Route("/payments", func(r chi.Router) {
-				r.Post("/payout/", CreatePaymentPayout)
-			})
-		})
-	}
+	// Flour integration is disabled globally.
 
 	// Odoo integration - NO strict security middlewares (BlockBadUserAgents, BlockFakeBrowsers, BlockMaliciousPatterns)
 	// to allow external software like Odoo to communicate without being blocked
