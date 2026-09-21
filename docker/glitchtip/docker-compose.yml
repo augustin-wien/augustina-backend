@@ -1,0 +1,147 @@
+# Glitchtip for testing the optional Sentry-compatible error tracking integration.
+# Nothing depends on it — the backend and frontend only report errors once
+# SENTRY_DSN / VITE_SENTRY_DSN (see the top-level docker-compose.yml) are filled in.
+#
+# glitchtip-init provisions everything unattended: an owner account, an
+# organization, a team and a project. After `docker compose up -d`, log in
+# at http://localhost:8094 with GLITCHTIP_ADMIN_EMAIL / GLITCHTIP_ADMIN_PASSWORD
+# (see .env.example), and copy the DSNs it writes to docker/glitchtip/dsn.env
+# into SENTRY_DSN / VITE_SENTRY_DSN.
+services:
+  glitchtip-db:
+    image: postgres:15
+    container_name: glitchtip-db
+    environment:
+      POSTGRES_USER: ${GLITCHTIP_DB_USER:-glitchtip}
+      POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD:-password}
+      POSTGRES_DB: ${GLITCHTIP_DB_NAME:-glitchtip}
+    volumes:
+      - glitchtip_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${GLITCHTIP_DB_USER:-glitchtip}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  glitchtip-redis:
+    image: redis:7
+    container_name: glitchtip-redis
+    restart: unless-stopped
+
+  # Runs the Django migrations once, then exits. The web/worker containers wait
+  # for it to finish successfully before starting.
+  glitchtip-migrate:
+    image: glitchtip/glitchtip:latest
+    container_name: glitchtip-migrate
+    command: ./manage.py migrate
+    environment:
+      DATABASE_URL: postgres://${GLITCHTIP_DB_USER:-glitchtip}:${GLITCHTIP_DB_PASSWORD:-password}@glitchtip-db:5432/${GLITCHTIP_DB_NAME:-glitchtip}
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY:-change-me}
+      PORT: 8000
+      EMAIL_URL: consolemail://
+      GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN:-http://localhost:8094}
+      DEFAULT_FROM_EMAIL: ${GLITCHTIP_DEFAULT_FROM_EMAIL:-glitchtip@example.com}
+      REDIS_URL: redis://glitchtip-redis:6379/0
+    depends_on:
+      glitchtip-db:
+        condition: service_healthy
+
+  # Creates the owner account, organization, team and project. Idempotent —
+  # runs on every `docker compose up` and is a no-op once everything exists.
+  glitchtip-init:
+    image: glitchtip/glitchtip:latest
+    container_name: glitchtip-init
+    user: 0:0
+    command: sh -c "./manage.py shell < /glitchtip-local/init_project.py"
+    environment:
+      DATABASE_URL: postgres://${GLITCHTIP_DB_USER:-glitchtip}:${GLITCHTIP_DB_PASSWORD:-password}@glitchtip-db:5432/${GLITCHTIP_DB_NAME:-glitchtip}
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY:-change-me}
+      GLITCHTIP_ADMIN_EMAIL: ${GLITCHTIP_ADMIN_EMAIL:-admin@example.com}
+      GLITCHTIP_ADMIN_PASSWORD: ${GLITCHTIP_ADMIN_PASSWORD:-Test123!glitchtip}
+      GLITCHTIP_ORG_NAME: ${GLITCHTIP_ORG_NAME:-Augustin}
+      GLITCHTIP_PROJECT_NAME: ${GLITCHTIP_PROJECT_NAME:-augustin}
+      GLITCHTIP_TEAM_SLUG: ${GLITCHTIP_TEAM_SLUG:-engineering}
+      REDIS_URL: redis://glitchtip-redis:6379/0
+    volumes:
+      - .:/glitchtip-local
+    depends_on:
+      glitchtip-db:
+        condition: service_healthy
+      glitchtip-migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  glitchtip-web:
+    image: glitchtip/glitchtip:latest
+    container_name: glitchtip-web
+    environment:
+      DATABASE_URL: postgres://${GLITCHTIP_DB_USER:-glitchtip}:${GLITCHTIP_DB_PASSWORD:-password}@glitchtip-db:5432/${GLITCHTIP_DB_NAME:-glitchtip}
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY:-change-me}
+      PORT: 8000
+      EMAIL_URL: consolemail://
+      GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN:-http://localhost:8094}
+      DEFAULT_FROM_EMAIL: ${GLITCHTIP_DEFAULT_FROM_EMAIL:-glitchtip@example.com}
+      REDIS_URL: redis://glitchtip-redis:6379/0
+    ports:
+      - "8094:8000"
+    depends_on:
+      glitchtip-db:
+        condition: service_healthy
+      glitchtip-migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  glitchtip-worker:
+    image: glitchtip/glitchtip:latest
+    container_name: glitchtip-worker
+    command: ./bin/run-celery-with-beat.sh
+    environment:
+      DATABASE_URL: postgres://${GLITCHTIP_DB_USER:-glitchtip}:${GLITCHTIP_DB_PASSWORD:-password}@glitchtip-db:5432/${GLITCHTIP_DB_NAME:-glitchtip}
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY:-change-me}
+      PORT: 8000
+      EMAIL_URL: consolemail://
+      GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN:-http://localhost:8094}
+      DEFAULT_FROM_EMAIL: ${GLITCHTIP_DEFAULT_FROM_EMAIL:-glitchtip@example.com}
+      REDIS_URL: redis://glitchtip-redis:6379/0
+    depends_on:
+      glitchtip-db:
+        condition: service_healthy
+      glitchtip-migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # Links a Signal number once via QR code and sends messages on its behalf
+  # afterwards. Idle and harmless until a number is linked — see .env.example.
+  #   1. docker compose up -d signal-cli-rest-api
+  #   2. Open http://localhost:8095/v1/qrcodelink?device_name=augustin-alerts and scan
+  #      the QR code from Signal on your phone: Settings > Linked devices > Link new device.
+  signal-cli-rest-api:
+    image: bbernhard/signal-cli-rest-api:latest
+    container_name: signal-cli-rest-api
+    environment:
+      MODE: normal
+    ports:
+      - "8095:8080"
+    volumes:
+      - signal_cli_data:/home/.local/share/signal-cli
+    restart: unless-stopped
+
+  # Turns a Glitchtip generic-webhook alert payload into a Signal message.
+  # glitchtip-init registers it as a project alert automatically once
+  # SIGNAL_SENDER_NUMBER / SIGNAL_RECIPIENTS are set (see .env.example).
+  glitchtip-signal-relay:
+    build:
+      context: ./signal-relay
+    container_name: glitchtip-signal-relay
+    environment:
+      SIGNAL_API_URL: http://signal-cli-rest-api:8080
+      SIGNAL_SENDER_NUMBER: ${SIGNAL_SENDER_NUMBER:-}
+      SIGNAL_RECIPIENTS: ${SIGNAL_RECIPIENTS:-}
+    depends_on:
+      - signal-cli-rest-api
+    restart: unless-stopped
+
+volumes:
+  glitchtip_db_data:
+  signal_cli_data:
