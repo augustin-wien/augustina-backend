@@ -234,6 +234,26 @@ func (_u *OrderUpdate) ClearOdooSyncError() *OrderUpdate {
 	return _u
 }
 
+// SetInvalidatedAt sets the "invalidated_at" field.
+func (_u *OrderUpdate) SetInvalidatedAt(v time.Time) *OrderUpdate {
+	_u.mutation.SetInvalidatedAt(v)
+	return _u
+}
+
+// SetNillableInvalidatedAt sets the "invalidated_at" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableInvalidatedAt(v *time.Time) *OrderUpdate {
+	if v != nil {
+		_u.SetInvalidatedAt(*v)
+	}
+	return _u
+}
+
+// ClearInvalidatedAt clears the value of the "invalidated_at" field.
+func (_u *OrderUpdate) ClearInvalidatedAt() *OrderUpdate {
+	_u.mutation.ClearInvalidatedAt()
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdate) AddEntryIDs(ids ...int) *OrderUpdate {
 	_u.mutation.AddEntryIDs(ids...)
@@ -403,6 +423,12 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.OdooSyncErrorCleared() {
 		_spec.ClearField(order.FieldOdooSyncError, field.TypeString)
+	}
+	if value, ok := _u.mutation.InvalidatedAt(); ok {
+		_spec.SetField(order.FieldInvalidatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.InvalidatedAtCleared() {
+		_spec.ClearField(order.FieldInvalidatedAt, field.TypeTime)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -718,6 +744,26 @@ func (_u *OrderUpdateOne) ClearOdooSyncError() *OrderUpdateOne {
 	return _u
 }
 
+// SetInvalidatedAt sets the "invalidated_at" field.
+func (_u *OrderUpdateOne) SetInvalidatedAt(v time.Time) *OrderUpdateOne {
+	_u.mutation.SetInvalidatedAt(v)
+	return _u
+}
+
+// SetNillableInvalidatedAt sets the "invalidated_at" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableInvalidatedAt(v *time.Time) *OrderUpdateOne {
+	if v != nil {
+		_u.SetInvalidatedAt(*v)
+	}
+	return _u
+}
+
+// ClearInvalidatedAt clears the value of the "invalidated_at" field.
+func (_u *OrderUpdateOne) ClearInvalidatedAt() *OrderUpdateOne {
+	_u.mutation.ClearInvalidatedAt()
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdateOne) AddEntryIDs(ids ...int) *OrderUpdateOne {
 	_u.mutation.AddEntryIDs(ids...)
@@ -917,6 +963,12 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.OdooSyncErrorCleared() {
 		_spec.ClearField(order.FieldOdooSyncError, field.TypeString)
+	}
+	if value, ok := _u.mutation.InvalidatedAt(); ok {
+		_spec.SetField(order.FieldInvalidatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.InvalidatedAtCleared() {
+		_spec.ClearField(order.FieldInvalidatedAt, field.TypeTime)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -136,6 +136,20 @@ func (_c *OrderCreate) SetNillableOdooSyncError(v *string) *OrderCreate {
 	return _c
 }
 
+// SetInvalidatedAt sets the "invalidated_at" field.
+func (_c *OrderCreate) SetInvalidatedAt(v time.Time) *OrderCreate {
+	_c.mutation.SetInvalidatedAt(v)
+	return _c
+}
+
+// SetNillableInvalidatedAt sets the "invalidated_at" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableInvalidatedAt(v *time.Time) *OrderCreate {
+	if v != nil {
+		_c.SetInvalidatedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrderCreate) SetID(v int) *OrderCreate {
 	_c.mutation.SetID(v)
@@ -301,6 +315,10 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OdooSyncError(); ok {
 		_spec.SetField(order.FieldOdooSyncError, field.TypeString, value)
 		_node.OdooSyncError = &value
+	}
+	if value, ok := _c.mutation.InvalidatedAt(); ok {
+		_spec.SetField(order.FieldInvalidatedAt, field.TypeTime, value)
+		_node.InvalidatedAt = &value
 	}
 	if nodes := _c.mutation.EntriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

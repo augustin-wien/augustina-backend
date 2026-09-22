@@ -100,6 +100,7 @@ type Order struct {
 	CustomerEmail     null.String `db:"customeremail"`
 	OdooSyncedAt      null.Time
 	OdooSyncError     null.String
+	InvalidatedAt     null.Time
 }
 
 // OrderEntry is a struct that is used for the order_entry table

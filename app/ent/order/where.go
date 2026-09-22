@@ -110,6 +110,11 @@ func OdooSyncError(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOdooSyncError, v))
 }
 
+// InvalidatedAt applies equality check predicate on the "invalidated_at" field. It's identical to InvalidatedAtEQ.
+func InvalidatedAt(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldInvalidatedAt, v))
+}
+
 // OrderCodeEQ applies the EQ predicate on the "order_code" field.
 func OrderCodeEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrderCode, v))
@@ -703,6 +708,56 @@ func OdooSyncErrorEqualFold(v string) predicate.Order {
 // OdooSyncErrorContainsFold applies the ContainsFold predicate on the "odoo_sync_error" field.
 func OdooSyncErrorContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldOdooSyncError, v))
+}
+
+// InvalidatedAtEQ applies the EQ predicate on the "invalidated_at" field.
+func InvalidatedAtEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldInvalidatedAt, v))
+}
+
+// InvalidatedAtNEQ applies the NEQ predicate on the "invalidated_at" field.
+func InvalidatedAtNEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldInvalidatedAt, v))
+}
+
+// InvalidatedAtIn applies the In predicate on the "invalidated_at" field.
+func InvalidatedAtIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldInvalidatedAt, vs...))
+}
+
+// InvalidatedAtNotIn applies the NotIn predicate on the "invalidated_at" field.
+func InvalidatedAtNotIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldInvalidatedAt, vs...))
+}
+
+// InvalidatedAtGT applies the GT predicate on the "invalidated_at" field.
+func InvalidatedAtGT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldInvalidatedAt, v))
+}
+
+// InvalidatedAtGTE applies the GTE predicate on the "invalidated_at" field.
+func InvalidatedAtGTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldInvalidatedAt, v))
+}
+
+// InvalidatedAtLT applies the LT predicate on the "invalidated_at" field.
+func InvalidatedAtLT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldInvalidatedAt, v))
+}
+
+// InvalidatedAtLTE applies the LTE predicate on the "invalidated_at" field.
+func InvalidatedAtLTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldInvalidatedAt, v))
+}
+
+// InvalidatedAtIsNil applies the IsNil predicate on the "invalidated_at" field.
+func InvalidatedAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldInvalidatedAt))
+}
+
+// InvalidatedAtNotNil applies the NotNil predicate on the "invalidated_at" field.
+func InvalidatedAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldInvalidatedAt))
 }
 
 // HasEntries applies the HasEdge predicate on the "entries" edge.
