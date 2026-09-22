@@ -92,6 +92,7 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "privacypolicyurl" TEXT NOT NULL DEFAULT '';`,
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "matomourl" TEXT NOT NULL DEFAULT '';`,
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "matomositeid" TEXT NOT NULL DEFAULT '';`,
+		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "onlinepaperurl" TEXT NOT NULL DEFAULT '';`,
 	}
 
 	for _, q := range queries {

@@ -444,6 +444,33 @@ func TestSendPasswordResetGuard(t *testing.T) {
 	}
 }
 
+// TestSendPasswordResetEmailEmptyRedirectURI guards against the GlitchTip issue where
+// Keycloak rejected the password-reset email with "400 Bad Request: Invalid redirect uri" -
+// root cause was OnlinePaperUrl (redirectURI here) being unset/wrong for a tenant. With SMTP
+// configured (so the SMTP guard above doesn't short-circuit first), an empty redirect URI
+// must be skipped cleanly rather than sent to Keycloak, which is guaranteed to reject it.
+func TestSendPasswordResetEmailEmptyRedirectURI(t *testing.T) {
+	if err := os.Chdir(".."); err != nil {
+		t.Fatal(err)
+	}
+	config.InitConfig()
+	config.Config.SMTPSenderAddress = "noreply@example.com"
+	config.Config.OnlinePaperUrl = ""
+	if err := keycloak.InitializeOauthServer(); err != nil {
+		t.Fatalf("InitializeOauthServer failed: %v", err)
+	}
+
+	email := fmt.Sprintf("pw_empty_redirect_%d@example.com", time.Now().UnixNano())
+	_ = keycloak.KeycloakClient.DeleteUser(email)
+	_, err := keycloak.KeycloakClient.CreateUser(email, "P", "W", email, "pw")
+	if err != nil {
+		t.Fatalf("CreateUser for pw reset failed: %v", err)
+	}
+	defer func() { _ = keycloak.KeycloakClient.DeleteUser(email) }()
+
+	require.NoError(t, keycloak.KeycloakClient.SendPasswordResetEmail(email))
+}
+
 func TestAssignDigitalLicenseGroup(t *testing.T) {
 	// Ensure we are in the app root
 	if _, err := os.Stat(".env"); os.IsNotExist(err) {

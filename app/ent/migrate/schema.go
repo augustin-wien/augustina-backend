@@ -373,6 +373,7 @@ var (
 		{Name: "privacypolicyurl", Type: field.TypeString, Default: ""},
 		{Name: "matomourl", Type: field.TypeString, Default: ""},
 		{Name: "matomositeid", Type: field.TypeString, Default: ""},
+		{Name: "onlinepaperurl", Type: field.TypeString, Default: ""},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -383,7 +384,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[32]},
+				Columns:    []*schema.Column{SettingsColumns[33]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

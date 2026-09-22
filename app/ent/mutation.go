@@ -11357,6 +11357,7 @@ type SettingsMutation struct {
 	_PrivacyPolicyUrl           *string
 	_MatomoUrl                  *string
 	_MatomoSiteId               *string
+	_OnlinePaperUrl             *string
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -12665,6 +12666,42 @@ func (m *SettingsMutation) ResetMatomoSiteId() {
 	m._MatomoSiteId = nil
 }
 
+// SetOnlinePaperUrl sets the "OnlinePaperUrl" field.
+func (m *SettingsMutation) SetOnlinePaperUrl(s string) {
+	m._OnlinePaperUrl = &s
+}
+
+// OnlinePaperUrl returns the value of the "OnlinePaperUrl" field in the mutation.
+func (m *SettingsMutation) OnlinePaperUrl() (r string, exists bool) {
+	v := m._OnlinePaperUrl
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnlinePaperUrl returns the old "OnlinePaperUrl" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldOnlinePaperUrl(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnlinePaperUrl is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnlinePaperUrl requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnlinePaperUrl: %w", err)
+	}
+	return oldValue.OnlinePaperUrl, nil
+}
+
+// ResetOnlinePaperUrl resets all changes to the "OnlinePaperUrl" field.
+func (m *SettingsMutation) ResetOnlinePaperUrl() {
+	m._OnlinePaperUrl = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -12738,7 +12775,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 31)
+	fields := make([]string, 0, 32)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -12832,6 +12869,9 @@ func (m *SettingsMutation) Fields() []string {
 	if m._MatomoSiteId != nil {
 		fields = append(fields, settings.FieldMatomoSiteId)
 	}
+	if m._OnlinePaperUrl != nil {
+		fields = append(fields, settings.FieldOnlinePaperUrl)
+	}
 	return fields
 }
 
@@ -12902,6 +12942,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.MatomoUrl()
 	case settings.FieldMatomoSiteId:
 		return m.MatomoSiteId()
+	case settings.FieldOnlinePaperUrl:
+		return m.OnlinePaperUrl()
 	}
 	return nil, false
 }
@@ -12973,6 +13015,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldMatomoUrl(ctx)
 	case settings.FieldMatomoSiteId:
 		return m.OldMatomoSiteId(ctx)
+	case settings.FieldOnlinePaperUrl:
+		return m.OldOnlinePaperUrl(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -13199,6 +13243,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetMatomoSiteId(v)
 		return nil
+	case settings.FieldOnlinePaperUrl:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnlinePaperUrl(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -13391,6 +13442,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldMatomoSiteId:
 		m.ResetMatomoSiteId()
+		return nil
+	case settings.FieldOnlinePaperUrl:
+		m.ResetOnlinePaperUrl()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

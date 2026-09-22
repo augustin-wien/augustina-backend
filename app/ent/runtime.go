@@ -318,6 +318,10 @@ func init() {
 	settingsDescMatomoSiteId := settingsFields[31].Descriptor()
 	// settings.DefaultMatomoSiteId holds the default value on creation for the MatomoSiteId field.
 	settings.DefaultMatomoSiteId = settingsDescMatomoSiteId.Default.(string)
+	// settingsDescOnlinePaperUrl is the schema descriptor for OnlinePaperUrl field.
+	settingsDescOnlinePaperUrl := settingsFields[32].Descriptor()
+	// settings.DefaultOnlinePaperUrl holds the default value on creation for the OnlinePaperUrl field.
+	settings.DefaultOnlinePaperUrl = settingsDescOnlinePaperUrl.Default.(string)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

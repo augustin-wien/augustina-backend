@@ -109,6 +109,12 @@ func (Settings) Fields() []ent.Field {
 		field.String("MatomoSiteId").
 			StorageKey("matomositeid").
 			Default(""),
+		// The reading portal a customer is redirected to after resetting their password and
+		// the URL embedded in the digital-licence/welcome emails - tenant-specific, so it has
+		// to be admin-editable rather than a value baked into a shared .env template.
+		field.String("OnlinePaperUrl").
+			StorageKey("onlinepaperurl").
+			Default(""),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

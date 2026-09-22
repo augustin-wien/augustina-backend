@@ -85,6 +85,7 @@ func Test_UpdateSettings(t *testing.T) {
 	}
 	settings.Color = "red"
 	settings.Logo = "/img/Augustin-Logo-Rechteck.jpg"
+	settings.OnlinePaperUrl = "https://zeitung.example.test"
 	err = Db.UpdateSettings(settings)
 
 	if err != nil {
@@ -102,6 +103,15 @@ func Test_GetSettings(t *testing.T) {
 
 	require.Equal(t, "red", settings.Color)
 	require.Equal(t, "/img/Augustin-Logo-Rechteck.jpg", settings.Logo)
+
+	// OnlinePaperUrl is admin-editable rather than read from the environment (see the comment
+	// on config.OnlinePaperUrl) - guards against two ways that regressed before: the ent schema
+	// column existing but the hand-maintained ALTER TABLE list in InitEmptyTestDb not creating
+	// it (a real, one-off bug this test was added to catch), and GetSettings/UpdateSettings no
+	// longer mirroring the DB value into config.Config.OnlinePaperUrl for the packages that
+	// can't query the DB directly without an import cycle (keycloak, mailer).
+	require.Equal(t, "https://zeitung.example.test", settings.OnlinePaperUrl)
+	require.Equal(t, "https://zeitung.example.test", config.Config.OnlinePaperUrl)
 }
 
 func TestAccounts(t *testing.T) {

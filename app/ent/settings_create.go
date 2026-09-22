@@ -454,6 +454,20 @@ func (_c *SettingsCreate) SetNillableMatomoSiteId(v *string) *SettingsCreate {
 	return _c
 }
 
+// SetOnlinePaperUrl sets the "OnlinePaperUrl" field.
+func (_c *SettingsCreate) SetOnlinePaperUrl(v string) *SettingsCreate {
+	_c.mutation.SetOnlinePaperUrl(v)
+	return _c
+}
+
+// SetNillableOnlinePaperUrl sets the "OnlinePaperUrl" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableOnlinePaperUrl(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetOnlinePaperUrl(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
 	_c.mutation.SetID(v)
@@ -638,6 +652,10 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultMatomoSiteId
 		_c.mutation.SetMatomoSiteId(v)
 	}
+	if _, ok := _c.mutation.OnlinePaperUrl(); !ok {
+		v := settings.DefaultOnlinePaperUrl
+		_c.mutation.SetOnlinePaperUrl(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -734,6 +752,9 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.MatomoSiteId(); !ok {
 		return &ValidationError{Name: "MatomoSiteId", err: errors.New(`ent: missing required field "Settings.MatomoSiteId"`)}
+	}
+	if _, ok := _c.mutation.OnlinePaperUrl(); !ok {
+		return &ValidationError{Name: "OnlinePaperUrl", err: errors.New(`ent: missing required field "Settings.OnlinePaperUrl"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -895,6 +916,10 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.MatomoSiteId(); ok {
 		_spec.SetField(settings.FieldMatomoSiteId, field.TypeString, value)
 		_node.MatomoSiteId = value
+	}
+	if value, ok := _c.mutation.OnlinePaperUrl(); ok {
+		_spec.SetField(settings.FieldOnlinePaperUrl, field.TypeString, value)
+		_node.OnlinePaperUrl = value
 	}
 	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

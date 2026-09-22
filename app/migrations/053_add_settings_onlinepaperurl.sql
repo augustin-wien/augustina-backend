@@ -1,0 +1,2 @@
+ALTER TABLE settings
+    ADD COLUMN IF NOT EXISTS onlinepaperurl TEXT NOT NULL DEFAULT '';
