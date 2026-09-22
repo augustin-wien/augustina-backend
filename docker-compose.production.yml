@@ -98,14 +98,14 @@ services:
       ROOT_LOGLEVEL: ALL
       KEYCLOAK_LOGLEVEL: DEBUG
       #KC_HOSTNAME_URL: ${KEYCLOAK_HOST}
-      KC_HOSTNAME_STRICT: 0
-      KC_PROXY_ADDRESS_FORWARDING: 1
+      KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME: ${KEYCLOAK_HOST}
+      # KC_PROXY=edge / KC_PROXY_ADDRESS_FORWARDING were removed in Keycloak 26;
+      # this pair is their replacement.
       KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
       KC_FRONTEND_URL: ${KEYCLOAK_HOST}
-      KC_HOSTNAME_STRICT_BACKCHANNEL: true
-      KC_PROXY: edge
-      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "true"
 
     depends_on:
       - keycloak-db
