@@ -15,4 +15,4 @@ else
 fi
 
 echo "Starting Keycloak ... "
-/opt/keycloak/bin/kc.sh start --optimized --proxy edge "$@"
+/opt/keycloak/bin/kc.sh start --optimized "$@"

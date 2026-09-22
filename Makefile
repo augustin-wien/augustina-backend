@@ -27,6 +27,16 @@ push-backend:
 	@docker compose -f docker-compose.production.yml push augustin-backend
 	@echo "Backend pushed."
 
+build-keycloak:
+	@echo "Building keycloak..."
+	@docker compose -f docker-compose.production.yml build keycloak
+	@echo "Keycloak built."
+
+push-keycloak:
+	@echo "Push keycloak..."
+	@docker compose -f docker-compose.production.yml push keycloak
+	@echo "Keycloak pushed."
+
 update-db-schema:
 	@echo "Updating db ent schema..."
 	@cd app && go generate ./ent
