@@ -125,42 +125,7 @@ services:
       POSTGRES_DB: keycloak
       POSTGRES_USER: ${KEYCLOAK_DB_USER}
       POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
-  wordpress-db:
-    # We use a mariadb image which supports both amd64 & arm64 architecture
-    image: mariadb:10.6.4-focal
-    # If you really want to use MySQL, uncomment the following line
-    #image: mysql:8.0.27
-    command: "--default-authentication-plugin=mysql_native_password"
-    volumes:
-      - /dockerstorage/convive/augustin-backend/wp_db_data:/var/lib/mysql
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=${WORDPRESS_DB_PASSWORD}
-      - MYSQL_DATABASE=${WORDPRESS_DB_NAME}
-      - MYSQL_USER=${WORDPRESS_DB_USER}
-      - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD}
-  # WordPress is on mariadb, which the postgres image cannot dump. With no
-  # MYSQL_DATABASE set this one dumps every database it can see, one file each,
-  # so it needs the root credentials of the wordpress-db service.
-  mysqlbackups-wordpress-db:
-    image: fradelg/mysql-cron-backup
-    restart: always
-    volumes:
-      - /dockerstorage/convive/wordpress-db-backups:/backup
-    depends_on:
-      - wordpress-db
-    environment:
-      - MYSQL_HOST=wordpress-db
-      - MYSQL_PORT=3306
-      - MYSQL_USER=root
-      - MYSQL_PASS=${WORDPRESS_DB_PASSWORD}
-      - MAX_BACKUPS=48
-      - INIT_BACKUP=1
-      - CRON_TIME=0 * * * *
-      - GZIP_LEVEL=9
 
 volumes:
   dbdata:
-  wp_data:
-  wp_db_data:
   dbdata-test:
