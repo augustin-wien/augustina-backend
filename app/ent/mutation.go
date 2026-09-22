@@ -6303,6 +6303,7 @@ type OrderMutation struct {
 	customer_email         *string
 	odoo_synced_at         *time.Time
 	odoo_sync_error        *string
+	invalidated_at         *time.Time
 	clearedFields          map[string]struct{}
 	entries                map[int]struct{}
 	removedentries         map[int]struct{}
@@ -6933,6 +6934,55 @@ func (m *OrderMutation) ResetOdooSyncError() {
 	delete(m.clearedFields, order.FieldOdooSyncError)
 }
 
+// SetInvalidatedAt sets the "invalidated_at" field.
+func (m *OrderMutation) SetInvalidatedAt(t time.Time) {
+	m.invalidated_at = &t
+}
+
+// InvalidatedAt returns the value of the "invalidated_at" field in the mutation.
+func (m *OrderMutation) InvalidatedAt() (r time.Time, exists bool) {
+	v := m.invalidated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInvalidatedAt returns the old "invalidated_at" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldInvalidatedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInvalidatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInvalidatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInvalidatedAt: %w", err)
+	}
+	return oldValue.InvalidatedAt, nil
+}
+
+// ClearInvalidatedAt clears the value of the "invalidated_at" field.
+func (m *OrderMutation) ClearInvalidatedAt() {
+	m.invalidated_at = nil
+	m.clearedFields[order.FieldInvalidatedAt] = struct{}{}
+}
+
+// InvalidatedAtCleared returns if the "invalidated_at" field was cleared in this mutation.
+func (m *OrderMutation) InvalidatedAtCleared() bool {
+	_, ok := m.clearedFields[order.FieldInvalidatedAt]
+	return ok
+}
+
+// ResetInvalidatedAt resets all changes to the "invalidated_at" field.
+func (m *OrderMutation) ResetInvalidatedAt() {
+	m.invalidated_at = nil
+	delete(m.clearedFields, order.FieldInvalidatedAt)
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by ids.
 func (m *OrderMutation) AddEntryIDs(ids ...int) {
 	if m.entries == nil {
@@ -7075,7 +7125,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.order_code != nil {
 		fields = append(fields, order.FieldOrderCode)
 	}
@@ -7109,6 +7159,9 @@ func (m *OrderMutation) Fields() []string {
 	if m.odoo_sync_error != nil {
 		fields = append(fields, order.FieldOdooSyncError)
 	}
+	if m.invalidated_at != nil {
+		fields = append(fields, order.FieldInvalidatedAt)
+	}
 	return fields
 }
 
@@ -7139,6 +7192,8 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.OdooSyncedAt()
 	case order.FieldOdooSyncError:
 		return m.OdooSyncError()
+	case order.FieldInvalidatedAt:
+		return m.InvalidatedAt()
 	}
 	return nil, false
 }
@@ -7170,6 +7225,8 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldOdooSyncedAt(ctx)
 	case order.FieldOdooSyncError:
 		return m.OldOdooSyncError(ctx)
+	case order.FieldInvalidatedAt:
+		return m.OldInvalidatedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Order field %s", name)
 }
@@ -7256,6 +7313,13 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOdooSyncError(v)
 		return nil
+	case order.FieldInvalidatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInvalidatedAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)
 }
@@ -7331,6 +7395,9 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldOdooSyncError) {
 		fields = append(fields, order.FieldOdooSyncError)
 	}
+	if m.FieldCleared(order.FieldInvalidatedAt) {
+		fields = append(fields, order.FieldInvalidatedAt)
+	}
 	return fields
 }
 
@@ -7362,6 +7429,9 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldOdooSyncError:
 		m.ClearOdooSyncError()
+		return nil
+	case order.FieldInvalidatedAt:
+		m.ClearInvalidatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Order nullable field %s", name)
@@ -7403,6 +7473,9 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldOdooSyncError:
 		m.ResetOdooSyncError()
+		return nil
+	case order.FieldInvalidatedAt:
+		m.ResetInvalidatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)

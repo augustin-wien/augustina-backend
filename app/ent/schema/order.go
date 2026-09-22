@@ -43,6 +43,14 @@ func (Order) Fields() []ent.Field {
 		field.String("odoo_sync_error").
 			Optional().
 			Nillable(),
+		// Set once an unverified order is judged permanently abandoned (no
+		// transaction ID after 20 minutes, or VivaWallet itself confirms no
+		// payment exists) - see jobs/reconcile.go. Never set on an order
+		// VivaWallet confirms was paid; those stay unverified for a human to
+		// resolve, however old they get.
+		field.Time("invalidated_at").
+			Optional().
+			Nillable(),
 	}
 }
 

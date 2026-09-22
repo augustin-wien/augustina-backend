@@ -100,10 +100,13 @@ func (db *Database) GetOrders() (orders []Order, err error) {
 	return
 }
 
-// GetUnverifiedOrders returns all unverified orders from the database
+// GetUnverifiedOrders returns unverified orders that have not been judged
+// abandoned (see InvalidateOrder). Ordinary abandoned checkouts are excluded
+// so this list - and the backoffice screen it backs - only shows orders that
+// might still need attention, not the full history of incomplete carts.
 func (db *Database) GetUnverifiedOrders() (orders []Order, err error) {
 	res, err := db.EntClient.Order.Query().
-		Where(order.Verified(false)).
+		Where(order.Verified(false), order.InvalidatedAtIsNil()).
 		Order(ent.Desc(order.FieldTimestamp)).
 		WithEntries(func(q *ent.OrderEntryQuery) {
 			q.WithSender().WithReceiver()
@@ -120,6 +123,15 @@ func (db *Database) GetUnverifiedOrders() (orders []Order, err error) {
 	}
 
 	return
+}
+
+// InvalidateOrder marks an unverified order as permanently abandoned, so
+// GetUnverifiedOrders stops returning it. Never call this for an order
+// VivaWallet confirms was paid - see jobs/reconcile.go.
+func (db *Database) InvalidateOrder(orderID int) error {
+	return db.EntClient.Order.UpdateOneID(orderID).
+		SetInvalidatedAt(time.Now().UTC()).
+		Exec(context.Background())
 }
 
 // GetOrderByID returns Order by OrderID
@@ -763,6 +775,9 @@ func convertOrder(e *ent.Order) Order {
 	}
 	if e.OdooSyncError != nil {
 		o.OdooSyncError = null.StringFrom(*e.OdooSyncError)
+	}
+	if e.InvalidatedAt != nil {
+		o.InvalidatedAt = null.TimeFrom(*e.InvalidatedAt)
 	}
 	for _, entry := range e.Edges.Entries {
 		o.Entries = append(o.Entries, convertOrderEntry(entry))

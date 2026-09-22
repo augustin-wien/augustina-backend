@@ -34,6 +34,8 @@ const (
 	FieldOdooSyncedAt = "odoo_synced_at"
 	// FieldOdooSyncError holds the string denoting the odoo_sync_error field in the database.
 	FieldOdooSyncError = "odoo_sync_error"
+	// FieldInvalidatedAt holds the string denoting the invalidated_at field in the database.
+	FieldInvalidatedAt = "invalidated_at"
 	// EdgeEntries holds the string denoting the entries edge name in mutations.
 	EdgeEntries = "entries"
 	// EdgePayments holds the string denoting the payments edge name in mutations.
@@ -70,6 +72,7 @@ var Columns = []string{
 	FieldCustomerEmail,
 	FieldOdooSyncedAt,
 	FieldOdooSyncError,
+	FieldInvalidatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -148,6 +151,11 @@ func ByOdooSyncedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByOdooSyncError orders the results by the odoo_sync_error field.
 func ByOdooSyncError(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOdooSyncError, opts...).ToFunc()
+}
+
+// ByInvalidatedAt orders the results by the invalidated_at field.
+func ByInvalidatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInvalidatedAt, opts...).ToFunc()
 }
 
 // ByEntriesCount orders the results by entries count.

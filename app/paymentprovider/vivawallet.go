@@ -26,6 +26,13 @@ import (
 
 var log = utils.GetLogger()
 
+// ErrTransactionNotSuccessful means VivaWallet answered normally and
+// positively confirmed the transaction did not succeed - unlike every other
+// error VerifyTransactionID can return (network failure, auth failure,
+// unexpected HTTP status), this one is safe to treat as "definitely not
+// paid" rather than "we couldn't tell".
+var ErrTransactionNotSuccessful = errors.New("transaction status is not successful")
+
 // AuthenticateToVivaWallet authenticates to VivaWallet and returns an access token
 func AuthenticateToVivaWallet() (string, error) {
 	// Create a new request URL using http
@@ -496,7 +503,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 
 	// 1. Check: Verify that transaction has correct status, only status "F" and "MW" is allowed according to VivaWallet
 	if transactionVerificationResponse.StatusID != "F" && transactionVerificationResponse.StatusID != "MW" {
-		return transactionVerificationResponse, errors.New("transaction status is not successful")
+		return transactionVerificationResponse, ErrTransactionNotSuccessful
 	}
 
 	// Only check isOrderVerified status if checkDBStatus is true

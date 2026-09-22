@@ -39,6 +39,8 @@ type Order struct {
 	OdooSyncedAt *time.Time `json:"odoo_synced_at,omitempty"`
 	// OdooSyncError holds the value of the "odoo_sync_error" field.
 	OdooSyncError *string `json:"odoo_sync_error,omitempty"`
+	// InvalidatedAt holds the value of the "invalidated_at" field.
+	InvalidatedAt *time.Time `json:"invalidated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderQuery when eager-loading is set.
 	Edges        OrderEdges `json:"edges"`
@@ -85,7 +87,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case order.FieldOrderCode, order.FieldTransactionID, order.FieldUserID, order.FieldCustomerEmail, order.FieldOdooSyncError:
 			values[i] = new(sql.NullString)
-		case order.FieldVerifiedAt, order.FieldTimestamp, order.FieldOdooSyncedAt:
+		case order.FieldVerifiedAt, order.FieldTimestamp, order.FieldOdooSyncedAt, order.FieldInvalidatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -180,6 +182,13 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				_m.OdooSyncError = new(string)
 				*_m.OdooSyncError = value.String
 			}
+		case order.FieldInvalidatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field invalidated_at", values[i])
+			} else if value.Valid {
+				_m.InvalidatedAt = new(time.Time)
+				*_m.InvalidatedAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -269,6 +278,11 @@ func (_m *Order) String() string {
 	if v := _m.OdooSyncError; v != nil {
 		builder.WriteString("odoo_sync_error=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.InvalidatedAt; v != nil {
+		builder.WriteString("invalidated_at=")
+		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteByte(')')
 	return builder.String()
