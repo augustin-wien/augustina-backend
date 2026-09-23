@@ -490,6 +490,20 @@ func (_u *SettingsUpdate) SetNillableMatomoSiteId(v *string) *SettingsUpdate {
 	return _u
 }
 
+// SetOnlinePaperUrl sets the "OnlinePaperUrl" field.
+func (_u *SettingsUpdate) SetOnlinePaperUrl(v string) *SettingsUpdate {
+	_u.mutation.SetOnlinePaperUrl(v)
+	return _u
+}
+
+// SetNillableOnlinePaperUrl sets the "OnlinePaperUrl" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableOnlinePaperUrl(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetOnlinePaperUrl(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -660,6 +674,9 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.MatomoSiteId(); ok {
 		_spec.SetField(settings.FieldMatomoSiteId, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.OnlinePaperUrl(); ok {
+		_spec.SetField(settings.FieldOnlinePaperUrl, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1172,6 +1189,20 @@ func (_u *SettingsUpdateOne) SetNillableMatomoSiteId(v *string) *SettingsUpdateO
 	return _u
 }
 
+// SetOnlinePaperUrl sets the "OnlinePaperUrl" field.
+func (_u *SettingsUpdateOne) SetOnlinePaperUrl(v string) *SettingsUpdateOne {
+	_u.mutation.SetOnlinePaperUrl(v)
+	return _u
+}
+
+// SetNillableOnlinePaperUrl sets the "OnlinePaperUrl" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableOnlinePaperUrl(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetOnlinePaperUrl(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -1372,6 +1403,9 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.MatomoSiteId(); ok {
 		_spec.SetField(settings.FieldMatomoSiteId, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.OnlinePaperUrl(); ok {
+		_spec.SetField(settings.FieldOnlinePaperUrl, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

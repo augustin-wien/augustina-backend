@@ -80,6 +80,13 @@ func main() {
 		log.Fatal("Db init:", err)
 	}
 
+	// Prime config.Config.OnlinePaperUrl from the DB-backed setting now, rather than waiting
+	// for whichever request or job happens to call GetSettings() first - see the comment on
+	// OnlinePaperUrl in config.go.
+	if _, err := database.Db.GetSettings(); err != nil {
+		log.Error("Priming settings cache: ", err)
+	}
+
 	// Initialize IP Blocker with DB persistence
 	middlewares.InitIPBlocker(database.Db.EntClient)
 

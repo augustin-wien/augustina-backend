@@ -74,6 +74,8 @@ const (
 	FieldMatomoUrl = "matomourl"
 	// FieldMatomoSiteId holds the string denoting the matomositeid field in the database.
 	FieldMatomoSiteId = "matomositeid"
+	// FieldOnlinePaperUrl holds the string denoting the onlinepaperurl field in the database.
+	FieldOnlinePaperUrl = "onlinepaperurl"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -121,6 +123,7 @@ var Columns = []string{
 	FieldPrivacyPolicyUrl,
 	FieldMatomoUrl,
 	FieldMatomoSiteId,
+	FieldOnlinePaperUrl,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -207,6 +210,8 @@ var (
 	DefaultMatomoUrl string
 	// DefaultMatomoSiteId holds the default value on creation for the "MatomoSiteId" field.
 	DefaultMatomoSiteId string
+	// DefaultOnlinePaperUrl holds the default value on creation for the "OnlinePaperUrl" field.
+	DefaultOnlinePaperUrl string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -372,6 +377,11 @@ func ByMatomoUrl(opts ...sql.OrderTermOption) OrderOption {
 // ByMatomoSiteId orders the results by the MatomoSiteId field.
 func ByMatomoSiteId(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMatomoSiteId, opts...).ToFunc()
+}
+
+// ByOnlinePaperUrl orders the results by the OnlinePaperUrl field.
+func ByOnlinePaperUrl(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOnlinePaperUrl, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

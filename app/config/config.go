@@ -33,23 +33,26 @@ type config struct {
 	KeycloakClientID                  string
 	KeycloakClientSecret              string
 	SendCustomerEmail                 bool
-	OnlinePaperUrl                    string
-	FrontendURL                       string
-	Development                       bool
-	SMTPServer                        string
-	SMTPPort                          string
-	SMTPUsername                      string
-	SMTPPassword                      string
-	SMTPSenderAddress                 string
-	SMTPSenderName                    string
-	SMTPSsl                           bool
-	SMTPInsecureSkipVerify            bool
-	AllowInsecureSMTP                 bool
-	SentryDSN                         string
-	FlourWebhookURL                   string
-	FlourWebhookToken                 string
-	OdooWebhookURL                    string
-	OdooWebhookToken                  string
+	// OnlinePaperUrl is admin-editable (Settings.OnlinePaperUrl in the DB), not read from the
+	// environment - it is mirrored into this field by database.GetSettings/UpdateSettings, and
+	// primed once at boot in main.go. Deliberately absent from the InitConfig literal below.
+	OnlinePaperUrl         string
+	FrontendURL            string
+	Development            bool
+	SMTPServer             string
+	SMTPPort               string
+	SMTPUsername           string
+	SMTPPassword           string
+	SMTPSenderAddress      string
+	SMTPSenderName         string
+	SMTPSsl                bool
+	SMTPInsecureSkipVerify bool
+	AllowInsecureSMTP      bool
+	SentryDSN              string
+	FlourWebhookURL        string
+	FlourWebhookToken      string
+	OdooWebhookURL         string
+	OdooWebhookToken       string
 	// OrderReconcileIntervalMinutes controls how often the background job checks orders that
 	// are still unverified against VivaWallet directly, to catch the case where VivaWallet's
 	// webhook never arrived even though the customer paid. 0 disables the job.
@@ -93,7 +96,6 @@ func InitConfig() error {
 		KeycloakClientID:                  getEnv("KEYCLOAK_CLIENT_ID", ""),
 		KeycloakClientSecret:              getEnv("KEYCLOAK_CLIENT_SECRET", ""),
 		SendCustomerEmail:                 (getEnv("SEND_CUSTOMER_EMAIL", "false") == "true"),
-		OnlinePaperUrl:                    getEnv("ONLINE_PAPER_URL", ""),
 		Development:                       (getEnv("DEVELOPMENT", "false") == "true"),
 		SMTPServer:                        getEnv("SMTP_SERVER", ""),
 		SMTPPort:                          getEnv("SMTP_PORT", ""),

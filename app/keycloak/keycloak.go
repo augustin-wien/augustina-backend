@@ -729,6 +729,20 @@ func (k *Keycloak) sendPasswordResetEmail(email, redirectURI string) error {
 		log.Infof("SendPasswordResetEmail: skipping email for %s because SMTPSenderAddress is not configured", email)
 		return nil
 	}
+	// Keycloak rejects an empty (or otherwise unregistered) redirect URI with an opaque
+	// "invalid redirect uri" 400 - for the customer path, redirectURI comes from the
+	// admin-editable OnlinePaperUrl setting, which defaults to empty until someone fills it
+	// in. Skip with a specific, actionable log instead of letting that surface as an
+	// unexplained Keycloak API error days later.
+	// Keycloak rejects an empty (or otherwise unregistered) redirect URI with an opaque
+	// "invalid redirect uri" 400 - for the customer path, redirectURI comes from the
+	// admin-editable OnlinePaperUrl setting, which defaults to empty until someone fills it
+	// in. Skip with a specific, actionable log instead of letting that surface as an
+	// unexplained Keycloak API error days later.
+	if redirectURI == "" {
+		log.Errorf("SendPasswordResetEmail: skipping email for %s because the redirect URI is empty - set OnlinePaperUrl in the admin settings", email)
+		return nil
+	}
 
 	log.Info("SendPasswordResetEmail: Keycloak: execute password reset email for ", email)
 	return k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{

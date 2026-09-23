@@ -208,6 +208,11 @@ func MatomoSiteId(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldMatomoSiteId, v))
 }
 
+// OnlinePaperUrl applies equality check predicate on the "OnlinePaperUrl" field. It's identical to OnlinePaperUrlEQ.
+func OnlinePaperUrl(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldOnlinePaperUrl, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1681,6 +1686,71 @@ func MatomoSiteIdEqualFold(v string) predicate.Settings {
 // MatomoSiteIdContainsFold applies the ContainsFold predicate on the "MatomoSiteId" field.
 func MatomoSiteIdContainsFold(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldContainsFold(FieldMatomoSiteId, v))
+}
+
+// OnlinePaperUrlEQ applies the EQ predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlNEQ applies the NEQ predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlIn applies the In predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldOnlinePaperUrl, vs...))
+}
+
+// OnlinePaperUrlNotIn applies the NotIn predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldOnlinePaperUrl, vs...))
+}
+
+// OnlinePaperUrlGT applies the GT predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlGTE applies the GTE predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlLT applies the LT predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlLTE applies the LTE predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlContains applies the Contains predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlHasPrefix applies the HasPrefix predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlHasSuffix applies the HasSuffix predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlEqualFold applies the EqualFold predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldOnlinePaperUrl, v))
+}
+
+// OnlinePaperUrlContainsFold applies the ContainsFold predicate on the "OnlinePaperUrl" field.
+func OnlinePaperUrlContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldOnlinePaperUrl, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

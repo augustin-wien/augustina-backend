@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 
+	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/ent"
 	entdbsettings "github.com/augustin-wien/augustina-backend/ent/dbsettings"
 	entsettings "github.com/augustin-wien/augustina-backend/ent/settings"
@@ -37,6 +38,11 @@ func (db *Database) GetSettings() (*ent.Settings, error) {
 		log.Error("GetSettings: ", err)
 		return nil, err
 	}
+	// OnlinePaperUrl is admin-editable (tenant-specific), but the handful of call sites that
+	// need it (mailer, keycloak's password-reset redirect) live in packages that would create
+	// an import cycle if they queried the DB directly - config.Config is the shared read point
+	// they already use, so mirror the DB value into it here on every read.
+	config.Config.OnlinePaperUrl = s.OnlinePaperUrl
 	return s, err
 }
 
@@ -90,7 +96,8 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetWordPressInviteTTL(settings.WordPressInviteTTL).
 		SetPrivacyPolicyUrl(settings.PrivacyPolicyUrl).
 		SetMatomoUrl(settings.MatomoUrl).
-		SetMatomoSiteId(settings.MatomoSiteId)
+		SetMatomoSiteId(settings.MatomoSiteId).
+		SetOnlinePaperUrl(settings.OnlinePaperUrl)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {
@@ -103,7 +110,14 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		return err
 	}
 
-	return tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	// Keep config.Config.OnlinePaperUrl's mirror fresh immediately, rather than waiting for
+	// the next GetSettings() call elsewhere - see the comment there for why it's mirrored.
+	config.Config.OnlinePaperUrl = settings.OnlinePaperUrl
+	return nil
 }
 
 // InitiateDBSettings creates default settings if they don't exist
