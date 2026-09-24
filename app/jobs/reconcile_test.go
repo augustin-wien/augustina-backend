@@ -177,3 +177,44 @@ func orderIDs(orders []database.Order) []int {
 
 	return ids
 }
+
+func TestReconcile_InvalidatesOldOrderWithPlaceholderTransactionID(t *testing.T) {
+	require.NoError(t, database.Db.InitEmptyTestDb())
+	// A VivaWallet error must not matter: a placeholder id is never looked up there
+	mockVivaWallet(t, "", true)
+
+	id := createUnverifiedOrder(t, "manual-2026-09-23T14:03:48.139945299Z", 30*time.Minute)
+
+	reconcileUnverifiedOrders()
+
+	require.True(t, isInvalidated(t, id), "an order still carrying CreateOrder's placeholder id never reached VivaWallet and is abandoned")
+}
+
+func TestReconcile_LeavesRecentOrderWithPlaceholderTransactionIDAlone(t *testing.T) {
+	require.NoError(t, database.Db.InitEmptyTestDb())
+
+	id := createUnverifiedOrder(t, "manual-2026-09-23T14:03:48.139945299Z", 5*time.Minute)
+
+	reconcileUnverifiedOrders()
+
+	require.False(t, isInvalidated(t, id), "an order still inside invalidateTimeout must not be invalidated yet")
+}
+
+func TestShouldAlert_DeduplicatesWithinRealertInterval(t *testing.T) {
+	t.Cleanup(func() { forgetResolvedAlerts(nil) })
+	now := time.Now()
+
+	require.True(t, shouldAlert(1, now), "first sighting alerts")
+	require.False(t, shouldAlert(1, now.Add(15*time.Minute)), "next reconcile run must not re-alert")
+	require.True(t, shouldAlert(2, now.Add(15*time.Minute)), "another order alerts independently")
+	require.True(t, shouldAlert(1, now.Add(realertInterval)), "still unresolved after realertInterval alerts again")
+}
+
+func TestForgetResolvedAlerts_ReAlertsIfOrderComesBack(t *testing.T) {
+	t.Cleanup(func() { forgetResolvedAlerts(nil) })
+	now := time.Now()
+
+	require.True(t, shouldAlert(1, now))
+	forgetResolvedAlerts([]database.Order{{ID: 2}})
+	require.True(t, shouldAlert(1, now.Add(time.Minute)), "state for an order no longer unverified is dropped")
+}

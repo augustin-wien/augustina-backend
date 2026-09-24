@@ -3,6 +3,8 @@ package jobs
 
 import (
 	"errors"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
@@ -24,6 +26,21 @@ const paymentTimeout = 5 * time.Minute
 // before GetUnverifiedOrders (and the backoffice screen backed by it) stops
 // showing it.
 const invalidateTimeout = 20 * time.Minute
+
+// realertInterval is how often the same paid-but-unverified order is alerted again. Without
+// it every reconcile run re-alerts every such order until a human resolves it, burying new
+// cases under repeats of old ones.
+const realertInterval = 24 * time.Hour
+
+// placeholderTransactionIDPrefix marks the transaction id CreateOrder stores until
+// VivaWallet reports back (see database/queries.orders.go). An order still carrying it
+// never had a real transaction id, so there is nothing to look up at VivaWallet.
+const placeholderTransactionIDPrefix = "manual-"
+
+var (
+	alertedMu   sync.Mutex
+	lastAlerted = map[int]time.Time{}
+)
 
 // StartOrderReconciliation runs a background job that periodically checks orders still
 // marked unverified against VivaWallet directly. This exists to catch the case that
@@ -54,8 +71,10 @@ func reconcileUnverifiedOrders() {
 		return
 	}
 
+	forgetResolvedAlerts(orders)
+
 	for _, order := range orders {
-		if order.TransactionID == "" {
+		if order.TransactionID == "" || strings.HasPrefix(order.TransactionID, placeholderTransactionIDPrefix) {
 			// Never even got as far as VivaWallet redirecting back with a transaction id,
 			// so there is nothing to check with VivaWallet - abandoned checkouts like this
 			// make up the bulk of this table's history, purely on age.
@@ -67,18 +86,27 @@ func reconcileUnverifiedOrders() {
 			continue
 		}
 
-		_, err := paymentprovider.VerifyTransactionID(order.TransactionID, false)
+		viva, err := paymentprovider.VerifyTransactionID(order.TransactionID, false)
 		if err == nil {
 			// VivaWallet confirms the transaction succeeded, but our own database still
 			// shows the order unverified: the webhook that should have finalized it never
 			// arrived or was lost. This is the one case a log-based alert can never catch
 			// on its own, since no error was ever logged for it before now. Never
 			// invalidated, however old it gets - a human has to resolve this one.
-			log.Errorw(
-				"reconcileUnverifiedOrders: order paid at VivaWallet but not verified locally",
-				"order_id", order.ID,
-				"transaction_id", order.TransactionID,
-			)
+			if shouldAlert(order.ID, time.Now()) {
+				log.Errorw(
+					"reconcileUnverifiedOrders: order paid at VivaWallet but not verified locally",
+					"order_id", order.ID,
+					"order_code", order.OrderCode.String,
+					"transaction_id", order.TransactionID,
+					"order_timestamp", order.Timestamp,
+					"age", time.Since(order.Timestamp).Round(time.Minute).String(),
+					"viva_status_id", viva.StatusID,
+					"viva_amount", viva.Amount,
+					"viva_order_code", viva.OrderCode.String(),
+					"viva_ins_date", viva.InsDate,
+				)
+			}
 			continue
 		}
 
@@ -88,6 +116,36 @@ func reconcileUnverifiedOrders() {
 			// unreachable this cycle and tells us nothing about the payment itself, this
 			// is safe to treat as genuinely abandoned.
 			invalidateIfAbandoned(order.ID, order.Timestamp)
+		}
+	}
+}
+
+// shouldAlert reports whether a paid-but-unverified order is due an alert: the first time
+// it is seen, then again once every realertInterval while it stays unresolved.
+func shouldAlert(orderID int, now time.Time) bool {
+	alertedMu.Lock()
+	defer alertedMu.Unlock()
+
+	if last, ok := lastAlerted[orderID]; ok && now.Sub(last) < realertInterval {
+		return false
+	}
+	lastAlerted[orderID] = now
+	return true
+}
+
+// forgetResolvedAlerts drops alert state for orders that are no longer unverified, so a
+// resolved order does not hold memory for the lifetime of the process.
+func forgetResolvedAlerts(unverified []database.Order) {
+	stillOpen := make(map[int]bool, len(unverified))
+	for _, o := range unverified {
+		stillOpen[o.ID] = true
+	}
+
+	alertedMu.Lock()
+	defer alertedMu.Unlock()
+	for id := range lastAlerted {
+		if !stillOpen[id] {
+			delete(lastAlerted, id)
 		}
 	}
 }
