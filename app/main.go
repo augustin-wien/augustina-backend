@@ -80,6 +80,12 @@ func main() {
 		log.Fatal("Db init:", err)
 	}
 
+	// Carry the pre-#264 ONLINE_PAPER_URL env value over into the settings row, which
+	// migration 053 created empty - see BackfillOnlinePaperUrl.
+	if err := database.Db.BackfillOnlinePaperUrl(os.Getenv("ONLINE_PAPER_URL")); err != nil {
+		log.Error("Backfilling OnlinePaperUrl: ", err)
+	}
+
 	// Prime config.Config.OnlinePaperUrl from the DB-backed setting now, rather than waiting
 	// for whichever request or job happens to call GetSettings() first - see the comment on
 	// OnlinePaperUrl in config.go.

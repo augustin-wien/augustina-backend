@@ -158,6 +158,30 @@ func (r *EmailRequest) Body() string {
 	return r.body
 }
 
+var (
+	plainLinkRe = regexp.MustCompile(`(?is)<a\s[^>]*?href\s*=\s*["']([^"']*)["'][^>]*>(.*?)</a>`)
+	plainTagRe  = regexp.MustCompile("<[^>]*>")
+)
+
+// htmlToPlain builds the plain-text alternative by stripping HTML tags (simple
+// fallback). Links are rewritten to "text (url)" first, otherwise the URL - the
+// one thing most of our mails exist to deliver - is lost from the text part.
+func htmlToPlain(body string) string {
+	plain := plainLinkRe.ReplaceAllStringFunc(body, func(a string) string {
+		m := plainLinkRe.FindStringSubmatch(a)
+		href := strings.TrimSpace(m[1])
+		text := strings.TrimSpace(plainTagRe.ReplaceAllString(m[2], ""))
+		if href == "" || href == text {
+			return text
+		}
+		if text == "" {
+			return href
+		}
+		return text + " (" + href + ")"
+	})
+	return plainTagRe.ReplaceAllString(plain, "")
+}
+
 // BuildMessage builds the raw email message bytes (multipart/alternative)
 // and returns the message and the boundary used. This is separated so tests
 // can inspect the generated message without sending it.
@@ -180,9 +204,7 @@ func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 
 	msgID := fmt.Sprintf("<%d.%d@%s>", time.Now().UnixNano(), time.Now().Unix(), domain)
 
-	// create a plain-text alternative by stripping HTML tags (simple fallback)
-	stripTags := regexp.MustCompile("<[^>]*>")
-	plain := stripTags.ReplaceAllString(r.body, "")
+	plain := htmlToPlain(r.body)
 	if strings.TrimSpace(plain) == "" {
 		plain = "(no plain-text body)"
 	}

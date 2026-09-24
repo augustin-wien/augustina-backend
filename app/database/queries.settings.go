@@ -46,6 +46,29 @@ func (db *Database) GetSettings() (*ent.Settings, error) {
 	return s, err
 }
 
+// BackfillOnlinePaperUrl copies the legacy ONLINE_PAPER_URL env value into the
+// OnlinePaperUrl setting if that setting is still empty. Migration 053 added the column
+// with an empty default, so without this every already-deployed tenant lost its URL on
+// upgrade and the digital-licence/welcome mails rendered their links as href="". Only
+// fills an empty value, so it never overrides what an admin set in the backoffice.
+func (db *Database) BackfillOnlinePaperUrl(legacyValue string) error {
+	if legacyValue == "" {
+		return nil
+	}
+	n, err := db.EntClient.Settings.Update().
+		Where(entsettings.OnlinePaperUrl("")).
+		SetOnlinePaperUrl(legacyValue).
+		Save(context.Background())
+	if err != nil {
+		log.Error("BackfillOnlinePaperUrl: ", err)
+		return err
+	}
+	if n > 0 {
+		log.Info("BackfillOnlinePaperUrl: copied ONLINE_PAPER_URL into settings: ", legacyValue)
+	}
+	return nil
+}
+
 // UpdateSettings updates the settings in the database
 func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 
