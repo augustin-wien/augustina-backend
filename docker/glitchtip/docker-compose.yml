@@ -83,6 +83,10 @@ services:
       GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN:-http://localhost:8094}
       DEFAULT_FROM_EMAIL: ${GLITCHTIP_DEFAULT_FROM_EMAIL:-glitchtip@example.com}
       REDIS_URL: redis://glitchtip-redis:6379/0
+      # The signal-relay webhook target is an internal Docker hostname, which
+      # Glitchtip's SSRF guard blocks by default (delivery then silently
+      # no-ops — the Notification row still gets marked is_sent=True).
+      GLITCHTIP_ALLOW_PRIVATE_IPS: "true"
     ports:
       - "8094:8000"
     depends_on:
@@ -104,6 +108,9 @@ services:
       GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN:-http://localhost:8094}
       DEFAULT_FROM_EMAIL: ${GLITCHTIP_DEFAULT_FROM_EMAIL:-glitchtip@example.com}
       REDIS_URL: redis://glitchtip-redis:6379/0
+      # See glitchtip-web: this is what actually sends alert webhooks, so it
+      # needs the flag too, not just glitchtip-web.
+      GLITCHTIP_ALLOW_PRIVATE_IPS: "true"
     depends_on:
       glitchtip-db:
         condition: service_healthy
@@ -120,7 +127,13 @@ services:
     image: bbernhard/signal-cli-rest-api:latest
     container_name: signal-cli-rest-api
     environment:
-      MODE: normal
+      # "normal" spawns a fresh signal-cli process per call (10-60s latency,
+      # a fresh JVM + Signal protocol handshake each time) — that blows past
+      # both Glitchtip's own 10s webhook timeout and glitchtip-signal-relay's
+      # 10s call to this API, so alerts silently never arrive. "json-rpc"
+      # keeps signal-cli running as a background daemon, so calls after the
+      # first are sub-second.
+      MODE: json-rpc
     ports:
       - "8095:8080"
     volumes:

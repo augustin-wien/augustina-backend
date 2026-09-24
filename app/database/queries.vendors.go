@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/augustin-wien/augustina-backend/ent"
@@ -10,6 +11,12 @@ import (
 	"github.com/augustin-wien/augustina-backend/utils"
 	"gopkg.in/guregu/null.v4"
 )
+
+// ErrLicenseIDTaken is returned by CreateVendor when the given LicenseID is
+// already used by another vendor. It's an expected, user-correctable
+// condition (not a system fault), so callers should log it at a level that
+// doesn't page anyone.
+var ErrLicenseIDTaken = errors.New("license ID is already in use by another vendor")
 
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
@@ -220,6 +227,11 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 		SetDebt(vendor.Debt).
 		Save(context.Background())
 	if err != nil {
+		if ent.IsConstraintError(err) {
+			log.Warnf("CreateVendor: license ID %q already in use, rejecting vendor %s", vendor.LicenseID.String, vendor.Email)
+			err = fmt.Errorf("%w: %q", ErrLicenseIDTaken, vendor.LicenseID.String)
+			return
+		}
 		log.Errorf("CreateVendor: create vendor %s %+v", vendor.Email, err)
 		return
 	}
