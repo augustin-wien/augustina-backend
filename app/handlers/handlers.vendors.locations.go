@@ -77,13 +77,19 @@ func CreateVendorLocation(w http.ResponseWriter, r *http.Request) {
 // @Description Update vendor location
 // @ID updateVendorLocation
 // @Produce json
-// @Router /api/vendors/locations/{id}/ [put]
+// @Router /api/vendors/{vendorid}/locations/{id}/ [patch]
 // @Security KeycloakAuth
 
 func UpdateVendorLocation(w http.ResponseWriter, r *http.Request) {
-	_, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
 	if err != nil {
-		log.Error("CreateVendorLocation: Can not read ID ", err)
+		log.Error("UpdateVendorLocation: Can not read vendor ID ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	locationID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		log.Error("UpdateVendorLocation: Can not read location ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -93,7 +99,13 @@ func UpdateVendorLocation(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = database.Db.UpdateLocation(location)
+	// The URL is authoritative for which location is updated
+	location.ID = locationID
+	err = database.Db.UpdateLocation(vendorID, location)
+	if ent.IsNotFound(err) {
+		utils.ErrorJSON(w, err, http.StatusNotFound)
+		return
+	}
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
@@ -107,10 +119,10 @@ func UpdateVendorLocation(w http.ResponseWriter, r *http.Request) {
 // @Description Delete vendor location
 // @ID deleteVendorLocation
 // @Produce json
-// @Router /api/vendors/locations/{id}/ [delete]
+// @Router /api/vendors/{vendorid}/locations/{id}/ [delete]
 // @Security KeycloakAuth
 func DeleteVendorLocation(w http.ResponseWriter, r *http.Request) {
-	_, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
+	vendorID, err := strconv.Atoi(chi.URLParam(r, "vendorid"))
 	if err != nil {
 		log.Error("DeleteVendorLocation: Can not read ID ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -122,7 +134,11 @@ func DeleteVendorLocation(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err = database.Db.DeleteLocation(locationID)
+	err = database.Db.DeleteLocation(vendorID, locationID)
+	if ent.IsNotFound(err) {
+		utils.ErrorJSON(w, err, http.StatusNotFound)
+		return
+	}
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return

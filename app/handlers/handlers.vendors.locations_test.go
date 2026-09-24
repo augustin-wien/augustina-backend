@@ -148,6 +148,51 @@ func TestVendorLocationsCRUD(t *testing.T) {
 	require.Equal(t, 0, len(finalLocations), "Should have no locations after deletion")
 }
 
+// TestVendorLocationsScopedToVendor verifies that a location can only be
+// updated or deleted through its own vendor's URL, that the location ID is taken
+// from the URL rather than the body, and that unknown IDs yield 404, not 500.
+func TestVendorLocationsScopedToVendor(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		t.Fatalf("InitEmptyTestDb failed: %v", err)
+	}
+
+	ownerID := createTestVendor(t, "testlicense-loc-owner")
+	otherID := createTestVendor(t, "testlicense-loc-other")
+
+	body := map[string]any{"name": "Owner Location", "address": "Owner Street 1", "zip": "1000"}
+	utils.TestRequestWithAuth(t, r, "POST", "/api/vendors/"+ownerID+"/locations/", body, 200, adminUserToken)
+
+	res := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/"+ownerID+"/locations/", nil, 200, adminUserToken)
+	var locations []map[string]any
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &locations))
+	require.Len(t, locations, 1)
+	locationID := strconv.Itoa(int(locations[0]["id"].(float64)))
+
+	// Another vendor's URL must not reach this location
+	update := map[string]any{"name": "Hijacked", "address": "Other Street", "zip": "2000"}
+	utils.TestRequestWithAuth(t, r, "PATCH", "/api/vendors/"+otherID+"/locations/"+locationID+"/", update, 404, adminUserToken)
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+otherID+"/locations/"+locationID+"/", nil, 404, adminUserToken)
+
+	// Unknown location ID is a 404
+	utils.TestRequestWithAuth(t, r, "PATCH", "/api/vendors/"+ownerID+"/locations/999999/", update, 404, adminUserToken)
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+ownerID+"/locations/999999/", nil, 404, adminUserToken)
+
+	// A body without an id (as the frontend used to send) updates the URL's location
+	update["name"] = "Renamed"
+	utils.TestRequestWithAuth(t, r, "PATCH", "/api/vendors/"+ownerID+"/locations/"+locationID+"/", update, 200, adminUserToken)
+
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/"+ownerID+"/locations/", nil, 200, adminUserToken)
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &locations))
+	require.Len(t, locations, 1)
+	require.Equal(t, "Renamed", locations[0]["name"])
+
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+ownerID+"/locations/"+locationID+"/", nil, 200, adminUserToken)
+}
+
 // TestWorkingTimeValidation verifies that working_time JSON structures are valid
 // and don't contain orphaned/unknown legacy codes from the migration
 func TestWorkingTimeValidation(t *testing.T) {
