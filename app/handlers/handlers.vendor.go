@@ -116,6 +116,23 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Info(r.Header.Get("X-Auth-User-Name") + " is creating a vendor for" + vendor.Email)
 
+	// Reject a duplicate license ID before touching Keycloak: GetOrCreateVendor
+	// below creates a real Keycloak user and emails them a password-reset link,
+	// side effects that can't be cleanly undone once the DB insert fails.
+	if vendor.LicenseID.String != "" {
+		_, checkErr := database.Db.GetVendorByLicenseID(vendor.LicenseID.String)
+		if checkErr == nil {
+			err := fmt.Errorf("%w: %q", database.ErrLicenseIDTaken, vendor.LicenseID.String)
+			log.Warn("CreateVendor: ", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		} else if !ent.IsNotFound(checkErr) {
+			log.Error("CreateVendor: checking license ID failed: ", checkErr)
+			utils.ErrorJSON(w, checkErr, http.StatusInternalServerError)
+			return
+		}
+	}
+
 	// Create user in keycloak
 	user, err := keycloak.KeycloakClient.GetOrCreateVendor(vendor.Email)
 	if err != nil {
@@ -134,7 +151,13 @@ func CreateVendor(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := database.Db.CreateVendor(vendor)
 	if err != nil {
-		log.Error("CreateVendor: Create vendor in db failed: ", err)
+		if errors.Is(err, database.ErrLicenseIDTaken) {
+			// Expected race with the pre-check above (e.g. two concurrent
+			// creates); not a system fault, so don't alert on it.
+			log.Warn("CreateVendor: ", err)
+		} else {
+			log.Error("CreateVendor: Create vendor in db failed: ", err)
+		}
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
