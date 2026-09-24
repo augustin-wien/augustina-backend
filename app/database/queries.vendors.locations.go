@@ -28,19 +28,21 @@ func (db *Database) CreateLocation(vendorID int, location ent.Location) (err err
 	return err
 }
 
-// UpdateLocation updates a location.
-func (db *Database) UpdateLocation(location ent.Location) (err error) {
-	_, err = db.EntClient.Location.UpdateOneID(location.ID).SetName(location.Name).SetAddress(location.Address).SetLongitude(location.Longitude).SetLatitude(location.Latitude).SetZip(location.Zip).SetWorkingTime(location.WorkingTime).Save(context.Background())
-	if err != nil {
+// UpdateLocation updates a location belonging to the given vendor. Returns an
+// ent.NotFoundError if the location does not exist or belongs to another vendor.
+func (db *Database) UpdateLocation(vendorID int, location ent.Location) (err error) {
+	_, err = db.EntClient.Location.UpdateOneID(location.ID).Where(entlocation.HasVendorWith(entvendor.ID(vendorID))).SetName(location.Name).SetAddress(location.Address).SetLongitude(location.Longitude).SetLatitude(location.Latitude).SetZip(location.Zip).SetWorkingTime(location.WorkingTime).Save(context.Background())
+	if err != nil && !ent.IsNotFound(err) {
 		log.Error("UpdateLocation", err)
 	}
 	return err
 }
 
-// DeleteLocation deletes a location.
-func (db *Database) DeleteLocation(locationID int) (err error) {
-	err = db.EntClient.Location.DeleteOneID(locationID).Exec(context.Background())
-	if err != nil {
+// DeleteLocation deletes a location belonging to the given vendor. Returns an
+// ent.NotFoundError if the location does not exist or belongs to another vendor.
+func (db *Database) DeleteLocation(vendorID int, locationID int) (err error) {
+	err = db.EntClient.Location.DeleteOneID(locationID).Where(entlocation.HasVendorWith(entvendor.ID(vendorID))).Exec(context.Background())
+	if err != nil && !ent.IsNotFound(err) {
 		log.Error("DeleteLocation", err)
 	}
 	return err
