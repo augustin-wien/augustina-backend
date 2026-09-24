@@ -33,6 +33,11 @@ var log = utils.GetLogger()
 // paid" rather than "we couldn't tell".
 var ErrTransactionNotSuccessful = errors.New("transaction status is not successful")
 
+// ErrOrderNotVerifiedYet means VivaWallet confirms the payment but the success webhook has
+// not verified the order yet. The frontend polls /orders/verify/ while it waits, so on its
+// own this is expected and not worth an alert - the reconcile job alerts if it persists.
+var ErrOrderNotVerifiedYet = errors.New("order has not been verified in database but needs to be for frontend call")
+
 // AuthenticateToVivaWallet authenticates to VivaWallet and returns an access token
 func AuthenticateToVivaWallet() (string, error) {
 	// Create a new request URL using http
@@ -209,7 +214,8 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 	var orderCode PaymentOrderResponse
 	err = json.Unmarshal(body, &orderCode)
 	if err != nil {
-		log.Error("Unmarshalling body failed: ", err)
+		// The body is only {"orderCode": ...}, so it is safe to log in full
+		log.Errorw("CreatePaymentOrder: unmarshalling VivaWallet response failed", "error", err, "body", string(body))
 		return "", err
 	}
 
@@ -218,7 +224,7 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 		return "", errors.New("VivaWallet returned empty OrderCode")
 	}
 
-	return strconv.FormatInt(orderCode.OrderCode, 10), err
+	return orderCode.OrderCode.String(), err
 
 }
 
@@ -235,7 +241,24 @@ func isSimulatedTransaction(transactionID string) bool {
 	return config.Config.Development && strings.HasPrefix(transactionID, "dev-simulation-")
 }
 
+// logWebhookNotVerified logs why a success webhook left its order unverified. It is the one
+// error log per failed delivery, carrying enough to find the order and the cause from the
+// alert alone: reason is a short stable slug to search and group by.
+func logWebhookNotVerified(reason string, orderID int, data EventData, err error, extra ...any) {
+	fields := []any{
+		"reason", reason,
+		"order_id", orderID,
+		"order_code", data.OrderCode.String(),
+		"transaction_id", data.TransactionID,
+		"status_id", data.StatusID,
+		"amount", data.Amount,
+		"error", err,
+	}
+	log.Errorw("HandlePaymentSuccessfulResponse: order not verified", append(fields, extra...)...)
+}
+
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest) (err error) {
+	data := paymentSuccessful.EventData
 
 	// Get the order before verifying with VivaWallet, so the real transaction ID
 	// is stored even if verification fails. Otherwise the order keeps its
@@ -243,27 +266,27 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	var order database.Order
 	// Retry getting order from database to avoid race conditions
 	for i := 0; i < 5; i++ {
-		order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentSuccessful.EventData.OrderCode, 10))
+		order, err = database.Db.GetOrderByOrderCode(data.OrderCode.String())
 		if err == nil {
 			break
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
 	if err != nil {
-		log.Error("HandlePaymentSuccessfulResponse: failed to get order: ", err, " for order code ", paymentSuccessful.EventData.OrderCode)
+		logWebhookNotVerified("order_not_found", 0, data, err)
 		return err
 	}
 
 	// VivaWallet retries webhook deliveries, so a duplicate delivery for an
 	// already verified order is a no-op, not an error
 	if order.Verified {
-		log.Info("HandlePaymentSuccessfulResponse: order already verified, skipping order ", order.ID)
+		log.Infow("HandlePaymentSuccessfulResponse: order already verified, skipping", "order_id", order.ID, "transaction_id", data.TransactionID)
 		return nil
 	}
 
-	err = database.Db.SetOrderTransactionID(order.ID, paymentSuccessful.EventData.TransactionID)
+	err = database.Db.SetOrderTransactionID(order.ID, data.TransactionID)
 	if err != nil {
-		log.Error("HandlePaymentSuccessfulResponse: SetOrderTransactionID: ", err)
+		logWebhookNotVerified("set_transaction_id_failed", order.ID, data, err)
 		return err
 	}
 
@@ -271,101 +294,115 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	var transactionVerificationResponse TransactionVerificationResponse
 
 	// Check if this is a development simulation webhook
-	isSimulation := isSimulatedTransaction(paymentSuccessful.EventData.TransactionID)
+	isSimulation := isSimulatedTransaction(data.TransactionID)
 
 	// Skip VivaWallet verification for simulated webhooks in development mode
 	if !isSimulation {
 		// Retry verification to handle eventual consistency
 		for i := 0; i < 5; i++ {
-			transactionVerificationResponse, err = VerifyTransactionID(paymentSuccessful.EventData.TransactionID, false)
+			transactionVerificationResponse, err = VerifyTransactionID(data.TransactionID, false)
 			if err != nil {
-				log.Error("HandlePaymentSuccessfulResponse: TransactionID could not be verified: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
+				log.Warnw("HandlePaymentSuccessfulResponse: verifying transaction failed, retrying", "attempt", i+1, "order_id", order.ID, "transaction_id", data.TransactionID, "error", err)
 			} else {
 				// Check if OrderCode matches
-				if transactionVerificationResponse.OrderCode == paymentSuccessful.EventData.OrderCode {
+				if transactionVerificationResponse.OrderCode == data.OrderCode {
 					break // Match found, proceed
 				}
-				log.Warnf("HandlePaymentSuccessfulResponse: order code mismatch (attempt %d): %d vs %d", i+1, transactionVerificationResponse.OrderCode, paymentSuccessful.EventData.OrderCode)
+				log.Warnw("HandlePaymentSuccessfulResponse: order code mismatch, retrying", "attempt", i+1, "order_id", order.ID, "viva_order_code", transactionVerificationResponse.OrderCode.String(), "webhook_order_code", data.OrderCode.String())
 			}
 			time.Sleep(500 * time.Millisecond)
 		}
 
 		if err != nil {
-			log.Error("HandlePaymentSuccessfulResponse: Verifying transaction ID failed: ", err, " for transaction ID ", paymentSuccessful.EventData.TransactionID)
+			logWebhookNotVerified("viva_verification_failed", order.ID, data, err)
 			return err
 		}
 	} else {
 		// For simulated webhooks, use the webhook data directly
 		log.Info("HandlePaymentSuccessfulResponse: Skipping VivaWallet verification for simulated webhook")
-		transactionVerificationResponse.OrderCode = paymentSuccessful.EventData.OrderCode
-		transactionVerificationResponse.Amount = paymentSuccessful.EventData.Amount
-		transactionVerificationResponse.StatusID = paymentSuccessful.EventData.StatusID
-		transactionVerificationResponse.TransactionTypeID = paymentSuccessful.EventData.TransactionTypeID
+		transactionVerificationResponse.OrderCode = data.OrderCode
+		transactionVerificationResponse.Amount = data.Amount
+		transactionVerificationResponse.StatusID = data.StatusID
+		transactionVerificationResponse.TransactionTypeID = data.TransactionTypeID
 	}
 
 	// 1. Check: Verify that webhook request and API response match all three fields
 
-	if transactionVerificationResponse.OrderCode != paymentSuccessful.EventData.OrderCode {
-		log.Errorf("HandlePaymentSuccessfulResponse: order code mismatch: %d vs %d with transaction id %s", transactionVerificationResponse.OrderCode, paymentSuccessful.EventData.OrderCode, paymentSuccessful.EventData.TransactionID)
-		return errors.New("HandlePaymentSuccessfulResponse: order code mismatch")
+	if transactionVerificationResponse.OrderCode != data.OrderCode {
+		err = errors.New("HandlePaymentSuccessfulResponse: order code mismatch")
+		logWebhookNotVerified("order_code_mismatch", order.ID, data, err, "viva_order_code", transactionVerificationResponse.OrderCode.String())
+		return err
 	}
 
-	if transactionVerificationResponse.Amount != paymentSuccessful.EventData.Amount {
+	if transactionVerificationResponse.Amount != data.Amount {
 		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
-		webhookToFloat64 := fmt.Sprintf("%f", paymentSuccessful.EventData.Amount)
-		return errors.New("HandlePaymentSuccessfulResponse: amount mismatch: " + transactionToFloat64 + " vs " + webhookToFloat64 + " with transaction id " + paymentSuccessful.EventData.TransactionID)
+		webhookToFloat64 := fmt.Sprintf("%f", data.Amount)
+		err = errors.New("HandlePaymentSuccessfulResponse: amount mismatch: " + transactionToFloat64 + " vs " + webhookToFloat64 + " with transaction id " + data.TransactionID)
+		logWebhookNotVerified("viva_amount_mismatch", order.ID, data, err, "viva_amount", transactionVerificationResponse.Amount)
+		return err
 	}
 
-	if transactionVerificationResponse.StatusID != paymentSuccessful.EventData.StatusID {
-		return errors.New("HandlePaymentSuccessfulResponse: status id mismatch")
+	if transactionVerificationResponse.StatusID != data.StatusID {
+		err = errors.New("HandlePaymentSuccessfulResponse: status id mismatch")
+		logWebhookNotVerified("status_id_mismatch", order.ID, data, err, "viva_status_id", transactionVerificationResponse.StatusID)
+		return err
 	}
 
 	// 2. Check: Verify amount matches with the ones in the database
 
-	// Sum up all prices of orderentries and compare with amount
+	// Check for TransactionCostsName
+	if config.Config.TransactionCostsName == "" {
+		err = errors.New("transaction costs name is not set")
+		logWebhookNotVerified("config_transaction_costs_name_missing", order.ID, data, err)
+		return err
+	}
+
+	// Transaction costs are not included in the sum
+	transactionCostItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
+	if err != nil {
+		logWebhookNotVerified("transaction_costs_item_not_found", order.ID, data, err)
+		return err
+	}
+
+	// Sum up all prices of orderentries and compare with amount. entries records how each
+	// entry was counted, so a sum mismatch can be explained from the log line alone.
 	var sum float64
+	entries := make([]string, 0, len(order.Entries))
 	for _, entry := range order.Entries {
-
-		// Check for TransactionCostsName
-		if config.Config.TransactionCostsName == "" {
-			return errors.New("transaction costs name is not set")
-		}
-
-		// Check if entry is transaction costs, which are not included in the sum
-		var transactionCostItem database.Item
-		transactionCostItem, err = database.Db.GetItemByName(config.Config.TransactionCostsName)
-		if err != nil {
-			return err
-		}
 		if entry.Item == transactionCostItem.ID {
-			continue // Skip transaction costs
+			entries = append(entries, fmt.Sprintf("item=%d price=%d qty=%d skipped=transaction_costs", entry.Item, entry.Price, entry.Quantity))
+			continue
 		}
 		item, err := database.Db.GetItem(entry.Item) // Get item by ID
 		if err != nil {
-			log.Error("HandlePaymentSuccessfulResponse: Item could not be found", zap.Error(err))
+			log.Errorw("HandlePaymentSuccessfulResponse: item could not be found", "order_id", order.ID, "item_id", entry.Item, "error", err)
 		}
 
 		if item.IsLicenseItem {
+			entries = append(entries, fmt.Sprintf("item=%d price=%d qty=%d skipped=license_item", entry.Item, entry.Price, entry.Quantity))
 			continue // Skip license items
 		}
 
+		entries = append(entries, fmt.Sprintf("item=%d price=%d qty=%d", entry.Item, entry.Price, entry.Quantity))
 		sum += float64(entry.Price * entry.Quantity)
 	}
 	// Amount would mismatch without converting to float64
 	// Note: Bad consistency by VivaWallet representing amount in cents and int vs euro and float
 	sum = float64(sum) / 100
 
-	if sum != paymentSuccessful.EventData.Amount {
-		return errors.New("amount mismatch: " + fmt.Sprintf("%f", sum) + " vs " + fmt.Sprintf("%f", paymentSuccessful.EventData.Amount) + " with transaction id " + paymentSuccessful.EventData.TransactionID)
+	if sum != data.Amount {
+		err = errors.New("amount mismatch: " + fmt.Sprintf("%f", sum) + " vs " + fmt.Sprintf("%f", data.Amount) + " with transaction id " + data.TransactionID)
+		logWebhookNotVerified("order_sum_mismatch", order.ID, data, err, "order_sum", sum, "entries", entries)
+		return err
 	}
 
 	// Since every check passed, now set verification status of order and create payments
-	log.Info("Order has been verified and payments are being created")
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID, paymentSuccessful.EventData.TransactionTypeID)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, data.TransactionTypeID)
 	if err != nil {
-		log.Error("Verifying order and creating payments failed: ", err)
+		logWebhookNotVerified("verify_order_failed", order.ID, data, err)
 		return err
 	}
+	log.Infow("HandlePaymentSuccessfulResponse: order verified", "order_id", order.ID, "order_code", data.OrderCode.String(), "transaction_id", data.TransactionID)
 	// odoo
 	if config.Config.OdooWebhookURL != "" {
 		log.Info("Odoo Webhook set, sending webhook for order", order.ID)
@@ -473,7 +510,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	// Send the request
 	res, err := client.Do(req)
 	if err != nil {
-		log.Error("sending request failed: ", err)
+		log.Errorw("VerifyTransactionID: sending request failed", "transaction_id", transactionID, "error", err)
 		return transactionVerificationResponse, err
 	}
 	defer func() { _ = res.Body.Close() }()
@@ -481,7 +518,7 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	if res.StatusCode != 200 {
 		body, readErr := io.ReadAll(res.Body)
 		if readErr != nil {
-			log.Error("reading body failed: ", readErr)
+			log.Errorw("VerifyTransactionID: reading error body failed", "transaction_id", transactionID, "status", res.StatusCode, "error", readErr)
 			return transactionVerificationResponse, readErr
 		}
 		return transactionVerificationResponse, errors.New("request failed: status " + strconv.Itoa(res.StatusCode) + " " + string(body))
@@ -490,33 +527,36 @@ func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionV
 	// Read the response
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Error("VerifyTransactionID: reading body failed: ", err)
+		log.Errorw("VerifyTransactionID: reading body failed", "transaction_id", transactionID, "error", err)
 		return transactionVerificationResponse, err
 	}
 
-	// Unmarshal response body to struct
+	// Unmarshal response body to struct. The body holds the customer's name and email, so
+	// it is not logged: the unmarshal error already names the field and type that broke.
 	err = json.Unmarshal(body, &transactionVerificationResponse)
 	if err != nil {
-		log.Error("VerifyTransactionID: Unmarshalling body failed: ", err)
+		log.Errorw("VerifyTransactionID: unmarshalling VivaWallet response failed - payments cannot be verified until this is fixed",
+			"transaction_id", transactionID, "error", err, "body_bytes", len(body))
 		return transactionVerificationResponse, err
 	}
 
 	// 1. Check: Verify that transaction has correct status, only status "F" and "MW" is allowed according to VivaWallet
 	if transactionVerificationResponse.StatusID != "F" && transactionVerificationResponse.StatusID != "MW" {
+		log.Infow("VerifyTransactionID: transaction not successful at VivaWallet",
+			"transaction_id", transactionID, "order_code", transactionVerificationResponse.OrderCode.String(), "status_id", transactionVerificationResponse.StatusID)
 		return transactionVerificationResponse, ErrTransactionNotSuccessful
 	}
 
 	// Only check isOrderVerified status if checkDBStatus is true
 	if checkDBStatus {
 		// 2. Check: Verify that transaction has been verified in database
-		order, err := database.Db.GetOrderByOrderCode(strconv.FormatInt(transactionVerificationResponse.OrderCode, 10))
+		order, err := database.Db.GetOrderByOrderCode(transactionVerificationResponse.OrderCode.String())
 		if err != nil {
-			log.Error("VerifyTransactionID: Getting order from database failed: ", err, " for order code ", transactionVerificationResponse.OrderCode)
+			log.Errorw("VerifyTransactionID: getting order from database failed", "transaction_id", transactionID, "order_code", transactionVerificationResponse.OrderCode.String(), "error", err)
 			return transactionVerificationResponse, err
 		}
 		if !order.Verified {
-			log.Info("VerifyTransactionID: Order has not been verified in database but needs to be for frontend call")
-			return transactionVerificationResponse, errors.New("order has not been verified in database but needs to be for frontend call")
+			return transactionVerificationResponse, ErrOrderNotVerifiedYet
 		}
 	}
 
@@ -544,7 +584,7 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	var order database.Order
 	// Retry getting order from database to avoid race conditions
 	for i := 0; i < 5; i++ {
-		order, err = database.Db.GetOrderByOrderCode(strconv.FormatInt(paymentPrice.EventData.OrderCode, 10))
+		order, err = database.Db.GetOrderByOrderCode(paymentPrice.EventData.OrderCode.String())
 		if err == nil {
 			break
 		}

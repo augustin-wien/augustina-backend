@@ -745,13 +745,19 @@ func (k *Keycloak) sendPasswordResetEmail(email, redirectURI string) error {
 	}
 
 	log.Info("SendPasswordResetEmail: Keycloak: execute password reset email for ", email)
-	return k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{
+	err = k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{
 		UserID:      user.ID,
 		Lifespan:    gocloak.IntP(600),
 		Actions:     &[]string{"UPDATE_PASSWORD"},
 		ClientID:    gocloak.StringP("frontend"),
 		RedirectURI: gocloak.StringP(redirectURI),
 	})
+	if err != nil {
+		// An "invalid redirect uri" here means redirectURI is not in the Valid Redirect URIs
+		// of this realm's "frontend" client - name both so the fix is clear from the alert.
+		return fmt.Errorf("realm %s, client frontend, redirect_uri %q: %w", k.Realm, redirectURI, err)
+	}
+	return nil
 }
 
 // DeleteUser function deletes a user given by userID

@@ -460,7 +460,7 @@ func simulateVivaWalletWebhook(orderCode string, totalAmount int) {
 	// Create webhook payload
 	webhookPayload := paymentprovider.TransactionSuccessRequest{
 		EventData: paymentprovider.EventData{
-			OrderCode:         orderCodeInt,
+			OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 			TransactionID:     "dev-simulation-" + orderCode,
 			Amount:            float64(totalAmount) / 100.0, // Convert cents to euros
 			StatusID:          "F",
@@ -541,6 +541,15 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		// Verify transaction
 		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
 		if err != nil {
+			if errors.Is(err, paymentprovider.ErrOrderNotVerifiedYet) {
+				// Expected while the webhook is still on its way; the frontend polls
+				log.Infow("VerifyPaymentOrder: paid at VivaWallet, waiting for webhook to verify order",
+					"order_id", order.ID, "order_code", OrderCode, "transaction_id", TransactionID)
+			} else {
+				// The customer is shown a payment failure page for this, paid or not
+				log.Errorw("VerifyPaymentOrder: could not verify transaction, customer sees a failure page",
+					"order_id", order.ID, "order_code", OrderCode, "transaction_id", TransactionID, "error", err)
+			}
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
@@ -1223,20 +1232,32 @@ type webhookResponse struct {
 //	@Router			/webhooks/vivawallet/success/ [post]
 func VivaWalletWebhookSuccess(w http.ResponseWriter, r *http.Request) {
 
-	// Message to console that handler was entered
-	log.Info("Transaction Success Webhook entered")
-
 	var paymentSuccessful paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentSuccessful)
 	if err != nil {
-		log.Info("VivaWalletWebhookSuccess: Reading JSON failed for webhook: ", err)
+		// Every retry of this delivery fails the same way, so the order stays unverified
+		// although the customer paid: this has to alert, not be an Info line.
+		log.Errorw("VivaWalletWebhookSuccess: could not parse webhook payload, order will not be verified",
+			"error", err, "remote_ip", utils.ReadUserIP(r))
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
+	data := paymentSuccessful.EventData
+	log.Infow("VivaWalletWebhookSuccess: webhook received",
+		"order_code", data.OrderCode.String(),
+		"transaction_id", data.TransactionID,
+		"status_id", data.StatusID,
+		"amount", data.Amount,
+		"event_type_id", paymentSuccessful.EventTypeID,
+		"remote_ip", utils.ReadUserIP(r),
+	)
+
 	err = paymentprovider.HandlePaymentSuccessfulResponse(paymentSuccessful)
 	if err != nil {
-		log.Error("VivaWalletWebhookSuccess: handle payment failed: ", err)
+		// HandlePaymentSuccessfulResponse already logged the reason as an error
+		log.Warnw("VivaWalletWebhookSuccess: responding 500 so VivaWallet retries",
+			"order_code", data.OrderCode.String(), "transaction_id", data.TransactionID, "error", err)
 		// Non-2xx tells VivaWallet the delivery failed so it retries the webhook
 		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
@@ -1265,7 +1286,7 @@ func VivaWalletWebhookFailure(w http.ResponseWriter, r *http.Request) {
 	var paymentFailure paymentprovider.TransactionSuccessRequest
 	err := utils.ReadJSON(w, r, &paymentFailure)
 	if err != nil {
-		log.Info("VivaWalletWebhookFailure: Reading JSON failed for webhook: ", err)
+		log.Errorw("VivaWalletWebhookFailure: could not parse webhook payload", "error", err, "remote_ip", utils.ReadUserIP(r))
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -1303,14 +1324,15 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 	var paymentPrice paymentprovider.TransactionPriceRequest
 	err := utils.ReadJSON(w, r, &paymentPrice)
 	if err != nil {
-		log.Info("VivaWalletWebhookPrice: Reading JSON failed for webhook: ", err)
+		log.Errorw("VivaWalletWebhookPrice: could not parse webhook payload", "error", err, "remote_ip", utils.ReadUserIP(r))
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
 	if err != nil {
-		log.Error("VivaWalletWebhookPrice: handle payment price response failed: ", err, paymentPrice)
+		log.Errorw("VivaWalletWebhookPrice: handle payment price response failed",
+			"order_code", paymentPrice.EventData.OrderCode.String(), "transaction_id", paymentPrice.EventData.TransactionID, "error", err)
 		return
 	}
 

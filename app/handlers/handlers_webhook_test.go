@@ -83,7 +83,7 @@ func TestVivaWalletWebhookSuccess_LargeOrderCode(t *testing.T) {
 			resp := paymentprovider.TransactionVerificationResponse{
 				Email:             "webhook@example.com",
 				Amount:            1.00, // 100 cents = 1.00 EUR
-				OrderCode:         orderCodeInt,
+				OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 				StatusID:          "F",
 				TransactionTypeID: 0,
 			}
@@ -123,7 +123,7 @@ func TestVivaWalletWebhookSuccess_LargeOrderCode(t *testing.T) {
 	// Create Webhook Request
 	webhookPayload := paymentprovider.TransactionSuccessRequest{
 		EventData: paymentprovider.EventData{
-			OrderCode:         orderCodeInt,
+			OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 			TransactionID:     transactionID,
 			Amount:            1.00,
 			StatusID:          "F",
@@ -213,7 +213,7 @@ func TestVivaWalletWebhookSuccess_ValidPayment(t *testing.T) {
 			resp := paymentprovider.TransactionVerificationResponse{
 				Email:             "test@example.com",
 				Amount:            50.00,
-				OrderCode:         orderCodeInt,
+				OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 				StatusID:          "F",
 				TransactionTypeID: 0,
 			}
@@ -250,7 +250,7 @@ func TestVivaWalletWebhookSuccess_ValidPayment(t *testing.T) {
 	// Create Webhook Request
 	webhookPayload := paymentprovider.TransactionSuccessRequest{
 		EventData: paymentprovider.EventData{
-			OrderCode:         orderCodeInt,
+			OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 			TransactionID:     transactionID,
 			Amount:            50.00,
 			StatusID:          "F",
@@ -437,7 +437,7 @@ func TestVivaWalletWebhookSuccess_VerificationFailureKeepsTransactionID(t *testi
 	// Create Webhook Request
 	webhookPayload := paymentprovider.TransactionSuccessRequest{
 		EventData: paymentprovider.EventData{
-			OrderCode:         orderCodeInt,
+			OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 			TransactionID:     transactionID,
 			Amount:            6.00,
 			StatusID:          "F",
@@ -543,7 +543,7 @@ func TestVivaWalletWebhookSuccess_DuplicateDeliveryIsNoOp(t *testing.T) {
 	// Deliver the same webhook again
 	webhookPayload := paymentprovider.TransactionSuccessRequest{
 		EventData: paymentprovider.EventData{
-			OrderCode:         orderCodeInt,
+			OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 			TransactionID:     "retry-txn-id",
 			Amount:            6.00,
 			StatusID:          "F",
@@ -639,7 +639,7 @@ func TestVivaWalletWebhookSuccess_ResponseHeaderContentType(t *testing.T) {
 			resp := paymentprovider.TransactionVerificationResponse{
 				Email:             "test@example.com",
 				Amount:            30.00,
-				OrderCode:         orderCodeInt,
+				OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 				StatusID:          "F",
 				TransactionTypeID: 0,
 			}
@@ -676,7 +676,7 @@ func TestVivaWalletWebhookSuccess_ResponseHeaderContentType(t *testing.T) {
 	// Create Webhook Request
 	webhookPayload := paymentprovider.TransactionSuccessRequest{
 		EventData: paymentprovider.EventData{
-			OrderCode:         orderCodeInt,
+			OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 			TransactionID:     transactionID,
 			Amount:            30.00,
 			StatusID:          "F",
@@ -764,7 +764,7 @@ func TestVivaWalletWebhookSuccess_SendsToFlourWebhook(t *testing.T) {
 			resp := paymentprovider.TransactionVerificationResponse{
 				Email:             "flour-test@example.com",
 				Amount:            75.00,
-				OrderCode:         orderCodeInt,
+				OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 				StatusID:          "F",
 				TransactionTypeID: 0,
 			}
@@ -807,7 +807,7 @@ func TestVivaWalletWebhookSuccess_SendsToFlourWebhook(t *testing.T) {
 	// Create Webhook Request with valid transaction data
 	webhookPayload := paymentprovider.TransactionSuccessRequest{
 		EventData: paymentprovider.EventData{
-			OrderCode:         orderCodeInt,
+			OrderCode:         paymentprovider.VivaOrderCode(orderCodeInt),
 			TransactionID:     transactionID,
 			Amount:            75.00,
 			StatusID:          "F",
