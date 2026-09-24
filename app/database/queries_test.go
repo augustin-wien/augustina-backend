@@ -114,6 +114,31 @@ func Test_GetSettings(t *testing.T) {
 	require.Equal(t, "https://zeitung.example.test", config.Config.OnlinePaperUrl)
 }
 
+func TestBackfillOnlinePaperUrl(t *testing.T) {
+	settings, err := Db.GetSettings()
+	require.NoError(t, err)
+	original := settings.OnlinePaperUrl
+	defer func() {
+		settings.OnlinePaperUrl = original
+		require.NoError(t, Db.UpdateSettings(settings))
+	}()
+
+	// Empty setting (state right after migration 053) gets the legacy env value
+	settings.OnlinePaperUrl = ""
+	require.NoError(t, Db.UpdateSettings(settings))
+	require.NoError(t, Db.BackfillOnlinePaperUrl("https://legacy.example.test"))
+	settings, err = Db.GetSettings()
+	require.NoError(t, err)
+	require.Equal(t, "https://legacy.example.test", settings.OnlinePaperUrl)
+	require.Equal(t, "https://legacy.example.test", config.Config.OnlinePaperUrl)
+
+	// A value set by an admin is never overridden
+	require.NoError(t, Db.BackfillOnlinePaperUrl("https://other.example.test"))
+	settings, err = Db.GetSettings()
+	require.NoError(t, err)
+	require.Equal(t, "https://legacy.example.test", settings.OnlinePaperUrl)
+}
+
 func TestAccounts(t *testing.T) {
 	// Get account by type (default accounts should exist)
 	account, err := Db.GetAccountByType("Cash")

@@ -48,3 +48,11 @@ func TestParseTemplate_EmptyName(t *testing.T) {
 		t.Fatalf("expected error for empty template name")
 	}
 }
+
+// TestHtmlToPlain_KeepsLinkURLs guards the plain-text alternative: links must keep
+// their URL, otherwise text-only clients show "Hier klicken" with nothing to click.
+func TestHtmlToPlain_KeepsLinkURLs(t *testing.T) {
+	body := `<p>Neu!<br /><a href="https://zeitung.example.test">Hier klicken</a> um zu lesen.
+<a href="https://a.test"><b>https://a.test</b></a> <a href="">leer</a></p>`
+	require.Equal(t, "Neu!Hier klicken (https://zeitung.example.test) um zu lesen.\nhttps://a.test leer", htmlToPlain(body))
+}
