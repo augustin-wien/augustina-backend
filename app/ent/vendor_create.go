@@ -191,6 +191,34 @@ func (_c *VendorCreate) SetNillableIsdeleted(v *bool) *VendorCreate {
 	return _c
 }
 
+// SetIsblocked sets the "isblocked" field.
+func (_c *VendorCreate) SetIsblocked(v bool) *VendorCreate {
+	_c.mutation.SetIsblocked(v)
+	return _c
+}
+
+// SetNillableIsblocked sets the "isblocked" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableIsblocked(v *bool) *VendorCreate {
+	if v != nil {
+		_c.SetIsblocked(*v)
+	}
+	return _c
+}
+
+// SetBlockednote sets the "blockednote" field.
+func (_c *VendorCreate) SetBlockednote(v string) *VendorCreate {
+	_c.mutation.SetBlockednote(v)
+	return _c
+}
+
+// SetNillableBlockednote sets the "blockednote" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableBlockednote(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetBlockednote(*v)
+	}
+	return _c
+}
+
 // SetAccountproofurl sets the "accountproofurl" field.
 func (_c *VendorCreate) SetAccountproofurl(v string) *VendorCreate {
 	_c.mutation.SetAccountproofurl(v)
@@ -325,6 +353,14 @@ func (_c *VendorCreate) defaults() {
 		v := vendor.DefaultIsdeleted
 		_c.mutation.SetIsdeleted(v)
 	}
+	if _, ok := _c.mutation.Isblocked(); !ok {
+		v := vendor.DefaultIsblocked
+		_c.mutation.SetIsblocked(v)
+	}
+	if _, ok := _c.mutation.Blockednote(); !ok {
+		v := vendor.DefaultBlockednote
+		_c.mutation.SetBlockednote(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -376,6 +412,12 @@ func (_c *VendorCreate) check() error {
 	}
 	if _, ok := _c.mutation.Isdeleted(); !ok {
 		return &ValidationError{Name: "isdeleted", err: errors.New(`ent: missing required field "Vendor.isdeleted"`)}
+	}
+	if _, ok := _c.mutation.Isblocked(); !ok {
+		return &ValidationError{Name: "isblocked", err: errors.New(`ent: missing required field "Vendor.isblocked"`)}
+	}
+	if _, ok := _c.mutation.Blockednote(); !ok {
+		return &ValidationError{Name: "blockednote", err: errors.New(`ent: missing required field "Vendor.blockednote"`)}
 	}
 	if _, ok := _c.mutation.Accountproofurl(); !ok {
 		return &ValidationError{Name: "accountproofurl", err: errors.New(`ent: missing required field "Vendor.accountproofurl"`)}
@@ -483,6 +525,14 @@ func (_c *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Isdeleted(); ok {
 		_spec.SetField(vendor.FieldIsdeleted, field.TypeBool, value)
 		_node.Isdeleted = value
+	}
+	if value, ok := _c.mutation.Isblocked(); ok {
+		_spec.SetField(vendor.FieldIsblocked, field.TypeBool, value)
+		_node.Isblocked = value
+	}
+	if value, ok := _c.mutation.Blockednote(); ok {
+		_spec.SetField(vendor.FieldBlockednote, field.TypeString, value)
+		_node.Blockednote = value
 	}
 	if value, ok := _c.mutation.Accountproofurl(); ok {
 		_spec.SetField(vendor.FieldAccountproofurl, field.TypeString, value)

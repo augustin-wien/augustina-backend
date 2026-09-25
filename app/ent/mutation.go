@@ -5011,6 +5011,7 @@ type LocationMutation struct {
 	latitude      *float64
 	addlatitude   *float64
 	zip           *string
+	telephone     *string
 	working_time  **schema.WorkingTime
 	clearedFields map[string]struct{}
 	vendor        *int
@@ -5344,6 +5345,42 @@ func (m *LocationMutation) ResetZip() {
 	m.zip = nil
 }
 
+// SetTelephone sets the "telephone" field.
+func (m *LocationMutation) SetTelephone(s string) {
+	m.telephone = &s
+}
+
+// Telephone returns the value of the "telephone" field in the mutation.
+func (m *LocationMutation) Telephone() (r string, exists bool) {
+	v := m.telephone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTelephone returns the old "telephone" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldTelephone(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTelephone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTelephone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTelephone: %w", err)
+	}
+	return oldValue.Telephone, nil
+}
+
+// ResetTelephone resets all changes to the "telephone" field.
+func (m *LocationMutation) ResetTelephone() {
+	m.telephone = nil
+}
+
 // SetWorkingTime sets the "working_time" field.
 func (m *LocationMutation) SetWorkingTime(st *schema.WorkingTime) {
 	m.working_time = &st
@@ -5453,7 +5490,7 @@ func (m *LocationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LocationMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, location.FieldName)
 	}
@@ -5468,6 +5505,9 @@ func (m *LocationMutation) Fields() []string {
 	}
 	if m.zip != nil {
 		fields = append(fields, location.FieldZip)
+	}
+	if m.telephone != nil {
+		fields = append(fields, location.FieldTelephone)
 	}
 	if m.working_time != nil {
 		fields = append(fields, location.FieldWorkingTime)
@@ -5490,6 +5530,8 @@ func (m *LocationMutation) Field(name string) (ent.Value, bool) {
 		return m.Latitude()
 	case location.FieldZip:
 		return m.Zip()
+	case location.FieldTelephone:
+		return m.Telephone()
 	case location.FieldWorkingTime:
 		return m.WorkingTime()
 	}
@@ -5511,6 +5553,8 @@ func (m *LocationMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldLatitude(ctx)
 	case location.FieldZip:
 		return m.OldZip(ctx)
+	case location.FieldTelephone:
+		return m.OldTelephone(ctx)
 	case location.FieldWorkingTime:
 		return m.OldWorkingTime(ctx)
 	}
@@ -5556,6 +5600,13 @@ func (m *LocationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetZip(v)
+		return nil
+	case location.FieldTelephone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTelephone(v)
 		return nil
 	case location.FieldWorkingTime:
 		v, ok := value.(*schema.WorkingTime)
@@ -5654,6 +5705,9 @@ func (m *LocationMutation) ResetField(name string) error {
 		return nil
 	case location.FieldZip:
 		m.ResetZip()
+		return nil
+	case location.FieldTelephone:
+		m.ResetTelephone()
 		return nil
 	case location.FieldWorkingTime:
 		m.ResetWorkingTime()
@@ -13546,6 +13600,8 @@ type VendorMutation struct {
 	hassmartphone    *bool
 	hasbankaccount   *bool
 	isdeleted        *bool
+	isblocked        *bool
+	blockednote      *string
 	accountproofurl  *string
 	debt             *string
 	clearedFields    map[string]struct{}
@@ -14243,6 +14299,78 @@ func (m *VendorMutation) ResetIsdeleted() {
 	m.isdeleted = nil
 }
 
+// SetIsblocked sets the "isblocked" field.
+func (m *VendorMutation) SetIsblocked(b bool) {
+	m.isblocked = &b
+}
+
+// Isblocked returns the value of the "isblocked" field in the mutation.
+func (m *VendorMutation) Isblocked() (r bool, exists bool) {
+	v := m.isblocked
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsblocked returns the old "isblocked" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldIsblocked(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsblocked is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsblocked requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsblocked: %w", err)
+	}
+	return oldValue.Isblocked, nil
+}
+
+// ResetIsblocked resets all changes to the "isblocked" field.
+func (m *VendorMutation) ResetIsblocked() {
+	m.isblocked = nil
+}
+
+// SetBlockednote sets the "blockednote" field.
+func (m *VendorMutation) SetBlockednote(s string) {
+	m.blockednote = &s
+}
+
+// Blockednote returns the value of the "blockednote" field in the mutation.
+func (m *VendorMutation) Blockednote() (r string, exists bool) {
+	v := m.blockednote
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlockednote returns the old "blockednote" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldBlockednote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlockednote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlockednote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlockednote: %w", err)
+	}
+	return oldValue.Blockednote, nil
+}
+
+// ResetBlockednote resets all changes to the "blockednote" field.
+func (m *VendorMutation) ResetBlockednote() {
+	m.blockednote = nil
+}
+
 // SetAccountproofurl sets the "accountproofurl" field.
 func (m *VendorMutation) SetAccountproofurl(s string) {
 	m.accountproofurl = &s
@@ -14511,7 +14639,7 @@ func (m *VendorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VendorMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 20)
 	if m.keycloakid != nil {
 		fields = append(fields, vendor.FieldKeycloakid)
 	}
@@ -14560,6 +14688,12 @@ func (m *VendorMutation) Fields() []string {
 	if m.isdeleted != nil {
 		fields = append(fields, vendor.FieldIsdeleted)
 	}
+	if m.isblocked != nil {
+		fields = append(fields, vendor.FieldIsblocked)
+	}
+	if m.blockednote != nil {
+		fields = append(fields, vendor.FieldBlockednote)
+	}
 	if m.accountproofurl != nil {
 		fields = append(fields, vendor.FieldAccountproofurl)
 	}
@@ -14606,6 +14740,10 @@ func (m *VendorMutation) Field(name string) (ent.Value, bool) {
 		return m.Hasbankaccount()
 	case vendor.FieldIsdeleted:
 		return m.Isdeleted()
+	case vendor.FieldIsblocked:
+		return m.Isblocked()
+	case vendor.FieldBlockednote:
+		return m.Blockednote()
 	case vendor.FieldAccountproofurl:
 		return m.Accountproofurl()
 	case vendor.FieldDebt:
@@ -14651,6 +14789,10 @@ func (m *VendorMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldHasbankaccount(ctx)
 	case vendor.FieldIsdeleted:
 		return m.OldIsdeleted(ctx)
+	case vendor.FieldIsblocked:
+		return m.OldIsblocked(ctx)
+	case vendor.FieldBlockednote:
+		return m.OldBlockednote(ctx)
 	case vendor.FieldAccountproofurl:
 		return m.OldAccountproofurl(ctx)
 	case vendor.FieldDebt:
@@ -14776,6 +14918,20 @@ func (m *VendorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsdeleted(v)
 		return nil
+	case vendor.FieldIsblocked:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsblocked(v)
+		return nil
+	case vendor.FieldBlockednote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlockednote(v)
+		return nil
 	case vendor.FieldAccountproofurl:
 		v, ok := value.(string)
 		if !ok {
@@ -14886,6 +15042,12 @@ func (m *VendorMutation) ResetField(name string) error {
 		return nil
 	case vendor.FieldIsdeleted:
 		m.ResetIsdeleted()
+		return nil
+	case vendor.FieldIsblocked:
+		m.ResetIsblocked()
+		return nil
+	case vendor.FieldBlockednote:
+		m.ResetBlockednote()
 		return nil
 	case vendor.FieldAccountproofurl:
 		m.ResetAccountproofurl()

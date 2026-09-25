@@ -146,6 +146,10 @@ func init() {
 	locationDescLatitude := locationFields[4].Descriptor()
 	// location.DefaultLatitude holds the default value on creation for the latitude field.
 	location.DefaultLatitude = locationDescLatitude.Default.(float64)
+	// locationDescTelephone is the schema descriptor for telephone field.
+	locationDescTelephone := locationFields[6].Descriptor()
+	// location.DefaultTelephone holds the default value on creation for the telephone field.
+	location.DefaultTelephone = locationDescTelephone.Default.(string)
 	// locationDescID is the schema descriptor for id field.
 	locationDescID := locationFields[0].Descriptor()
 	// location.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -364,6 +368,14 @@ func init() {
 	vendorDescIsdeleted := vendorFields[16].Descriptor()
 	// vendor.DefaultIsdeleted holds the default value on creation for the isdeleted field.
 	vendor.DefaultIsdeleted = vendorDescIsdeleted.Default.(bool)
+	// vendorDescIsblocked is the schema descriptor for isblocked field.
+	vendorDescIsblocked := vendorFields[17].Descriptor()
+	// vendor.DefaultIsblocked holds the default value on creation for the isblocked field.
+	vendor.DefaultIsblocked = vendorDescIsblocked.Default.(bool)
+	// vendorDescBlockednote is the schema descriptor for blockednote field.
+	vendorDescBlockednote := vendorFields[18].Descriptor()
+	// vendor.DefaultBlockednote holds the default value on creation for the blockednote field.
+	vendor.DefaultBlockednote = vendorDescBlockednote.Default.(string)
 	// vendorDescID is the schema descriptor for id field.
 	vendorDescID := vendorFields[0].Descriptor()
 	// vendor.IDValidator is a validator for the "id" field. It is called by the builders before save.

@@ -43,6 +43,10 @@ func (Vendor) Fields() []ent.Field {
 			Default(false),
 		field.Bool("isdeleted").
 			Default(false),
+		field.Bool("isblocked").
+			Default(false),
+		field.String("blockednote").
+			Default(""),
 		field.String("accountproofurl"),
 		field.String("debt"),
 	}

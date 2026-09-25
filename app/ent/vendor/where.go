@@ -135,6 +135,16 @@ func Isdeleted(v bool) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldIsdeleted, v))
 }
 
+// Isblocked applies equality check predicate on the "isblocked" field. It's identical to IsblockedEQ.
+func Isblocked(v bool) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldIsblocked, v))
+}
+
+// Blockednote applies equality check predicate on the "blockednote" field. It's identical to BlockednoteEQ.
+func Blockednote(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldBlockednote, v))
+}
+
 // Accountproofurl applies equality check predicate on the "accountproofurl" field. It's identical to AccountproofurlEQ.
 func Accountproofurl(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldAccountproofurl, v))
@@ -883,6 +893,81 @@ func IsdeletedEQ(v bool) predicate.Vendor {
 // IsdeletedNEQ applies the NEQ predicate on the "isdeleted" field.
 func IsdeletedNEQ(v bool) predicate.Vendor {
 	return predicate.Vendor(sql.FieldNEQ(FieldIsdeleted, v))
+}
+
+// IsblockedEQ applies the EQ predicate on the "isblocked" field.
+func IsblockedEQ(v bool) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldIsblocked, v))
+}
+
+// IsblockedNEQ applies the NEQ predicate on the "isblocked" field.
+func IsblockedNEQ(v bool) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldIsblocked, v))
+}
+
+// BlockednoteEQ applies the EQ predicate on the "blockednote" field.
+func BlockednoteEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldBlockednote, v))
+}
+
+// BlockednoteNEQ applies the NEQ predicate on the "blockednote" field.
+func BlockednoteNEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldBlockednote, v))
+}
+
+// BlockednoteIn applies the In predicate on the "blockednote" field.
+func BlockednoteIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldBlockednote, vs...))
+}
+
+// BlockednoteNotIn applies the NotIn predicate on the "blockednote" field.
+func BlockednoteNotIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldBlockednote, vs...))
+}
+
+// BlockednoteGT applies the GT predicate on the "blockednote" field.
+func BlockednoteGT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldBlockednote, v))
+}
+
+// BlockednoteGTE applies the GTE predicate on the "blockednote" field.
+func BlockednoteGTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldBlockednote, v))
+}
+
+// BlockednoteLT applies the LT predicate on the "blockednote" field.
+func BlockednoteLT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldBlockednote, v))
+}
+
+// BlockednoteLTE applies the LTE predicate on the "blockednote" field.
+func BlockednoteLTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldBlockednote, v))
+}
+
+// BlockednoteContains applies the Contains predicate on the "blockednote" field.
+func BlockednoteContains(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContains(FieldBlockednote, v))
+}
+
+// BlockednoteHasPrefix applies the HasPrefix predicate on the "blockednote" field.
+func BlockednoteHasPrefix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasPrefix(FieldBlockednote, v))
+}
+
+// BlockednoteHasSuffix applies the HasSuffix predicate on the "blockednote" field.
+func BlockednoteHasSuffix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasSuffix(FieldBlockednote, v))
+}
+
+// BlockednoteEqualFold applies the EqualFold predicate on the "blockednote" field.
+func BlockednoteEqualFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEqualFold(FieldBlockednote, v))
+}
+
+// BlockednoteContainsFold applies the ContainsFold predicate on the "blockednote" field.
+func BlockednoteContainsFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContainsFold(FieldBlockednote, v))
 }
 
 // AccountproofurlEQ applies the EQ predicate on the "accountproofurl" field.

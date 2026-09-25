@@ -44,6 +44,10 @@ const (
 	FieldHasbankaccount = "hasbankaccount"
 	// FieldIsdeleted holds the string denoting the isdeleted field in the database.
 	FieldIsdeleted = "isdeleted"
+	// FieldIsblocked holds the string denoting the isblocked field in the database.
+	FieldIsblocked = "isblocked"
+	// FieldBlockednote holds the string denoting the blockednote field in the database.
+	FieldBlockednote = "blockednote"
 	// FieldAccountproofurl holds the string denoting the accountproofurl field in the database.
 	FieldAccountproofurl = "accountproofurl"
 	// FieldDebt holds the string denoting the debt field in the database.
@@ -98,6 +102,8 @@ var Columns = []string{
 	FieldHassmartphone,
 	FieldHasbankaccount,
 	FieldIsdeleted,
+	FieldIsblocked,
+	FieldBlockednote,
 	FieldAccountproofurl,
 	FieldDebt,
 }
@@ -131,6 +137,10 @@ var (
 	DefaultHasbankaccount bool
 	// DefaultIsdeleted holds the default value on creation for the "isdeleted" field.
 	DefaultIsdeleted bool
+	// DefaultIsblocked holds the default value on creation for the "isblocked" field.
+	DefaultIsblocked bool
+	// DefaultBlockednote holds the default value on creation for the "blockednote" field.
+	DefaultBlockednote string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -221,6 +231,16 @@ func ByHasbankaccount(opts ...sql.OrderTermOption) OrderOption {
 // ByIsdeleted orders the results by the isdeleted field.
 func ByIsdeleted(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsdeleted, opts...).ToFunc()
+}
+
+// ByIsblocked orders the results by the isblocked field.
+func ByIsblocked(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsblocked, opts...).ToFunc()
+}
+
+// ByBlockednote orders the results by the blockednote field.
+func ByBlockednote(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBlockednote, opts...).ToFunc()
 }
 
 // ByAccountproofurl orders the results by the accountproofurl field.
