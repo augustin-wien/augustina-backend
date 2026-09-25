@@ -197,6 +197,10 @@ func (db *Database) generatePostgresUrl() string {
 func (db *Database) initDb(isProduction bool, logInfo bool) (err error) {
 	db.IsProduction = isProduction
 
+	// Tests re-initialize the database many times; without closing the previous
+	// pool its idle connections pile up until Postgres runs out of clients
+	db.CloseDbPool()
+
 	// Set up the Ent client with postgres driver
 	pdb, err := sql.Open("postgres", db.generatePostgresUrl())
 	if err != nil {

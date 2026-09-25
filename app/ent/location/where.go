@@ -78,6 +78,11 @@ func Zip(v string) predicate.Location {
 	return predicate.Location(sql.FieldEQ(FieldZip, v))
 }
 
+// Telephone applies equality check predicate on the "telephone" field. It's identical to TelephoneEQ.
+func Telephone(v string) predicate.Location {
+	return predicate.Location(sql.FieldEQ(FieldTelephone, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Location {
 	return predicate.Location(sql.FieldEQ(FieldName, v))
@@ -351,6 +356,71 @@ func ZipEqualFold(v string) predicate.Location {
 // ZipContainsFold applies the ContainsFold predicate on the "zip" field.
 func ZipContainsFold(v string) predicate.Location {
 	return predicate.Location(sql.FieldContainsFold(FieldZip, v))
+}
+
+// TelephoneEQ applies the EQ predicate on the "telephone" field.
+func TelephoneEQ(v string) predicate.Location {
+	return predicate.Location(sql.FieldEQ(FieldTelephone, v))
+}
+
+// TelephoneNEQ applies the NEQ predicate on the "telephone" field.
+func TelephoneNEQ(v string) predicate.Location {
+	return predicate.Location(sql.FieldNEQ(FieldTelephone, v))
+}
+
+// TelephoneIn applies the In predicate on the "telephone" field.
+func TelephoneIn(vs ...string) predicate.Location {
+	return predicate.Location(sql.FieldIn(FieldTelephone, vs...))
+}
+
+// TelephoneNotIn applies the NotIn predicate on the "telephone" field.
+func TelephoneNotIn(vs ...string) predicate.Location {
+	return predicate.Location(sql.FieldNotIn(FieldTelephone, vs...))
+}
+
+// TelephoneGT applies the GT predicate on the "telephone" field.
+func TelephoneGT(v string) predicate.Location {
+	return predicate.Location(sql.FieldGT(FieldTelephone, v))
+}
+
+// TelephoneGTE applies the GTE predicate on the "telephone" field.
+func TelephoneGTE(v string) predicate.Location {
+	return predicate.Location(sql.FieldGTE(FieldTelephone, v))
+}
+
+// TelephoneLT applies the LT predicate on the "telephone" field.
+func TelephoneLT(v string) predicate.Location {
+	return predicate.Location(sql.FieldLT(FieldTelephone, v))
+}
+
+// TelephoneLTE applies the LTE predicate on the "telephone" field.
+func TelephoneLTE(v string) predicate.Location {
+	return predicate.Location(sql.FieldLTE(FieldTelephone, v))
+}
+
+// TelephoneContains applies the Contains predicate on the "telephone" field.
+func TelephoneContains(v string) predicate.Location {
+	return predicate.Location(sql.FieldContains(FieldTelephone, v))
+}
+
+// TelephoneHasPrefix applies the HasPrefix predicate on the "telephone" field.
+func TelephoneHasPrefix(v string) predicate.Location {
+	return predicate.Location(sql.FieldHasPrefix(FieldTelephone, v))
+}
+
+// TelephoneHasSuffix applies the HasSuffix predicate on the "telephone" field.
+func TelephoneHasSuffix(v string) predicate.Location {
+	return predicate.Location(sql.FieldHasSuffix(FieldTelephone, v))
+}
+
+// TelephoneEqualFold applies the EqualFold predicate on the "telephone" field.
+func TelephoneEqualFold(v string) predicate.Location {
+	return predicate.Location(sql.FieldEqualFold(FieldTelephone, v))
+}
+
+// TelephoneContainsFold applies the ContainsFold predicate on the "telephone" field.
+func TelephoneContainsFold(v string) predicate.Location {
+	return predicate.Location(sql.FieldContainsFold(FieldTelephone, v))
 }
 
 // HasVendor applies the HasEdge predicate on the "vendor" edge.

@@ -22,6 +22,8 @@ const (
 	FieldLatitude = "latitude"
 	// FieldZip holds the string denoting the zip field in the database.
 	FieldZip = "zip"
+	// FieldTelephone holds the string denoting the telephone field in the database.
+	FieldTelephone = "telephone"
 	// FieldWorkingTime holds the string denoting the working_time field in the database.
 	FieldWorkingTime = "working_time"
 	// EdgeVendor holds the string denoting the vendor edge name in mutations.
@@ -45,6 +47,7 @@ var Columns = []string{
 	FieldLongitude,
 	FieldLatitude,
 	FieldZip,
+	FieldTelephone,
 	FieldWorkingTime,
 }
 
@@ -74,6 +77,8 @@ var (
 	DefaultLongitude float64
 	// DefaultLatitude holds the default value on creation for the "latitude" field.
 	DefaultLatitude float64
+	// DefaultTelephone holds the default value on creation for the "telephone" field.
+	DefaultTelephone string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -109,6 +114,11 @@ func ByLatitude(opts ...sql.OrderTermOption) OrderOption {
 // ByZip orders the results by the zip field.
 func ByZip(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldZip, opts...).ToFunc()
+}
+
+// ByTelephone orders the results by the telephone field.
+func ByTelephone(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTelephone, opts...).ToFunc()
 }
 
 // ByVendorField orders the results by vendor field.

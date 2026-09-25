@@ -175,6 +175,7 @@ var (
 		{Name: "longitude", Type: field.TypeFloat64, Default: 0.1},
 		{Name: "latitude", Type: field.TypeFloat64, Default: 0.1},
 		{Name: "zip", Type: field.TypeString},
+		{Name: "telephone", Type: field.TypeString, Default: ""},
 		{Name: "working_time", Type: field.TypeJSON},
 		{Name: "vendor_locations", Type: field.TypeInt, Nullable: true},
 	}
@@ -186,7 +187,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "locations_vendor_locations",
-				Columns:    []*schema.Column{LocationsColumns[7]},
+				Columns:    []*schema.Column{LocationsColumns[8]},
 				RefColumns: []*schema.Column{VendorColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -409,6 +410,8 @@ var (
 		{Name: "hassmartphone", Type: field.TypeBool, Default: false},
 		{Name: "hasbankaccount", Type: field.TypeBool, Default: false},
 		{Name: "isdeleted", Type: field.TypeBool, Default: false},
+		{Name: "isblocked", Type: field.TypeBool, Default: false},
+		{Name: "blockednote", Type: field.TypeString, Default: ""},
 		{Name: "accountproofurl", Type: field.TypeString},
 		{Name: "debt", Type: field.TypeString},
 	}

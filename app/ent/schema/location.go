@@ -23,6 +23,8 @@ func (Location) Fields() []ent.Field {
 		field.Float("latitude").
 			Default(0.1),
 		field.String("zip"),
+		field.String("telephone").
+			Default(""),
 		field.JSON("working_time", &WorkingTime{}),
 	}
 }

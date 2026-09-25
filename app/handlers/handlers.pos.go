@@ -88,6 +88,10 @@ func CreatePOSOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("vendor not found"), http.StatusBadRequest)
 		return
 	}
+	if vendor.IsBlocked {
+		utils.ErrorJSON(w, errVendorBlocked, http.StatusForbidden)
+		return
+	}
 	vendorAccount, err := database.Db.GetAccountByVendorID(vendor.ID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusInternalServerError)

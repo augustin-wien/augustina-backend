@@ -262,6 +262,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	if vendor.IsBlocked {
+		utils.ErrorJSON(w, errVendorBlocked, http.StatusForbidden)
+		return
+	}
 	order.Vendor = vendor.ID
 
 	var settings *ent.Settings

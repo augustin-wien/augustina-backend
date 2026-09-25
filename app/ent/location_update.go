@@ -113,6 +113,20 @@ func (_u *LocationUpdate) SetNillableZip(v *string) *LocationUpdate {
 	return _u
 }
 
+// SetTelephone sets the "telephone" field.
+func (_u *LocationUpdate) SetTelephone(v string) *LocationUpdate {
+	_u.mutation.SetTelephone(v)
+	return _u
+}
+
+// SetNillableTelephone sets the "telephone" field if the given value is not nil.
+func (_u *LocationUpdate) SetNillableTelephone(v *string) *LocationUpdate {
+	if v != nil {
+		_u.SetTelephone(*v)
+	}
+	return _u
+}
+
 // SetWorkingTime sets the "working_time" field.
 func (_u *LocationUpdate) SetWorkingTime(v *schema.WorkingTime) *LocationUpdate {
 	_u.mutation.SetWorkingTime(v)
@@ -205,6 +219,9 @@ func (_u *LocationUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Zip(); ok {
 		_spec.SetField(location.FieldZip, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Telephone(); ok {
+		_spec.SetField(location.FieldTelephone, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.WorkingTime(); ok {
 		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)
@@ -342,6 +359,20 @@ func (_u *LocationUpdateOne) SetNillableZip(v *string) *LocationUpdateOne {
 	return _u
 }
 
+// SetTelephone sets the "telephone" field.
+func (_u *LocationUpdateOne) SetTelephone(v string) *LocationUpdateOne {
+	_u.mutation.SetTelephone(v)
+	return _u
+}
+
+// SetNillableTelephone sets the "telephone" field if the given value is not nil.
+func (_u *LocationUpdateOne) SetNillableTelephone(v *string) *LocationUpdateOne {
+	if v != nil {
+		_u.SetTelephone(*v)
+	}
+	return _u
+}
+
 // SetWorkingTime sets the "working_time" field.
 func (_u *LocationUpdateOne) SetWorkingTime(v *schema.WorkingTime) *LocationUpdateOne {
 	_u.mutation.SetWorkingTime(v)
@@ -464,6 +495,9 @@ func (_u *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err 
 	}
 	if value, ok := _u.mutation.Zip(); ok {
 		_spec.SetField(location.FieldZip, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Telephone(); ok {
+		_spec.SetField(location.FieldTelephone, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.WorkingTime(); ok {
 		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)

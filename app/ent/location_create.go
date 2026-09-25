@@ -67,6 +67,20 @@ func (_c *LocationCreate) SetZip(v string) *LocationCreate {
 	return _c
 }
 
+// SetTelephone sets the "telephone" field.
+func (_c *LocationCreate) SetTelephone(v string) *LocationCreate {
+	_c.mutation.SetTelephone(v)
+	return _c
+}
+
+// SetNillableTelephone sets the "telephone" field if the given value is not nil.
+func (_c *LocationCreate) SetNillableTelephone(v *string) *LocationCreate {
+	if v != nil {
+		_c.SetTelephone(*v)
+	}
+	return _c
+}
+
 // SetWorkingTime sets the "working_time" field.
 func (_c *LocationCreate) SetWorkingTime(v *schema.WorkingTime) *LocationCreate {
 	_c.mutation.SetWorkingTime(v)
@@ -141,6 +155,10 @@ func (_c *LocationCreate) defaults() {
 		v := location.DefaultLatitude
 		_c.mutation.SetLatitude(v)
 	}
+	if _, ok := _c.mutation.Telephone(); !ok {
+		v := location.DefaultTelephone
+		_c.mutation.SetTelephone(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -159,6 +177,9 @@ func (_c *LocationCreate) check() error {
 	}
 	if _, ok := _c.mutation.Zip(); !ok {
 		return &ValidationError{Name: "zip", err: errors.New(`ent: missing required field "Location.zip"`)}
+	}
+	if _, ok := _c.mutation.Telephone(); !ok {
+		return &ValidationError{Name: "telephone", err: errors.New(`ent: missing required field "Location.telephone"`)}
 	}
 	if _, ok := _c.mutation.WorkingTime(); !ok {
 		return &ValidationError{Name: "working_time", err: errors.New(`ent: missing required field "Location.working_time"`)}
@@ -219,6 +240,10 @@ func (_c *LocationCreate) createSpec() (*Location, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Zip(); ok {
 		_spec.SetField(location.FieldZip, field.TypeString, value)
 		_node.Zip = value
+	}
+	if value, ok := _c.mutation.Telephone(); ok {
+		_spec.SetField(location.FieldTelephone, field.TypeString, value)
+		_node.Telephone = value
 	}
 	if value, ok := _c.mutation.WorkingTime(); ok {
 		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)

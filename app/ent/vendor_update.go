@@ -255,6 +255,34 @@ func (_u *VendorUpdate) SetNillableIsdeleted(v *bool) *VendorUpdate {
 	return _u
 }
 
+// SetIsblocked sets the "isblocked" field.
+func (_u *VendorUpdate) SetIsblocked(v bool) *VendorUpdate {
+	_u.mutation.SetIsblocked(v)
+	return _u
+}
+
+// SetNillableIsblocked sets the "isblocked" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableIsblocked(v *bool) *VendorUpdate {
+	if v != nil {
+		_u.SetIsblocked(*v)
+	}
+	return _u
+}
+
+// SetBlockednote sets the "blockednote" field.
+func (_u *VendorUpdate) SetBlockednote(v string) *VendorUpdate {
+	_u.mutation.SetBlockednote(v)
+	return _u
+}
+
+// SetNillableBlockednote sets the "blockednote" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableBlockednote(v *string) *VendorUpdate {
+	if v != nil {
+		_u.SetBlockednote(*v)
+	}
+	return _u
+}
+
 // SetAccountproofurl sets the "accountproofurl" field.
 func (_u *VendorUpdate) SetAccountproofurl(v string) *VendorUpdate {
 	_u.mutation.SetAccountproofurl(v)
@@ -479,6 +507,12 @@ func (_u *VendorUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Isdeleted(); ok {
 		_spec.SetField(vendor.FieldIsdeleted, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Isblocked(); ok {
+		_spec.SetField(vendor.FieldIsblocked, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Blockednote(); ok {
+		_spec.SetField(vendor.FieldBlockednote, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Accountproofurl(); ok {
 		_spec.SetField(vendor.FieldAccountproofurl, field.TypeString, value)
@@ -865,6 +899,34 @@ func (_u *VendorUpdateOne) SetNillableIsdeleted(v *bool) *VendorUpdateOne {
 	return _u
 }
 
+// SetIsblocked sets the "isblocked" field.
+func (_u *VendorUpdateOne) SetIsblocked(v bool) *VendorUpdateOne {
+	_u.mutation.SetIsblocked(v)
+	return _u
+}
+
+// SetNillableIsblocked sets the "isblocked" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableIsblocked(v *bool) *VendorUpdateOne {
+	if v != nil {
+		_u.SetIsblocked(*v)
+	}
+	return _u
+}
+
+// SetBlockednote sets the "blockednote" field.
+func (_u *VendorUpdateOne) SetBlockednote(v string) *VendorUpdateOne {
+	_u.mutation.SetBlockednote(v)
+	return _u
+}
+
+// SetNillableBlockednote sets the "blockednote" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableBlockednote(v *string) *VendorUpdateOne {
+	if v != nil {
+		_u.SetBlockednote(*v)
+	}
+	return _u
+}
+
 // SetAccountproofurl sets the "accountproofurl" field.
 func (_u *VendorUpdateOne) SetAccountproofurl(v string) *VendorUpdateOne {
 	_u.mutation.SetAccountproofurl(v)
@@ -1119,6 +1181,12 @@ func (_u *VendorUpdateOne) sqlSave(ctx context.Context) (_node *Vendor, err erro
 	}
 	if value, ok := _u.mutation.Isdeleted(); ok {
 		_spec.SetField(vendor.FieldIsdeleted, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Isblocked(); ok {
+		_spec.SetField(vendor.FieldIsblocked, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Blockednote(); ok {
+		_spec.SetField(vendor.FieldBlockednote, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Accountproofurl(); ok {
 		_spec.SetField(vendor.FieldAccountproofurl, field.TypeString, value)

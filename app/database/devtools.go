@@ -96,6 +96,7 @@ func (db *Database) createDevLocations(vendorIDs []int) (err error) {
 			Longitude: 16.3725,
 			Latitude:  48.2082,
 			Zip:       "1010",
+			Telephone: "+43 1 512 34 56",
 			WorkingTime: &schema.WorkingTime{
 				Mode: "everyday",
 				Everyday: []schema.TimeRange{

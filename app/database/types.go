@@ -24,6 +24,8 @@ type Vendor struct {
 	Balance          int       // This is joined in from the account
 	IsDisabled       bool
 	IsDeleted        bool
+	IsBlocked        bool   // Blocked vendors can't sell, neither at the POS nor via their QR code
+	BlockedNote      string // Why the vendor is blocked, shown to backoffice staff
 	Locations        []*ent.Location
 	Comments         []*ent.Comment
 	Language         string
@@ -34,6 +36,7 @@ type Vendor struct {
 	HasSmartphone    bool
 	HasBankAccount   bool
 	Debt             string
+	FirstOnlineSale  null.Time `swaggertype:"string" format:"date-time"` // Computed: time of the vendor's first verified online (QR code) order, null if none; ignored on writes
 }
 
 // Location is a struct that is used for the location table

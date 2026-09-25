@@ -49,6 +49,10 @@ type Vendor struct {
 	Hasbankaccount bool `json:"hasbankaccount,omitempty"`
 	// Isdeleted holds the value of the "isdeleted" field.
 	Isdeleted bool `json:"isdeleted,omitempty"`
+	// Isblocked holds the value of the "isblocked" field.
+	Isblocked bool `json:"isblocked,omitempty"`
+	// Blockednote holds the value of the "blockednote" field.
+	Blockednote string `json:"blockednote,omitempty"`
 	// Accountproofurl holds the value of the "accountproofurl" field.
 	Accountproofurl string `json:"accountproofurl,omitempty"`
 	// Debt holds the value of the "debt" field.
@@ -104,11 +108,11 @@ func (*Vendor) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case vendor.FieldIsdisabled, vendor.FieldOnlinemap, vendor.FieldHassmartphone, vendor.FieldHasbankaccount, vendor.FieldIsdeleted:
+		case vendor.FieldIsdisabled, vendor.FieldOnlinemap, vendor.FieldHassmartphone, vendor.FieldHasbankaccount, vendor.FieldIsdeleted, vendor.FieldIsblocked:
 			values[i] = new(sql.NullBool)
 		case vendor.FieldID:
 			values[i] = new(sql.NullInt64)
-		case vendor.FieldKeycloakid, vendor.FieldUrlid, vendor.FieldLicenseid, vendor.FieldFirstname, vendor.FieldLastname, vendor.FieldEmail, vendor.FieldLanguage, vendor.FieldTelephone, vendor.FieldRegistrationdate, vendor.FieldVendorsince, vendor.FieldAccountproofurl, vendor.FieldDebt:
+		case vendor.FieldKeycloakid, vendor.FieldUrlid, vendor.FieldLicenseid, vendor.FieldFirstname, vendor.FieldLastname, vendor.FieldEmail, vendor.FieldLanguage, vendor.FieldTelephone, vendor.FieldRegistrationdate, vendor.FieldVendorsince, vendor.FieldBlockednote, vendor.FieldAccountproofurl, vendor.FieldDebt:
 			values[i] = new(sql.NullString)
 		case vendor.FieldLastpayout:
 			values[i] = new(sql.NullTime)
@@ -229,6 +233,18 @@ func (_m *Vendor) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Isdeleted = value.Bool
 			}
+		case vendor.FieldIsblocked:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field isblocked", values[i])
+			} else if value.Valid {
+				_m.Isblocked = value.Bool
+			}
+		case vendor.FieldBlockednote:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field blockednote", values[i])
+			} else if value.Valid {
+				_m.Blockednote = value.String
+			}
 		case vendor.FieldAccountproofurl:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field accountproofurl", values[i])
@@ -339,6 +355,12 @@ func (_m *Vendor) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("isdeleted=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Isdeleted))
+	builder.WriteString(", ")
+	builder.WriteString("isblocked=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Isblocked))
+	builder.WriteString(", ")
+	builder.WriteString("blockednote=")
+	builder.WriteString(_m.Blockednote)
 	builder.WriteString(", ")
 	builder.WriteString("accountproofurl=")
 	builder.WriteString(_m.Accountproofurl)
