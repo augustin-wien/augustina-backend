@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/augustin-wien/augustina-backend/ent"
 	entaccount "github.com/augustin-wien/augustina-backend/ent/account"
+	entorder "github.com/augustin-wien/augustina-backend/ent/order"
 	entvendor "github.com/augustin-wien/augustina-backend/ent/vendor"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"gopkg.in/guregu/null.v4"
@@ -81,8 +83,31 @@ func (db *Database) listVendors(includeDisabled bool) (vendors []Vendor, err err
 		return vendors, err
 	}
 
+	// Online orders are only ever created by the QR code checkout, so the
+	// earliest verified order is the vendor's first online sale
+	var firstSales []struct {
+		VendorID int       `json:"vendor_id"`
+		Min      time.Time `json:"min"`
+	}
+	err = db.EntClient.Order.Query().
+		Where(entorder.Verified(true)).
+		GroupBy(entorder.FieldVendorID).
+		Aggregate(ent.Min(entorder.FieldTimestamp)).
+		Scan(ctx, &firstSales)
+	if err != nil {
+		log.Error("ListVendors: couldn't get first online sales: ", err)
+		return vendors, err
+	}
+	firstOnlineSale := make(map[int]time.Time, len(firstSales))
+	for _, fs := range firstSales {
+		firstOnlineSale[fs.VendorID] = fs.Min
+	}
+
 	for _, e := range ents {
 		v := db.VendorEntIntoVendor(*e)
+		if ts, ok := firstOnlineSale[v.ID]; ok {
+			v.FirstOnlineSale = null.TimeFrom(ts)
+		}
 		// Set balance from the loaded account (there should be exactly one per vendor of type 'Vendor')
 		if len(e.Edges.Accounts) > 0 {
 			v.Balance = int(e.Edges.Accounts[0].Balance)
@@ -212,7 +237,28 @@ func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err
 		log.Error("GetVendorWithBalanceUpdate: Couldn't get balance ", err)
 	}
 
+	vendor.FirstOnlineSale, err = db.GetVendorFirstOnlineSale(vendorID)
+	if err != nil {
+		log.Error("GetVendorWithBalanceUpdate: couldn't get first online sale ", err)
+	}
+
 	return vendor, nil
+}
+
+// GetVendorFirstOnlineSale returns the time of the vendor's first verified
+// online (QR code) order, or null if the vendor has never sold online
+func (db *Database) GetVendorFirstOnlineSale(vendorID int) (null.Time, error) {
+	o, err := db.EntClient.Order.Query().
+		Where(entorder.VendorID(vendorID), entorder.Verified(true)).
+		Order(ent.Asc(entorder.FieldTimestamp)).
+		First(context.Background())
+	if ent.IsNotFound(err) {
+		return null.Time{}, nil
+	}
+	if err != nil {
+		return null.Time{}, err
+	}
+	return null.TimeFrom(o.Timestamp), nil
 }
 
 // CreateVendor creates a vendor and an associated account in the database

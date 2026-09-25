@@ -36,6 +36,7 @@ type Vendor struct {
 	HasSmartphone    bool
 	HasBankAccount   bool
 	Debt             string
+	FirstOnlineSale  null.Time `swaggertype:"string" format:"date-time"` // Computed: time of the vendor's first verified online (QR code) order, null if none; ignored on writes
 }
 
 // Location is a struct that is used for the location table
