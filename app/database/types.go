@@ -24,6 +24,8 @@ type Vendor struct {
 	Balance          int       // This is joined in from the account
 	IsDisabled       bool
 	IsDeleted        bool
+	IsBlocked        bool   // Blocked vendors can't sell, neither at the POS nor via their QR code
+	BlockedNote      string // Why the vendor is blocked, shown to backoffice staff
 	Locations        []*ent.Location
 	Comments         []*ent.Comment
 	Language         string

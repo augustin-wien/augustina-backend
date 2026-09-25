@@ -17,6 +17,10 @@ import (
 
 // Users ----------------------------------------------------------------------
 
+// errVendorBlocked is returned when someone tries to sell for a vendor that the
+// backoffice has blocked
+var errVendorBlocked = errors.New("vendor is blocked")
+
 type checkLicenseIDResponse struct {
 	FirstName       string
 	AccountProofUrl null.String
@@ -43,6 +47,10 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 	users, err := database.Db.GetVendorByLicenseIDWithoutDisabled(licenseID)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("wrong license id. No vendor exists with this id"), http.StatusBadRequest)
+		return
+	}
+	if users.IsBlocked {
+		utils.ErrorJSON(w, errVendorBlocked, http.StatusForbidden)
 		return
 	}
 	settings, err := database.Db.GetSettings()
@@ -75,7 +83,7 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 //		@Success		200	{array}	database.Vendor
 //		@Router			/vendors/ [get]
 func ListVendors(w http.ResponseWriter, r *http.Request) {
-	vendors, err := database.Db.ListVendors()
+	vendors, err := database.Db.ListVendorsWithDisabled()
 	respond(w, err, vendors)
 }
 
@@ -92,7 +100,7 @@ func RecalculateAllVendorBalances(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
-	vendors, err := database.Db.ListVendors()
+	vendors, err := database.Db.ListVendorsWithDisabled()
 	respond(w, err, vendors)
 }
 
@@ -384,6 +392,9 @@ func UpdateVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	vendor.KeycloakID = keycloakId
+	// flour doesn't know about blocking, so keep whatever the backoffice set
+	updatedVendor.IsBlocked = vendor.IsBlocked
+	updatedVendor.BlockedNote = vendor.BlockedNote
 	err = database.Db.UpdateVendor(vendor.ID, updatedVendor)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)

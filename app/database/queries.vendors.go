@@ -45,16 +45,29 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 
 }
 
-// ListVendors returns all users from the database but not all fields for better overview
+// ListVendors returns all active vendors, i.e. neither disabled nor deleted
 func (db *Database) ListVendors() (vendors []Vendor, err error) {
+	return db.listVendors(false)
+}
+
+// ListVendorsWithDisabled returns all vendors that are not deleted, including
+// disabled ones, so the backoffice can show them marked as disabled
+func (db *Database) ListVendorsWithDisabled() (vendors []Vendor, err error) {
+	return db.listVendors(true)
+}
+
+func (db *Database) listVendors(includeDisabled bool) (vendors []Vendor, err error) {
 	ctx := context.Background()
 	// Get vendors with accounts of type 'Vendor'
 	// The original query did a JOIN and filtered by Account.Type = 'Vendor'
 	// This implies we only want vendors that HAVE such an account,
 	// AND we only care about THAT account's balance.
 	// We load only the relevant account.
-	ents, err := db.EntClient.Vendor.Query().
-		Where(entvendor.Isdisabled(false)). // Query had IsDeleted=false, but comment says IsDisabled? No, query says IsDeleted=false.
+	query := db.EntClient.Vendor.Query()
+	if !includeDisabled {
+		query = query.Where(entvendor.Isdisabled(false))
+	}
+	ents, err := query.
 		Where(entvendor.Isdeleted(false)).
 		Where(entvendor.HasAccountsWith(entaccount.Type("Vendor"))).
 		WithAccounts(func(q *ent.AccountQuery) {
@@ -214,6 +227,8 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 		SetHassmartphone(vendor.HasSmartphone).
 		SetIsdeleted(vendor.IsDeleted).
 		SetIsdisabled(vendor.IsDisabled).
+		SetIsblocked(vendor.IsBlocked).
+		SetBlockednote(vendor.BlockedNote).
 		SetKeycloakid(vendor.KeycloakID).
 		SetLanguage(vendor.Language).
 		SetLastname(vendor.LastName).
@@ -259,7 +274,7 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	vendor.Email = utils.ToLower(vendor.Email)
 	ctx := context.Background()
 	v := db.VendorIntoVendorEnt(vendor)
-	_, err = db.EntClient.Vendor.UpdateOneID(id).SetAccountproofurl(v.Accountproofurl).SetEmail(v.Email).SetFirstname(v.Firstname).SetHasbankaccount(v.Hasbankaccount).SetHassmartphone(v.Hassmartphone).SetIsdeleted(v.Isdeleted).SetIsdisabled(v.Isdisabled).SetKeycloakid(v.Keycloakid).SetLanguage(v.Language).SetLastname(v.Lastname).SetLastpayout(v.Lastpayout).SetLicenseid(v.Licenseid).SetOnlinemap(v.Onlinemap).SetRegistrationdate(v.Registrationdate).SetTelephone(v.Telephone).SetUrlid(v.Urlid).SetDebt(v.Debt).Save(ctx)
+	_, err = db.EntClient.Vendor.UpdateOneID(id).SetAccountproofurl(v.Accountproofurl).SetEmail(v.Email).SetFirstname(v.Firstname).SetHasbankaccount(v.Hasbankaccount).SetHassmartphone(v.Hassmartphone).SetIsdeleted(v.Isdeleted).SetIsdisabled(v.Isdisabled).SetIsblocked(v.Isblocked).SetBlockednote(v.Blockednote).SetKeycloakid(v.Keycloakid).SetLanguage(v.Language).SetLastname(v.Lastname).SetLastpayout(v.Lastpayout).SetLicenseid(v.Licenseid).SetOnlinemap(v.Onlinemap).SetRegistrationdate(v.Registrationdate).SetTelephone(v.Telephone).SetUrlid(v.Urlid).SetDebt(v.Debt).Save(ctx)
 
 	return err
 }
@@ -318,6 +333,8 @@ func (db *Database) VendorEntIntoVendor(v ent.Vendor) (vendor Vendor) {
 		LastPayout:       null.TimeFrom(v.Lastpayout),
 		IsDisabled:       v.Isdisabled,
 		IsDeleted:        v.Isdeleted,
+		IsBlocked:        v.Isblocked,
+		BlockedNote:      v.Blockednote,
 		Locations:        v.Edges.Locations,
 		Comments:         v.Edges.Comments,
 		Language:         v.Language,
@@ -345,6 +362,8 @@ func (db *Database) VendorIntoVendorEnt(vendor Vendor) (v *ent.Vendor) {
 		Lastpayout:      vendor.LastPayout.Time,
 		Isdisabled:      vendor.IsDisabled,
 		Isdeleted:       vendor.IsDeleted,
+		Isblocked:       vendor.IsBlocked,
+		Blockednote:     vendor.BlockedNote,
 		// Locations:        vendor.Edges.Locations,
 		// Comments:         vendor.Edges.Comments,
 		Language:         vendor.Language,
