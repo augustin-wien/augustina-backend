@@ -348,6 +348,15 @@ func GetRouter() (r *chi.Mux) {
 			})
 		})
 
+		r.Route("/api/locations", func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/", ListAllVendorLocations)
+			r.Post("/", CreateLocation)
+			r.Patch("/{id}/", UpdateLocation)
+			r.Delete("/{id}/", DeleteLocation)
+		})
+
 		// Online Map
 		r.Group(func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
