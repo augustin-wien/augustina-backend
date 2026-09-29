@@ -292,6 +292,70 @@ func Test_GetUnsyncedOrders(t *testing.T) {
 	require.False(t, syncedOrder.OdooSyncError.Valid)
 }
 
+// Test_GetVerifiedOrders checks that only verified orders are listed, with all
+// their entries, and that the date range filters by verification time.
+func Test_GetVerifiedOrders(t *testing.T) {
+	Db.InitEmptyTestDb()
+
+	vendorID, err := Db.CreateVendor(Vendor{
+		FirstName: "Test",
+		LastName:  "Vendor",
+		Email:     "test@vendor.com",
+		LicenseID: null.StringFrom("tv-verified-123"),
+	})
+	utils.CheckError(t, err)
+	vendorAccount, err := Db.GetAccountByVendorID(vendorID)
+	utils.CheckError(t, err)
+
+	itemA, err := Db.CreateItem(Item{
+		Name:        "Item A",
+		Description: "This is a test item description that is long enough",
+		Price:       300,
+		Type:        "normal_item",
+	})
+	utils.CheckError(t, err)
+	itemB, err := Db.CreateItem(Item{
+		Name:        "Item B",
+		Description: "This is a test item description that is long enough",
+		Price:       250,
+		Type:        "normal_item",
+	})
+	utils.CheckError(t, err)
+
+	newOrder := func(code string) int {
+		id, err := Db.CreateOrder(Order{
+			OrderCode: null.StringFrom(code),
+			Vendor:    vendorID,
+			Entries: []OrderEntry{
+				{Item: itemA, Quantity: 2, Price: 300, Sender: vendorAccount.ID, Receiver: vendorAccount.ID, IsSale: true},
+				{Item: itemB, Quantity: 1, Price: 250, Sender: vendorAccount.ID, Receiver: vendorAccount.ID, IsSale: true},
+			},
+		})
+		utils.CheckError(t, err)
+		return id
+	}
+
+	verifiedID := newOrder("verified-order")
+	newOrder("unverified-order")
+	utils.CheckError(t, Db.VerifyOrderAndCreatePayments(verifiedID, 1))
+
+	orders, err := Db.GetVerifiedOrders(time.Time{}, time.Time{})
+	utils.CheckError(t, err)
+	require.Len(t, orders, 1)
+	require.Equal(t, verifiedID, orders[0].ID)
+	require.Len(t, orders[0].Entries, 2)
+	require.Equal(t, 850, orders[0].GetTotal())
+
+	now := time.Now()
+	orders, err = Db.GetVerifiedOrders(now.Add(-time.Hour), now.Add(time.Hour))
+	utils.CheckError(t, err)
+	require.Len(t, orders, 1)
+
+	orders, err = Db.GetVerifiedOrders(now.Add(time.Hour), time.Time{})
+	utils.CheckError(t, err)
+	require.Empty(t, orders)
+}
+
 func Test_VerifyOrderCreatesAbonementForAboItem(t *testing.T) {
 	Db.InitEmptyTestDb()
 
