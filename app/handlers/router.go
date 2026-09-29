@@ -301,6 +301,7 @@ func GetRouter() (r *chi.Mux) {
 				r.Post("/unverified/code/{orderCode}/transactionID/", AdminAddTransactionIDToOrder)
 				r.Get("/unsynced/", ListUnsyncedOrders)
 				r.Post("/resend/{orderID}/", ResendOdooWebhook)
+				r.Post("/{orderID}/resend-mail/", ResendOrderMail)
 			})
 		})
 

@@ -504,7 +504,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", orderID, err)
 			}
 
-			if item.LicenseItem.Valid || item.Type == "abonement" {
+			if isMailDeliveredItem(item) {
 
 				if !item.IsPDFItem {
 					// Ensure we only call GetOrCreateUser once per order/customer
@@ -614,18 +614,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 
 					// Send email with link to the license item once per order
 					if !sentDigitalLicenceEmail {
-						templateData := struct {
-							URL       string
-							EMAIL     string
-							InviteURL string
-						}{
-							URL:       config.Config.OnlinePaperUrl,
-							EMAIL:     o.CustomerEmail.String,
-							InviteURL: inviteURL,
-						}
-
-						receivers := []string{o.CustomerEmail.String}
-						mail, err := db.BuildEmailRequestFromTemplate("digitalLicenceItemTemplate.html", receivers, templateData)
+						mail, err := db.buildDigitalLicenceMail(o.CustomerEmail.String, inviteURL)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 						} else if mail != nil {
@@ -689,16 +678,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						}
 					}
 					if !pdfDownload.EmailSent {
-						url := config.Config.FrontendURL + "/pdf/" + pdfDownload.LinkID
-						templateData := struct {
-							URL   string
-							EMAIL string
-						}{
-							URL:   url,
-							EMAIL: o.CustomerEmail.String,
-						}
-						receivers := []string{o.CustomerEmail.String}
-						mail, err := db.BuildEmailRequestFromTemplate("PDFLicenceItemTemplate.html", receivers, templateData)
+						mail, err := db.buildPDFLicenceMail(o.CustomerEmail.String, pdfDownload.LinkID)
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 						} else if mail != nil {
