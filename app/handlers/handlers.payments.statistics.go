@@ -16,6 +16,7 @@ import (
 type ItemStatistics struct {
 	ID          int
 	Name        string
+	Type        string // item type, e.g. donation or transaction_costs
 	SumAmount   int
 	SumQuantity int
 }
@@ -163,6 +164,7 @@ func buildPaymentsStatistics(items []database.Item, payments []database.Payment,
 		itemsMap[item.ID] = ItemStatistics{
 			ID:          item.ID,
 			Name:        item.Name,
+			Type:        item.Type,
 			SumAmount:   0,
 			SumQuantity: 0,
 		}
@@ -206,7 +208,8 @@ func buildPaymentsStatistics(items []database.Item, payments []database.Payment,
 				quantity = 1
 			}
 
-			if receiver := accountsMap[payment.Receiver]; payment.IsSale && receiver.Type == "Vendor" && receiver.Vendor.Valid {
+			// Transaction costs are expenses, not sales of the vendor
+			if receiver := accountsMap[payment.Receiver]; payment.IsSale && receiver.Type == "Vendor" && receiver.Vendor.Valid && !transactionCostsItemIDs[itemID] {
 				vendorID := int(receiver.Vendor.Int64)
 				vendorEntry := vendorsMap[vendorID]
 				vendorEntry.VendorID = vendorID
