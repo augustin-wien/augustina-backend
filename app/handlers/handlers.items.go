@@ -51,6 +51,7 @@ func ListItems(w http.ResponseWriter, r *http.Request) {
 //		@Produce		json
 //	    @Param			skipHiddenItems query bool false "No donation and transaction cost items"
 //		@Param 			skipLicenses query bool false "No license items"
+//		@Param 			includeArchived query bool false "Also return archived (deleted) items, e.g. to resolve item names in exports"
 //		@Success		200	{array}	database.Item
 //		@Security		KeycloakAuth
 //		@Router			/items/backoffice [get]
@@ -72,7 +73,18 @@ func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	items, err := database.Db.ListItemsWithDisabled(skipHiddenItems, skipLicenses)
+	includeArchived, err := parseBool(r.URL.Query().Get("includeArchived"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	var items []database.Item
+	if includeArchived {
+		items, err = database.Db.ListItemsIncludingArchived(skipHiddenItems, skipLicenses)
+	} else {
+		items, err = database.Db.ListItemsWithDisabled(skipHiddenItems, skipLicenses)
+	}
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -80,6 +92,25 @@ func ListItemsBackoffice(w http.ResponseWriter, r *http.Request) {
 	err = utils.WriteJSON(w, http.StatusOK, items)
 	if err != nil {
 		log.Error("ListItemsBackoffice: ", err)
+	}
+}
+
+// ListArchivedItems godoc
+//
+//		@Summary		List archived (deleted) items
+//		@Tags			Items
+//		@Produce		json
+//		@Success		200	{array}	database.Item
+//		@Security		KeycloakAuth
+//		@Router			/items/archived/ [get]
+func ListArchivedItems(w http.ResponseWriter, r *http.Request) {
+	items, err := database.Db.ListArchivedItems()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	if err := utils.WriteJSON(w, http.StatusOK, items); err != nil {
+		log.Error("ListArchivedItems: ", err)
 	}
 }
 
@@ -665,6 +696,31 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = database.Db.DeleteItem(ItemID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// RestoreItem godoc
+//
+//		 	@Summary 		Restore an archived (deleted) item
+//			@Tags			Items
+//			@Produce		json
+//			@Success		204
+//			@Security		KeycloakAuth
+//	     	@Param          id   path int  true  "Item ID"
+//			@Router			/items/{id}/restore/ [post]
+func RestoreItem(w http.ResponseWriter, r *http.Request) {
+	itemID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = database.Db.RestoreItem(itemID)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

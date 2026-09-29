@@ -263,10 +263,12 @@ func GetRouter() (r *chi.Mux) {
 				r.Use(middlewares.AdminAuthMiddleware)
 				r.Get("/backoffice/", ListItemsBackoffice)
 				r.Get("/licensegroups/", ListLicenseGroups)
+				r.Get("/archived/", ListArchivedItems)
 				r.Post("/", CreateItem)
 				r.Route("/{id}", func(r chi.Router) {
 					r.Put("/", UpdateItem)
 					r.Delete("/", DeleteItem)
+					r.Post("/restore/", RestoreItem)
 				})
 			})
 		})

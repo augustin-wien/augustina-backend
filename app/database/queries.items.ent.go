@@ -575,3 +575,69 @@ func (db *Database) DeleteItem(id int) (err error) {
 	}
 	return
 }
+
+// ListArchivedItems returns all archived (deleted) items, newest first.
+func (db *Database) ListArchivedItems() ([]Item, error) {
+	out := []Item{}
+	ents, err := db.EntClient.Item.Query().Where(entitem.ArchivedEQ(true)).Order(ent.Desc(entitem.FieldID)).WithLicenseItem().WithPDF().All(context.Background())
+	if err != nil {
+		log.Error("ListArchivedItems (ent): ", err)
+		return out, err
+	}
+	for _, e := range ents {
+		out = append(out, convertEntItem(e))
+	}
+	return out, nil
+}
+
+// ListItemsIncludingArchived returns all items including disabled and archived
+// ones. Used wherever historic payments reference items (statistics, exports),
+// since a deleted item must still be resolvable there.
+func (db *Database) ListItemsIncludingArchived(skipHiddenItems bool, skipLicenses bool) ([]Item, error) {
+	var out []Item
+	ents, err := db.EntClient.Item.Query().Order(ent.Desc(entitem.FieldItemOrder)).WithLicenseItem().WithPDF().All(context.Background())
+	if err != nil {
+		log.Error("ListItemsIncludingArchived (ent): ", err)
+		return out, err
+	}
+	for _, e := range ents {
+		it := convertEntItem(e)
+		if skipHiddenItems && (it.Name == config.Config.TransactionCostsName || it.Name == config.Config.DonationName) {
+			continue
+		}
+		if skipLicenses && it.IsLicenseItem {
+			continue
+		}
+		out = append(out, it)
+	}
+	return out, nil
+}
+
+// GetItemName returns the name of the item with the given ID, regardless of
+// whether it is disabled or archived.
+func (db *Database) GetItemName(id int) (string, error) {
+	e, err := db.EntClient.Item.Get(context.Background(), id)
+	if err != nil {
+		return "", err
+	}
+	return e.Name, nil
+}
+
+// RestoreItem un-archives a previously deleted item. The license assignment
+// that was cleared on deletion is not restored.
+func (db *Database) RestoreItem(id int) (err error) {
+	ctx := context.Background()
+	e, err := db.EntClient.Item.Get(ctx, id)
+	if err != nil {
+		log.Error("RestoreItem (ent): ", err)
+		return err
+	}
+	if !e.Archived {
+		return errors.New("item is not archived")
+	}
+	_, err = db.EntClient.Item.UpdateOneID(id).SetArchived(false).Save(ctx)
+	if err != nil {
+		log.Error("RestoreItem (ent): ", err)
+	}
+	return
+}
