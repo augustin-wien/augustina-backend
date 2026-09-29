@@ -15,6 +15,9 @@ type Account func(*sql.Selector)
 // BlockedIP is the predicate function for blockedip builders.
 type BlockedIP func(*sql.Selector)
 
+// Campaign is the predicate function for campaign builders.
+type Campaign func(*sql.Selector)
+
 // Comment is the predicate function for comment builders.
 type Comment func(*sql.Selector)
 

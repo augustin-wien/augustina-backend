@@ -3,9 +3,12 @@
 package ent
 
 import (
+	"time"
+
 	"github.com/augustin-wien/augustina-backend/ent/abonement"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
+	"github.com/augustin-wien/augustina-backend/ent/campaign"
 	"github.com/augustin-wien/augustina-backend/ent/customer"
 	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
 	"github.com/augustin-wien/augustina-backend/ent/item"
@@ -54,6 +57,32 @@ func init() {
 	blockedipDescStrikes := blockedipFields[1].Descriptor()
 	// blockedip.DefaultStrikes holds the default value on creation for the strikes field.
 	blockedip.DefaultStrikes = blockedipDescStrikes.Default.(int)
+	campaignFields := schema.Campaign{}.Fields()
+	_ = campaignFields
+	// campaignDescTitle is the schema descriptor for title field.
+	campaignDescTitle := campaignFields[3].Descriptor()
+	// campaign.DefaultTitle holds the default value on creation for the title field.
+	campaign.DefaultTitle = campaignDescTitle.Default.(string)
+	// campaignDescText is the schema descriptor for text field.
+	campaignDescText := campaignFields[4].Descriptor()
+	// campaign.DefaultText holds the default value on creation for the text field.
+	campaign.DefaultText = campaignDescText.Default.(string)
+	// campaignDescEnabled is the schema descriptor for enabled field.
+	campaignDescEnabled := campaignFields[7].Descriptor()
+	// campaign.DefaultEnabled holds the default value on creation for the enabled field.
+	campaign.DefaultEnabled = campaignDescEnabled.Default.(bool)
+	// campaignDescViews is the schema descriptor for views field.
+	campaignDescViews := campaignFields[8].Descriptor()
+	// campaign.DefaultViews holds the default value on creation for the views field.
+	campaign.DefaultViews = campaignDescViews.Default.(int)
+	// campaignDescClicks is the schema descriptor for clicks field.
+	campaignDescClicks := campaignFields[9].Descriptor()
+	// campaign.DefaultClicks holds the default value on creation for the clicks field.
+	campaign.DefaultClicks = campaignDescClicks.Default.(int)
+	// campaignDescCreatedAt is the schema descriptor for created_at field.
+	campaignDescCreatedAt := campaignFields[10].Descriptor()
+	// campaign.DefaultCreatedAt holds the default value on creation for the created_at field.
+	campaign.DefaultCreatedAt = campaignDescCreatedAt.Default.(func() time.Time)
 	customerFields := schema.Customer{}.Fields()
 	_ = customerFields
 	// customerDescEmail is the schema descriptor for email field.

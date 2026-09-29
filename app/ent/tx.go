@@ -18,6 +18,8 @@ type Tx struct {
 	Account *AccountClient
 	// BlockedIP is the client for interacting with the BlockedIP builders.
 	BlockedIP *BlockedIPClient
+	// Campaign is the client for interacting with the Campaign builders.
+	Campaign *CampaignClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
 	// Customer is the client for interacting with the Customer builders.
@@ -178,6 +180,7 @@ func (tx *Tx) init() {
 	tx.Abonement = NewAbonementClient(tx.config)
 	tx.Account = NewAccountClient(tx.config)
 	tx.BlockedIP = NewBlockedIPClient(tx.config)
+	tx.Campaign = NewCampaignClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
 	tx.Customer = NewCustomerClient(tx.config)
 	tx.DBSettings = NewDBSettingsClient(tx.config)

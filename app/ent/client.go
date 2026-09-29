@@ -18,6 +18,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/abonement"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
+	"github.com/augustin-wien/augustina-backend/ent/campaign"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/customer"
 	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
@@ -44,6 +45,8 @@ type Client struct {
 	Account *AccountClient
 	// BlockedIP is the client for interacting with the BlockedIP builders.
 	BlockedIP *BlockedIPClient
+	// Campaign is the client for interacting with the Campaign builders.
+	Campaign *CampaignClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
 	// Customer is the client for interacting with the Customer builders.
@@ -84,6 +87,7 @@ func (c *Client) init() {
 	c.Abonement = NewAbonementClient(c.config)
 	c.Account = NewAccountClient(c.config)
 	c.BlockedIP = NewBlockedIPClient(c.config)
+	c.Campaign = NewCampaignClient(c.config)
 	c.Comment = NewCommentClient(c.config)
 	c.Customer = NewCustomerClient(c.config)
 	c.DBSettings = NewDBSettingsClient(c.config)
@@ -192,6 +196,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Abonement:    NewAbonementClient(cfg),
 		Account:      NewAccountClient(cfg),
 		BlockedIP:    NewBlockedIPClient(cfg),
+		Campaign:     NewCampaignClient(cfg),
 		Comment:      NewCommentClient(cfg),
 		Customer:     NewCustomerClient(cfg),
 		DBSettings:   NewDBSettingsClient(cfg),
@@ -227,6 +232,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Abonement:    NewAbonementClient(cfg),
 		Account:      NewAccountClient(cfg),
 		BlockedIP:    NewBlockedIPClient(cfg),
+		Campaign:     NewCampaignClient(cfg),
 		Comment:      NewCommentClient(cfg),
 		Customer:     NewCustomerClient(cfg),
 		DBSettings:   NewDBSettingsClient(cfg),
@@ -269,8 +275,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Abonement, c.Account, c.BlockedIP, c.Comment, c.Customer, c.DBSettings,
-		c.Item, c.Location, c.MailTemplate, c.Order, c.OrderEntry, c.PDF,
+		c.Abonement, c.Account, c.BlockedIP, c.Campaign, c.Comment, c.Customer,
+		c.DBSettings, c.Item, c.Location, c.MailTemplate, c.Order, c.OrderEntry, c.PDF,
 		c.PDFDownload, c.Payment, c.Settings, c.Vendor,
 	} {
 		n.Use(hooks...)
@@ -281,8 +287,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Abonement, c.Account, c.BlockedIP, c.Comment, c.Customer, c.DBSettings,
-		c.Item, c.Location, c.MailTemplate, c.Order, c.OrderEntry, c.PDF,
+		c.Abonement, c.Account, c.BlockedIP, c.Campaign, c.Comment, c.Customer,
+		c.DBSettings, c.Item, c.Location, c.MailTemplate, c.Order, c.OrderEntry, c.PDF,
 		c.PDFDownload, c.Payment, c.Settings, c.Vendor,
 	} {
 		n.Intercept(interceptors...)
@@ -298,6 +304,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Account.mutate(ctx, m)
 	case *BlockedIPMutation:
 		return c.BlockedIP.mutate(ctx, m)
+	case *CampaignMutation:
+		return c.Campaign.mutate(ctx, m)
 	case *CommentMutation:
 		return c.Comment.mutate(ctx, m)
 	case *CustomerMutation:
@@ -773,6 +781,139 @@ func (c *BlockedIPClient) mutate(ctx context.Context, m *BlockedIPMutation) (Val
 		return (&BlockedIPDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown BlockedIP mutation op: %q", m.Op())
+	}
+}
+
+// CampaignClient is a client for the Campaign schema.
+type CampaignClient struct {
+	config
+}
+
+// NewCampaignClient returns a client for the Campaign from the given config.
+func NewCampaignClient(c config) *CampaignClient {
+	return &CampaignClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `campaign.Hooks(f(g(h())))`.
+func (c *CampaignClient) Use(hooks ...Hook) {
+	c.hooks.Campaign = append(c.hooks.Campaign, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `campaign.Intercept(f(g(h())))`.
+func (c *CampaignClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Campaign = append(c.inters.Campaign, interceptors...)
+}
+
+// Create returns a builder for creating a Campaign entity.
+func (c *CampaignClient) Create() *CampaignCreate {
+	mutation := newCampaignMutation(c.config, OpCreate)
+	return &CampaignCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Campaign entities.
+func (c *CampaignClient) CreateBulk(builders ...*CampaignCreate) *CampaignCreateBulk {
+	return &CampaignCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CampaignClient) MapCreateBulk(slice any, setFunc func(*CampaignCreate, int)) *CampaignCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CampaignCreateBulk{err: fmt.Errorf("calling to CampaignClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CampaignCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CampaignCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Campaign.
+func (c *CampaignClient) Update() *CampaignUpdate {
+	mutation := newCampaignMutation(c.config, OpUpdate)
+	return &CampaignUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CampaignClient) UpdateOne(_m *Campaign) *CampaignUpdateOne {
+	mutation := newCampaignMutation(c.config, OpUpdateOne, withCampaign(_m))
+	return &CampaignUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CampaignClient) UpdateOneID(id int) *CampaignUpdateOne {
+	mutation := newCampaignMutation(c.config, OpUpdateOne, withCampaignID(id))
+	return &CampaignUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Campaign.
+func (c *CampaignClient) Delete() *CampaignDelete {
+	mutation := newCampaignMutation(c.config, OpDelete)
+	return &CampaignDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CampaignClient) DeleteOne(_m *Campaign) *CampaignDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CampaignClient) DeleteOneID(id int) *CampaignDeleteOne {
+	builder := c.Delete().Where(campaign.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CampaignDeleteOne{builder}
+}
+
+// Query returns a query builder for Campaign.
+func (c *CampaignClient) Query() *CampaignQuery {
+	return &CampaignQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCampaign},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Campaign entity by its id.
+func (c *CampaignClient) Get(ctx context.Context, id int) (*Campaign, error) {
+	return c.Query().Where(campaign.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CampaignClient) GetX(ctx context.Context, id int) *Campaign {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *CampaignClient) Hooks() []Hook {
+	return c.hooks.Campaign
+}
+
+// Interceptors returns the client interceptors.
+func (c *CampaignClient) Interceptors() []Interceptor {
+	return c.inters.Campaign
+}
+
+func (c *CampaignClient) mutate(ctx context.Context, m *CampaignMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CampaignCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CampaignUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CampaignUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CampaignDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Campaign mutation op: %q", m.Op())
 	}
 }
 
@@ -2796,13 +2937,13 @@ func (c *VendorClient) mutate(ctx context.Context, m *VendorMutation) (Value, er
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Abonement, Account, BlockedIP, Comment, Customer, DBSettings, Item, Location,
-		MailTemplate, Order, OrderEntry, PDF, PDFDownload, Payment, Settings,
+		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings, Item,
+		Location, MailTemplate, Order, OrderEntry, PDF, PDFDownload, Payment, Settings,
 		Vendor []ent.Hook
 	}
 	inters struct {
-		Abonement, Account, BlockedIP, Comment, Customer, DBSettings, Item, Location,
-		MailTemplate, Order, OrderEntry, PDF, PDFDownload, Payment, Settings,
+		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings, Item,
+		Location, MailTemplate, Order, OrderEntry, PDF, PDFDownload, Payment, Settings,
 		Vendor []ent.Interceptor
 	}
 )

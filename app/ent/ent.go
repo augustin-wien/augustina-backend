@@ -15,6 +15,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/abonement"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
+	"github.com/augustin-wien/augustina-backend/ent/campaign"
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/customer"
 	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
@@ -91,6 +92,7 @@ func checkColumn(t, c string) error {
 			abonement.Table:    abonement.ValidColumn,
 			account.Table:      account.ValidColumn,
 			blockedip.Table:    blockedip.ValidColumn,
+			campaign.Table:     campaign.ValidColumn,
 			comment.Table:      comment.ValidColumn,
 			customer.Table:     customer.ValidColumn,
 			dbsettings.Table:   dbsettings.ValidColumn,

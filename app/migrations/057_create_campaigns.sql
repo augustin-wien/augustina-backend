@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS campaigns (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    item_id INTEGER NOT NULL,
+    title TEXT NOT NULL DEFAULT '',
+    text TEXT NOT NULL DEFAULT '',
+    starts_at TIMESTAMPTZ,
+    ends_at TIMESTAMPTZ,
+    enabled BOOLEAN NOT NULL DEFAULT false,
+    views INTEGER NOT NULL DEFAULT 0,
+    clicks INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
