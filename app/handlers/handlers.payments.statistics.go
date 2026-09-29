@@ -37,12 +37,20 @@ type VendorSalesStatistics struct {
 	SumQuantity int
 }
 
+// DailyPayoutStatistics holds the payouts to vendors on one day (Europe/Vienna)
+type DailyPayoutStatistics struct {
+	Date      string // YYYY-MM-DD
+	Count     int
+	SumAmount int
+}
+
 // PaymentsStatistics is the response to ListPaymentsStatistics
 type PaymentsStatistics struct {
 	From               time.Time
 	To                 time.Time
 	Items              []ItemStatistics
 	Days               []DailyItemStatistics
+	Payouts            []DailyPayoutStatistics
 	TopVendors         []VendorSalesStatistics // best selling vendors by quantity
 	TopVendorsByAmount []VendorSalesStatistics // best selling vendors by amount
 }
@@ -133,7 +141,8 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 	respond(w, err, paymentsStatistics)
 }
 
-// buildPaymentsStatistics sums up payments per item, per item and day and per vendor
+// buildPaymentsStatistics sums up payments per item, per item and day and per vendor,
+// and payouts per day
 func buildPaymentsStatistics(items []database.Item, payments []database.Payment, accounts []database.Account, vendors []database.Vendor) (PaymentsStatistics, error) {
 	accountsMap := make(map[int]database.Account)
 	for _, account := range accounts {
@@ -166,8 +175,18 @@ func buildPaymentsStatistics(items []database.Item, payments []database.Payment,
 	}
 	daysMap := make(map[dayKey]DailyItemStatistics)
 	vendorsMap := make(map[int]VendorSalesStatistics)
+	payoutsMap := make(map[string]DailyPayoutStatistics)
 	for _, payment := range payments {
 		if !payment.Item.Valid {
+			// A payout is a payment without item to the cash account
+			if accountsMap[payment.Receiver].Type == "Cash" {
+				date := payment.Timestamp.In(statisticsLocation).Format("2006-01-02")
+				payout := payoutsMap[date]
+				payout.Date = date
+				payout.Count++
+				payout.SumAmount += payment.Amount
+				payoutsMap[date] = payout
+			}
 			continue
 		}
 		itemID := int(payment.Item.Int64)
@@ -224,6 +243,12 @@ func buildPaymentsStatistics(items []database.Item, payments []database.Payment,
 			return paymentsStatistics.Days[i].Date < paymentsStatistics.Days[j].Date
 		}
 		return paymentsStatistics.Days[i].ItemID < paymentsStatistics.Days[j].ItemID
+	})
+	for _, payout := range payoutsMap {
+		paymentsStatistics.Payouts = append(paymentsStatistics.Payouts, payout)
+	}
+	sort.Slice(paymentsStatistics.Payouts, func(i, j int) bool {
+		return paymentsStatistics.Payouts[i].Date < paymentsStatistics.Payouts[j].Date
 	})
 
 	vendorInfo := make(map[int]database.Vendor)

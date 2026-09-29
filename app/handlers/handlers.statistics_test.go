@@ -21,6 +21,7 @@ func TestBuildPaymentsStatistics(t *testing.T) {
 		{ID: 3, Type: "Vendor", Vendor: null.IntFrom(8)},
 		{ID: 4, Type: "Paypal"},
 		{ID: 5, Type: "Orga"},
+		{ID: 6, Type: "Cash"},
 	}
 	vendors := []database.Vendor{
 		{ID: 7, LicenseID: null.StringFrom("fl-7"), FirstName: "Maria", LastName: "Huber"},
@@ -38,6 +39,10 @@ func TestBuildPaymentsStatistics(t *testing.T) {
 		{Item: null.IntFrom(94), Sender: 2, Receiver: 4, Quantity: 27, Amount: 27, Timestamp: day2},
 		{Item: null.IntFrom(94), Sender: 5, Receiver: 2, Quantity: 27, Amount: 27, Timestamp: day2},
 		{Sender: 2, Receiver: 5, Quantity: 5, Amount: 500, Timestamp: time.Date(2026, 9, 3, 10, 0, 0, 0, time.UTC)},
+		// Payouts to the vendors
+		{Sender: 2, Receiver: 6, Amount: 1200, Timestamp: time.Date(2026, 9, 1, 22, 30, 0, 0, time.UTC)},
+		{Sender: 3, Receiver: 6, Amount: 800, Timestamp: day2},
+		{Sender: 2, Receiver: 6, Amount: 450, Timestamp: time.Date(2026, 9, 3, 10, 0, 0, 0, time.UTC)},
 	}
 
 	stats, err := buildPaymentsStatistics(items, payments, accounts, vendors)
@@ -60,6 +65,11 @@ func TestBuildPaymentsStatistics(t *testing.T) {
 		{Date: "2026-09-02", ItemID: 94, SumQuantity: 1, SumAmount: 27},
 		{Date: "2026-09-03", ItemID: 93, SumQuantity: 1, SumAmount: 200},
 	}, stats.Days)
+
+	require.Equal(t, []DailyPayoutStatistics{
+		{Date: "2026-09-02", Count: 2, SumAmount: 2000},
+		{Date: "2026-09-03", Count: 1, SumAmount: 450},
+	}, stats.Payouts)
 
 	require.Equal(t, []VendorSalesStatistics{
 		{VendorID: 7, LicenseID: "fl-7", Name: "Maria Huber", SumQuantity: 2, SumAmount: 600},
