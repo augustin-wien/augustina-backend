@@ -7,7 +7,10 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"slices"
+	"sort"
 	"time"
+	_ "time/tzdata" // embed zone data, the alpine image has none
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/ent"
@@ -964,12 +967,45 @@ type ItemStatistics struct {
 	SumQuantity int
 }
 
+// DailyItemStatistics holds the sums of one item on one day (Europe/Vienna)
+type DailyItemStatistics struct {
+	Date        string // YYYY-MM-DD
+	ItemID      int
+	SumAmount   int
+	SumQuantity int
+}
+
+// VendorSalesStatistics holds the sales of one vendor
+type VendorSalesStatistics struct {
+	VendorID    int
+	LicenseID   string
+	Name        string
+	SumAmount   int
+	SumQuantity int
+}
+
 // PaymentsStatistics is the response to ListPaymentsStatistics
 type PaymentsStatistics struct {
-	From  time.Time
-	To    time.Time
-	Items []ItemStatistics
+	From       time.Time
+	To         time.Time
+	Items      []ItemStatistics
+	Days       []DailyItemStatistics
+	TopVendors         []VendorSalesStatistics // best selling vendors by quantity
+	TopVendorsByAmount []VendorSalesStatistics // best selling vendors by amount
 }
+
+// topVendorsCount is the number of vendors listed in PaymentsStatistics.TopVendors(ByAmount)
+const topVendorsCount = 10
+
+// statisticsLocation is the time zone used to group payments by day
+var statisticsLocation = func() *time.Location {
+	loc, err := time.LoadLocation("Europe/Vienna")
+	if err != nil {
+		log.Error("statisticsLocation: ", err)
+		return time.UTC
+	}
+	return loc
+}()
 
 // ListPaymentsStatistics godoc
 //
@@ -1020,10 +1056,48 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	accounts, err := database.Db.ListAccounts()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Including disabled vendors, since they may have sold in the period
+	vendors, err := database.Db.ListVendorsWithDisabled()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
+	paymentsStatistics, err := buildPaymentsStatistics(items, payments, accounts, vendors)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	paymentsStatistics.From = minDate
+	paymentsStatistics.To = maxDate
+
+	respond(w, err, paymentsStatistics)
+}
+
+// buildPaymentsStatistics sums up payments per item, per item and day and per vendor
+func buildPaymentsStatistics(items []database.Item, payments []database.Payment, accounts []database.Account, vendors []database.Vendor) (PaymentsStatistics, error) {
+	accountsMap := make(map[int]database.Account)
+	for _, account := range accounts {
+		accountsMap[account.ID] = account
+	}
+
 	// Create map of items
 	itemsMap := make(map[int]ItemStatistics)
+	donationItemIDs := make(map[int]bool)
+	transactionCostsItemIDs := make(map[int]bool)
 	for _, item := range items {
-
+		if item.Type == "donation" {
+			donationItemIDs[item.ID] = true
+		}
+		if item.Type == "transaction_costs" {
+			transactionCostsItemIDs[item.ID] = true
+		}
 		itemsMap[item.ID] = ItemStatistics{
 			ID:          item.ID,
 			Name:        item.Name,
@@ -1032,36 +1106,112 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Create sums per item
+	// Create sums per item and per item and day
+	type dayKey struct {
+		date   string
+		itemID int
+	}
+	daysMap := make(map[dayKey]DailyItemStatistics)
+	vendorsMap := make(map[int]VendorSalesStatistics)
 	for _, payment := range payments {
 		if !payment.Item.Valid {
 			continue
 		}
 		itemID := int(payment.Item.Int64)
 		if entry, ok := itemsMap[itemID]; ok {
-			// Check if item is a donation
-			if itemID == 2 {
-				entry.SumQuantity += 1
-			} else {
-				entry.SumQuantity += payment.Quantity
+			// Transaction costs are booked twice when the organisation takes them over
+			// (vendor -> provider, orga -> vendor); only what goes to the provider is a cost
+			if transactionCostsItemIDs[itemID] {
+				receiverType := accountsMap[payment.Receiver].Type
+				if receiverType != "Paypal" && receiverType != "VivaWallet" {
+					continue
+				}
 			}
+
+			// Donations and transaction costs store the amount as quantity, so count payments instead
+			quantity := payment.Quantity
+			if donationItemIDs[itemID] || transactionCostsItemIDs[itemID] {
+				quantity = 1
+			}
+
+			if receiver := accountsMap[payment.Receiver]; payment.IsSale && receiver.Type == "Vendor" && receiver.Vendor.Valid {
+				vendorID := int(receiver.Vendor.Int64)
+				vendorEntry := vendorsMap[vendorID]
+				vendorEntry.VendorID = vendorID
+				vendorEntry.SumQuantity += quantity
+				vendorEntry.SumAmount += payment.Amount
+				vendorsMap[vendorID] = vendorEntry
+			}
+			entry.SumQuantity += quantity
 			entry.SumAmount += payment.Amount
 			itemsMap[itemID] = entry
+
+			key := dayKey{payment.Timestamp.In(statisticsLocation).Format("2006-01-02"), itemID}
+			day := daysMap[key]
+			day.Date = key.date
+			day.ItemID = itemID
+			day.SumQuantity += quantity
+			day.SumAmount += payment.Amount
+			daysMap[key] = day
 		} else {
-			utils.ErrorJSON(w, errors.New("item not found"), http.StatusBadRequest)
-			return
+			return PaymentsStatistics{}, errors.New("item not found")
 		}
 	}
 
 	// Create payment statistics
 	var paymentsStatistics PaymentsStatistics
-	paymentsStatistics.From = minDate
-	paymentsStatistics.To = maxDate
 	for _, item := range itemsMap {
 		paymentsStatistics.Items = append(paymentsStatistics.Items, item)
 	}
+	for _, day := range daysMap {
+		paymentsStatistics.Days = append(paymentsStatistics.Days, day)
+	}
+	sort.Slice(paymentsStatistics.Days, func(i, j int) bool {
+		if paymentsStatistics.Days[i].Date != paymentsStatistics.Days[j].Date {
+			return paymentsStatistics.Days[i].Date < paymentsStatistics.Days[j].Date
+		}
+		return paymentsStatistics.Days[i].ItemID < paymentsStatistics.Days[j].ItemID
+	})
 
-	respond(w, err, paymentsStatistics)
+	vendorInfo := make(map[int]database.Vendor)
+	for _, vendor := range vendors {
+		vendorInfo[vendor.ID] = vendor
+	}
+	var vendorSales []VendorSalesStatistics
+	for vendorID, entry := range vendorsMap {
+		vendor := vendorInfo[vendorID]
+		entry.LicenseID = vendor.LicenseID.String
+		entry.Name = strings.TrimSpace(vendor.FirstName + " " + vendor.LastName)
+		vendorSales = append(vendorSales, entry)
+	}
+	paymentsStatistics.TopVendors = topVendors(vendorSales, func(v VendorSalesStatistics) [2]int {
+		return [2]int{v.SumQuantity, v.SumAmount}
+	})
+	paymentsStatistics.TopVendorsByAmount = topVendors(vendorSales, func(v VendorSalesStatistics) [2]int {
+		return [2]int{v.SumAmount, v.SumQuantity}
+	})
+
+	return paymentsStatistics, nil
+}
+
+// topVendors returns the topVendorsCount vendors with the highest rank, a
+// (primary, tie-breaker) pair; remaining ties are ordered by vendor ID
+func topVendors(vendors []VendorSalesStatistics, rank func(VendorSalesStatistics) [2]int) []VendorSalesStatistics {
+	sorted := slices.Clone(vendors)
+	sort.Slice(sorted, func(i, j int) bool {
+		a, b := rank(sorted[i]), rank(sorted[j])
+		if a != b {
+			if a[0] != b[0] {
+				return a[0] > b[0]
+			}
+			return a[1] > b[1]
+		}
+		return sorted[i].VendorID < sorted[j].VendorID
+	})
+	if len(sorted) > topVendorsCount {
+		sorted = sorted[:topVendorsCount]
+	}
+	return sorted
 }
 
 // CreatePayment godoc
