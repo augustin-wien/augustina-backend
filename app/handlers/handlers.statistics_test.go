@@ -22,19 +22,21 @@ func TestBuildPaymentsStatistics(t *testing.T) {
 		{ID: 4, Type: "Paypal"},
 		{ID: 5, Type: "Orga"},
 		{ID: 6, Type: "Cash"},
+		{ID: 7, Type: "Vendor", Vendor: null.IntFrom(9)},
 	}
 	vendors := []database.Vendor{
 		{ID: 7, LicenseID: null.StringFrom("fl-7"), FirstName: "Maria", LastName: "Huber"},
 		{ID: 8, LicenseID: null.StringFrom("fl-8"), FirstName: "Josef", LastName: "Wagner"},
+		{ID: 9, LicenseID: null.StringFrom("fl-9"), FirstName: "Anna", LastName: "Berger"},
 	}
 	day2 := time.Date(2026, 9, 2, 10, 0, 0, 0, time.UTC)
 	payments := []database.Payment{
 		// 23:30 UTC is already the next day in Vienna
 		{Item: null.IntFrom(10), Sender: 1, Receiver: 2, IsSale: true, Quantity: 2, Amount: 600, Timestamp: time.Date(2026, 9, 1, 23, 30, 0, 0, time.UTC)},
 		{Item: null.IntFrom(10), Sender: 1, Receiver: 3, IsSale: true, Quantity: 1, Amount: 300, Timestamp: day2},
-		// Donations store the amount as quantity and are not sales
-		{Item: null.IntFrom(93), Sender: 1, Receiver: 3, Quantity: 150, Amount: 150, Timestamp: day2},
-		{Item: null.IntFrom(93), Sender: 1, Receiver: 3, Quantity: 200, Amount: 200, Timestamp: time.Date(2026, 9, 3, 10, 0, 0, 0, time.UTC)},
+		// Donations store the amount as quantity; shop orders book them as sales
+		{Item: null.IntFrom(93), Sender: 1, Receiver: 3, IsSale: true, Quantity: 150, Amount: 150, Timestamp: day2},
+		{Item: null.IntFrom(93), Sender: 1, Receiver: 7, IsSale: true, Quantity: 200, Amount: 200, Timestamp: time.Date(2026, 9, 3, 10, 0, 0, 0, time.UTC)},
 		// Transaction costs taken over by the organisation are booked twice
 		{Item: null.IntFrom(94), Sender: 2, Receiver: 4, Quantity: 27, Amount: 27, Timestamp: day2},
 		{Item: null.IntFrom(94), Sender: 5, Receiver: 2, Quantity: 27, Amount: 27, Timestamp: day2},
@@ -71,9 +73,13 @@ func TestBuildPaymentsStatistics(t *testing.T) {
 		{Date: "2026-09-03", Count: 1, SumAmount: 450},
 	}, stats.Payouts)
 
+	require.Equal(t, "donation", sums[93].Type)
+
+	// A donation counts as one piece per sale, transaction costs not at all
 	require.Equal(t, []VendorSalesStatistics{
 		{VendorID: 7, LicenseID: "fl-7", Name: "Maria Huber", SumQuantity: 2, SumAmount: 600},
-		{VendorID: 8, LicenseID: "fl-8", Name: "Josef Wagner", SumQuantity: 1, SumAmount: 300},
+		{VendorID: 8, LicenseID: "fl-8", Name: "Josef Wagner", SumQuantity: 2, SumAmount: 450},
+		{VendorID: 9, LicenseID: "fl-9", Name: "Anna Berger", SumQuantity: 1, SumAmount: 200},
 	}, stats.TopVendors)
 	require.Equal(t, stats.TopVendors, stats.TopVendorsByAmount)
 
