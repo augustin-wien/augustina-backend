@@ -77,6 +77,26 @@ var (
 		Columns:    BlockedIpsColumns,
 		PrimaryKey: []*schema.Column{BlockedIpsColumns[0]},
 	}
+	// CampaignsColumns holds the columns for the "campaigns" table.
+	CampaignsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "item_id", Type: field.TypeInt},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "text", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "starts_at", Type: field.TypeTime, Nullable: true},
+		{Name: "ends_at", Type: field.TypeTime, Nullable: true},
+		{Name: "enabled", Type: field.TypeBool, Default: false},
+		{Name: "views", Type: field.TypeInt, Default: 0},
+		{Name: "clicks", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// CampaignsTable holds the schema information for the "campaigns" table.
+	CampaignsTable = &schema.Table{
+		Name:       "campaigns",
+		Columns:    CampaignsColumns,
+		PrimaryKey: []*schema.Column{CampaignsColumns[0]},
+	}
 	// CommentsColumns holds the columns for the "comments" table.
 	CommentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -426,6 +446,7 @@ var (
 		AbonementTable,
 		AccountTable,
 		BlockedIpsTable,
+		CampaignsTable,
 		CommentsTable,
 		CustomerTable,
 		DbSettingsTable,

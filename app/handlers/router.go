@@ -273,6 +273,21 @@ func GetRouter() (r *chi.Mux) {
 			})
 		})
 
+		// Shop campaigns
+		r.Route("/api/campaigns", func(r chi.Router) {
+			r.Get("/active/", ListActiveCampaigns)
+			r.Post("/{id}/view/", TrackCampaignView)
+			r.Post("/{id}/click/", TrackCampaignClick)
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.AdminAuthMiddleware)
+				r.Get("/", ListCampaigns)
+				r.Post("/", CreateCampaign)
+				r.Put("/{id}/", UpdateCampaign)
+				r.Delete("/{id}/", DeleteCampaign)
+			})
+		})
+
 		// Payment orders
 		r.Route("/api/orders", func(r chi.Router) {
 			r.Post("/", CreatePaymentOrder)
