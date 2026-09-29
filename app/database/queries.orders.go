@@ -390,6 +390,47 @@ func (db *Database) GetUnsyncedOrders() (orders []Order, err error) {
 	return
 }
 
+// GetVerifiedOrders returns verified orders with their entries, newest first.
+// The date range applies to the verification time, which is when the sales
+// payments are booked; orders verified before verified_at existed fall back
+// to their creation timestamp. Zero dates leave that side of the range open.
+func (db *Database) GetVerifiedOrders(minDate, maxDate time.Time) (orders []Order, err error) {
+	// Both columns are TIMESTAMP without time zone holding UTC values
+	minDate, maxDate = minDate.UTC(), maxDate.UTC()
+	q := db.EntClient.Order.Query().Where(order.Verified(true))
+
+	if !minDate.IsZero() {
+		q.Where(order.Or(
+			order.VerifiedAtGTE(minDate),
+			order.And(order.VerifiedAtIsNil(), order.TimestampGTE(minDate)),
+		))
+	}
+	if !maxDate.IsZero() {
+		q.Where(order.Or(
+			order.VerifiedAtLTE(maxDate),
+			order.And(order.VerifiedAtIsNil(), order.TimestampLTE(maxDate)),
+		))
+	}
+
+	res, err := q.
+		Order(ent.Desc(order.FieldVerifiedAt), ent.Desc(order.FieldTimestamp)).
+		WithEntries(func(q *ent.OrderEntryQuery) {
+			q.WithSender().WithReceiver()
+		}).
+		All(context.Background())
+	if err != nil {
+		log.Error("GetVerifiedOrders: ", err)
+		return nil, err
+	}
+
+	orders = make([]Order, 0, len(res))
+	for _, o := range res {
+		orders = append(orders, convertOrder(o))
+	}
+
+	return
+}
+
 // VerifyOrderAndCreatePayments sets payment order to verified and creates a payment for each order entry if it doesn't already exist
 // This means if some payments have already been created with CreatePayedOrderEntries before verifying the order, they will be skipped
 func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID int) (err error) {
