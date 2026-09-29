@@ -17,6 +17,7 @@ jobs:
       DB_HOST_TEST: localhost # default host value for the database
       DB_NAME: djtesting
       DB_PORT: 5432
+      DB_PORT_TEST: 5432
 
     services:
       # start a postgres service container
