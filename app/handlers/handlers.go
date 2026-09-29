@@ -1006,8 +1006,8 @@ func ListPaymentsStatistics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Get items
-	items, err := database.Db.ListItemsWithDisabled(false, false)
+	// Get items (including archived ones, since payments may reference deleted items)
+	items, err := database.Db.ListItemsIncludingArchived(false, false)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

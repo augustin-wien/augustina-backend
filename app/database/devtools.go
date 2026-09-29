@@ -38,6 +38,11 @@ func (db *Database) CreateDevData() (err error) {
 		log.Error("Dev data order creation failed ", zap.Error(err))
 		return err
 	}
+	err = db.createDevArchivedItems(vendorIDs)
+	if err != nil {
+		log.Error("Dev data archived item creation failed ", zap.Error(err))
+		return err
+	}
 	err = db.createDevPayout(vendorIDs)
 	if err != nil {
 		log.Error("Dev data payout creation failed ", zap.Error(err))
@@ -387,6 +392,80 @@ func (db *Database) createDevOrdersAndPayments(vendorIDs []int) (err error) {
 	}
 
 	return
+}
+
+// SeedDevArchivedItems adds the archived dev items to an already initialized
+// database, selling the sold one via the vendor with the given license ID.
+func (db *Database) SeedDevArchivedItems(vendorLicenseID string) error {
+	vendor, err := db.GetVendorByLicenseID(vendorLicenseID)
+	if err != nil {
+		return err
+	}
+	return db.createDevArchivedItems([]int{vendor.ID})
+}
+
+// createDevArchivedItems creates items that are deleted (archived) afterwards.
+// One of them is sold first, so payments, statistics and exports reference a
+// deleted item — the case the product archive exists for.
+func (db *Database) createDevArchivedItems(vendorIDs []int) (err error) {
+	soldItemID, err := db.CreateItem(Item{
+		Name:        "Kalender 2023",
+		Description: "Kalender für das Jahr 2023 (ausverkauft)",
+		Price:       700,
+		Image:       "img/demo_kalender.jpg",
+		Type:        "normal_item",
+	})
+	if err != nil {
+		return
+	}
+	unsoldItemID, err := db.CreateItem(Item{
+		Name:        "Postkartenset",
+		Description: "Postkartenset (nicht mehr im Sortiment)",
+		Price:       500,
+		Type:        "normal_item",
+	})
+	if err != nil {
+		return
+	}
+
+	if len(vendorIDs) > 0 {
+		var buyerAccountID int
+		buyerAccountID, err = db.GetAccountTypeID("UserAnon")
+		if err != nil {
+			return
+		}
+		var vendorAccount Account
+		vendorAccount, err = db.GetAccountByVendorID(vendorIDs[0])
+		if err != nil {
+			return
+		}
+		var orderID int
+		orderID, err = db.CreateOrder(Order{
+			OrderCode: null.NewString("devOrderArchived", true),
+			Vendor:    vendorIDs[0],
+			Entries: []OrderEntry{
+				{
+					Item:     soldItemID,
+					Quantity: 1,
+					Sender:   buyerAccountID,
+					Receiver: vendorAccount.ID,
+					IsSale:   true,
+				},
+			},
+		})
+		if err != nil {
+			return
+		}
+		err = db.VerifyOrderAndCreatePayments(orderID, 12346)
+		if err != nil {
+			return
+		}
+	}
+
+	if err = db.DeleteItem(soldItemID); err != nil {
+		return
+	}
+	return db.DeleteItem(unsoldItemID)
 }
 
 // createDevPayout creates a payout for the first dev vendor using their existing sales payments.

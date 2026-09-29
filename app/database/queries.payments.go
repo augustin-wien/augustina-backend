@@ -512,8 +512,8 @@ func (db *Database) ListPOSOrdersForVendor(licenseID string, limit int) ([]POSOr
 	for _, p := range ents {
 		if p.ItemID != nil {
 			if _, seen := itemNames[*p.ItemID]; !seen {
-				if item, e := db.GetItem(*p.ItemID); e == nil {
-					itemNames[*p.ItemID] = item.Name
+				if name, e := db.GetItemName(*p.ItemID); e == nil {
+					itemNames[*p.ItemID] = name
 				}
 			}
 		}
@@ -626,8 +626,8 @@ func (db *Database) ListAllPOSOrders(minDate, maxDate time.Time) ([]POSOrder, er
 	for _, p := range ents {
 		if p.ItemID != nil {
 			if _, seen := itemNames[*p.ItemID]; !seen {
-				if item, e := db.GetItem(*p.ItemID); e == nil {
-					itemNames[*p.ItemID] = item.Name
+				if name, e := db.GetItemName(*p.ItemID); e == nil {
+					itemNames[*p.ItemID] = name
 				}
 			}
 		}

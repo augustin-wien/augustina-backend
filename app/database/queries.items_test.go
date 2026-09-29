@@ -230,3 +230,49 @@ func TestRecreateOnlineIssueAfterDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, fetchedLicense.Archived)
 }
+
+// TestArchiveAndRestoreItem ensures a deleted item shows up in the archive,
+// stays resolvable for historic data, and can be restored.
+func TestArchiveAndRestoreItem(t *testing.T) {
+	Db.InitEmptyTestDb()
+
+	itemID, err := Db.CreateItem(Item{Name: "archive-test", Description: "d", Price: 300})
+	require.NoError(t, err)
+
+	require.NoError(t, Db.DeleteItem(itemID))
+
+	_, err = Db.GetItem(itemID)
+	require.Error(t, err)
+
+	archived, err := Db.ListArchivedItems()
+	require.NoError(t, err)
+	require.Len(t, archived, 1)
+	require.Equal(t, itemID, archived[0].ID)
+	require.True(t, archived[0].Archived)
+
+	all, err := Db.ListItemsIncludingArchived(false, false)
+	require.NoError(t, err)
+	found := false
+	for _, it := range all {
+		if it.ID == itemID {
+			found = true
+		}
+	}
+	require.True(t, found, "archived item must be included")
+
+	name, err := Db.GetItemName(itemID)
+	require.NoError(t, err)
+	require.Equal(t, "archive-test", name)
+
+	require.NoError(t, Db.RestoreItem(itemID))
+	restored, err := Db.GetItem(itemID)
+	require.NoError(t, err)
+	require.False(t, restored.Archived)
+
+	archived, err = Db.ListArchivedItems()
+	require.NoError(t, err)
+	require.Empty(t, archived)
+
+	// restoring a non-archived item is rejected
+	require.Error(t, Db.RestoreItem(itemID))
+}
