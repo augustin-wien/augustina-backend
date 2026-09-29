@@ -176,8 +176,12 @@ func initData(db *Database) (err error) {
 
 func (db *Database) generatePostgresUrl() string {
 	var extraKey string
+	defaultPort := "5432"
 	if !db.IsProduction {
 		extraKey = "_TEST"
+		// Tests wipe the database, so never fall back to the dev database's
+		// port; the local test database from docker-compose listens on 5433
+		defaultPort = "5433"
 	}
 	url := "postgres://" +
 		utils.GetEnv("DB_USER", "user") +
@@ -186,7 +190,7 @@ func (db *Database) generatePostgresUrl() string {
 		"@" +
 		utils.GetEnv("DB_HOST"+extraKey, "localhost") +
 		":" +
-		utils.GetEnv("DB_PORT"+extraKey, "5432") +
+		utils.GetEnv("DB_PORT"+extraKey, defaultPort) +
 		"/" +
 		utils.GetEnv("DB_NAME", "product_api") +
 		"?sslmode=disable"
