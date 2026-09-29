@@ -600,19 +600,32 @@ func notifyActiveAbonementsOnlineIssue(r *http.Request, issue database.Item) err
 	}
 
 	issueImageURL := resolveIssueImageURL(r, issue.Image)
+	pdfID, pdfItemID, isPDF := resolveOnlineIssuePDF(issue)
 	for recipient := range recipientSet {
+		issueURL := config.Config.OnlinePaperUrl
+		if isPDF {
+			// Each recipient gets their own download link, like PDF purchases do.
+			pdfDownload, dlErr := database.Db.CreatePDFDownloadForItem(pdfID, pdfItemID)
+			if dlErr != nil {
+				log.Error("notifyActiveAbonementsOnlineIssue: failed to create pdf download", dlErr)
+			} else {
+				issueURL = config.Config.FrontendURL + "/pdf/" + pdfDownload.LinkID
+			}
+		}
 		templateData := map[string]interface{}{
 			"IssueName": issue.Name,
 			"ImageURL":  issueImageURL,
+			"URL":       issueURL,
 		}
 
 		mailReq, reqErr := database.BuildEmailRequestFromTemplate("onlineIssuePublished", []string{recipient}, templateData)
 		if reqErr != nil {
 			fallbackBody := fmt.Sprintf(
-				"<p>Eine neue Online-Ausgabe ist verfügbar: <strong>%s</strong></p><p><img src=\"%s\" alt=\"%s\" style=\"max-width:100%%;height:auto;\"></p>",
+				"<p>Eine neue Online-Ausgabe ist verfügbar: <strong>%s</strong></p><p><img src=\"%s\" alt=\"%s\" style=\"max-width:100%%;height:auto;\"></p><p><a href=\"%s\">Hier klicken</a> um die Zeitung zu lesen.</p>",
 				issue.Name,
 				issueImageURL,
 				issue.Name,
+				issueURL,
 			)
 			mailReq, reqErr = mailer.NewRequest([]string{recipient}, "Neue Online-Ausgabe verfügbar", fallbackBody)
 			if reqErr != nil {
@@ -627,6 +640,25 @@ func notifyActiveAbonementsOnlineIssue(r *http.Request, issue database.Item) err
 	}
 
 	return nil
+}
+
+// resolveOnlineIssuePDF returns the PDF of an online issue, either attached to
+// the issue itself or to its linked license item.
+func resolveOnlineIssuePDF(issue database.Item) (pdfID int, itemID int, ok bool) {
+	if issue.IsPDFItem && issue.PDF.Valid {
+		return int(issue.PDF.ValueOrZero()), issue.ID, true
+	}
+	if issue.LicenseItem.Valid {
+		licenseItem, err := database.Db.GetItemIncludingDisabled(int(issue.LicenseItem.ValueOrZero()))
+		if err != nil {
+			log.Error("resolveOnlineIssuePDF: failed to load license item", err)
+			return 0, 0, false
+		}
+		if licenseItem.IsPDFItem && licenseItem.PDF.Valid {
+			return int(licenseItem.PDF.ValueOrZero()), licenseItem.ID, true
+		}
+	}
+	return 0, 0, false
 }
 
 func resolveIssueImageURL(r *http.Request, imagePath string) string {
