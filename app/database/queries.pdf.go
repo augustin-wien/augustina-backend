@@ -103,6 +103,25 @@ func (db *Database) CreatePDFDownload(tx *ent.Tx, pdf PDF, orderId, itemId int) 
 	return db.PDFDownloadEntIntoPDFDownload(created), nil
 }
 
+// CreatePDFDownloadForItem creates a PDFDownload that is not tied to an order,
+// e.g. for notifying abonement customers about a newly published PDF issue.
+// The download is marked as email sent, since the caller mails the link itself.
+func (db *Database) CreatePDFDownloadForItem(pdfID, itemID int) (pdfDownload PDFDownload, err error) {
+	created, err := db.EntClient.PDFDownload.Create().
+		SetLinkID(uuid.New().String()).
+		SetPdfID(pdfID).
+		SetTimestamp(time.Now()).
+		SetEmailSent(true).
+		SetDownloadCount(0).
+		SetItemID(itemID).
+		Save(context.Background())
+	if err != nil {
+		log.Error("CreatePDFDownloadForItem: ", err)
+		return pdfDownload, err
+	}
+	return db.PDFDownloadEntIntoPDFDownload(created), nil
+}
+
 // PDFDownloadEntIntoPDFDownload converts ent.PDFDownload to PDFDownload
 func (db *Database) PDFDownloadEntIntoPDFDownload(p *ent.PDFDownload) PDFDownload {
 	pd := PDFDownload{
