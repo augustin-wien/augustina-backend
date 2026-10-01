@@ -269,6 +269,7 @@ func GetRouter() (r *chi.Mux) {
 					r.Put("/", UpdateItem)
 					r.Delete("/", DeleteItem)
 					r.Post("/restore/", RestoreItem)
+					r.Post("/notify-abonements/", NotifyAbonementsOnlineIssue)
 				})
 			})
 		})

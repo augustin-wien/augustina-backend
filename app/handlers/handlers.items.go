@@ -578,16 +578,9 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Publishing an online_issue no longer mails the abonnents - the backoffice sends that
+	// mail explicitly via NotifyAbonementsOnlineIssue.
 	if existingItem.Type == "online_issue" && existingItem.Disabled && !item.Disabled {
-		updatedItem, getErr := database.Db.GetItemIncludingDisabled(ItemID)
-		if getErr != nil {
-			log.Error("UpdateItem: failed to load updated online_issue for notifications", getErr)
-		} else {
-			if notifyErr := notifyActiveAbonementsOnlineIssue(r, updatedItem); notifyErr != nil {
-				log.Error("UpdateItem: failed sending online_issue notifications", notifyErr)
-			}
-		}
-
 		// Assign license groups to all customers with active abonements so they
 		// immediately get access to the newly published online issue in Keycloak.
 		go func() {
@@ -604,13 +597,62 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func notifyActiveAbonementsOnlineIssue(r *http.Request, issue database.Item) error {
+// NotifyAbonementsOnlineIssue godoc
+//
+//	@Summary		Send an online issue to the abonnents
+//	@Description	Mails the published online issue to every customer with an active abonement. The mails are sent in the background; the response contains the number of recipients.
+//	@Tags			Items
+//	@Produce		json
+//	@Param			id	path		int	true	"Item ID"
+//	@Success		200	{object}	NotifyAbonementsResponse
+//	@Security		KeycloakAuth
+//	@Router			/items/{id}/notify-abonements/ [post]
+func NotifyAbonementsOnlineIssue(w http.ResponseWriter, r *http.Request) {
+	itemID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid item id"), http.StatusBadRequest)
+		return
+	}
+	issue, err := database.Db.GetItemIncludingDisabled(itemID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("item not found"), http.StatusNotFound)
+		return
+	}
+	if issue.Type != "online_issue" {
+		utils.ErrorJSON(w, errors.New("only an online issue can be sent to the abonnents"), http.StatusBadRequest)
+		return
+	}
+	if issue.Disabled || issue.Archived {
+		utils.ErrorJSON(w, errors.New("the online issue has to be enabled before it is sent to the abonnents"), http.StatusBadRequest)
+		return
+	}
+
+	recipients, err := activeAbonementRecipients()
+	if err != nil {
+		log.Error("NotifyAbonementsOnlineIssue: ", err)
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// Sending one mail per recipient easily takes longer than the request may, so the mails
+	// go out in the background.
+	issueImageURL := resolveIssueImageURL(r, issue.Image)
+	go sendOnlineIssueMails(issue, issueImageURL, recipients)
+
+	respond(w, nil, NotifyAbonementsResponse{Recipients: len(recipients)})
+}
+
+// NotifyAbonementsResponse tells the backoffice how many abonnents get the mail
+type NotifyAbonementsResponse struct {
+	Recipients int `json:"recipients"`
+}
+
+// activeAbonementRecipients returns the distinct mail addresses of all customers with an
+// active abonement
+func activeAbonementRecipients() ([]string, error) {
 	abonements, err := database.Db.GetActiveAbonementsByDate(time.Now())
 	if err != nil {
-		return err
-	}
-	if len(abonements) == 0 {
-		return nil
+		return nil, err
 	}
 
 	recipientSet := make(map[string]struct{})
@@ -626,19 +668,24 @@ func notifyActiveAbonementsOnlineIssue(r *http.Request, issue database.Item) err
 		recipientSet[email] = struct{}{}
 	}
 
-	if len(recipientSet) == 0 {
-		return nil
+	recipients := make([]string, 0, len(recipientSet))
+	for email := range recipientSet {
+		recipients = append(recipients, email)
 	}
+	return recipients, nil
+}
 
-	issueImageURL := resolveIssueImageURL(r, issue.Image)
+// sendOnlineIssueMails mails the online issue to each recipient
+func sendOnlineIssueMails(issue database.Item, issueImageURL string, recipients []string) {
 	pdfID, pdfItemID, isPDF := resolveOnlineIssuePDF(issue)
-	for recipient := range recipientSet {
+	failed := 0
+	for _, recipient := range recipients {
 		issueURL := config.Config.OnlinePaperUrl
 		if isPDF {
 			// Each recipient gets their own download link, like PDF purchases do.
 			pdfDownload, dlErr := database.Db.CreatePDFDownloadForItem(pdfID, pdfItemID)
 			if dlErr != nil {
-				log.Error("notifyActiveAbonementsOnlineIssue: failed to create pdf download", dlErr)
+				log.Error("sendOnlineIssueMails: failed to create pdf download", dlErr)
 			} else {
 				issueURL = config.Config.FrontendURL + "/pdf/" + pdfDownload.LinkID
 			}
@@ -660,17 +707,18 @@ func notifyActiveAbonementsOnlineIssue(r *http.Request, issue database.Item) err
 			)
 			mailReq, reqErr = mailer.NewRequest([]string{recipient}, "Neue Online-Ausgabe verfügbar", fallbackBody)
 			if reqErr != nil {
-				log.Error("notifyActiveAbonementsOnlineIssue: failed to build fallback mail", reqErr)
+				log.Error("sendOnlineIssueMails: failed to build fallback mail", reqErr)
+				failed++
 				continue
 			}
 		}
 
 		if _, sendErr := mailer.Send(mailReq); sendErr != nil {
-			log.Error("notifyActiveAbonementsOnlineIssue: sending failed", sendErr)
+			log.Error("sendOnlineIssueMails: sending failed", sendErr)
+			failed++
 		}
 	}
-
-	return nil
+	log.Infof("sendOnlineIssueMails: online issue %d sent to %d of %d abonnents", issue.ID, len(recipients)-failed, len(recipients))
 }
 
 // resolveOnlineIssuePDF returns the PDF of an online issue, either attached to

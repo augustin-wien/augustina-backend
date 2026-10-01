@@ -478,7 +478,9 @@ func TestUpdateItemHandlerWithLicense(t *testing.T) {
 	require.Equal(t, "item-without-license", found3.Name)
 }
 
-func TestUpdateOnlineIssueFromDisabledToEnabledSendsAbonementMailWithImage(t *testing.T) {
+// TestNotifyAbonementsOnlineIssue checks that publishing an online issue no longer mails the
+// abonnents, and that the backoffice sends the mail explicitly instead.
+func TestNotifyAbonementsOnlineIssue(t *testing.T) {
 	mutex_test.Lock()
 	defer mutex_test.Unlock()
 
@@ -526,17 +528,34 @@ func TestUpdateOnlineIssueFromDisabledToEnabledSendsAbonementMailWithImage(t *te
 
 	config.Config.FrontendURL = "https://frontend.test"
 
-	mailCount := 0
-	var lastMail *mailer.EmailRequest
+	// The mails are sent in the background
+	var mu sync.Mutex
+	var sent []*mailer.EmailRequest
+	var recipients [][]string
+	mailCount := func() int {
+		mu.Lock()
+		defer mu.Unlock()
+		return len(sent)
+	}
 	database.BuildEmailRequestFromTemplate = func(name string, to []string, data interface{}) (*mailer.EmailRequest, error) {
+		mu.Lock()
+		defer mu.Unlock()
+		recipients = append(recipients, to)
 		return nil, fmt.Errorf("template not found")
 	}
 	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
-		mailCount++
-		lastMail = r
+		mu.Lock()
+		defer mu.Unlock()
+		sent = append(sent, r)
 		return true, nil
 	}
 
+	notifyURL := "/api/items/" + strconv.Itoa(onlineIssueID) + "/notify-abonements/"
+
+	// A disabled online issue can't be sent yet
+	utils.TestRequestWithAuth(t, r, "POST", notifyURL, nil, 400, adminUserToken)
+
+	// Publishing the online issue doesn't send anything by itself
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	writer.WriteField("Name", "Issue To Publish")
@@ -556,34 +575,25 @@ func TestUpdateOnlineIssueFromDisabledToEnabledSendsAbonementMailWithImage(t *te
 		200,
 		adminUserToken,
 	)
+	time.Sleep(200 * time.Millisecond)
+	require.Equal(t, 0, mailCount())
 
-	require.GreaterOrEqual(t, mailCount, 1)
-	require.NotNil(t, lastMail)
-	require.Contains(t, lastMail.Body(), "<img")
-	require.Contains(t, lastMail.Body(), "https://frontend.test/img/new-issue.jpg")
+	// Sending it explicitly mails the abonnent
+	res := utils.TestRequestWithAuth(t, r, "POST", notifyURL, nil, 200, adminUserToken)
+	var response NotifyAbonementsResponse
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &response))
+	require.Equal(t, 1, response.Recipients)
 
-	// Updating while already enabled should not trigger another notification.
-	secondBody := new(bytes.Buffer)
-	secondWriter := multipart.NewWriter(secondBody)
-	secondWriter.WriteField("Name", "Issue To Publish Updated")
-	secondWriter.WriteField("Description", "Issue description updated")
-	secondWriter.WriteField("Price", strconv.Itoa(100))
-	secondWriter.WriteField("Type", "online_issue")
-	secondWriter.WriteField("Disabled", "false")
-	secondWriter.Close()
+	require.Eventually(t, func() bool { return mailCount() == 1 }, 5*time.Second, 50*time.Millisecond)
+	mu.Lock()
+	mail := sent[0]
+	require.Equal(t, [][]string{{"online.issue.customer@example.com"}}, recipients)
+	mu.Unlock()
+	require.Contains(t, mail.Body(), "<img")
+	require.Contains(t, mail.Body(), "https://frontend.test/img/new-issue.jpg")
 
-	beforeSecondUpdate := mailCount
-	utils.TestRequestMultiPartWithAuth(
-		t,
-		r,
-		"PUT",
-		"/api/items/"+strconv.Itoa(onlineIssueID)+"/",
-		secondBody,
-		secondWriter.FormDataContentType(),
-		200,
-		adminUserToken,
-	)
-	require.Equal(t, beforeSecondUpdate, mailCount)
+	// Only online issues can be sent
+	utils.TestRequestWithAuth(t, r, "POST", "/api/items/"+strconv.Itoa(items[0].ID)+"/notify-abonements/", nil, 400, adminUserToken)
 }
 
 // TestCreateItemsWithAndWithoutPDFAndLicense tests creating items via the
