@@ -291,3 +291,67 @@ func TestWorkingTimeValidation(t *testing.T) {
 		}
 	}
 }
+
+// TestReleaseVendorLocations verifies that deleting or disabling a vendor keeps
+// its locations as unassigned ones or deletes them, depending on the
+// "locations" query parameter.
+func TestReleaseVendorLocations(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	require.NoError(t, database.Db.InitEmptyTestDb())
+
+	listLocations := func() []database.LocationOverview {
+		res := utils.TestRequestWithAuth(t, r, "GET", "/api/locations/", nil, 200, adminUserToken)
+		var locations []database.LocationOverview
+		require.NoError(t, json.Unmarshal(res.Body.Bytes(), &locations))
+		return locations
+	}
+	addLocation := func(vendorID, name string) {
+		utils.TestRequestWithAuth(t, r, "POST", "/api/vendors/"+vendorID+"/locations/",
+			map[string]any{"name": name, "address": "Street 1", "zip": "1010"}, 200, adminUserToken)
+	}
+	disableVendor := func(vendorID, query string, status int) {
+		id, err := strconv.Atoi(vendorID)
+		require.NoError(t, err)
+		vendor, err := database.Db.GetVendor(id)
+		require.NoError(t, err)
+		vendor.IsDisabled = true
+		body, err := json.Marshal(vendor)
+		require.NoError(t, err)
+		utils.TestRequestStrWithAuth(t, r, "PUT", "/api/vendors/"+vendorID+"/"+query, string(body), status, adminUserToken)
+	}
+
+	keptID := createTestVendor(t, "testlicense-release-keep")
+	deletedID := createTestVendor(t, "testlicense-release-delete")
+	disabledID := createTestVendor(t, "testlicense-release-disable")
+	addLocation(keptID, "Kept")
+	addLocation(deletedID, "Deleted")
+	addLocation(disabledID, "Disabled")
+
+	// An unknown value is rejected before anything happens
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+keptID+"/?locations=maybe", nil, 400, adminUserToken)
+	disableVendor(disabledID, "?locations=maybe", 400)
+	require.Len(t, listLocations(), 3)
+
+	// keep: the location stays without a vendor
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+keptID+"/?locations=keep", nil, 204, adminUserToken)
+	// delete: the location is gone
+	utils.TestRequestWithAuth(t, r, "DELETE", "/api/vendors/"+deletedID+"/?locations=delete", nil, 204, adminUserToken)
+
+	locations := listLocations()
+	names := map[string]database.LocationOverview{}
+	for _, l := range locations {
+		names[l.Name] = l
+	}
+	require.Len(t, locations, 2)
+	require.Contains(t, names, "Kept")
+	require.Nil(t, names["Kept"].VendorID)
+	require.Contains(t, names, "Disabled")
+
+	// Disabling with keep unassigns the location
+	disableVendor(disabledID, "?locations=keep", 200)
+	for _, l := range listLocations() {
+		require.Nil(t, l.VendorID, l.Name)
+	}
+}
