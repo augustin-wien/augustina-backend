@@ -262,6 +262,70 @@ func TestCreateAbonementHandler(t *testing.T) {
 	require.Equal(t, createdCustomer.ID, response.CustomerID)
 }
 
+// TestCreateAbonementHandlerPlainDates covers the backoffice, whose date inputs send
+// "YYYY-MM-DD" instead of a full timestamp
+func TestCreateAbonementHandlerPlainDates(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	config.InitConfig()
+	err := dbpkg.Db.InitEmptyTestDb()
+	require.NoError(t, err)
+	skipIfNoCustomerAbonementTables(t)
+
+	createdCustomer, err := dbpkg.Db.CreateCustomer(&dbpkg.Customer{
+		KeycloakID:    "test-keycloak-abo-plain-dates",
+		Email:         "aboPlainDates@example.com",
+		FirstName:     "Abo",
+		LastName:      "Dates",
+		LicenseGroups: []string{},
+	})
+	require.NoError(t, err)
+
+	items, err := dbpkg.Db.ListItems(false, false, false)
+	require.NoError(t, err)
+	require.NotEmpty(t, items)
+
+	b, err := json.Marshal(map[string]any{
+		"customer_id": createdCustomer.ID,
+		"item_id":     items[0].ID,
+		"from_date":   "2026-10-01",
+		"to_date":     "2027-09-30",
+		"status":      "active",
+	})
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/abonements", bytes.NewReader(b))
+	rr := httptest.NewRecorder()
+
+	CreateAbonement(rr, req)
+
+	require.Equal(t, http.StatusCreated, rr.Code, rr.Body.String())
+
+	var response dbpkg.Abonement
+	require.NoError(t, json.Unmarshal(rr.Body.Bytes(), &response))
+
+	stored, err := dbpkg.Db.GetAbonementByID(response.ID)
+	require.NoError(t, err)
+	require.True(t, stored.FromDate.Equal(time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)), stored.FromDate)
+	// The last day counts completely
+	require.Equal(t, "2027-09-30", stored.ToDate.UTC().Format("2006-01-02"))
+	require.True(t, stored.ToDate.After(time.Date(2027, 9, 30, 23, 59, 59, 0, time.UTC)), stored.ToDate)
+
+	// A malformed date is rejected instead of silently becoming the zero time
+	b, err = json.Marshal(map[string]any{
+		"customer_id": createdCustomer.ID,
+		"item_id":     items[0].ID,
+		"from_date":   "01.10.2026",
+		"to_date":     "2027-09-30",
+		"status":      "active",
+	})
+	require.NoError(t, err)
+	rr = httptest.NewRecorder()
+	CreateAbonement(rr, httptest.NewRequest(http.MethodPost, "/api/abonements", bytes.NewReader(b)))
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
 func TestGetAbonementHandler(t *testing.T) {
 	mutex_test.Lock()
 	defer mutex_test.Unlock()

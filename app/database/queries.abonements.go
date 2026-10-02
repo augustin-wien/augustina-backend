@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/ent"
@@ -18,6 +20,48 @@ type Abonement struct {
 	Status     string     `json:"status"`
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
+}
+
+// UnmarshalJSON also accepts plain dates ("2006-01-02") for from_date and to_date, which is
+// what the backoffice date inputs send. A plain from_date starts at the beginning of that day
+// and a plain to_date runs until its end, so the abonement covers both days completely. Plain
+// dates are UTC days, matching the backoffice, which shows the date part of the UTC timestamp.
+func (a *Abonement) UnmarshalJSON(data []byte) error {
+	type plain Abonement
+	aux := struct {
+		*plain
+		FromDate string `json:"from_date"`
+		ToDate   string `json:"to_date"`
+	}{plain: (*plain)(a)}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	var err error
+	if a.FromDate, err = parseAbonementDate(aux.FromDate, false); err != nil {
+		return fmt.Errorf("from_date: %w", err)
+	}
+	if a.ToDate, err = parseAbonementDate(aux.ToDate, true); err != nil {
+		return fmt.Errorf("to_date: %w", err)
+	}
+	return nil
+}
+
+func parseAbonementDate(value string, endOfDay bool) (time.Time, error) {
+	if value == "" {
+		return time.Time{}, nil
+	}
+	if t, err := time.Parse(time.RFC3339, value); err == nil {
+		return t, nil
+	}
+	day, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid date %q, expected YYYY-MM-DD or RFC3339", value)
+	}
+	if endOfDay {
+		// Postgres stores microseconds and would round a nanosecond offset up to the next day
+		return day.AddDate(0, 0, 1).Add(-time.Microsecond), nil
+	}
+	return day, nil
 }
 
 // AbonementEntIntoAbonement converts an ent.Abonement to Abonement struct
