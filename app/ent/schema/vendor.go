@@ -28,6 +28,10 @@ func (Vendor) Fields() []ent.Field {
 			Default("unknown"),
 		field.String("email").
 			Default("@augustina.cc"),
+		// false when the vendor has no mailbox of their own and email is the
+		// generated internal address (license ID + VendorEmailPostfix)
+		field.Bool("hasownemail").
+			Default(true),
 		field.Time("lastpayout"),
 		field.Bool("isdisabled").
 			Default(false),

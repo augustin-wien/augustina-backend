@@ -351,7 +351,7 @@ func TestSimpleErrorBranches(t *testing.T) {
 	}
 
 	// GetOrCreateVendor empty
-	if _, err := keycloak.KeycloakClient.GetOrCreateVendor(""); err == nil {
+	if _, err := keycloak.KeycloakClient.GetOrCreateVendor("", true); err == nil {
 		t.Fatalf("expected error for GetOrCreateVendor empty")
 	}
 }
@@ -380,7 +380,7 @@ func TestUpdateAndVendorFlows(t *testing.T) {
 	}
 
 	// UpdateVendor when old exists -> should update by id
-	gotID, err := keycloak.KeycloakClient.UpdateVendor(old, newE, "lic", "First", "Last")
+	gotID, err := keycloak.KeycloakClient.UpdateVendor(old, newE, "lic", "First", "Last", true)
 	if err != nil {
 		t.Fatalf("UpdateVendor existing failed: %v", err)
 	}
@@ -391,7 +391,7 @@ func TestUpdateAndVendorFlows(t *testing.T) {
 	// Now call UpdateVendor with old not existing (use a fresh email)
 	anotherOld := fmt.Sprintf("another_old_%d@example.com", time.Now().UnixNano())
 	_ = keycloak.KeycloakClient.DeleteUser(anotherOld)
-	gotID2, err := keycloak.KeycloakClient.UpdateVendor(anotherOld, fmt.Sprintf("created_%d@example.com", time.Now().UnixNano()), "lic2", "F", "L")
+	gotID2, err := keycloak.KeycloakClient.UpdateVendor(anotherOld, fmt.Sprintf("created_%d@example.com", time.Now().UnixNano()), "lic2", "F", "L", true)
 	if err != nil {
 		t.Fatalf("UpdateVendor creating new failed: %v", err)
 	}

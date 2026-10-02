@@ -29,6 +29,8 @@ type Vendor struct {
 	Lastname string `json:"lastname,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// Hasownemail holds the value of the "hasownemail" field.
+	Hasownemail bool `json:"hasownemail,omitempty"`
 	// Lastpayout holds the value of the "lastpayout" field.
 	Lastpayout time.Time `json:"lastpayout,omitempty"`
 	// Isdisabled holds the value of the "isdisabled" field.
@@ -108,7 +110,7 @@ func (*Vendor) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case vendor.FieldIsdisabled, vendor.FieldOnlinemap, vendor.FieldHassmartphone, vendor.FieldHasbankaccount, vendor.FieldIsdeleted, vendor.FieldIsblocked:
+		case vendor.FieldHasownemail, vendor.FieldIsdisabled, vendor.FieldOnlinemap, vendor.FieldHassmartphone, vendor.FieldHasbankaccount, vendor.FieldIsdeleted, vendor.FieldIsblocked:
 			values[i] = new(sql.NullBool)
 		case vendor.FieldID:
 			values[i] = new(sql.NullInt64)
@@ -172,6 +174,12 @@ func (_m *Vendor) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
 			} else if value.Valid {
 				_m.Email = value.String
+			}
+		case vendor.FieldHasownemail:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field hasownemail", values[i])
+			} else if value.Valid {
+				_m.Hasownemail = value.Bool
 			}
 		case vendor.FieldLastpayout:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -325,6 +333,9 @@ func (_m *Vendor) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("email=")
 	builder.WriteString(_m.Email)
+	builder.WriteString(", ")
+	builder.WriteString("hasownemail=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Hasownemail))
 	builder.WriteString(", ")
 	builder.WriteString("lastpayout=")
 	builder.WriteString(_m.Lastpayout.Format(time.ANSIC))

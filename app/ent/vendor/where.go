@@ -85,6 +85,11 @@ func Email(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldEmail, v))
 }
 
+// Hasownemail applies equality check predicate on the "hasownemail" field. It's identical to HasownemailEQ.
+func Hasownemail(v bool) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldHasownemail, v))
+}
+
 // Lastpayout applies equality check predicate on the "lastpayout" field. It's identical to LastpayoutEQ.
 func Lastpayout(v time.Time) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldLastpayout, v))
@@ -543,6 +548,16 @@ func EmailEqualFold(v string) predicate.Vendor {
 // EmailContainsFold applies the ContainsFold predicate on the "email" field.
 func EmailContainsFold(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldContainsFold(FieldEmail, v))
+}
+
+// HasownemailEQ applies the EQ predicate on the "hasownemail" field.
+func HasownemailEQ(v bool) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldHasownemail, v))
+}
+
+// HasownemailNEQ applies the NEQ predicate on the "hasownemail" field.
+func HasownemailNEQ(v bool) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldHasownemail, v))
 }
 
 // LastpayoutEQ applies the EQ predicate on the "lastpayout" field.

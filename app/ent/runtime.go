@@ -377,32 +377,36 @@ func init() {
 	vendorDescEmail := vendorFields[6].Descriptor()
 	// vendor.DefaultEmail holds the default value on creation for the email field.
 	vendor.DefaultEmail = vendorDescEmail.Default.(string)
+	// vendorDescHasownemail is the schema descriptor for hasownemail field.
+	vendorDescHasownemail := vendorFields[7].Descriptor()
+	// vendor.DefaultHasownemail holds the default value on creation for the hasownemail field.
+	vendor.DefaultHasownemail = vendorDescHasownemail.Default.(bool)
 	// vendorDescIsdisabled is the schema descriptor for isdisabled field.
-	vendorDescIsdisabled := vendorFields[8].Descriptor()
+	vendorDescIsdisabled := vendorFields[9].Descriptor()
 	// vendor.DefaultIsdisabled holds the default value on creation for the isdisabled field.
 	vendor.DefaultIsdisabled = vendorDescIsdisabled.Default.(bool)
 	// vendorDescOnlinemap is the schema descriptor for onlinemap field.
-	vendorDescOnlinemap := vendorFields[13].Descriptor()
+	vendorDescOnlinemap := vendorFields[14].Descriptor()
 	// vendor.DefaultOnlinemap holds the default value on creation for the onlinemap field.
 	vendor.DefaultOnlinemap = vendorDescOnlinemap.Default.(bool)
 	// vendorDescHassmartphone is the schema descriptor for hassmartphone field.
-	vendorDescHassmartphone := vendorFields[14].Descriptor()
+	vendorDescHassmartphone := vendorFields[15].Descriptor()
 	// vendor.DefaultHassmartphone holds the default value on creation for the hassmartphone field.
 	vendor.DefaultHassmartphone = vendorDescHassmartphone.Default.(bool)
 	// vendorDescHasbankaccount is the schema descriptor for hasbankaccount field.
-	vendorDescHasbankaccount := vendorFields[15].Descriptor()
+	vendorDescHasbankaccount := vendorFields[16].Descriptor()
 	// vendor.DefaultHasbankaccount holds the default value on creation for the hasbankaccount field.
 	vendor.DefaultHasbankaccount = vendorDescHasbankaccount.Default.(bool)
 	// vendorDescIsdeleted is the schema descriptor for isdeleted field.
-	vendorDescIsdeleted := vendorFields[16].Descriptor()
+	vendorDescIsdeleted := vendorFields[17].Descriptor()
 	// vendor.DefaultIsdeleted holds the default value on creation for the isdeleted field.
 	vendor.DefaultIsdeleted = vendorDescIsdeleted.Default.(bool)
 	// vendorDescIsblocked is the schema descriptor for isblocked field.
-	vendorDescIsblocked := vendorFields[17].Descriptor()
+	vendorDescIsblocked := vendorFields[18].Descriptor()
 	// vendor.DefaultIsblocked holds the default value on creation for the isblocked field.
 	vendor.DefaultIsblocked = vendorDescIsblocked.Default.(bool)
 	// vendorDescBlockednote is the schema descriptor for blockednote field.
-	vendorDescBlockednote := vendorFields[18].Descriptor()
+	vendorDescBlockednote := vendorFields[19].Descriptor()
 	// vendor.DefaultBlockednote holds the default value on creation for the blockednote field.
 	vendor.DefaultBlockednote = vendorDescBlockednote.Default.(string)
 	// vendorDescID is the schema descriptor for id field.

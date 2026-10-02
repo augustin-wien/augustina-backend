@@ -24,6 +24,8 @@ const (
 	FieldLastname = "lastname"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
+	// FieldHasownemail holds the string denoting the hasownemail field in the database.
+	FieldHasownemail = "hasownemail"
 	// FieldLastpayout holds the string denoting the lastpayout field in the database.
 	FieldLastpayout = "lastpayout"
 	// FieldIsdisabled holds the string denoting the isdisabled field in the database.
@@ -92,6 +94,7 @@ var Columns = []string{
 	FieldFirstname,
 	FieldLastname,
 	FieldEmail,
+	FieldHasownemail,
 	FieldLastpayout,
 	FieldIsdisabled,
 	FieldLanguage,
@@ -127,6 +130,8 @@ var (
 	DefaultLastname string
 	// DefaultEmail holds the default value on creation for the "email" field.
 	DefaultEmail string
+	// DefaultHasownemail holds the default value on creation for the "hasownemail" field.
+	DefaultHasownemail bool
 	// DefaultIsdisabled holds the default value on creation for the "isdisabled" field.
 	DefaultIsdisabled bool
 	// DefaultOnlinemap holds the default value on creation for the "onlinemap" field.
@@ -181,6 +186,11 @@ func ByLastname(opts ...sql.OrderTermOption) OrderOption {
 // ByEmail orders the results by the email field.
 func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+}
+
+// ByHasownemail orders the results by the hasownemail field.
+func ByHasownemail(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHasownemail, opts...).ToFunc()
 }
 
 // ByLastpayout orders the results by the lastpayout field.
