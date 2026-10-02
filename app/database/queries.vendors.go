@@ -84,29 +84,29 @@ func (db *Database) listVendors(includeDisabled bool) (vendors []Vendor, err err
 	}
 
 	// Online orders are only ever created by the QR code checkout, so the
-	// earliest verified order is the vendor's first online sale
-	var firstSales []struct {
+	// latest verified order is the vendor's last online sale
+	var lastSales []struct {
 		VendorID int       `json:"vendor_id"`
-		Min      time.Time `json:"min"`
+		Max      time.Time `json:"max"`
 	}
 	err = db.EntClient.Order.Query().
 		Where(entorder.Verified(true)).
 		GroupBy(entorder.FieldVendorID).
-		Aggregate(ent.Min(entorder.FieldTimestamp)).
-		Scan(ctx, &firstSales)
+		Aggregate(ent.Max(entorder.FieldTimestamp)).
+		Scan(ctx, &lastSales)
 	if err != nil {
-		log.Error("ListVendors: couldn't get first online sales: ", err)
+		log.Error("ListVendors: couldn't get last online sales: ", err)
 		return vendors, err
 	}
-	firstOnlineSale := make(map[int]time.Time, len(firstSales))
-	for _, fs := range firstSales {
-		firstOnlineSale[fs.VendorID] = fs.Min
+	lastOnlineSale := make(map[int]time.Time, len(lastSales))
+	for _, ls := range lastSales {
+		lastOnlineSale[ls.VendorID] = ls.Max
 	}
 
 	for _, e := range ents {
 		v := db.VendorEntIntoVendor(*e)
-		if ts, ok := firstOnlineSale[v.ID]; ok {
-			v.FirstOnlineSale = null.TimeFrom(ts)
+		if ts, ok := lastOnlineSale[v.ID]; ok {
+			v.LastOnlineSale = null.TimeFrom(ts)
 		}
 		// Set balance from the loaded account (there should be exactly one per vendor of type 'Vendor')
 		if len(e.Edges.Accounts) > 0 {
@@ -237,20 +237,20 @@ func (db *Database) GetVendorWithBalanceUpdate(vendorID int) (vendor Vendor, err
 		log.Error("GetVendorWithBalanceUpdate: Couldn't get balance ", err)
 	}
 
-	vendor.FirstOnlineSale, err = db.GetVendorFirstOnlineSale(vendorID)
+	vendor.LastOnlineSale, err = db.GetVendorLastOnlineSale(vendorID)
 	if err != nil {
-		log.Error("GetVendorWithBalanceUpdate: couldn't get first online sale ", err)
+		log.Error("GetVendorWithBalanceUpdate: couldn't get last online sale ", err)
 	}
 
 	return vendor, nil
 }
 
-// GetVendorFirstOnlineSale returns the time of the vendor's first verified
+// GetVendorLastOnlineSale returns the time of the vendor's last verified
 // online (QR code) order, or null if the vendor has never sold online
-func (db *Database) GetVendorFirstOnlineSale(vendorID int) (null.Time, error) {
+func (db *Database) GetVendorLastOnlineSale(vendorID int) (null.Time, error) {
 	o, err := db.EntClient.Order.Query().
 		Where(entorder.VendorID(vendorID), entorder.Verified(true)).
-		Order(ent.Asc(entorder.FieldTimestamp)).
+		Order(ent.Desc(entorder.FieldTimestamp)).
 		First(context.Background())
 	if ent.IsNotFound(err) {
 		return null.Time{}, nil

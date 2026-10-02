@@ -1192,7 +1192,17 @@ func TestPayments(t *testing.T) {
 		}
 	}
 
-	// Test vendor usage statistics
+	// Test vendor usage statistics; disabled and blocked vendors don't count
+	_, err = database.Db.CreateVendor(database.Vendor{
+		FirstName: "Disabled", LastName: "Vendor", Email: "disabled-usage@vendor.com",
+		LicenseID: null.StringFrom("usage-disabled"), IsDisabled: true,
+	})
+	utils.CheckError(t, err)
+	_, err = database.Db.CreateVendor(database.Vendor{
+		FirstName: "Blocked", LastName: "Vendor", Email: "blocked-usage@vendor.com",
+		LicenseID: null.StringFrom("usage-blocked"), IsBlocked: true, BlockedNote: "test",
+	})
+	utils.CheckError(t, err)
 	response4 := utils.TestRequestWithAuth(t, r, "GET", "/api/vendors/statistics/?from=2020-01-01T00:00:00Z&to=2999-01-01T00:00:00Z", nil, 200, adminUserToken)
 	var vendorUsageStatistics VendorUsageStatistics
 	err = json.Unmarshal(response4.Body.Bytes(), &vendorUsageStatistics)

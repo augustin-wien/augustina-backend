@@ -53,10 +53,18 @@ func ListVendorUsageStatistics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	vendors, err := database.Db.ListVendors()
+	// ListVendors already leaves out disabled and deleted vendors; blocked
+	// vendors can't sell either, so they don't count towards the usage
+	allVendors, err := database.Db.ListVendors()
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
+	}
+	vendors := make([]database.Vendor, 0, len(allVendors))
+	for _, vendor := range allVendors {
+		if !vendor.IsBlocked {
+			vendors = append(vendors, vendor)
+		}
 	}
 
 	vendorAccountByAccountID := make(map[int]int)
