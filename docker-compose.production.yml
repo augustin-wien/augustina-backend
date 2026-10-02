@@ -106,6 +106,9 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_FRONTEND_URL: ${KEYCLOAK_HOST}
       KC_HOSTNAME_STRICT_BACKCHANNEL: "true"
+      # Login theme: error pages are reported to Sentry/GlitchTip (empty = off)
+      KC_SENTRY_DSN: ${KC_SENTRY_DSN:-}
+      KC_SENTRY_ENVIRONMENT: ${KC_SENTRY_ENVIRONMENT:-production}
 
     depends_on:
       - keycloak-db

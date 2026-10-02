@@ -188,6 +188,9 @@ services:
       KEYCLOAK_LOGLEVEL: DEBUG
       KC_HOSTNAME_URL: ${KEYCLOAK_HOST}
       KC_HOSTNAME_ADMIN_URL: ${KEYCLOAK_HOST}
+      # Login theme: error pages are reported to Sentry/GlitchTip (empty = off)
+      KC_SENTRY_DSN: ${KC_SENTRY_DSN:-}
+      KC_SENTRY_ENVIRONMENT: ${KC_SENTRY_ENVIRONMENT:-local}
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/realms/master"]
       interval: 5s

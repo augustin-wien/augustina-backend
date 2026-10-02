@@ -1,0 +1,351 @@
+/*
+ * Augustin login theme – on top of Keycloak's own login.css (parent=keycloak).
+ *
+ * Looks like augustin.or.at, not like the reader app: white page, logo top
+ * left, page title in Roboto Slab regular with a full-width hairline under
+ * it (the site's «Nachrichten» section heads), Noto Sans Light text, black
+ * links with a thin underline, the «Spenden» pink for the main button and
+ * the issue lilac for focus/hover.  Square corners, no shadows.
+ * Inputs are 16px so iOS Safari does not zoom in.  No CSS that old iPhones
+ * (iOS 12–15) don't understand is load-bearing: custom properties and
+ * flexbox only.
+ */
+
+@font-face { font-family: 'Noto Sans'; font-weight: 300; font-display: swap;
+  src: url('../fonts/NotoSans-Light.woff2') format('woff2'); }
+@font-face { font-family: 'Noto Sans'; font-weight: 400; font-display: swap;
+  src: url('../fonts/NotoSans-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Noto Sans'; font-weight: 500; font-display: swap;
+  src: url('../fonts/NotoSans-Medium.woff2') format('woff2'); }
+@font-face { font-family: 'Noto Sans'; font-weight: 700; font-display: swap;
+  src: url('../fonts/NotoSans-Bold.woff2') format('woff2'); }
+@font-face { font-family: 'Roboto Slab'; font-weight: 400; font-display: swap;
+  src: url('../fonts/RobotoSlab-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Roboto Slab'; font-weight: 700; font-display: swap;
+  src: url('../fonts/RobotoSlab-Bold.woff2') format('woff2'); }
+
+:root {
+  --aug-pink:         #d74766;   /* «Spenden» button */
+  --aug-pink-hover:   #bb3653;
+  --aug-amber:        #f3b258;   /* «Newsletter Abo» button */
+  --aug-issue:        #a881b8;   /* colour of the issue (site fallback) */
+  --aug-bg:           #ffffff;
+  --aug-text:         #222222;
+  --aug-body:         #333333;
+  --aug-muted:        #666666;
+  --aug-line:         #ccc;
+  --aug-rule:         #222222;
+  --aug-input-bg:     #ffffff;
+  --aug-note-bg:      #ededed;
+  --aug-danger:       #e2001a;   /* the site's «Liebhaber:in» box */
+  --aug-success:      #2e6b30;
+  --aug-font:         'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --aug-font-display: 'Roboto Slab', Georgia, serif;
+
+  /* PatternFly variables the forms read */
+  --pf-global--primary-color--100: var(--aug-pink);
+  --pf-global--primary-color--200: var(--aug-pink-hover);
+  --pf-global--link--Color: var(--aug-text);
+  --pf-global--link--Color--hover: var(--aug-issue);
+  --pf-global--FontFamily--sans-serif: var(--aug-font);
+  --pf-global--FontFamily--heading--sans-serif: var(--aug-font);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --aug-bg:         #161616;
+    --aug-text:       #eeeeee;
+    --aug-body:       #d8d8d8;
+    --aug-muted:      #a0a0a0;
+    --aug-line:       #4a4a4a;
+    --aug-rule:       #eeeeee;
+    --aug-input-bg:   #1f1f1f;
+    --aug-note-bg:    #262626;
+    --aug-issue:      #c3a3d1;
+    --aug-danger:     #ff6b6b;
+    --aug-success:    #a5d6a7;
+  }
+}
+
+/* ── Page ────────────────────────────────────────────────────────────────── */
+
+html.login-pf,
+.login-pf body {
+  background: var(--aug-bg);
+  color: var(--aug-body);
+  font-family: var(--aug-font);
+  font-weight: 300;
+  -webkit-text-size-adjust: 100%;
+}
+.login-pf body {
+  min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.login-pf-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px 16px 48px;
+  padding-top: calc(24px + env(safe-area-inset-top));
+  box-sizing: border-box;
+}
+
+/* ── Header: the Augustin logo, top left like on the website ─────────────── */
+
+#kc-header {
+  width: 100%;
+  max-width: 440px;
+  padding: 0 !important;
+  float: none !important;
+  text-align: left !important;
+}
+#kc-header-wrapper {
+  height: 54px;
+  margin: 0 0 24px;
+  padding: 0 !important;
+  font-size: 0 !important;          /* realm name stays for screen readers only */
+  color: transparent !important;
+  background: url('../img/augustin_logo.svg') no-repeat left center / contain;
+}
+@media (prefers-color-scheme: dark) {
+  #kc-header-wrapper { filter: grayscale(1) invert(1); }
+}
+
+/* ── Content column (no card) ────────────────────────────────────────────── */
+
+.login-pf .card-pf,
+.login-pf-page .card-pf {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--aug-body);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.login-pf-header { margin-bottom: 8px; }
+
+/* like the site's section heads («Nachrichten») */
+h1#kc-page-title {
+  margin: 0 0 24px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--aug-rule);
+  font-family: var(--aug-font-display);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.25;
+  text-align: left;
+  color: var(--aug-text);
+}
+
+.login-pf .card-pf p,
+#kc-content-wrapper { color: var(--aug-body); }
+
+p.instruction { margin: 0 0 12px; color: var(--aug-body); }
+
+/* ── Form ────────────────────────────────────────────────────────────────── */
+
+.login-pf .pf-c-form__label,
+.login-pf .pf-c-form__label-text,
+.login-pf .control-label {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: var(--aug-text);
+}
+
+.login-pf .pf-c-form-control,
+.login-pf input[type="text"],
+.login-pf input[type="email"],
+.login-pf input[type="password"] {
+  min-height: 46px;
+  padding: 10px 12px;
+  font-family: var(--aug-font);
+  font-weight: 400;
+  font-size: 16px;                      /* < 16px makes iOS zoom in */
+  color: var(--aug-text);
+  background: var(--aug-input-bg);
+  border: 1px solid var(--aug-line);
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.login-pf .pf-c-form-control:focus,
+.login-pf input:focus {
+  outline: none;
+  border-color: var(--aug-issue);
+  box-shadow: inset 0 0 0 1px var(--aug-issue);
+}
+.login-pf .pf-c-form-control[aria-invalid="true"] { border-color: var(--aug-danger); }
+.login-pf .pf-c-form-control::after { display: none; }   /* PF underline */
+
+/* password field with the show/hide eye */
+.login-pf .pf-c-input-group { align-items: stretch; background: transparent; }
+.login-pf .pf-c-input-group .pf-c-form-control { border-right: 0; }
+.login-pf .pf-c-input-group .pf-c-form-control[aria-invalid="true"] + .pf-c-button.pf-m-control { border-color: var(--aug-danger); }
+.login-pf .pf-c-input-group .pf-c-button.pf-m-control {
+  min-width: 46px;
+  border: 1px solid var(--aug-line);
+  border-left: 0;
+  border-radius: 0;
+  background: var(--aug-input-bg);
+  color: var(--aug-muted);
+}
+.login-pf .pf-c-button.pf-m-control::after { border: 0; }
+
+.login-pf .pf-c-form__helper-text,
+.login-pf span#input-error,
+.login-pf .kc-feedback-text { font-size: 0.875rem; }
+.login-pf span#input-error,
+.login-pf .pf-m-error { color: var(--aug-danger); font-weight: 400; }
+
+.login-pf .form-group,
+.login-pf .pf-c-form__group { margin-bottom: 16px; }
+
+/* ── Buttons: «Spenden» pink, website hover (white, grey frame) ─────────── */
+
+.login-pf .pf-c-button.pf-m-primary,
+.login-pf .btn-primary,
+.login-pf input[type="submit"].pf-m-primary {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 20px;
+  font-family: var(--aug-font);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--aug-pink);
+  border: 1px solid var(--aug-pink);
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: none;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.login-pf .pf-c-button.pf-m-primary:hover,
+.login-pf .pf-c-button.pf-m-primary:focus,
+.login-pf .btn-primary:hover {
+  color: var(--aug-text);
+  background: var(--aug-bg);
+  border-color: var(--aug-muted);
+}
+.login-pf .pf-c-button.pf-m-primary::after { border: 0; }
+
+/* secondary: the site's grey buttons (cookie notice) */
+.login-pf .pf-c-button.pf-m-secondary,
+.login-pf .btn-default {
+  min-height: 48px;
+  font-family: var(--aug-font);
+  font-size: 1rem;
+  font-weight: 400;
+  color: #fff;
+  background: var(--aug-muted);
+  border: 1px solid var(--aug-muted);
+  border-radius: 0;
+  box-shadow: none;
+}
+.login-pf .pf-c-button.pf-m-secondary:hover,
+.login-pf .btn-default:hover { color: var(--aug-text); background: var(--aug-bg); }
+.login-pf .pf-c-button.pf-m-secondary::after { border: 0; }
+
+/* «Annehmen / Ablehnen» and other button rows: stacked on phones */
+.card-pf form.form-actions .btn,
+.card-pf form.form-actions .pf-c-button { float: none; margin: 0 0 8px; width: 100%; }
+#kc-form-buttons { margin-top: 24px; }
+
+/* ── Links («weiterlesen»): black, thin underline, issue colour on hover ── */
+
+.login-pf a,
+.login-pf-page a {
+  color: var(--aug-text);
+  font-weight: 400;
+  text-decoration: none;
+  border-bottom: 1px solid var(--aug-text);
+}
+.login-pf a:hover,
+.login-pf-page a:hover { color: var(--aug-issue); border-bottom-color: var(--aug-issue); text-decoration: none; }
+#kc-locale-dropdown a,
+#kc-locale-dropdown a:hover,
+.login-pf a.pf-c-button { border-bottom: 0; }
+
+#kc-form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+}
+#kc-form-options .checkbox label { color: var(--aug-body); font-size: 0.875rem; font-weight: 300; }
+#kc-form-options .checkbox input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--aug-pink); }
+
+#kc-info,
+#kc-registration-container {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--aug-line);
+  text-align: left;
+}
+#kc-info-wrapper { padding: 0; background: transparent; font-size: 0.9375rem; color: var(--aug-body); }
+#kc-registration span { color: var(--aug-body); }
+
+/* ── Messages: square boxes with a coloured frame (site's notice box) ────── */
+
+.login-pf .pf-c-alert {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--aug-muted);
+  border-radius: 0;
+  background: var(--aug-bg);
+  box-shadow: none;
+}
+.login-pf .pf-c-alert::before { display: none; }
+.login-pf .pf-c-alert__title,
+.login-pf .pf-c-alert .kc-feedback-text {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: var(--aug-text);
+}
+.login-pf .pf-c-alert.pf-m-danger  { border-color: var(--aug-danger); }
+.login-pf .pf-c-alert.pf-m-danger .kc-feedback-text,
+.login-pf .pf-c-alert.pf-m-danger .pf-c-alert__title { color: var(--aug-danger); }
+.login-pf .pf-c-alert.pf-m-success { border-color: var(--aug-success); }
+.login-pf .pf-c-alert.pf-m-warning { border-color: var(--aug-amber); background: var(--aug-note-bg); }
+.login-pf .pf-c-alert.pf-m-info    { border-color: var(--aug-issue); }
+.login-pf .pf-c-alert__icon { color: inherit; }
+
+/* Error page («Invalid parameter: redirect_uri» …) */
+#kc-error-message {
+  padding: 14px 16px;
+  border: 1px solid var(--aug-danger);
+  border-radius: 0;
+}
+#kc-error-message p.instruction { margin: 0; font-weight: 400; color: var(--aug-danger); }
+
+/* ── Language switch ─────────────────────────────────────────────────────── */
+
+#kc-locale { position: static; width: auto; text-align: right; }
+#kc-locale-dropdown { display: inline-block; }
+#kc-locale-dropdown button { color: var(--aug-muted); font-family: var(--aug-font); font-weight: 400; }
+#kc-locale ul { background: var(--aug-bg); border: 1px solid var(--aug-line); border-radius: 0; box-shadow: none; }
+#kc-locale-dropdown a { color: var(--aug-text); }
+
+/* ── Attempted username (password step) ─────────────────────────────────── */
+
+#kc-username { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+#kc-attempted-username { font-weight: 400; color: var(--aug-text); }
+
+/* ── Terms ───────────────────────────────────────────────────────────────── */
+
+#kc-terms-text { font-size: 0.9375rem; color: var(--aug-body); margin-bottom: 20px; }
