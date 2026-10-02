@@ -1724,7 +1724,7 @@
   "loginTheme" : "augustin",
   "accountTheme" : "keycloak.v2",
   "adminTheme" : "",
-  "emailTheme" : "",
+  "emailTheme" : "augustin",
   "eventsEnabled" : false,
   "eventsListeners" : [ "jboss-logging" ],
   "enabledEventTypes" : [ ],
@@ -1849,8 +1849,9 @@
       }
     } ]
   },
-  "internationalizationEnabled" : false,
-  "supportedLocales" : [ ],
+  "internationalizationEnabled" : true,
+  "supportedLocales" : [ "de", "en" ],
+  "defaultLocale" : "de",
   "authenticationFlows" : [ {
     "id" : "c25af45e-8c70-4f2c-822d-ba1ac3b79781",
     "alias" : "Account verification options",
