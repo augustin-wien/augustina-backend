@@ -221,3 +221,24 @@ func (db *Database) DeleteLocationByID(locationID int) (err error) {
 	}
 	return err
 }
+
+// ReleaseVendorLocations detaches all locations from a vendor that is being
+// deleted or disabled. With keep the locations stay as unassigned locations,
+// otherwise they are deleted.
+func (db *Database) ReleaseVendorLocations(vendorID int, keep bool) (err error) {
+	ctx := context.Background()
+	if keep {
+		err = db.EntClient.Location.Update().
+			Where(entlocation.HasVendorWith(entvendor.ID(vendorID))).
+			ClearVendor().
+			Exec(ctx)
+	} else {
+		_, err = db.EntClient.Location.Delete().
+			Where(entlocation.HasVendorWith(entvendor.ID(vendorID))).
+			Exec(ctx)
+	}
+	if err != nil {
+		log.Error("ReleaseVendorLocations: ", err)
+	}
+	return err
+}
