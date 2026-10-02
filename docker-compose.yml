@@ -135,6 +135,9 @@ services:
       KC_HOSTNAME_STRICT_BACKCHANNEL: "true"
       KC_PROXY: edge
       KC_HTTP_ENABLED: "true"
+      # Login theme: error pages are reported to Sentry/GlitchTip (empty = off)
+      KC_SENTRY_DSN: ${KC_SENTRY_DSN:-}
+      KC_SENTRY_ENVIRONMENT: ${KC_SENTRY_ENVIRONMENT:-local}
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/realms/master"]
       interval: 5s
