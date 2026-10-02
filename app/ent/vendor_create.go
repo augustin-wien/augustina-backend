@@ -91,6 +91,20 @@ func (_c *VendorCreate) SetNillableEmail(v *string) *VendorCreate {
 	return _c
 }
 
+// SetHasownemail sets the "hasownemail" field.
+func (_c *VendorCreate) SetHasownemail(v bool) *VendorCreate {
+	_c.mutation.SetHasownemail(v)
+	return _c
+}
+
+// SetNillableHasownemail sets the "hasownemail" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableHasownemail(v *bool) *VendorCreate {
+	if v != nil {
+		_c.SetHasownemail(*v)
+	}
+	return _c
+}
+
 // SetLastpayout sets the "lastpayout" field.
 func (_c *VendorCreate) SetLastpayout(v time.Time) *VendorCreate {
 	_c.mutation.SetLastpayout(v)
@@ -333,6 +347,10 @@ func (_c *VendorCreate) defaults() {
 		v := vendor.DefaultEmail
 		_c.mutation.SetEmail(v)
 	}
+	if _, ok := _c.mutation.Hasownemail(); !ok {
+		v := vendor.DefaultHasownemail
+		_c.mutation.SetHasownemail(v)
+	}
 	if _, ok := _c.mutation.Isdisabled(); !ok {
 		v := vendor.DefaultIsdisabled
 		_c.mutation.SetIsdisabled(v)
@@ -382,6 +400,9 @@ func (_c *VendorCreate) check() error {
 	}
 	if _, ok := _c.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "Vendor.email"`)}
+	}
+	if _, ok := _c.mutation.Hasownemail(); !ok {
+		return &ValidationError{Name: "hasownemail", err: errors.New(`ent: missing required field "Vendor.hasownemail"`)}
 	}
 	if _, ok := _c.mutation.Lastpayout(); !ok {
 		return &ValidationError{Name: "lastpayout", err: errors.New(`ent: missing required field "Vendor.lastpayout"`)}
@@ -485,6 +506,10 @@ func (_c *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Email(); ok {
 		_spec.SetField(vendor.FieldEmail, field.TypeString, value)
 		_node.Email = value
+	}
+	if value, ok := _c.mutation.Hasownemail(); ok {
+		_spec.SetField(vendor.FieldHasownemail, field.TypeBool, value)
+		_node.Hasownemail = value
 	}
 	if value, ok := _c.mutation.Lastpayout(); ok {
 		_spec.SetField(vendor.FieldLastpayout, field.TypeTime, value)

@@ -640,7 +640,10 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 		Enabled:       gocloak.BoolP(true),
 	})
 }
-func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
+// GetOrCreateVendor returns the Keycloak user for email, creating it if needed.
+// A newly created user gets a welcome mail with a password reset link, unless
+// sendWelcomeMail is false (e.g. for a generated internal address nobody reads).
+func (k *Keycloak) GetOrCreateVendor(email string, sendWelcomeMail bool) (userID string, err error) {
 	if email == "" {
 		return "", fmt.Errorf("GetOrCreateVendor: email is empty")
 	}
@@ -657,6 +660,9 @@ func (k *Keycloak) GetOrCreateVendor(email string) (userID string, err error) {
 			return "", err
 		}
 		log.Info("GetOrCreateVendor: Created user ", user)
+		if !sendWelcomeMail {
+			return user, nil
+		}
 
 		// send welcome email with password reset link
 		err = k.SendPasswordResetEmailVendor(email)
@@ -714,7 +720,22 @@ func (k *Keycloak) SendPasswordResetEmailVendor(email string) error {
 	return k.sendPasswordResetEmail(email, config.Config.FrontendURL+"/me")
 }
 
+// SendVerifyEmail sends the customer a mail to confirm their email address
+func (k *Keycloak) SendVerifyEmail(email string) error {
+	return k.sendActionsEmail(email, config.Config.OnlinePaperUrl, "VERIFY_EMAIL")
+}
+
+// SendVerifyEmailVendor sends the vendor a mail to confirm their email address
+func (k *Keycloak) SendVerifyEmailVendor(email string) error {
+	return k.sendActionsEmail(email, config.Config.FrontendURL+"/me", "VERIFY_EMAIL")
+}
+
 func (k *Keycloak) sendPasswordResetEmail(email, redirectURI string) error {
+	return k.sendActionsEmail(email, redirectURI, "UPDATE_PASSWORD")
+}
+
+// sendActionsEmail lets Keycloak mail the user a link to perform action
+func (k *Keycloak) sendActionsEmail(email, redirectURI, action string) error {
 	k.checkAdminToken()
 	email = utils.ToLower(email)
 	user, err := k.GetUserByEmail(email)
@@ -744,11 +765,14 @@ func (k *Keycloak) sendPasswordResetEmail(email, redirectURI string) error {
 		return nil
 	}
 
-	log.Info("SendPasswordResetEmail: Keycloak: execute password reset email for ", email)
+	log.Info("SendPasswordResetEmail: Keycloak: execute "+action+" email for ", email)
 	err = k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{
 		UserID:      user.ID,
-		Lifespan:    gocloak.IntP(600),
-		Actions:     &[]string{"UPDATE_PASSWORD"},
+		// The mail is often only read hours later, e.g. after the welcome mail for a
+		// new vendor or abo customer, so 10 minutes were far too short. Whole days
+		// only: Keycloak's formatter writes "1 Tage" for a single day
+		Lifespan:    gocloak.IntP(2 * 24 * 60 * 60),
+		Actions:     &[]string{action},
 		ClientID:    gocloak.StringP("frontend"),
 		RedirectURI: gocloak.StringP(redirectURI),
 	})
@@ -826,7 +850,10 @@ func (k *Keycloak) GetVendorGroup() string {
 	return k.VendorGroup
 }
 
-func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastName string) (string, error) {
+// UpdateVendor moves the vendor's Keycloak user to newEmail, creating the user if
+// it doesn't exist yet. A newly created user only gets a welcome mail when
+// sendWelcomeMail is set.
+func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastName string, sendWelcomeMail bool) (string, error) {
 
 	oldEmail = utils.ToLower(oldEmail)
 	newEmail = utils.ToLower(newEmail)
@@ -838,7 +865,7 @@ func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastNa
 		new_keycloak_user, err := k.GetUserByEmail(newEmail)
 		if err != nil {
 
-			keycloakUser, _, err2 := k.GetOrCreateUser(newEmail)
+			keycloakUser, err2 := k.GetOrCreateVendor(newEmail, sendWelcomeMail)
 			if err2 != nil {
 				log.Errorf("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v \n", err2, err)
 				return "", fmt.Errorf("UpdateVendor: create keycloak user for "+newEmail+" failed: %v %v", err2, err)

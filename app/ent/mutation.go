@@ -14553,6 +14553,7 @@ type VendorMutation struct {
 	firstname        *string
 	lastname         *string
 	email            *string
+	hasownemail      *bool
 	lastpayout       *time.Time
 	isdisabled       *bool
 	language         *string
@@ -14900,6 +14901,42 @@ func (m *VendorMutation) OldEmail(ctx context.Context) (v string, err error) {
 // ResetEmail resets all changes to the "email" field.
 func (m *VendorMutation) ResetEmail() {
 	m.email = nil
+}
+
+// SetHasownemail sets the "hasownemail" field.
+func (m *VendorMutation) SetHasownemail(b bool) {
+	m.hasownemail = &b
+}
+
+// Hasownemail returns the value of the "hasownemail" field in the mutation.
+func (m *VendorMutation) Hasownemail() (r bool, exists bool) {
+	v := m.hasownemail
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHasownemail returns the old "hasownemail" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldHasownemail(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHasownemail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHasownemail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHasownemail: %w", err)
+	}
+	return oldValue.Hasownemail, nil
+}
+
+// ResetHasownemail resets all changes to the "hasownemail" field.
+func (m *VendorMutation) ResetHasownemail() {
+	m.hasownemail = nil
 }
 
 // SetLastpayout sets the "lastpayout" field.
@@ -15602,7 +15639,7 @@ func (m *VendorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VendorMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m.keycloakid != nil {
 		fields = append(fields, vendor.FieldKeycloakid)
 	}
@@ -15620,6 +15657,9 @@ func (m *VendorMutation) Fields() []string {
 	}
 	if m.email != nil {
 		fields = append(fields, vendor.FieldEmail)
+	}
+	if m.hasownemail != nil {
+		fields = append(fields, vendor.FieldHasownemail)
 	}
 	if m.lastpayout != nil {
 		fields = append(fields, vendor.FieldLastpayout)
@@ -15683,6 +15723,8 @@ func (m *VendorMutation) Field(name string) (ent.Value, bool) {
 		return m.Lastname()
 	case vendor.FieldEmail:
 		return m.Email()
+	case vendor.FieldHasownemail:
+		return m.Hasownemail()
 	case vendor.FieldLastpayout:
 		return m.Lastpayout()
 	case vendor.FieldIsdisabled:
@@ -15732,6 +15774,8 @@ func (m *VendorMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldLastname(ctx)
 	case vendor.FieldEmail:
 		return m.OldEmail(ctx)
+	case vendor.FieldHasownemail:
+		return m.OldHasownemail(ctx)
 	case vendor.FieldLastpayout:
 		return m.OldLastpayout(ctx)
 	case vendor.FieldIsdisabled:
@@ -15810,6 +15854,13 @@ func (m *VendorMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEmail(v)
+		return nil
+	case vendor.FieldHasownemail:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHasownemail(v)
 		return nil
 	case vendor.FieldLastpayout:
 		v, ok := value.(time.Time)
@@ -15975,6 +16026,9 @@ func (m *VendorMutation) ResetField(name string) error {
 		return nil
 	case vendor.FieldEmail:
 		m.ResetEmail()
+		return nil
+	case vendor.FieldHasownemail:
+		m.ResetHasownemail()
 		return nil
 	case vendor.FieldLastpayout:
 		m.ResetLastpayout()

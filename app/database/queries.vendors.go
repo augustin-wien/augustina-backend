@@ -268,6 +268,7 @@ func (db *Database) CreateVendor(vendor Vendor) (vendorID int, err error) {
 	v, err := db.EntClient.Vendor.Create().
 		SetAccountproofurl(vendor.AccountProofUrl.String).
 		SetEmail(vendor.Email).
+		SetHasownemail(vendor.HasOwnEmail).
 		SetFirstname(vendor.FirstName).
 		SetHasbankaccount(vendor.HasBankAccount).
 		SetHassmartphone(vendor.HasSmartphone).
@@ -320,7 +321,7 @@ func (db *Database) UpdateVendor(id int, vendor Vendor) (err error) {
 	vendor.Email = utils.ToLower(vendor.Email)
 	ctx := context.Background()
 	v := db.VendorIntoVendorEnt(vendor)
-	_, err = db.EntClient.Vendor.UpdateOneID(id).SetAccountproofurl(v.Accountproofurl).SetEmail(v.Email).SetFirstname(v.Firstname).SetHasbankaccount(v.Hasbankaccount).SetHassmartphone(v.Hassmartphone).SetIsdeleted(v.Isdeleted).SetIsdisabled(v.Isdisabled).SetIsblocked(v.Isblocked).SetBlockednote(v.Blockednote).SetKeycloakid(v.Keycloakid).SetLanguage(v.Language).SetLastname(v.Lastname).SetLastpayout(v.Lastpayout).SetLicenseid(v.Licenseid).SetOnlinemap(v.Onlinemap).SetRegistrationdate(v.Registrationdate).SetTelephone(v.Telephone).SetUrlid(v.Urlid).SetDebt(v.Debt).Save(ctx)
+	_, err = db.EntClient.Vendor.UpdateOneID(id).SetAccountproofurl(v.Accountproofurl).SetEmail(v.Email).SetHasownemail(v.Hasownemail).SetFirstname(v.Firstname).SetHasbankaccount(v.Hasbankaccount).SetHassmartphone(v.Hassmartphone).SetIsdeleted(v.Isdeleted).SetIsdisabled(v.Isdisabled).SetIsblocked(v.Isblocked).SetBlockednote(v.Blockednote).SetKeycloakid(v.Keycloakid).SetLanguage(v.Language).SetLastname(v.Lastname).SetLastpayout(v.Lastpayout).SetLicenseid(v.Licenseid).SetOnlinemap(v.Onlinemap).SetRegistrationdate(v.Registrationdate).SetTelephone(v.Telephone).SetUrlid(v.Urlid).SetDebt(v.Debt).Save(ctx)
 
 	return err
 }
@@ -376,6 +377,7 @@ func (db *Database) VendorEntIntoVendor(v ent.Vendor) (vendor Vendor) {
 		FirstName:        v.Firstname,
 		LastName:         v.Lastname,
 		Email:            v.Email,
+		HasOwnEmail:      v.Hasownemail,
 		LastPayout:       null.TimeFrom(v.Lastpayout),
 		IsDisabled:       v.Isdisabled,
 		IsDeleted:        v.Isdeleted,
@@ -405,6 +407,7 @@ func (db *Database) VendorIntoVendorEnt(vendor Vendor) (v *ent.Vendor) {
 		Firstname:       vendor.FirstName,
 		Lastname:        vendor.LastName,
 		Email:           vendor.Email,
+		Hasownemail:     vendor.HasOwnEmail,
 		Lastpayout:      vendor.LastPayout.Time,
 		Isdisabled:      vendor.IsDisabled,
 		Isdeleted:       vendor.IsDeleted,

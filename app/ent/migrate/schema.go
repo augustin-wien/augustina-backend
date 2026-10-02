@@ -420,6 +420,7 @@ var (
 		{Name: "firstname", Type: field.TypeString, Default: "unknown"},
 		{Name: "lastname", Type: field.TypeString, Default: "unknown"},
 		{Name: "email", Type: field.TypeString, Default: "@augustina.cc"},
+		{Name: "hasownemail", Type: field.TypeBool, Default: true},
 		{Name: "lastpayout", Type: field.TypeTime},
 		{Name: "isdisabled", Type: field.TypeBool, Default: false},
 		{Name: "language", Type: field.TypeString},

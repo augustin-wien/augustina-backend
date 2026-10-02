@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
+	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/utils"
@@ -128,6 +130,16 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Keep the Keycloak login in step with a changed email, before the DB so
+	// both don't drift apart when Keycloak refuses (e.g. address already taken)
+	if oldCustomer.KeycloakID != "" && utils.ToLower(customer.Email) != utils.ToLower(oldCustomer.Email) {
+		if err := keycloak.KeycloakClient.UpdateUserById(oldCustomer.KeycloakID, customer.Email, customer.FirstName, customer.LastName, customer.Email); err != nil {
+			log.Error("UpdateCustomer: failed to update email in Keycloak: ", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+
 	updatedCustomer, err := database.Db.UpdateCustomer(&customer)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -169,4 +181,50 @@ func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// SendCustomerPasswordResetEmail godoc
+//
+//	@Summary		Send the customer a password reset email
+//	@Tags			Customers
+//	@Param			id path int true "Customer ID"
+//	@Success		204
+//	@Failure		400	{object}	utils.ErrorResponse
+//	@Security		KeycloakAuth
+//	@Router			/customers/{id}/password-reset-email/ [post]
+func SendCustomerPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
+	sendCustomerActionEmail(w, r, "password reset", keycloak.KeycloakClient.SendPasswordResetEmail)
+}
+
+// SendCustomerVerifyEmail godoc
+//
+//	@Summary		Send the customer an email to verify their address
+//	@Tags			Customers
+//	@Param			id path int true "Customer ID"
+//	@Success		204
+//	@Failure		400	{object}	utils.ErrorResponse
+//	@Security		KeycloakAuth
+//	@Router			/customers/{id}/verify-email/ [post]
+func SendCustomerVerifyEmail(w http.ResponseWriter, r *http.Request) {
+	sendCustomerActionEmail(w, r, "verification", keycloak.KeycloakClient.SendVerifyEmail)
+}
+
+func sendCustomerActionEmail(w http.ResponseWriter, r *http.Request, kind string, send func(email string) error) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	customer, err := database.Db.GetCustomerByID(id)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusNotFound)
+		return
+	}
+	// The customer mails link back to the online paper; without it Keycloak's
+	// helper skips sending silently
+	if config.Config.OnlinePaperUrl == "" {
+		utils.ErrorJSON(w, errors.New("the online paper URL is not configured in the settings"), http.StatusServiceUnavailable)
+		return
+	}
+	sendActionEmail(w, r, kind, "customer", id, customer.Email, send)
 }

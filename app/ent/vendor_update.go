@@ -115,6 +115,20 @@ func (_u *VendorUpdate) SetNillableEmail(v *string) *VendorUpdate {
 	return _u
 }
 
+// SetHasownemail sets the "hasownemail" field.
+func (_u *VendorUpdate) SetHasownemail(v bool) *VendorUpdate {
+	_u.mutation.SetHasownemail(v)
+	return _u
+}
+
+// SetNillableHasownemail sets the "hasownemail" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableHasownemail(v *bool) *VendorUpdate {
+	if v != nil {
+		_u.SetHasownemail(*v)
+	}
+	return _u
+}
+
 // SetLastpayout sets the "lastpayout" field.
 func (_u *VendorUpdate) SetLastpayout(v time.Time) *VendorUpdate {
 	_u.mutation.SetLastpayout(v)
@@ -478,6 +492,9 @@ func (_u *VendorUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(vendor.FieldEmail, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Hasownemail(); ok {
+		_spec.SetField(vendor.FieldHasownemail, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Lastpayout(); ok {
 		_spec.SetField(vendor.FieldLastpayout, field.TypeTime, value)
 	}
@@ -755,6 +772,20 @@ func (_u *VendorUpdateOne) SetEmail(v string) *VendorUpdateOne {
 func (_u *VendorUpdateOne) SetNillableEmail(v *string) *VendorUpdateOne {
 	if v != nil {
 		_u.SetEmail(*v)
+	}
+	return _u
+}
+
+// SetHasownemail sets the "hasownemail" field.
+func (_u *VendorUpdateOne) SetHasownemail(v bool) *VendorUpdateOne {
+	_u.mutation.SetHasownemail(v)
+	return _u
+}
+
+// SetNillableHasownemail sets the "hasownemail" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableHasownemail(v *bool) *VendorUpdateOne {
+	if v != nil {
+		_u.SetHasownemail(*v)
 	}
 	return _u
 }
@@ -1151,6 +1182,9 @@ func (_u *VendorUpdateOne) sqlSave(ctx context.Context) (_node *Vendor, err erro
 	}
 	if value, ok := _u.mutation.Email(); ok {
 		_spec.SetField(vendor.FieldEmail, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Hasownemail(); ok {
+		_spec.SetField(vendor.FieldHasownemail, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Lastpayout(); ok {
 		_spec.SetField(vendor.FieldLastpayout, field.TypeTime, value)
