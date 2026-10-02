@@ -286,11 +286,17 @@ func GetVendorOverview(w http.ResponseWriter, r *http.Request) {
 //		@Security		KeycloakAuth
 //	    @Param          id   path int  true  "Vendor ID"
 //		@Param		    data body database.Vendor true "Vendor Representation"
+//		@Param			locations query string false "What happens to the vendor's locations when the vendor gets disabled" Enums(keep, delete)
 //		@Router			/vendors/{id}/ [put]
 func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		log.Error("UpdateVendor: Can not read ID ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	keepLocations, err := parseLocationsParam(r)
+	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -324,7 +330,33 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	if keepLocations != nil && !oldVendor.IsDisabled && vendor.IsDisabled {
+		err = database.Db.ReleaseVendorLocations(vendorID, *keepLocations)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
 	respond(w, err, vendor)
+}
+
+// parseLocationsParam reads the optional "locations" query parameter that
+// decides what happens to a vendor's locations when the vendor is deleted or
+// disabled: "keep" leaves them as unassigned locations, "delete" removes them.
+// Without the parameter (nil) the locations stay with the vendor.
+func parseLocationsParam(r *http.Request) (*bool, error) {
+	switch r.URL.Query().Get("locations") {
+	case "":
+		return nil, nil
+	case "keep":
+		keep := true
+		return &keep, nil
+	case "delete":
+		keep := false
+		return &keep, nil
+	default:
+		return nil, errors.New("locations must be 'keep' or 'delete'")
+	}
 }
 
 // DeleteVendor godoc
@@ -336,11 +368,17 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 //		@Success		200
 //		@Security		KeycloakAuth
 //	    @Param          id   path int  true  "Vendor ID"
+//		@Param			locations query string false "What happens to the vendor's locations" Enums(keep, delete)
 //		@Router			/vendors/{id}/ [delete]
 func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	vendorID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		log.Error("DeleteVendor: Can not read ID ", err)
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	keepLocations, err := parseLocationsParam(r)
+	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -363,6 +401,13 @@ func DeleteVendor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
+	}
+	if keepLocations != nil {
+		err = database.Db.ReleaseVendorLocations(vendorID, *keepLocations)
+		if err != nil {
+			utils.ErrorJSON(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusNoContent)
