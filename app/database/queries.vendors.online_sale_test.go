@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -9,9 +10,10 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-// Test_VendorFirstOnlineSale checks that only a verified online order sets a
-// vendor's first online sale, both in the vendor list and the vendor detail
-func Test_VendorFirstOnlineSale(t *testing.T) {
+// Test_VendorLastOnlineSale checks that only a verified online order counts as
+// a vendor's online sale and that the latest one is reported, both in the vendor
+// list and the vendor detail
+func Test_VendorLastOnlineSale(t *testing.T) {
 	Db.InitEmptyTestDb()
 
 	sellerID, err := Db.CreateVendor(Vendor{
@@ -58,24 +60,31 @@ func Test_VendorFirstOnlineSale(t *testing.T) {
 	// Nobody has sold online yet
 	vendor, err := Db.GetVendorWithBalanceUpdate(sellerID)
 	utils.CheckError(t, err)
-	require.False(t, vendor.FirstOnlineSale.Valid)
+	require.False(t, vendor.LastOnlineSale.Valid)
 
 	// A verified order counts, an unverified (unpaid) one doesn't
-	utils.CheckError(t, Db.VerifyOrderAndCreatePayments(createOrder(sellerID, "os-order-1"), 1))
+	olderOrderID := createOrder(sellerID, "os-order-1")
+	utils.CheckError(t, Db.VerifyOrderAndCreatePayments(olderOrderID, 1))
+	utils.CheckError(t, Db.VerifyOrderAndCreatePayments(createOrder(sellerID, "os-order-3"), 1))
 	createOrder(pendingID, "os-order-2")
+
+	// Move the first sale back so the second one is clearly the latest
+	lastWeek := time.Now().AddDate(0, 0, -7)
+	utils.CheckError(t, Db.EntClient.Order.UpdateOneID(olderOrderID).SetTimestamp(lastWeek).Exec(context.Background()))
 
 	vendor, err = Db.GetVendorWithBalanceUpdate(sellerID)
 	utils.CheckError(t, err)
-	require.True(t, vendor.FirstOnlineSale.Valid)
+	require.True(t, vendor.LastOnlineSale.Valid)
+	require.WithinDuration(t, time.Now(), vendor.LastOnlineSale.Time, time.Minute)
 	vendor, err = Db.GetVendorWithBalanceUpdate(pendingID)
 	utils.CheckError(t, err)
-	require.False(t, vendor.FirstOnlineSale.Valid)
+	require.False(t, vendor.LastOnlineSale.Valid)
 
 	vendors, err := Db.ListVendorsWithDisabled()
 	utils.CheckError(t, err)
 	byID := make(map[int]null.Time)
 	for _, v := range vendors {
-		byID[v.ID] = v.FirstOnlineSale
+		byID[v.ID] = v.LastOnlineSale
 	}
 	require.True(t, byID[sellerID].Valid)
 	require.WithinDuration(t, time.Now(), byID[sellerID].Time, time.Minute)
