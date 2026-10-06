@@ -23,6 +23,9 @@ type Invite struct {
 	TTL         int    `json:"ttl"`
 }
 
+// userAgent is sent instead of Go's default "Go-http-client/1.1"
+const userAgent = "augustina-backend"
+
 // issueNumberPattern is what WordPress accepts as issue_number; it becomes
 // part of a Keycloak group path
 var issueNumberPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,32}$`)
@@ -71,6 +74,9 @@ func CreateInvite(baseURL, apiKey string, invite Invite) (string, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiKey)
+	// Some hosters block Go's default User-Agent; clone.augustin.or.at
+	// answers "Go-http-client/1.1" with an empty 410 Gone
+	req.Header.Set("User-Agent", userAgent)
 
 	client := http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
