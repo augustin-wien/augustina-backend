@@ -1269,15 +1269,14 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 		mailer.Send = origSend
 	}()
 
-	welcomeCh := make(chan struct{}, 1)
-	// Intercept BuildEmailRequestFromTemplate to return a real EmailRequest
-	// for non-welcome templates and for welcome templates return a valid request
-	// as well so mailer.Send gets invoked.
+	var pdfCount, licenseCount, welcomeCount int32
 	database.BuildEmailRequestFromTemplate = func(name string, to []string, data interface{}) (*mailer.EmailRequest, error) {
-		// For the welcome template we still return a simple EmailRequest
 		subj := "Welcome"
 		if name == "digitalLicenceItemTemplate.html" {
 			subj = "Your license"
+		}
+		if name == "PDFLicenceItemTemplate.html" {
+			subj = "Your PDF"
 		}
 		r, err := mailer.NewRequest(to, subj, "body")
 		if err != nil {
@@ -1288,17 +1287,20 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 
 	// Capture sends
 	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
-		// If the subject indicates Welcome, signal
-		if strings.Contains(strings.ToLower(r.Subject()), "welcome") {
-			select {
-			case welcomeCh <- struct{}{}:
-			default:
-			}
+		switch r.Subject() {
+		case "Your PDF":
+			atomic.AddInt32(&pdfCount, 1)
+		case "Your license":
+			atomic.AddInt32(&licenseCount, 1)
+		case "Welcome":
+			atomic.AddInt32(&welcomeCount, 1)
 		}
 		return true, nil
 	}
 
 	customerEmail := "verify_once@example.com"
+	// A PDF purchase must not create a Keycloak account; remove leftovers of earlier runs
+	_ = keycloak.KeycloakClient.DeleteUser(customerEmail)
 
 	// create order via API (this will prepend license entry internally)
 	requestWithEmail := `{
@@ -1349,6 +1351,15 @@ func TestVerifyOrder_EmailSentOnlyOnce(t *testing.T) {
 	require.True(t, pdfDownloads[0].EmailSent)
 	require.EqualValues(t, licenseID, pdfDownloads[0].ItemID.ValueOrZero())
 	require.EqualValues(t, order.ID, pdfDownloads[0].OrderID.ValueOrZero())
+
+	// Only the PDF download link is mailed: no online paper mail, no welcome
+	// mail and no Keycloak account
+	time.Sleep(100 * time.Millisecond)
+	require.EqualValues(t, 1, atomic.LoadInt32(&pdfCount))
+	require.EqualValues(t, 0, atomic.LoadInt32(&licenseCount))
+	require.EqualValues(t, 0, atomic.LoadInt32(&welcomeCount))
+	_, err = keycloak.KeycloakClient.GetUserByEmail(customerEmail)
+	require.Error(t, err)
 
 	// cleanup
 	for _, payment := range payments {
@@ -1423,7 +1434,7 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 		mailer.Send = origSend
 	}()
 
-	var digitalCount int32
+	var pdfCount, licenseCount int32
 	database.BuildEmailRequestFromTemplate = func(name string, to []string, data interface{}) (*mailer.EmailRequest, error) {
 		subj := "Digital"
 		if name == "digitalLicenceItemTemplate.html" {
@@ -1440,9 +1451,11 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 	}
 
 	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
-		s := strings.ToLower(r.Subject())
-		if strings.Contains(s, "your pdf") || strings.Contains(s, "your license") || strings.Contains(s, "digital") {
-			atomic.AddInt32(&digitalCount, 1)
+		switch r.Subject() {
+		case "Your PDF":
+			atomic.AddInt32(&pdfCount, 1)
+		case "Your license":
+			atomic.AddInt32(&licenseCount, 1)
 		}
 		return true, nil
 	}
@@ -1487,8 +1500,9 @@ func TestVerifyOrder_MultipleDigitalItems_EmailSentOnce(t *testing.T) {
 	// Wait briefly for async sends to execute
 	time.Sleep(100 * time.Millisecond)
 
-	// digitalCount should be 1 (only one licence/pdf email)
-	require.EqualValues(t, 1, atomic.LoadInt32(&digitalCount))
+	// one download mail per PDF, and no online paper mail since both are PDFs
+	require.EqualValues(t, 2, atomic.LoadInt32(&pdfCount))
+	require.EqualValues(t, 0, atomic.LoadInt32(&licenseCount))
 
 	// cleanup
 	payments, err := database.Db.ListPayments(time.Time{}, time.Time{}, "", false, false, false, false, false)

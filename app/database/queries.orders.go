@@ -504,7 +504,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", orderID, err)
 			}
 
-			if isMailDeliveredItem(item) {
+			if isMailDeliveredItem(item) && !linkedItemIsPDF(tx.Item, item) {
 
 				if !item.IsPDFItem {
 					// Ensure we only call GetOrCreateUser once per order/customer
@@ -683,12 +683,12 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 						} else if mail != nil {
 							// use subject from DB template (do not override)
-							go func() {
-								success, err := mail.SendEmail()
+							go func(m *mailer.EmailRequest) {
+								success, err := mailer.Send(m)
 								if err != nil || !success {
 									log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
 								}
-							}()
+							}(mail)
 						}
 
 						pdfDownload.EmailSent = true

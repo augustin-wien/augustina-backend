@@ -7,6 +7,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/ent"
+	entitem "github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/wordpress"
 )
@@ -51,6 +52,22 @@ func isMailDeliveredItem(item Item) bool {
 	return item.LicenseItem.Valid || item.Type == "abonement"
 }
 
+// linkedItemIsPDF reports whether the item's linked item (its license item, or
+// the item a license belongs to) is a PDF item. Such an order contains both
+// items; the PDF one sends the download link, so the other one must neither
+// send the online paper mail nor create a Keycloak account.
+func linkedItemIsPDF(items *ent.ItemClient, item Item) bool {
+	if item.IsPDFItem || !item.LicenseItem.Valid {
+		return false
+	}
+	linked, err := items.Query().Where(entitem.ID(int(item.LicenseItem.Int64))).Only(context.Background())
+	if err != nil {
+		log.Error("linkedItemIsPDF: failed to get linked item: ", item.ID, err)
+		return false
+	}
+	return linked.IsPDFItem
+}
+
 // sendMail sends a mail and turns an unsuccessful send into an error
 func sendMail(m *mailer.EmailRequest) error {
 	success, err := mailer.Send(m)
@@ -89,7 +106,7 @@ func (db *Database) ResendOrderMails(orderID int) (sent int, err error) {
 		if err != nil {
 			return 0, err
 		}
-		if !isMailDeliveredItem(item) {
+		if !isMailDeliveredItem(item) || linkedItemIsPDF(db.EntClient.Item, item) {
 			continue
 		}
 
