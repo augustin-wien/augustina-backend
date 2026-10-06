@@ -14,6 +14,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/utils"
+	"github.com/augustin-wien/augustina-backend/wordpress"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -470,4 +471,73 @@ func updateCSS(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 	}
 	log.Info("updateCSS: success")
+}
+
+// WordPressInviteTestRequest holds the invite settings to test, so admins can
+// check them before saving. An empty value falls back to the saved setting.
+type WordPressInviteTestRequest struct {
+	WordPressInviteURL    string
+	WordPressInviteAPIKey string
+}
+
+// WordPressInviteTestResponse tells whether WordPress handed out a login link
+type WordPressInviteTestResponse struct {
+	Success bool
+	Message string
+	Link    string
+}
+
+// wordPressInviteTestEmail is the address the test link is created for; it
+// belongs to nobody, so the link cannot log anyone in
+const wordPressInviteTestEmail = "verbindungstest@example.com"
+
+// testWordPressInvite godoc
+//
+//	@Summary 		Test the WordPress one-time login connection
+//	@Description	Asks WordPress for a short-lived login link for a dummy address and reports whether that worked
+//	@Tags			Settings
+//	@Accept			json
+//	@Produce		json
+//	@Param			data body WordPressInviteTestRequest true "Invite settings to test"
+//	@Success		200 {object} WordPressInviteTestResponse
+//	@Security		KeycloakAuth
+//	@Router			/settings/wordpress-invite/test/ [post]
+func testWordPressInvite(w http.ResponseWriter, r *http.Request) {
+	var req WordPressInviteTestRequest
+	if err := utils.ReadJSON(w, r, &req); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	if req.WordPressInviteURL == "" {
+		req.WordPressInviteURL = settings.WordPressInviteURL
+	}
+	if req.WordPressInviteAPIKey == "" {
+		req.WordPressInviteAPIKey = settings.WordPressInviteAPIKey
+	}
+
+	var res WordPressInviteTestResponse
+	switch {
+	case req.WordPressInviteURL == "":
+		res.Message = "Keine API-URL eingetragen"
+	case req.WordPressInviteAPIKey == "":
+		res.Message = "Kein API-Schlüssel eingetragen"
+	default:
+		link, err := wordpress.CreateInvite(req.WordPressInviteURL, req.WordPressInviteAPIKey, wordpress.Invite{Email: wordPressInviteTestEmail, TTL: 60})
+		if err != nil {
+			log.Info("testWordPressInvite: ", err)
+			res.Message = err.Error()
+		} else {
+			res.Success = true
+			res.Message = "WordPress hat einen Login-Link erstellt"
+			res.Link = link
+		}
+	}
+	if err = utils.WriteJSON(w, http.StatusOK, res); err != nil {
+		log.Error("testWordPressInvite: ", err)
+	}
 }

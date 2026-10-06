@@ -217,6 +217,7 @@ func GetRouter() (r *chi.Mux) {
 				r.Get("/admin/", getSettingsAdmin)
 				r.Put("/", updateSettings)
 				r.Put("/css/", updateCSS)
+				r.Post("/wordpress-invite/test/", testWordPressInvite)
 			})
 		})
 

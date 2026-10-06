@@ -22,6 +22,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/utils"
+	"github.com/augustin-wien/augustina-backend/wordpress"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-chi/chi/v5"
@@ -1885,9 +1886,22 @@ func TestVerifyPaymentOrder_InviteURL(t *testing.T) {
 
 	// Fake WordPress invite API
 	const fakeInviteURL = "https://wordpress.test/invite/abc123"
+	var invitesMu sync.Mutex
+	var invites []wordpress.Invite
+	lastInvite := func() wordpress.Invite {
+		invitesMu.Lock()
+		defer invitesMu.Unlock()
+		require.NotEmpty(t, invites)
+		return invites[len(invites)-1]
+	}
 	wpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var invite wordpress.Invite
+		_ = json.NewDecoder(r.Body).Decode(&invite)
+		invitesMu.Lock()
+		invites = append(invites, invite)
+		invitesMu.Unlock()
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"url":"` + fakeInviteURL + `"}`))
+		_, _ = w.Write([]byte(`{"magic_link":"` + fakeInviteURL + `","expires_at":"2030-01-01T00:00:00+00:00"}`))
 	}))
 	defer wpServer.Close()
 
@@ -1959,4 +1973,71 @@ func TestVerifyPaymentOrder_InviteURL(t *testing.T) {
 	err = json.Unmarshal(resVerify.Body.Bytes(), &verifyResp)
 	require.NoError(t, err)
 	require.Equal(t, fakeInviteURL, verifyResp.InviteURL, "InviteURL should be set for a new user")
+	// The item's license group is the issue number WordPress grants
+	require.Equal(t, customerEmail, lastInvite().Email)
+	require.Equal(t, "testedition", lastInvite().IssueNumber)
+	require.Equal(t, 604800, lastInvite().TTL)
+
+	// A returning customer gets a login link as well, with the stored names
+	customer, err := database.Db.GetCustomerByEmail(customerEmail)
+	require.NoError(t, err)
+	customer.FirstName = "Maria"
+	customer.LastName = "Muster"
+	_, err = database.Db.UpdateCustomer(customer)
+	require.NoError(t, err)
+	res = utils.TestRequest(t, r, "POST", "/api/orders/", reqData, 200)
+	err = json.Unmarshal(res.Body.Bytes(), &orderResp)
+	require.NoError(t, err)
+	u, err = url.Parse(orderResp.SmartCheckoutURL)
+	require.NoError(t, err)
+	resVerify = utils.TestRequestStr(t, r, "GET", "/api/orders/verify/?s="+u.Query().Get("s")+"&t=0", "", 200)
+	verifyResp = VerifyPaymentOrderResponse{}
+	err = json.Unmarshal(resVerify.Body.Bytes(), &verifyResp)
+	require.NoError(t, err)
+	require.Equal(t, fakeInviteURL, verifyResp.InviteURL, "InviteURL should be set for a returning customer")
+	require.Equal(t, "testedition", lastInvite().IssueNumber)
+	require.Equal(t, "Maria", lastInvite().FirstName)
+	require.Equal(t, "Muster", lastInvite().LastName)
+}
+
+// TestWordPressInviteConnectionTest checks the backoffice button that tests
+// the WordPress one-time login settings
+func TestWordPressInviteConnectionTest(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	err := database.Db.InitEmptyTestDb()
+	require.NoError(t, err)
+
+	wpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Header.Get("Authorization") != "Bearer right-key" {
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(`{"code":"shop_unauthorized","message":"Ungültiger oder fehlender API-Schlüssel.","data":{"status":401}}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"magic_link":"https://wordpress.test/app/willkommen?token=abc"}`))
+	}))
+	defer wpServer.Close()
+
+	test := func(body WordPressInviteTestRequest) (res WordPressInviteTestResponse) {
+		resp := utils.TestRequestWithAuth(t, r, "POST", "/api/settings/wordpress-invite/test/", body, 200, adminUserToken)
+		require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &res))
+		return res
+	}
+
+	res := test(WordPressInviteTestRequest{WordPressInviteURL: wpServer.URL, WordPressInviteAPIKey: "right-key"})
+	require.True(t, res.Success)
+	require.Equal(t, "https://wordpress.test/app/willkommen?token=abc", res.Link)
+
+	res = test(WordPressInviteTestRequest{WordPressInviteURL: wpServer.URL, WordPressInviteAPIKey: "wrong-key"})
+	require.False(t, res.Success)
+	require.Contains(t, res.Message, "API-Schlüssel")
+
+	res = test(WordPressInviteTestRequest{})
+	require.False(t, res.Success)
+	require.Equal(t, "Keine API-URL eingetragen", res.Message)
+
+	// Only admins may test
+	utils.TestRequest(t, r, "POST", "/api/settings/wordpress-invite/test/", WordPressInviteTestRequest{}, 401)
 }

@@ -115,7 +115,7 @@ func (db *Database) ResendOrderMails(orderID int) (sent int, err error) {
 			if digitalMailAdded {
 				continue
 			}
-			mail, err := db.buildDigitalLicenceMail(email, db.createWordPressInvite(email))
+			mail, err := db.buildDigitalLicenceMail(email, db.CreateWordPressInvite(email, item))
 			if err != nil {
 				return 0, err
 			}
@@ -154,24 +154,48 @@ func (db *Database) ResendOrderMails(orderID int) (sent int, err error) {
 	return sent, nil
 }
 
-// createWordPressInvite returns a one-time WordPress login link for the
-// customer, or an empty string if invites are not configured or fail.
-func (db *Database) createWordPressInvite(email string) string {
+// CreateWordPressInvite returns a one-time WordPress login link for the
+// customer who bought item, or an empty string if invites are not configured
+// or fail. The item's license group is passed on as the issue number, so
+// WordPress grants the same Keycloak group the backend does.
+func (db *Database) CreateWordPressInvite(email string, item Item) string {
 	settings, err := db.GetSettings()
 	if err != nil || settings == nil || settings.WordPressInviteURL == "" {
 		return ""
 	}
-	inviteURL, err := wordpress.CreateInvite(
-		settings.WordPressInviteURL,
-		settings.WordPressInviteAPIKey,
-		email,
-		settings.WordPressInviteTTL,
-	)
+	licenseGroup := db.inviteLicenseGroup(item)
+	invite := wordpress.Invite{
+		Email:       email,
+		IssueNumber: wordpress.IssueNumber(licenseGroup),
+		TTL:         settings.WordPressInviteTTL,
+	}
+	if licenseGroup != "" && invite.IssueNumber == "" {
+		log.Warn("CreateWordPressInvite: license group is not a valid issue number, leaving it out: ", licenseGroup)
+	}
+	if customer, err := db.GetCustomerByEmail(email); err == nil && customer != nil {
+		invite.FirstName = customer.FirstName
+		invite.LastName = customer.LastName
+	}
+	inviteURL, err := wordpress.CreateInvite(settings.WordPressInviteURL, settings.WordPressInviteAPIKey, invite)
 	if err != nil {
-		log.Error("createWordPressInvite: ", err)
+		log.Error("CreateWordPressInvite: ", err)
 		return ""
 	}
 	return inviteURL
+}
+
+// inviteLicenseGroup returns the item's license group, or the one of its
+// linked item: a license item and its issue point at each other, and often
+// only one of them carries the group.
+func (db *Database) inviteLicenseGroup(item Item) string {
+	if item.LicenseGroup.String != "" || !item.LicenseItem.Valid {
+		return item.LicenseGroup.String
+	}
+	linked, err := db.GetItemIncludingDisabled(int(item.LicenseItem.Int64))
+	if err != nil {
+		return ""
+	}
+	return linked.LicenseGroup.String
 }
 
 // renewOrderPDFDownload returns the order's download link for a PDF item with
