@@ -2010,6 +2010,10 @@ func TestWordPressInviteConnectionTest(t *testing.T) {
 	require.NoError(t, err)
 
 	wpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/gone" {
+			w.WriteHeader(http.StatusGone)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		if r.Header.Get("Authorization") != "Bearer right-key" {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -2033,6 +2037,11 @@ func TestWordPressInviteConnectionTest(t *testing.T) {
 	res = test(WordPressInviteTestRequest{WordPressInviteURL: wpServer.URL, WordPressInviteAPIKey: "wrong-key"})
 	require.False(t, res.Success)
 	require.Contains(t, res.Message, "API-Schlüssel")
+
+	// Something other than the plugin answers, e.g. a removed site
+	res = test(WordPressInviteTestRequest{WordPressInviteURL: wpServer.URL + "/gone", WordPressInviteAPIKey: "right-key"})
+	require.False(t, res.Success)
+	require.Equal(t, "Unter "+wpServer.URL+"/gone gibt es keinen Einladungs-Endpunkt (Status 410). Bitte prüfen, ob die API-URL stimmt (…/wp-json/augustin/v1/shop/create-invite) und das augustin-ki-Plugin aktiv ist.", res.Message)
 
 	res = test(WordPressInviteTestRequest{})
 	require.False(t, res.Success)

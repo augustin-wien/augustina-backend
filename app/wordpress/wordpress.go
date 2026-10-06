@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -78,12 +80,15 @@ func CreateInvite(baseURL, apiKey string, invite Invite) (string, error) {
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		raw, _ := io.ReadAll(resp.Body)
+		raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		statusErr := &StatusError{URL: endpoint(baseURL), Status: resp.StatusCode}
 		var wpErr errorResponse
 		if json.Unmarshal(raw, &wpErr) == nil && wpErr.Message != "" {
-			return "", fmt.Errorf("wordpress.CreateInvite: status %d: %s", resp.StatusCode, wpErr.Message)
+			statusErr.Code, statusErr.Message = wpErr.Code, wpErr.Message
+		} else {
+			statusErr.Body = snippet(raw)
 		}
-		return "", fmt.Errorf("wordpress.CreateInvite: unexpected status %d: %s", resp.StatusCode, raw)
+		return "", statusErr
 	}
 
 	var result inviteResponse
@@ -97,4 +102,61 @@ func CreateInvite(baseURL, apiKey string, invite Invite) (string, error) {
 		return result.URL, nil
 	}
 	return "", fmt.Errorf("wordpress.CreateInvite: response contains no login link")
+}
+
+// StatusError is a non-2xx answer to an invite request. Code and Message are
+// set when WordPress answered with a WP_Error; otherwise the answer did not
+// come from the augustin-ki plugin and Body holds the start of it.
+type StatusError struct {
+	URL     string
+	Status  int
+	Code    string
+	Message string
+	Body    string
+}
+
+func (e *StatusError) Error() string {
+	status := fmt.Sprintf("%d %s", e.Status, http.StatusText(e.Status))
+	if e.Message != "" {
+		return fmt.Sprintf("wordpress.CreateInvite: POST %s: %s: %s (%s)", e.URL, status, e.Message, e.Code)
+	}
+	body := "empty body"
+	if e.Body != "" {
+		body = fmt.Sprintf("body %q", e.Body)
+	}
+	return fmt.Sprintf("wordpress.CreateInvite: POST %s: %s, %s; not an answer of the augustin-ki plugin, check the WordPress invite URL setting", e.URL, status, body)
+}
+
+// Hint explains the error to the admin who configures the invite settings
+func (e *StatusError) Hint() string {
+	switch {
+	case e.Status == http.StatusUnauthorized || e.Status == http.StatusForbidden:
+		return fmt.Sprintf("WordPress hat den API-Schlüssel abgelehnt (Status %d). Bitte den Schlüssel mit dem im augustin-ki-Plugin vergleichen.", e.Status)
+	case e.Message != "":
+		return fmt.Sprintf("WordPress meldet einen Fehler (Status %d): %s", e.Status, e.Message)
+	case e.Status == http.StatusNotFound || e.Status == http.StatusGone:
+		return fmt.Sprintf("Unter %s gibt es keinen Einladungs-Endpunkt (Status %d). Bitte prüfen, ob die API-URL stimmt (…/wp-json/augustin/v1/shop/create-invite) und das augustin-ki-Plugin aktiv ist.", e.URL, e.Status)
+	case e.Status >= 500:
+		return fmt.Sprintf("Der Server unter %s ist gerade nicht erreichbar oder hat einen Fehler (Status %d). Bitte später erneut versuchen.", e.URL, e.Status)
+	default:
+		return fmt.Sprintf("Unter %s antwortet kein augustin-ki-Plugin (Status %d). Bitte die API-URL prüfen.", e.URL, e.Status)
+	}
+}
+
+// endpoint is baseURL without query and credentials, so it can be logged
+func endpoint(baseURL string) string {
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		return "(invalid URL)"
+	}
+	return u.Scheme + "://" + u.Host + u.Path
+}
+
+// snippet shortens a response body for an error message
+func snippet(raw []byte) string {
+	s := strings.Join(strings.Fields(string(raw)), " ")
+	if r := []rune(s); len(r) > 200 {
+		return string(r[:200]) + "…"
+	}
+	return s
 }
