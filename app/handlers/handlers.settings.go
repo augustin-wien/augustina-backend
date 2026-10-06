@@ -531,6 +531,10 @@ func testWordPressInvite(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Info("testWordPressInvite: ", err)
 			res.Message = err.Error()
+			var statusErr *wordpress.StatusError
+			if errors.As(err, &statusErr) {
+				res.Message = statusErr.Hint()
+			}
 		} else {
 			res.Success = true
 			res.Message = "WordPress hat einen Login-Link erstellt"
