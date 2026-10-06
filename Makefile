@@ -2,7 +2,7 @@ VERSION_FILE=app/config/config.go
 
 update-frontend:
 	@echo "Updating frontend..."
-	@cd docker/augustin-frontend && git pull
+	@cd docker/augustin-frontend && git stash && git pull
 	@echo "Frontend updated."
 
 build-frontend:
