@@ -23,6 +23,7 @@ func TestCreateInvite(t *testing.T) {
 	var body map[string]any
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, "Bearer key", r.Header.Get("Authorization"))
+		require.Equal(t, "augustina-backend", r.Header.Get("User-Agent"))
 		raw, _ := io.ReadAll(r.Body)
 		body = nil
 		require.NoError(t, json.Unmarshal(raw, &body))
