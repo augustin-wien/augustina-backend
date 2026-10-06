@@ -46,3 +46,5 @@ __pycache__/*
 app/test.txt
 app/test_output.txt
 docker/keycloak/themes/*
+# Root-owned Docker mount points created by running the production compose file locally
+/dockerstorage/
