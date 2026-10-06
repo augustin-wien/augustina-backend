@@ -65,6 +65,12 @@ func TestUploadPDFTwiceInARow(t *testing.T) {
 	// If the user wants to prevent collision, we might need milliseconds.
 	// But let's see what happens.
 	
+	// Admins can view the PDF of an item; it is not public
+	res := utils.TestRequestWithAuth(t, r, "GET", "/api/items/"+strconv.Itoa(id1)+"/pdf/", nil, 200, adminUserToken)
+	require.Equal(t, "PDF Content 1", res.Body.String())
+	require.Contains(t, res.Header().Get("Content-Disposition"), "test.pdf")
+	utils.TestRequest(t, r, "GET", "/api/items/"+strconv.Itoa(id1)+"/pdf/", nil, 401)
+
 	// Verify content on disk
 	content1, err := os.ReadFile(path1)
 	require.NoError(t, err)
@@ -97,7 +103,7 @@ func TestUploadPDFTwiceInARow(t *testing.T) {
 	writer.WriteField("Description", "To be updated")
 	writer.WriteField("Price", "50")
 	writer.Close()
-	res := utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 200, adminUserToken)
+	res = utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 200, adminUserToken)
 	updateIDStr := strings.TrimSpace(res.Body.String())
 	
 	updateItemWithPDF := func(idStr, pdfContent string) string {

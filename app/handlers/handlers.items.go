@@ -721,6 +721,41 @@ func sendOnlineIssueMails(issue database.Item, issueImageURL string, recipients 
 	log.Infof("sendOnlineIssueMails: online issue %d sent to %d of %d abonnents", issue.ID, len(recipients)-failed, len(recipients))
 }
 
+// GetItemPDF godoc
+//
+//	@Summary		Get the PDF of an item
+//	@Description	Serves the PDF attached to an item, so admins can check what customers receive
+//	@Tags			Items
+//	@Produce		application/pdf
+//	@Success		200
+//	@Security		KeycloakAuth
+//	@Param			id	path	int	true	"Item ID"
+//	@Router			/items/{id}/pdf/ [get]
+func GetItemPDF(w http.ResponseWriter, r *http.Request) {
+	itemID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	item, err := database.Db.GetItemIncludingDisabled(itemID)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusNotFound)
+		return
+	}
+	if !item.PDF.Valid {
+		utils.ErrorJSON(w, errors.New("item has no pdf"), http.StatusNotFound)
+		return
+	}
+	pdf, err := database.Db.GetPDFByID(item.PDF.Int64)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=%q", filepath.Base(pdf.Path)))
+	http.ServeFile(w, r, pdf.Path)
+}
+
 // resolveOnlineIssuePDF returns the PDF of an online issue, either attached to
 // the issue itself or to its linked license item.
 func resolveOnlineIssuePDF(issue database.Item) (pdfID int, itemID int, ok bool) {
