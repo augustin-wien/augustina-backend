@@ -14,7 +14,6 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/payment"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
-	"github.com/augustin-wien/augustina-backend/wordpress"
 	"go.uber.org/zap"
 	"gopkg.in/guregu/null.v4"
 )
@@ -492,12 +491,6 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		sentDigitalLicenceEmail := false
 		inviteURL := ""
 
-		// Load settings once to read WordPress invite config.
-		wpSettings, wpSettingsErr := db.GetSettings()
-		if wpSettingsErr != nil {
-			log.Error("VerifyOrderAndCreatePayments: failed to load settings for WP invite: ", orderID, wpSettingsErr)
-		}
-
 		for _, entry := range o.Entries {
 			item, err := db.GetItemTx(tx, entry.Item)
 			if err != nil {
@@ -520,18 +513,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						}
 
 						// Fetch a one-time WordPress login link once per order.
-						if wpSettingsErr == nil && wpSettings != nil && wpSettings.WordPressInviteURL != "" {
-							inviteURL, err = wordpress.CreateInvite(
-								wpSettings.WordPressInviteURL,
-								wpSettings.WordPressInviteAPIKey,
-								o.CustomerEmail.String,
-								wpSettings.WordPressInviteTTL,
-							)
-							if err != nil {
-								log.Error("VerifyOrderAndCreatePayments: failed to create WordPress invite: ", orderID, err)
-								inviteURL = ""
-							}
-						}
+						inviteURL = db.CreateWordPressInvite(o.CustomerEmail.String, item)
 					}
 
 					// Assign to top-level customer group once per customer

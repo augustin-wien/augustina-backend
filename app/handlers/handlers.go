@@ -12,7 +12,6 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/utils"
-	"github.com/augustin-wien/augustina-backend/wordpress"
 
 	"github.com/go-chi/chi/v5"
 	"gopkg.in/guregu/null.v4"
@@ -649,23 +648,13 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		verifyPaymentOrderResponse.FirstName = vendor.FirstName
 	}
 
-	// Generate a WordPress one-time login link for new users who bought a digital/abonement item.
-	// "New user" means the customer record was created within the last 10 minutes.
-	if settings.WordPressInviteURL != "" && order.CustomerEmail.Valid && order.CustomerEmail.String != "" {
-		customer, customerErr := database.Db.GetCustomerByEmail(order.CustomerEmail.String)
-		if customerErr == nil && customer != nil && customer.CreatedAt != nil &&
-			time.Since(*customer.CreatedAt) < 10*time.Minute {
-			inviteURL, wpErr := wordpress.CreateInvite(
-				settings.WordPressInviteURL,
-				settings.WordPressInviteAPIKey,
-				order.CustomerEmail.String,
-				settings.WordPressInviteTTL,
-			)
-			if wpErr != nil {
-				log.Error("VerifyPaymentOrder: failed to create WordPress invite: ", wpErr)
-			} else {
-				verifyPaymentOrderResponse.InviteURL = inviteURL
-			}
+	// Generate a WordPress one-time login link for customers who just bought
+	// online access (a digital item or an abonement), new or returning. Only
+	// for fresh orders, so an old confirmation link does not log anyone in.
+	if settings.WordPressInviteURL != "" && order.CustomerEmail.Valid && order.CustomerEmail.String != "" &&
+		time.Since(order.Timestamp) < inviteMaxOrderAge {
+		if item, ok := onlineAccessItem(order); ok {
+			verifyPaymentOrderResponse.InviteURL = database.Db.CreateWordPressInvite(order.CustomerEmail.String, item)
 		}
 	}
 
@@ -674,6 +663,31 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("VerifyPaymentOrder: ", err)
 	}
+}
+
+// inviteMaxOrderAge is how long after ordering the confirmation page still
+// hands out a WordPress one-time login link
+const inviteMaxOrderAge = time.Hour
+
+// onlineAccessItem returns the order's abonement or digital item read online,
+// if it has one. PDF purchases only get a download link.
+func onlineAccessItem(order database.Order) (item database.Item, ok bool) {
+	for _, entry := range order.Entries {
+		item, err := database.Db.GetItemIncludingDisabled(entry.Item)
+		if err != nil {
+			continue
+		}
+		if item.Type == "abonement" {
+			return item, true
+		}
+		if item.LicenseItem.Valid && !item.IsPDFItem {
+			linked, err := database.Db.GetItemIncludingDisabled(int(item.LicenseItem.Int64))
+			if err == nil && !linked.IsPDFItem {
+				return item, true
+			}
+		}
+	}
+	return database.Item{}, false
 }
 
 // AdminVerifyPaymentOrderByCode godoc
