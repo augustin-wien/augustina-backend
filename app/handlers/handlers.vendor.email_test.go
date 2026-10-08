@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"strings"
 	"testing"
 	"time"
@@ -11,6 +13,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/guregu/null.v4"
 )
 
 func getTestVendor(t *testing.T, vendorID string) database.Vendor {
@@ -97,4 +100,71 @@ func TestCustomerActionEmails(t *testing.T) {
 	utils.TestRequestWithAuth(t, r, "POST", "/api/customers/999999/password-reset-email/", nil, 404, adminUserToken)
 	utils.TestRequestWithAuth(t, r, "POST", "/api/customers/999999/verify-email/", nil, 404, adminUserToken)
 	utils.TestRequest(t, r, "POST", "/api/customers/1/verify-email/", nil, 401)
+}
+
+// TestInternalVendorEmailPostfix covers postfixes that carry more than the
+// domain, e.g. "-@example.com", which are appended to the license ID as-is
+func TestInternalVendorEmailPostfix(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	require.NoError(t, database.Db.InitEmptyTestDb())
+
+	for _, tc := range []struct{ postfix, want string }{
+		{"@example.com", "824@example.com"},
+		{"example.com", "824@example.com"},
+		{" -@Example.com ", "824-@example.com"},
+		{"-vendor@example.com", "824-vendor@example.com"},
+	} {
+		settings, err := database.Db.GetSettings()
+		require.NoError(t, err)
+		settings.VendorEmailPostfix = tc.postfix
+		require.NoError(t, database.Db.UpdateSettings(settings))
+
+		email, err := internalVendorEmail("824")
+		require.NoError(t, err, tc.postfix)
+		require.Equal(t, tc.want, email, tc.postfix)
+
+		// Sending the generated address explicitly still counts as internal
+		vendor := database.Vendor{LicenseID: null.StringFrom("824"), Email: strings.ToUpper(tc.want)}
+		require.NoError(t, resolveVendorEmail(&vendor))
+		require.Equal(t, tc.want, vendor.Email, tc.postfix)
+		require.False(t, vendor.HasOwnEmail, tc.postfix)
+	}
+
+	for _, postfix := range []string{"", "@", "a@b@example.com", "-@"} {
+		settings, err := database.Db.GetSettings()
+		require.NoError(t, err)
+		settings.VendorEmailPostfix = postfix
+		require.NoError(t, database.Db.UpdateSettings(settings))
+
+		_, err = internalVendorEmail("824")
+		require.Error(t, err, postfix)
+	}
+}
+
+// TestUpdateSettingsVendorEmailPostfix rejects a postfix that can't make a
+// valid address when saved through the settings page
+func TestUpdateSettingsVendorEmailPostfix(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	require.NoError(t, database.Db.InitEmptyTestDb())
+
+	put := func(postfix string, status int) {
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		require.NoError(t, writer.WriteField("VendorEmailPostfix", postfix))
+		require.NoError(t, writer.Close())
+		utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), status, adminUserToken)
+	}
+
+	for _, postfix := range []string{"", "@", "a@b@example.com", "-@", "@exa mple.com"} {
+		put(postfix, 400)
+	}
+	put("-@example.com", 200)
+
+	settings, err := database.Db.GetSettings()
+	require.NoError(t, err)
+	require.Equal(t, "-@example.com", settings.VendorEmailPostfix)
 }

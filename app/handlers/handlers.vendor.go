@@ -27,19 +27,35 @@ var errVendorBlocked = errors.New("vendor is blocked")
 // only has the generated internal address
 var errVendorHasNoOwnEmail = errors.New("vendor has no own email address")
 
-// internalVendorEmail builds the address for a vendor without a mailbox of
-// their own: the license ID followed by the VendorEmailPostfix setting
-func internalVendorEmail(licenseID string) (string, error) {
+// normalizeVendorEmailPostfix checks a VendorEmailPostfix setting, which is
+// appended to a license ID as-is. It may carry more than the domain (e.g.
+// "-@example.com"); a bare domain without "@" gets one prepended.
+func normalizeVendorEmailPostfix(raw string) (string, error) {
+	postfix := strings.ToLower(strings.TrimSpace(raw))
+	if !strings.Contains(postfix, "@") {
+		postfix = "@" + postfix
+	}
+	if strings.Count(postfix, "@") != 1 || strings.HasSuffix(postfix, "@") || strings.ContainsAny(postfix, " \t") {
+		return "", fmt.Errorf("vendor email postfix %q must contain a domain and at most one @, e.g. \"@example.com\" or \"-@example.com\"", raw)
+	}
+	return postfix, nil
+}
+
+// vendorEmailPostfix returns the normalized VendorEmailPostfix setting
+func vendorEmailPostfix() (string, error) {
 	settings, err := database.Db.GetSettings()
 	if err != nil {
 		return "", err
 	}
-	postfix := strings.ToLower(strings.TrimSpace(settings.VendorEmailPostfix))
-	if postfix == "" || postfix == "@" {
-		return "", errors.New("vendor email postfix is not configured in the settings")
-	}
-	if !strings.HasPrefix(postfix, "@") {
-		postfix = "@" + postfix
+	return normalizeVendorEmailPostfix(settings.VendorEmailPostfix)
+}
+
+// internalVendorEmail builds the address for a vendor without a mailbox of
+// their own: the license ID followed by the VendorEmailPostfix setting
+func internalVendorEmail(licenseID string) (string, error) {
+	postfix, err := vendorEmailPostfix()
+	if err != nil {
+		return "", err
 	}
 	local := strings.Map(func(r rune) rune {
 		switch {
@@ -73,8 +89,11 @@ func resolveVendorEmail(vendor *database.Vendor) error {
 	}
 	// The CSV import builds the address from the raw license ID, without
 	// replacing characters an email address can't contain
-	_, postfix, _ := strings.Cut(internal, "@")
-	rawInternal := utils.ToLower(strings.TrimSpace(vendor.LicenseID.String)) + "@" + postfix
+	postfix, err := vendorEmailPostfix()
+	if err != nil {
+		return err
+	}
+	rawInternal := utils.ToLower(strings.TrimSpace(vendor.LicenseID.String)) + postfix
 	if email == "" || email == internal || email == rawInternal {
 		vendor.Email = internal
 		vendor.HasOwnEmail = false
