@@ -371,6 +371,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
 		return
 	}
+	if _, ok := fieldsClean["VendorEmailPostfix"]; ok {
+		if _, err := normalizeVendorEmailPostfix(settings.VendorEmailPostfix); err != nil {
+			log.Warn("updateSettings: ", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
 	log.Debug("updateSettings: settings are ", settings)
 	// Update main item only when explicitly provided by the form.
 	// If not provided, leave MainItem nil so UpdateSettings won't try
