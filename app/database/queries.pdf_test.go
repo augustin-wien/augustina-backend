@@ -78,3 +78,31 @@ func TestDeletePDF(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(found.ID), int64(found.ID))
 }
+
+// TestGetPDFDownloadKeepsOldLinks verifies that looking up a download link
+// works while older links exist and does not delete them
+func TestGetPDFDownloadKeepsOldLinks(t *testing.T) {
+	Db.InitEmptyTestDb()
+	config.Config.IntervalToDeletePDFsInWeeks = 1
+
+	pdfID, err := Db.CreatePDF(PDF{Path: "issue.pdf", Timestamp: time.Now()})
+	require.NoError(t, err)
+	itemID, err := Db.CreateItem(Item{Name: "PDF issue", Description: "PDF issue", Price: 100})
+	require.NoError(t, err)
+
+	oldDownload, err := Db.CreatePDFDownloadForItem(int(pdfID), itemID)
+	require.NoError(t, err)
+	oldDownload.Timestamp = time.Now().AddDate(0, 0, -8)
+	require.NoError(t, Db.UpdatePdfDownload(oldDownload))
+
+	newDownload, err := Db.CreatePDFDownloadForItem(int(pdfID), itemID)
+	require.NoError(t, err)
+
+	found, err := Db.GetPDFDownload(newDownload.LinkID)
+	require.NoError(t, err)
+	require.Equal(t, newDownload.ID, found.ID)
+
+	found, err = Db.GetPDFDownload(oldDownload.LinkID)
+	require.NoError(t, err)
+	require.Equal(t, oldDownload.ID, found.ID)
+}
