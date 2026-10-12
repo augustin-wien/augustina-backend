@@ -566,7 +566,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 								log.Error("VerifyOrderAndCreatePayments: failed to build abonement confirmation mail: ", orderID, aboMailErr)
 							} else if aboMail != nil {
 								go func(m *mailer.EmailRequest) {
-									success, sendErr := mailer.Send(m)
+									success, sendErr := mailer.SendWithRetry(m)
 									if sendErr != nil || !success {
 										log.Error("VerifyOrderAndCreatePayments: failed to send abonement confirmation mail: ", orderID, sendErr)
 									}
@@ -602,7 +602,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						} else if mail != nil {
 							// use subject from DB template (do not override)
 							go func(m *mailer.EmailRequest) {
-								success, err := mailer.Send(m)
+								success, err := mailer.SendWithRetry(m)
 								if err != nil || !success {
 									log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
 								}
@@ -627,7 +627,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							log.Error("VerifyOrderAndCreatePayments: failed to create welcome mail: ", orderID, err)
 						} else if newUserMail != nil {
 							go func(m *mailer.EmailRequest) {
-								success, err := mailer.Send(m)
+								success, err := mailer.SendWithRetry(m)
 								if err != nil || !success {
 									log.Error("VerifyOrderAndCreatePayments: failed to send welcome mail: ", orderID, err)
 								}
@@ -666,7 +666,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						} else if mail != nil {
 							// use subject from DB template (do not override)
 							go func(m *mailer.EmailRequest) {
-								success, err := mailer.Send(m)
+								success, err := mailer.SendWithRetry(m)
 								if err != nil || !success {
 									log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
 								}
