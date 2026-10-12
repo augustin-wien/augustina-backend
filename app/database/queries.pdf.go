@@ -149,15 +149,6 @@ func (db *Database) GetPDFDownload(linkID string) (pdfDownload PDFDownload, err 
 	if len(linkID) == 0 {
 		return pdfDownload, errors.New("linkID is empty")
 	}
-	deleteInterval := config.Config.IntervalToDeletePDFsInWeeks
-	cutoff := time.Now().AddDate(0, 0, -deleteInterval*7)
-
-	_, err = db.EntClient.PDFDownload.Delete().Where(entpdfdownload.TimestampLT(cutoff)).Exec(context.Background())
-	if err != nil {
-		log.Error("DeletePDFDownload: ", err)
-		return pdfDownload, err
-	}
-
 	download, err := db.EntClient.PDFDownload.Query().Where(entpdfdownload.LinkID(linkID)).Only(context.Background())
 	if err != nil {
 		return pdfDownload, err
