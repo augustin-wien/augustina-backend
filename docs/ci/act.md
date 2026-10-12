@@ -36,5 +36,3 @@ Notes and caveats:
 - The runner image used by Makefile is `ghcr.io/catthehacker/ubuntu:full-22.04` which provides common tools; change the image in the Makefile if you prefer a different runner.
 - The workflow may require secrets (Keycloak admin credentials, Docker Hub token, etc.). You can pass secrets to `act` with `-s NAME=value` or via a secrets file. See https://github.com/nektos/act for more details.
 - Some steps (like `docker compose up`) behave slightly differently in `act`; if you hit issues, run the equivalent steps locally (docker compose up, wait, then run migrations and `go test`).
-
-If you want, I can add a small `.actrc` example or a `scripts/act-secrets` helper to simplify secret passing.

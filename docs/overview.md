@@ -7,15 +7,16 @@ What this service provides
 - REST API for transactions, verification, vendors, locations and other domain features.
 - Integration with Keycloak for authentication and roles.
 - Persistence using PostgreSQL and Ent (entgo) models.
-- Background integrations for PDF parsing, VivaWallet payments and e-mail notifications.
+- Integrations for VivaWallet payments, e-mail notifications and outgoing webhooks.
 
 Ports (default local)
 
 - Backend: http://localhost:3000
 - Keycloak admin: http://localhost:8080
-- Wordpress: http://localhost:8090
-- PDF Parser: http://localhost:8070
-- Frontend / main webshop: http://localhost:8060
+- Frontend: http://localhost:8060
+- Mailpit (captured e-mails): http://localhost:8025, SMTP on port 1025
+- Webhook receiver: http://localhost:8081
+- Matomo: http://localhost:8092
 
 Swagger
 
@@ -34,4 +35,4 @@ swag init -g handlers/swagger.go --parseDependency --parseInternal --parseDepth 
 
 Health & readiness
 
-The service exposes health and readiness endpoints used by orchestration and CI. See the router and handlers for exact paths (usually `/healthz` and `/readyz`).
+The service exposes `/healthz` and `/readyz`.
