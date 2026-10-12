@@ -61,6 +61,10 @@ test:
 build: update-docker-containers build-frontend build-backend
 
 push: push-frontend push-backend
+	@make changelog
+
+changelog:
+	@scripts/changelog.sh
 
 .PHONY: ci-local
 
