@@ -29,10 +29,8 @@ func MyHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Notes & migration guidance:
+Notes:
 
 - Prefer `utils.LoggerFromContext(r.Context())` in handlers and request-scoped code.
 - Avoid package-level `var log = utils.GetLogger()` in code that handles requests — replace usage with the context logger so logs include `request_id`.
 - Library or background code (outside HTTP request handling) may continue to use `utils.GetLogger()`.
-
-If you want, I can help update more handlers to use the context logger (I can do this in small batches).
