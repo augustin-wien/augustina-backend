@@ -48,3 +48,7 @@ app/test_output.txt
 docker/keycloak/themes/*
 # Root-owned Docker mount points created by running the production compose file locally
 /dockerstorage/
+
+# Local changelog written by `make push`
+CHANGELOG.local.md
+.last-push
