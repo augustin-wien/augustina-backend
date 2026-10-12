@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"mime/quotedprintable"
 	"net/smtp"
+	"net/textproto"
 	"regexp"
 	"strings"
 	"text/template"
@@ -25,6 +26,32 @@ var auth smtp.Auth
 // Tests can override this to avoid network calls.
 var Send = func(r *EmailRequest) (bool, error) {
 	return r.SendEmail()
+}
+
+// retryDelays are the waits before each further attempt of SendWithRetry.
+var retryDelays = []time.Duration{15 * time.Second, time.Minute, 5 * time.Minute}
+
+// isTransientSMTPError reports whether the SMTP server answered with a 4xx
+// reply, i.e. asked to try again later.
+func isTransientSMTPError(err error) bool {
+	var protoErr *textproto.Error
+	return errors.As(err, &protoErr) && protoErr.Code >= 400 && protoErr.Code < 500
+}
+
+// SendWithRetry sends like Send and tries again when the SMTP server answers
+// with a transient (4xx) error. It blocks for the waits in between, so use it
+// from background goroutines only.
+func SendWithRetry(r *EmailRequest) (bool, error) {
+	success, err := Send(r)
+	for _, delay := range retryDelays {
+		if !isTransientSMTPError(err) {
+			break
+		}
+		log.Warn("SendWithRetry: transient SMTP error, retrying in ", delay, ": ", err)
+		time.Sleep(delay)
+		success, err = Send(r)
+	}
+	return success, err
 }
 
 // encodeRFC2047 encodes a header value (Subject) if it contains non-ASCII
