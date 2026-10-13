@@ -615,7 +615,8 @@ func (k *Keycloak) GetUserByEmail(email string) (*gocloak.User, error) {
 	return users[0], err
 }
 
-// CreateUser function creates a user given by first_name, last_name and email returns the userID
+// CreateUser function creates a user given by first_name, last_name and email returns the userID.
+// An empty password creates the user without one; they set it themselves through a Keycloak link.
 func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, email string, password string) (userID string, err error) {
 	if email == "" {
 		return "", fmt.Errorf("CreateUser: email is empty")
@@ -623,22 +624,24 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 	// set email to lowercase
 	email = utils.ToLower(email)
 	k.checkAdminToken()
-	credentials := []gocloak.CredentialRepresentation{
-		{
-			Type:      gocloak.StringP("password"),
-			Value:     gocloak.StringP(password),
-			Temporary: gocloak.BoolP(false),
-		},
-	}
-	return k.Client.CreateUser(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.User{
+	user := gocloak.User{
 		Username:      &userid,
 		FirstName:     &firstName,
 		LastName:      &lastName,
 		Email:         &email,
-		Credentials:   &credentials,
 		EmailVerified: gocloak.BoolP(true),
 		Enabled:       gocloak.BoolP(true),
-	})
+	}
+	if password != "" {
+		user.Credentials = &[]gocloak.CredentialRepresentation{
+			{
+				Type:      gocloak.StringP("password"),
+				Value:     gocloak.StringP(password),
+				Temporary: gocloak.BoolP(false),
+			},
+		}
+	}
+	return k.Client.CreateUser(k.Context, k.clientToken.AccessToken, k.Realm, user)
 }
 // GetOrCreateVendor returns the Keycloak user for email, creating it if needed.
 // A newly created user gets a welcome mail with a password reset link, unless
@@ -653,8 +656,7 @@ func (k *Keycloak) GetOrCreateVendor(email string, sendWelcomeMail bool) (userID
 	if err != nil {
 		log.Info("GetOrCreateVendor: User does not exist we create one ", email)
 		// User does not exist
-		password := utils.RandomString(10)
-		user, err := k.CreateUser(email, email, "", email, password)
+		user, err := k.CreateUser(email, email, "", email, "")
 		if err != nil {
 			log.Errorf("GetOrCreateVendor: Error creating keycloak user %s", email)
 			return "", err
@@ -690,8 +692,7 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, newUser bool, e
 	if err != nil {
 		log.Info("GetOrCreateUser: User does not exist we create one ", email, err)
 		// User does not exist
-		password := utils.RandomString(10)
-		user, err := k.CreateUser(email, email, "", email, password)
+		user, err := k.CreateUser(email, email, "", email, "")
 		if err != nil {
 			log.Errorf("GetOrCreateUser: Error creating keycloak user %s", email)
 			return "", false, err
