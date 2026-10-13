@@ -411,6 +411,11 @@ func UpdateVendor(w http.ResponseWriter, r *http.Request) {
 	if !oldVendor.IsDeleted || !vendor.IsDeleted {
 		keycloakId, err := keycloak.KeycloakClient.UpdateVendor(oldVendor.Email, vendor.Email, vendor.LicenseID.String, vendor.FirstName, vendor.LastName, vendor.HasOwnEmail)
 		if err != nil {
+			if errors.Is(err, keycloak.ErrEmailTaken) {
+				log.Warn("UpdateVendor: vendor "+fmt.Sprint(vendorID)+": ", err)
+				utils.ErrorJSON(w, err, http.StatusConflict)
+				return
+			}
 			log.Error("UpdateVendor: update user in keycloak for "+fmt.Sprint(vendorID)+" failed: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
@@ -592,6 +597,11 @@ func UpdateVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
 	}
 	keycloakId, err := keycloak.KeycloakClient.UpdateVendor(vendor.Email, updatedVendor.Email, vendor.LicenseID.String, updatedVendor.FirstName, updatedVendor.LastName, updatedVendor.HasOwnEmail)
 	if err != nil {
+		if errors.Is(err, keycloak.ErrEmailTaken) {
+			log.Warn("UpdateVendor: vendor "+fmt.Sprint(vendor.ID)+": ", err)
+			utils.ErrorJSON(w, err, http.StatusConflict)
+			return
+		}
 		log.Error("UpdateVendor: update user in keycloak for "+fmt.Sprint(vendor.ID)+" failed: ", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

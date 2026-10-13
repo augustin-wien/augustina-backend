@@ -2,6 +2,7 @@ package keycloak
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -850,6 +851,9 @@ func (k *Keycloak) GetVendorGroup() string {
 	return k.VendorGroup
 }
 
+// ErrEmailTaken is returned when another Keycloak user already owns the email
+var ErrEmailTaken = errors.New("email is already used by another keycloak user")
+
 // UpdateVendor moves the vendor's Keycloak user to newEmail, creating the user if
 // it doesn't exist yet. A newly created user only gets a welcome mail when
 // sendWelcomeMail is set.
@@ -882,9 +886,26 @@ func (k *Keycloak) UpdateVendor(oldEmail, newEmail, licenseID, firstName, lastNa
 		}
 		return keycloak_user_id, nil
 	} else {
+		if newEmail != oldEmail {
+			other, lookupErr := k.GetUserByEmail(newEmail)
+			if lookupErr == nil && other.ID != nil && *other.ID != *user.ID {
+				return "", fmt.Errorf("%w: %s", ErrEmailTaken, newEmail)
+			}
+		}
 		err = k.UpdateUserById(*user.ID, licenseID, firstName, lastName, newEmail)
 		if err != nil {
-			return "", fmt.Errorf("UpdateVendor: update keycloak user for %s failed: %v", newEmail, fmt.Sprint(err))
+			currentUsername, currentEmail := "", ""
+			if user.Username != nil {
+				currentUsername = *user.Username
+			}
+			if user.Email != nil {
+				currentEmail = *user.Email
+			}
+			details := fmt.Sprintf("keycloakID=%s username=%q email=%q oldEmail=%q newEmail=%q", *user.ID, currentUsername, currentEmail, oldEmail, newEmail)
+			if other, lookupErr := k.GetUserByEmail(newEmail); lookupErr == nil && other.ID != nil {
+				details += fmt.Sprintf(" userWithNewEmail=%s", *other.ID)
+			}
+			return "", fmt.Errorf("UpdateVendor: update keycloak user for %s failed (%s): %v", newEmail, details, fmt.Sprint(err))
 		}
 		return *user.ID, nil
 	}
