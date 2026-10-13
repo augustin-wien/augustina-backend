@@ -1,3 +1,9 @@
+# Invite links for the Onlineausgabe (providers/augustin-invite): the jar is
+# built here, so every image build carries the current source.
+FROM maven:3.9-eclipse-temurin-21 AS invite
+COPY ./providers/augustin-invite /src
+RUN mvn -q -B -f /src/pom.xml package
+
 FROM quay.io/keycloak/keycloak:26.4 as builder
 
 # Enable health and metrics support
@@ -6,6 +12,8 @@ ENV KC_METRICS_ENABLED=true
 ENV KC_DB=postgres
 
 WORKDIR /opt/keycloak
+# Providers must be in place before `kc.sh build` (the server starts --optimized)
+COPY --from=invite /src/target/augustin-invite.jar /opt/keycloak/providers/
 RUN /opt/keycloak/bin/kc.sh build --db=postgres
 RUN /opt/keycloak/bin/kc.sh show-config
 
