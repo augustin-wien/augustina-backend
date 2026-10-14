@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -12,28 +13,33 @@ import (
 	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/Nerzal/gocloak/v13"
+	"github.com/go-resty/resty/v2"
 )
 
 var log = utils.GetLogger()
+
+// tokenRenewMargin is how long before it expires the admin token is renewed, so
+// it doesn't run out in the middle of a series of admin API calls
+const tokenRenewMargin = 30 * time.Second
 
 // KeycloakClient global variable
 var KeycloakClient Keycloak
 
 // Keycloak struct
 type Keycloak struct {
-	hostname                string
-	ClientID                string
-	ClientSecret            string
-	Realm                   string
-	Client                  *gocloak.GoCloak
-	Context                 context.Context
-	clientToken             *gocloak.JWT
-	clientTokenCreationTime int64
-	VendorGroup             string
-	CustomerGroup           string
-	BackofficeGroup         string
-	NewspaperGroup          string
-	mu                      sync.Mutex
+	hostname           string
+	ClientID           string
+	ClientSecret       string
+	Realm              string
+	Client             *gocloak.GoCloak
+	Context            context.Context
+	clientToken        *gocloak.JWT
+	clientTokenRenewAt time.Time
+	VendorGroup        string
+	CustomerGroup      string
+	BackofficeGroup    string
+	NewspaperGroup     string
+	mu                 sync.Mutex
 }
 
 // InitializeOauthServer initializes the Keycloak client
@@ -58,10 +64,10 @@ func InitializeOauthServer() (err error) {
 		NewspaperGroup:  "newspapers",
 	}
 	// Initialize Keycloak client
-	client := gocloak.NewClient(KeycloakClient.hostname)
-	KeycloakClient.Client = client
-	KeycloakClient.clientTokenCreationTime = utils.GetUnixTime()
-	KeycloakClient.clientToken, err = KeycloakClient.LoginClient()
+	KeycloakClient.Client = KeycloakClient.newGoCloakClient()
+	KeycloakClient.mu.Lock()
+	err = KeycloakClient.renewClientToken()
+	KeycloakClient.mu.Unlock()
 	if err != nil {
 		log.Fatalf("Error logging in Keycloak client. A running keycloak server is necessary! ", err)
 	}
@@ -82,6 +88,28 @@ func InitializeOauthServer() (err error) {
 	}
 
 	return err
+}
+
+// newGoCloakClient returns a gocloak client that retries an admin API request once
+// with a new token when Keycloak rejects the cached one, which can happen before
+// the token expires, e.g. after a Keycloak restart
+func (k *Keycloak) newGoCloakClient() *gocloak.GoCloak {
+	client := gocloak.NewClient(k.hostname)
+	restyClient := client.RestyClient()
+	restyClient.SetRetryCount(1)
+	restyClient.AddRetryCondition(func(resp *resty.Response, _ error) bool {
+		return resp != nil && resp.StatusCode() == http.StatusUnauthorized &&
+			resp.Request.Attempt == 1 && strings.Contains(resp.Request.URL, "/admin/realms/")
+	})
+	restyClient.AddRetryHook(func(resp *resty.Response, _ error) {
+		token, err := k.renewRejectedToken(resp.Request.Token)
+		if err != nil {
+			log.Error("Error logging in Keycloak client after the token was rejected ", err)
+			return
+		}
+		resp.Request.SetAuthToken(token)
+	})
+	return client
 }
 
 // Login function returns the admin token
@@ -136,25 +164,39 @@ func (k *Keycloak) GetUserGroups(userID string) ([]*gocloak.Group, error) {
 func (k *Keycloak) checkAdminToken() {
 	k.mu.Lock()
 	defer k.mu.Unlock()
-	var err error
-	if k.clientToken == nil {
-		k.clientToken, err = k.LoginClient()
-		if err != nil {
-			log.Error("Error logging in Keycloak client ", err)
-			return
-		}
-		k.clientTokenCreationTime = utils.GetUnixTime()
+	if k.clientToken != nil && time.Now().Before(k.clientTokenRenewAt) {
 		return
 	}
-	// token is expired
-	if utils.GetUnixTime() > k.clientTokenCreationTime+int64(k.clientToken.ExpiresIn) {
-		k.clientToken, err = k.LoginClient()
-		if err != nil {
-			log.Error("Error logging in Keycloak admin ", err)
-			return
-		}
-		k.clientTokenCreationTime = utils.GetUnixTime()
+	if err := k.renewClientToken(); err != nil {
+		log.Error("Error logging in Keycloak client ", err)
 	}
+}
+
+// renewRejectedToken returns the token to retry a request with that Keycloak
+// rejected, logging in again unless a concurrent request already did
+func (k *Keycloak) renewRejectedToken(rejected string) (string, error) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if k.clientToken == nil || k.clientToken.AccessToken == rejected {
+		if err := k.renewClientToken(); err != nil {
+			return "", err
+		}
+	}
+	return k.clientToken.AccessToken, nil
+}
+
+// renewClientToken logs the service account in again. A failed login keeps the
+// previous token. Callers must hold k.mu.
+func (k *Keycloak) renewClientToken() error {
+	requestedAt := time.Now()
+	token, err := k.LoginClient()
+	if err != nil {
+		return err
+	}
+	lifetime := time.Duration(token.ExpiresIn) * time.Second
+	k.clientToken = token
+	k.clientTokenRenewAt = requestedAt.Add(lifetime - min(tokenRenewMargin, lifetime/2))
+	return nil
 }
 
 // GetRole function returns the role of the given name
@@ -644,6 +686,7 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 	}
 	return k.Client.CreateUser(k.Context, k.clientToken.AccessToken, k.Realm, user)
 }
+
 // GetOrCreateVendor returns the Keycloak user for email, creating it if needed.
 // A newly created user gets a welcome mail with a password reset link, unless
 // sendWelcomeMail is false (e.g. for a generated internal address nobody reads).
@@ -769,7 +812,7 @@ func (k *Keycloak) sendActionsEmail(email, redirectURI, action string) error {
 
 	log.Info("SendPasswordResetEmail: Keycloak: execute "+action+" email for ", email)
 	err = k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{
-		UserID:      user.ID,
+		UserID: user.ID,
 		// The mail is often only read hours later, e.g. after the welcome mail for a
 		// new vendor or abo customer, so 10 minutes were far too short. Whole days
 		// only: Keycloak's formatter writes "1 Tage" for a single day
