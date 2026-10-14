@@ -81,6 +81,8 @@ type Settings struct {
 	MatomoSiteId string `json:"MatomoSiteId"`
 	// OnlinePaperUrl holds the value of the "OnlinePaperUrl" field.
 	OnlinePaperUrl string `json:"OnlinePaperUrl"`
+	// MailSenderName holds the value of the "MailSenderName" field.
+	MailSenderName string `json:"MailSenderName"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -119,7 +121,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case settings.FieldID, settings.FieldMaxOrderAmount, settings.FieldWordPressInviteTTL:
 			values[i] = new(sql.NullInt64)
-		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId, settings.FieldOnlinePaperUrl:
+		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId, settings.FieldOnlinePaperUrl, settings.FieldMailSenderName:
 			values[i] = new(sql.NullString)
 		case settings.ForeignKeys[0]: // mainitem
 			values[i] = new(sql.NullInt64)
@@ -336,6 +338,12 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.OnlinePaperUrl = value.String
 			}
+		case settings.FieldMailSenderName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field MailSenderName", values[i])
+			} else if value.Valid {
+				_m.MailSenderName = value.String
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -479,6 +487,9 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("OnlinePaperUrl=")
 	builder.WriteString(_m.OnlinePaperUrl)
+	builder.WriteString(", ")
+	builder.WriteString("MailSenderName=")
+	builder.WriteString(_m.MailSenderName)
 	builder.WriteByte(')')
 	return builder.String()
 }

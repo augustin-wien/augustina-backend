@@ -242,7 +242,10 @@ func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 	// headers
 	encodedSubject := encodeRFC2047(r.subject)
 	// Build From header with optional display name
-	fromName := config.Config.SMTPSenderName
+	fromName := config.Config.MailSenderName
+	if strings.TrimSpace(fromName) == "" {
+		fromName = config.Config.SMTPSenderName
+	}
 	var fromHeader string
 	if strings.TrimSpace(fromName) != "" {
 		fromHeader = fmt.Sprintf("%s <%s>", encodeRFC2047(fromName), from)

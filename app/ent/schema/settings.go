@@ -115,6 +115,11 @@ func (Settings) Fields() []ent.Field {
 		field.String("OnlinePaperUrl").
 			StorageKey("onlinepaperurl").
 			Default(""),
+		// Display name in the From header of outgoing mails. Empty falls back to the
+		// SMTP_SENDER_NAME env var.
+		field.String("MailSenderName").
+			StorageKey("mailsendername").
+			Default(""),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

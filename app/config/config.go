@@ -45,7 +45,10 @@ type config struct {
 	SMTPPassword           string
 	SMTPSenderAddress      string
 	SMTPSenderName         string
-	SMTPSsl                bool
+	// MailSenderName is admin-editable (Settings.MailSenderName in the DB) and mirrored here
+	// like OnlinePaperUrl. When set it overrides SMTPSenderName.
+	MailSenderName         string
+	SMTPSsl               bool
 	SMTPInsecureSkipVerify bool
 	AllowInsecureSMTP      bool
 	SentryDSN              string
