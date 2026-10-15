@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -302,6 +303,8 @@ func (k *Keycloak) CreateSubGroup(groupName string, parentGroupID string) (strin
 
 // EnsureGroupPath ensures that a group path (e.g. "/customers/newspapers/edition") exists.
 // It will create any missing top-level groups or subgroups along the path.
+// Each level is looked up by its path: Keycloak no longer lists subgroups in a
+// group's representation, so they can't be found through the parent.
 func (k *Keycloak) EnsureGroupPath(path string) error {
 	k.checkAdminToken()
 	// Normalize path
@@ -312,97 +315,49 @@ func (k *Keycloak) EnsureGroupPath(path string) error {
 	parts := strings.Split(strings.Trim(p, "/"), "/")
 
 	var currentParentID string
-
 	for i, part := range parts {
-		if i == 0 {
-			// Top-level group: search to get ID
-			params := gocloak.GetGroupsParams{Search: &part}
-			foundGroups, err := k.Client.GetGroups(k.Context, k.clientToken.AccessToken, k.Realm, params)
-			var matched *gocloak.Group
-			if err == nil {
-				for _, g := range foundGroups {
-					if g.Name != nil && *g.Name == part {
-						matched = g
-						break
-					}
-				}
-			}
-
-			if matched != nil {
-				currentParentID = *matched.ID
+		currentPath := "/" + strings.Join(parts[:i+1], "/")
+		id, err := k.groupIDByPath(currentPath)
+		if err != nil {
+			return fmt.Errorf("EnsureGroupPath: failed to look up %s: %w", currentPath, err)
+		}
+		if id == "" {
+			if i == 0 {
+				id, err = k.CreateGroup(part)
 			} else {
-				// Not found, create
-				id, err := k.CreateGroup(part)
-				if err != nil {
-					// Handle 409 Conflict if created concurrently
-					if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "Conflict") {
-						// Fetch again
-						foundGroups, _ := k.Client.GetGroups(k.Context, k.clientToken.AccessToken, k.Realm, params)
-						for _, g := range foundGroups {
-							if g.Name != nil && *g.Name == part {
-								currentParentID = *g.ID
-								break
-							}
-						}
-						if currentParentID == "" {
-							return fmt.Errorf("EnsureGroupPath: failed to find top-level group %s after conflict: %w", part, err)
-						}
-					} else {
-						return fmt.Errorf("EnsureGroupPath: failed to create top-level group %s: %w", part, err)
-					}
-				} else {
-					currentParentID = id
-				}
+				id, err = k.CreateSubGroup(part, currentParentID)
 			}
-		} else {
-			// Subgroup: must exist under currentParentID
-			// Get parent details to find children
-			parentGroup, err := k.Client.GetGroup(k.Context, k.clientToken.AccessToken, k.Realm, currentParentID)
 			if err != nil {
-				return fmt.Errorf("EnsureGroupPath: failed to fetch parent group %s: %w", currentParentID, err)
-			}
-
-			var matched *gocloak.Group
-			if parentGroup.SubGroups != nil {
-				for _, sub := range *parentGroup.SubGroups {
-					if sub.Name != nil && *sub.Name == part {
-						matched = &sub // Be careful taking address of range var if modifying, but here we read ID
-						// Re-assign to a variable to be safe, though ID should be accessible
-						m := sub
-						matched = &m
-						break
-					}
+				// Created concurrently
+				if !strings.Contains(err.Error(), "409") && !strings.Contains(err.Error(), "Conflict") {
+					return fmt.Errorf("EnsureGroupPath: failed to create %s: %w", currentPath, err)
 				}
-			}
-
-			if matched != nil {
-				currentParentID = *matched.ID
-			} else {
-				// Create subgroup
-				id, err := k.CreateSubGroup(part, currentParentID)
-				if err != nil {
-					if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "Conflict") {
-						// Refetch parent to find the child
-						parentGroup, _ = k.Client.GetGroup(k.Context, k.clientToken.AccessToken, k.Realm, currentParentID)
-						if parentGroup.SubGroups != nil {
-							for _, sub := range *parentGroup.SubGroups {
-								if sub.Name != nil && *sub.Name == part {
-									currentParentID = *sub.ID
-									break
-								}
-							}
-						}
-						// If still not found, error out? but it said conflict...
-					} else {
-						return fmt.Errorf("EnsureGroupPath: failed to create subgroup %s: %w", part, err)
-					}
-				} else {
-					currentParentID = id
+				id, err = k.groupIDByPath(currentPath)
+				if err != nil || id == "" {
+					return fmt.Errorf("EnsureGroupPath: failed to find %s after conflict: %v", currentPath, err)
 				}
 			}
 		}
+		currentParentID = id
 	}
 	return nil
+}
+
+// groupIDByPath returns the ID of the group at path, or "" when there is none
+func (k *Keycloak) groupIDByPath(path string) (string, error) {
+	// gocloak puts a "/" before the path; a second one is rejected as not normalized
+	group, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, strings.TrimPrefix(path, "/"))
+	if err != nil {
+		var apiErr *gocloak.APIError
+		if errors.As(err, &apiErr) && apiErr.Code == http.StatusNotFound {
+			return "", nil
+		}
+		return "", err
+	}
+	if group == nil || group.ID == nil {
+		return "", nil
+	}
+	return *group.ID, nil
 }
 
 // GetGroupByPath function returns the group of the given name
@@ -541,11 +496,14 @@ func (k *Keycloak) DeleteGroup(name string) error {
 
 func (k *Keycloak) DeleteSubGroupByPath(path string) error {
 	k.checkAdminToken()
-	group, err := k.GetGroupByPath(path)
+	id, err := k.groupIDByPath("/" + strings.Trim(path, "/"))
 	if err != nil {
 		return err
 	}
-	return k.Client.DeleteGroup(k.Context, k.clientToken.AccessToken, k.Realm, *group.ID)
+	if id == "" {
+		return fmt.Errorf("group not found: %s", path)
+	}
+	return k.Client.DeleteGroup(k.Context, k.clientToken.AccessToken, k.Realm, id)
 }
 
 // UnassignRole function unassigns a role from a user by userID

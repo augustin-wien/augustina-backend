@@ -266,6 +266,7 @@ func GetRouter() (r *chi.Mux) {
 				r.Use(middlewares.AdminAuthMiddleware)
 				r.Get("/backoffice/", ListItemsBackoffice)
 				r.Get("/licensegroups/", ListLicenseGroups)
+				r.Get("/wordpress-issue/", CheckWordPressIssue)
 				r.Get("/archived/", ListArchivedItems)
 				r.Post("/", CreateItem)
 				r.Route("/{id}", func(r chi.Router) {

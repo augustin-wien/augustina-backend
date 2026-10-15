@@ -24,8 +24,10 @@ func NewAbonementService(db *Database) *AbonementService {
 }
 
 // ProcessAbonementLicenseGroupsForDate processes and updates license groups for customers
-// with active abonements on a given date. This is called when a new issue is created.
-func (as *AbonementService) ProcessAbonementLicenseGroupsForDate(issueDate time.Time) error {
+// with active abonements on a given date. This is called when a new online issue is
+// published; issueLicenseGroups are the license groups of that issue, which every
+// active abonement gets in addition to its own item's license group.
+func (as *AbonementService) ProcessAbonementLicenseGroupsForDate(issueDate time.Time, issueLicenseGroups ...string) error {
 	// Get all active abonements for this date
 	abonements, err := as.db.GetActiveAbonementsByDate(issueDate)
 	if err != nil {
@@ -34,27 +36,25 @@ func (as *AbonementService) ProcessAbonementLicenseGroupsForDate(issueDate time.
 
 	// For each abonement, update the customer's license groups
 	for _, abonement := range abonements {
-		// Get the item to get its license group
-		item, err := as.db.GetItem(abonement.ItemID)
-		if err != nil {
-			continue // Skip if item not found
+		// The abonement item's own license group; it may no longer be for sale
+		licenseGroups := issueLicenseGroups
+		if item, err := as.db.GetItemIncludingDisabled(abonement.ItemID); err == nil {
+			licenseGroups = append([]string{item.LicenseGroup.String}, issueLicenseGroups...)
+		}
+		var updatedCustomer *Customer
+		for _, licenseGroup := range licenseGroups {
+			if licenseGroup == "" {
+				continue
+			}
+			customer, err := as.db.AddLicenseGroupToCustomer(abonement.CustomerID, licenseGroup)
+			if err != nil {
+				// Log error but continue processing other abonements
+				continue
+			}
+			updatedCustomer = customer
 		}
 
-		// Add the license group to the customer (handle null.String)
-		licenseGroup := ""
-		if item.LicenseGroup.Valid {
-			licenseGroup = item.LicenseGroup.String
-		}
-		if licenseGroup == "" {
-			continue
-		}
-		updatedCustomer, err := as.db.AddLicenseGroupToCustomer(abonement.CustomerID, licenseGroup)
-		if err != nil {
-			// Log error but continue processing other abonements
-			continue
-		}
-
-		if updatedCustomer.KeycloakID != "" {
+		if updatedCustomer != nil && updatedCustomer.KeycloakID != "" {
 			_ = as.SyncAbonementLicensesToKeycloak(updatedCustomer.KeycloakID, updatedCustomer.LicenseGroups)
 		}
 	}
