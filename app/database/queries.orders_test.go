@@ -19,9 +19,8 @@ import (
 //  3. The abonement's license group is saved on the customer record
 //     (Keycloak sync is attempted but silently skipped — nil client in unit tests)
 //  4. The abonement confirmation email is sent to the customer
-//  5. The latest published online_issue for that license group is findable, confirming
-//     the issue-LG infrastructure is in place (the LG itself was already assigned in step 3
-//     so processedLicenseGroups prevents a redundant second assignment)
+//  5. The online_issue is the current one (its LG equals the abonement's here, so
+//     processedLicenseGroups prevents a redundant second assignment)
 func Test_AboPurchaseCompleteFlow(t *testing.T) {
 	Db.InitEmptyTestDb()
 
@@ -144,12 +143,11 @@ func Test_AboPurchaseCompleteFlow(t *testing.T) {
 	require.Equal(t, "abonementConfirmation", capturedEmailTemplate)
 	require.Equal(t, customerEmail, capturedEmailRecipient)
 
-	// Step 5: latest published online_issue for the license group is findable,
-	// confirming the issue-LG infrastructure is wired correctly
-	latestIssue, found, err := Db.GetLatestPublishedOnlineIssueByLicenseGroup(licenseGroup)
+	// Step 5: the online_issue is the current one
+	currentIssue, found, err := Db.GetCurrentOnlineIssue()
 	utils.CheckError(t, err)
-	require.True(t, found, "published online_issue with licenseGroup %q should be findable", licenseGroup)
-	require.Equal(t, onlineIssueID, latestIssue.ID)
+	require.True(t, found, "published online_issue should be the current one")
+	require.Equal(t, onlineIssueID, currentIssue.ID)
 }
 
 func Test_VerifyOrderSetsVerifiedAt(t *testing.T) {

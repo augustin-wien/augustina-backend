@@ -279,6 +279,50 @@ func TestEnsureGroupPath(t *testing.T) {
 	}
 }
 
+// TestEnsureGroupPathNested creates a group below an existing subgroup, like
+// /customer/newspapers/{issue} below the existing /customer/newspapers
+func TestEnsureGroupPathNested(t *testing.T) {
+	if err := os.Chdir(".."); err != nil {
+		t.Fatal(err)
+	}
+	config.InitConfig()
+	if err := keycloak.InitializeOauthServer(); err != nil {
+		t.Fatalf("InitializeOauthServer failed: %v", err)
+	}
+
+	uniq := fmt.Sprintf("%d", time.Now().UnixNano())
+	middle := "/" + keycloak.KeycloakClient.GetVendorGroup() + "/testmid" + uniq
+	leaf := middle + "/testleaf" + uniq
+	wrong := "/" + keycloak.KeycloakClient.GetVendorGroup() + "/testleaf" + uniq
+	defer func() {
+		_ = keycloak.KeycloakClient.DeleteSubGroupByPath(middle)
+	}()
+
+	if err := keycloak.KeycloakClient.EnsureGroupPath(middle); err != nil {
+		t.Fatalf("EnsureGroupPath(%s): %v", middle, err)
+	}
+	if err := keycloak.KeycloakClient.EnsureGroupPath(leaf); err != nil {
+		t.Fatalf("EnsureGroupPath(%s): %v", leaf, err)
+	}
+	// Ensuring again is a no-op
+	if err := keycloak.KeycloakClient.EnsureGroupPath(leaf); err != nil {
+		t.Fatalf("EnsureGroupPath(%s) again: %v", leaf, err)
+	}
+
+	k := &keycloak.KeycloakClient
+	token, err := k.LoginClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, err := k.Client.GetGroupByPath(k.Context, token.AccessToken, k.Realm, leaf); err != nil || g.ID == nil {
+		t.Fatalf("expected group at %s: %v", leaf, err)
+	}
+	if _, err := k.Client.GetGroupByPath(k.Context, token.AccessToken, k.Realm, wrong); err == nil {
+		_ = keycloak.KeycloakClient.DeleteSubGroupByPath(wrong)
+		t.Fatalf("group was created at %s instead of %s", wrong, leaf)
+	}
+}
+
 // TestAssignGroupNormalization verifies AssignGroup tolerates group names with or without leading slash.
 func TestAssignGroupNormalization(t *testing.T) {
 	if err := os.Chdir(".."); err != nil {

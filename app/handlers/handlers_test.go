@@ -479,8 +479,8 @@ func TestUpdateItemHandlerWithLicense(t *testing.T) {
 	require.Equal(t, "item-without-license", found3.Name)
 }
 
-// TestNotifyAbonementsOnlineIssue checks that publishing an online issue no longer mails the
-// abonnents, and that the backoffice sends the mail explicitly instead.
+// TestNotifyAbonementsOnlineIssue checks that publishing an online issue neither mails the
+// abonnents nor grants it to them, and that the backoffice does both explicitly instead.
 func TestNotifyAbonementsOnlineIssue(t *testing.T) {
 	mutex_test.Lock()
 	defer mutex_test.Unlock()
@@ -552,6 +552,9 @@ func TestNotifyAbonementsOnlineIssue(t *testing.T) {
 	}
 
 	notifyURL := "/api/items/" + strconv.Itoa(onlineIssueID) + "/notify-abonements/"
+	groupPath := "/" + keycloak.KeycloakClient.CustomerGroup + "/" + keycloak.KeycloakClient.NewspaperGroup + "/9701"
+	_ = keycloak.KeycloakClient.DeleteSubGroupByPath(groupPath)
+	defer func() { _ = keycloak.KeycloakClient.DeleteSubGroupByPath(groupPath) }()
 
 	// A disabled online issue can't be sent yet
 	utils.TestRequestWithAuth(t, r, "POST", notifyURL, nil, 400, adminUserToken)
@@ -563,6 +566,7 @@ func TestNotifyAbonementsOnlineIssue(t *testing.T) {
 	writer.WriteField("Description", "Issue description")
 	writer.WriteField("Price", strconv.Itoa(100))
 	writer.WriteField("Type", "online_issue")
+	writer.WriteField("LicenseGroup", "9701")
 	writer.WriteField("Disabled", "false")
 	writer.Close()
 
@@ -578,14 +582,23 @@ func TestNotifyAbonementsOnlineIssue(t *testing.T) {
 	)
 	time.Sleep(200 * time.Millisecond)
 	require.Equal(t, 0, mailCount())
+	licenseGroups := func() []string {
+		c, err := database.Db.GetCustomerByID(customer.ID)
+		require.NoError(t, err)
+		return c.LicenseGroups
+	}
+	require.NotContains(t, licenseGroups(), "9701")
 
-	// Sending it explicitly mails the abonnent
+	// Sending it explicitly grants the issue to the abonnent and mails them
 	res := utils.TestRequestWithAuth(t, r, "POST", notifyURL, nil, 200, adminUserToken)
 	var response NotifyAbonementsResponse
 	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &response))
 	require.Equal(t, 1, response.Recipients)
 
 	require.Eventually(t, func() bool { return mailCount() == 1 }, 5*time.Second, 50*time.Millisecond)
+	require.Contains(t, licenseGroups(), "9701")
+	_, err = keycloak.KeycloakClient.GetGroupByPath(groupPath)
+	require.NoError(t, err, "sending creates the issue's keycloak group")
 	mu.Lock()
 	mail := sent[0]
 	require.Equal(t, [][]string{{"online.issue.customer@example.com"}}, recipients)

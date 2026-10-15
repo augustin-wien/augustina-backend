@@ -184,10 +184,20 @@ func (db *Database) CreateWordPressInvite(email string, item Item) string {
 	return inviteURL
 }
 
-// inviteLicenseGroup returns the item's license group, or the one of its
-// linked item: a license item and its issue point at each other, and often
-// only one of them carries the group.
+// inviteLicenseGroup returns the license group the invite grants. For an
+// abonement that is the current online issue's; otherwise the item's, or the
+// one of its linked item: a license item and its issue point at each other,
+// and often only one of them carries the group.
 func (db *Database) inviteLicenseGroup(item Item) string {
+	if item.Type == "abonement" {
+		currentIssue, found, err := db.GetCurrentOnlineIssue()
+		if err != nil {
+			log.Error("inviteLicenseGroup: failed to look up current online_issue: ", err)
+		}
+		if found {
+			return currentIssue.LicenseGroup.String
+		}
+	}
 	if item.LicenseGroup.String != "" || !item.LicenseItem.Valid {
 		return item.LicenseGroup.String
 	}
