@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -314,10 +315,10 @@ func TestEnsureGroupPathNested(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, err := k.Client.GetGroupByPath(k.Context, token.AccessToken, k.Realm, leaf); err != nil || g.ID == nil {
+	if g, err := k.Client.GetGroupByPath(k.Context, token.AccessToken, k.Realm, strings.TrimPrefix(leaf, "/")); err != nil || g.ID == nil {
 		t.Fatalf("expected group at %s: %v", leaf, err)
 	}
-	if _, err := k.Client.GetGroupByPath(k.Context, token.AccessToken, k.Realm, wrong); err == nil {
+	if _, err := k.Client.GetGroupByPath(k.Context, token.AccessToken, k.Realm, strings.TrimPrefix(wrong, "/")); err == nil {
 		_ = keycloak.KeycloakClient.DeleteSubGroupByPath(wrong)
 		t.Fatalf("group was created at %s instead of %s", wrong, leaf)
 	}

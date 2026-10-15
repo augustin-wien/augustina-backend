@@ -345,7 +345,8 @@ func (k *Keycloak) EnsureGroupPath(path string) error {
 
 // groupIDByPath returns the ID of the group at path, or "" when there is none
 func (k *Keycloak) groupIDByPath(path string) (string, error) {
-	group, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, path)
+	// gocloak puts a "/" before the path; a second one is rejected as not normalized
+	group, err := k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, strings.TrimPrefix(path, "/"))
 	if err != nil {
 		var apiErr *gocloak.APIError
 		if errors.As(err, &apiErr) && apiErr.Code == http.StatusNotFound {
