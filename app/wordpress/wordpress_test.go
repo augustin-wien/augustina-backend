@@ -89,3 +89,58 @@ func TestSnippet(t *testing.T) {
 	long := strings.Repeat("ä", 300)
 	require.Equal(t, strings.Repeat("ä", 200)+"…", snippet([]byte(long)))
 }
+
+func TestLookupIssue(t *testing.T) {
+	var path, rawQuery string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodGet, r.Method)
+		require.Equal(t, "Bearer key", r.Header.Get("Authorization"))
+		require.Equal(t, "augustina-backend", r.Header.Get("User-Agent"))
+		path, rawQuery = r.URL.Path, r.URL.RawQuery
+		switch r.URL.Path {
+		case "/wp-json/augustin/v1/shop/issue/651":
+			_, _ = w.Write([]byte(`{"exists":true,"issue_number":"651","id":7,"title":"Augustin Nr. 651","status":"publish","published":true,"is_demo":false}`))
+		case "/wp-json/augustin/v1/shop/issue/652":
+			_, _ = w.Write([]byte(`{"exists":true,"issue_number":"652","id":8,"title":"Demo","status":"publish","published":true,"is_demo":true}`))
+		case "/wp-json/augustin/v1/shop/issue/650":
+			_, _ = w.Write([]byte(`{"exists":true,"issue_number":"650","id":9,"title":"Entwurf","status":"draft","published":false,"is_demo":false}`))
+		case "/wp-json/augustin/v1/shop/issue/old_plugin":
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte(`{"code":"rest_no_route","message":"No route was found matching the URL and request method."}`))
+		default:
+			_, _ = w.Write([]byte(`{"exists":false,"issue_number":"x"}`))
+		}
+	}))
+	defer server.Close()
+	inviteURL := server.URL + "/wp-json/augustin/v1/shop/create-invite?secret=x"
+
+	issue, err := LookupIssue(inviteURL, "key", "651")
+	require.NoError(t, err)
+	require.Equal(t, "/wp-json/augustin/v1/shop/issue/651", path)
+	require.Equal(t, "secret=x", rawQuery)
+	require.Equal(t, Issue{Exists: true, IssueNumber: "651", ID: 7, Title: "Augustin Nr. 651", Status: "publish", Published: true}, issue)
+	require.True(t, issue.Current())
+
+	issue, err = LookupIssue(inviteURL, "key", "652")
+	require.NoError(t, err)
+	require.False(t, issue.Current(), "demo issue")
+
+	issue, err = LookupIssue(inviteURL, "key", "650")
+	require.NoError(t, err)
+	require.False(t, issue.Current(), "unpublished issue")
+
+	issue, err = LookupIssue(inviteURL, "key", "digital_edition")
+	require.NoError(t, err)
+	require.False(t, issue.Exists)
+
+	_, err = LookupIssue(inviteURL, "key", "old_plugin")
+	var statusErr *StatusError
+	require.ErrorAs(t, err, &statusErr)
+	require.Equal(t, http.StatusNotFound, statusErr.Status)
+	require.Contains(t, err.Error(), "wordpress.LookupIssue: GET")
+
+	_, err = LookupIssue(inviteURL, "key", "../admin")
+	require.Error(t, err)
+	_, err = LookupIssue(server.URL+"/wp-json/augustin/v1/other", "key", "651")
+	require.Error(t, err)
+}

@@ -378,6 +378,10 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	if strings.ContainsAny(settings.MailSenderName, "\r\n") {
+		utils.ErrorJSON(w, errors.New("mail sender name contains invalid characters"), http.StatusBadRequest)
+		return
+	}
 	log.Debug("updateSettings: settings are ", settings)
 	// Update main item only when explicitly provided by the form.
 	// If not provided, leave MainItem nil so UpdateSettings won't try

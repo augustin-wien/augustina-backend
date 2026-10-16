@@ -1281,8 +1281,11 @@ func VivaWalletWebhookPrice(w http.ResponseWriter, r *http.Request) {
 
 	err = paymentprovider.HandlePaymentPriceResponse(paymentPrice)
 	if err != nil {
-		log.Errorw("VivaWalletWebhookPrice: handle payment price response failed",
+		// HandlePaymentPriceResponse already logged the reason as an error
+		log.Warnw("VivaWalletWebhookPrice: responding 500 so VivaWallet retries",
 			"order_code", paymentPrice.EventData.OrderCode.String(), "transaction_id", paymentPrice.EventData.TransactionID, "error", err)
+		// Non-2xx tells VivaWallet the delivery failed so it retries the webhook
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
 

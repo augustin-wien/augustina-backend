@@ -504,6 +504,20 @@ func (_u *SettingsUpdate) SetNillableOnlinePaperUrl(v *string) *SettingsUpdate {
 	return _u
 }
 
+// SetMailSenderName sets the "MailSenderName" field.
+func (_u *SettingsUpdate) SetMailSenderName(v string) *SettingsUpdate {
+	_u.mutation.SetMailSenderName(v)
+	return _u
+}
+
+// SetNillableMailSenderName sets the "MailSenderName" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableMailSenderName(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetMailSenderName(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -677,6 +691,9 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.OnlinePaperUrl(); ok {
 		_spec.SetField(settings.FieldOnlinePaperUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MailSenderName(); ok {
+		_spec.SetField(settings.FieldMailSenderName, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1203,6 +1220,20 @@ func (_u *SettingsUpdateOne) SetNillableOnlinePaperUrl(v *string) *SettingsUpdat
 	return _u
 }
 
+// SetMailSenderName sets the "MailSenderName" field.
+func (_u *SettingsUpdateOne) SetMailSenderName(v string) *SettingsUpdateOne {
+	_u.mutation.SetMailSenderName(v)
+	return _u
+}
+
+// SetNillableMailSenderName sets the "MailSenderName" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableMailSenderName(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetMailSenderName(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -1406,6 +1437,9 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.OnlinePaperUrl(); ok {
 		_spec.SetField(settings.FieldOnlinePaperUrl, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MailSenderName(); ok {
+		_spec.SetField(settings.FieldMailSenderName, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

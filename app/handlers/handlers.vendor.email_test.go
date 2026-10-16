@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/utils"
@@ -167,4 +168,29 @@ func TestUpdateSettingsVendorEmailPostfix(t *testing.T) {
 	settings, err := database.Db.GetSettings()
 	require.NoError(t, err)
 	require.Equal(t, "-@example.com", settings.VendorEmailPostfix)
+}
+
+// TestUpdateSettingsMailSenderName saves the sender name and rejects line
+// breaks, which would allow header injection in the From header
+func TestUpdateSettingsMailSenderName(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	require.NoError(t, database.Db.InitEmptyTestDb())
+
+	put := func(name string, status int) {
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		require.NoError(t, writer.WriteField("MailSenderName", name))
+		require.NoError(t, writer.Close())
+		utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/settings/", body, writer.FormDataContentType(), status, adminUserToken)
+	}
+
+	put("Augustin\r\nBcc: evil@example.com", 400)
+	put("Augustin Straßenzeitung", 200)
+
+	settings, err := database.Db.GetSettings()
+	require.NoError(t, err)
+	require.Equal(t, "Augustin Straßenzeitung", settings.MailSenderName)
+	require.Equal(t, "Augustin Straßenzeitung", config.Config.MailSenderName)
 }

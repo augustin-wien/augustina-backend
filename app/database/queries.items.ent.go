@@ -9,6 +9,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	ent "github.com/augustin-wien/augustina-backend/ent"
 	entitem "github.com/augustin-wien/augustina-backend/ent/item"
+	"github.com/augustin-wien/augustina-backend/wordpress"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -218,28 +219,48 @@ func (db *Database) GetItemByLicenseID(licenseID int) (item Item, found bool, er
 	return item, true, nil
 }
 
-// GetLatestPublishedOnlineIssueByLicenseGroup returns the most recently
-// published (enabled, non-archived) online_issue that carries the given
-// licenseGroup. "Most recent" is determined by the highest item ID.
-// Returns found=false when no matching issue exists.
-func (db *Database) GetLatestPublishedOnlineIssueByLicenseGroup(licenseGroup string) (item Item, found bool, err error) {
-	e, err := db.EntClient.Item.Query().
+// maxCurrentIssueCandidates bounds how many online issues are checked with
+// WordPress when looking for the current one
+const maxCurrentIssueCandidates = 10
+
+// GetCurrentOnlineIssue returns the online_issue a new subscriber gets: the
+// newest (highest ID) enabled, non-archived online_issue with a license group.
+// When the WordPress invite is configured, issues WordPress does not have, has
+// not published or marks as demo are skipped. If WordPress cannot be asked,
+// the newest remaining issue is used. Returns found=false when there is none.
+func (db *Database) GetCurrentOnlineIssue() (item Item, found bool, err error) {
+	candidates, err := db.EntClient.Item.Query().
 		Where(
 			entitem.TypeEQ("online_issue"),
 			entitem.ArchivedEQ(false),
 			entitem.DisabledEQ(false),
-			entitem.LicenseGroupEQ(licenseGroup),
+			entitem.LicenseGroupNEQ(""),
 		).
 		Order(ent.Desc(entitem.FieldID)).
-		First(context.Background())
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return item, false, nil
-		}
+		Limit(maxCurrentIssueCandidates).
+		All(context.Background())
+	if err != nil || len(candidates) == 0 {
 		return item, false, err
 	}
-	item = convertEntItem(e)
-	return item, true, nil
+
+	settings, err := db.GetSettings()
+	if err != nil || settings == nil || settings.WordPressInviteURL == "" || settings.WordPressInviteAPIKey == "" {
+		return convertEntItem(candidates[0]), true, nil
+	}
+	for _, candidate := range candidates {
+		if wordpress.IssueNumber(candidate.LicenseGroup) == "" {
+			continue
+		}
+		issue, lookupErr := wordpress.LookupIssue(settings.WordPressInviteURL, settings.WordPressInviteAPIKey, candidate.LicenseGroup)
+		if lookupErr != nil {
+			log.Warn("GetCurrentOnlineIssue: WordPress lookup failed, using item ", candidate.ID, ": ", lookupErr)
+			return convertEntItem(candidate), true, nil
+		}
+		if issue.Current() {
+			return convertEntItem(candidate), true, nil
+		}
+	}
+	return item, false, nil
 }
 
 // CreateItem creates an item in the database

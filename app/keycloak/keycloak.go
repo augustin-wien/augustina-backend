@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/utils"
@@ -69,7 +70,7 @@ func InitializeOauthServer() (err error) {
 	err = KeycloakClient.renewClientToken()
 	KeycloakClient.mu.Unlock()
 	if err != nil {
-		log.Fatalf("Error logging in Keycloak client. A running keycloak server is necessary! ", err)
+		return fmt.Errorf("logging in Keycloak client, a running keycloak server is necessary: %w", err)
 	}
 
 	// Ensure required group paths exist (creates missing groups and subgroups)
@@ -135,7 +136,7 @@ func (k *Keycloak) GetUserToken(user, password string) (*gocloak.JWT, error) {
 // GetUserByID function queries the user id
 func (k *Keycloak) GetUserByID(id string) (*gocloak.User, error) {
 	k.checkAdminToken()
-	return k.Client.GetUserByID(k.Context, k.clientToken.AccessToken, k.Realm, id)
+	return k.Client.GetUserByID(k.Context, k.adminAccessToken(), k.Realm, id)
 }
 
 // IntrospectToken function returns the token info
@@ -146,19 +147,19 @@ func (k *Keycloak) IntrospectToken(userToken string) (*gocloak.IntroSpectTokenRe
 // GetRoles function returns the roles
 func (k *Keycloak) GetRoles() ([]*gocloak.Role, error) {
 	k.checkAdminToken()
-	return k.Client.GetRealmRoles(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.GetRoleParams{})
+	return k.Client.GetRealmRoles(k.Context, k.adminAccessToken(), k.Realm, gocloak.GetRoleParams{})
 }
 
 // GetUserRoles function returns the user roles
 func (k *Keycloak) GetUserRoles(userID string) ([]*gocloak.Role, error) {
 	k.checkAdminToken()
-	return k.Client.GetCompositeRealmRolesByUserID(k.Context, k.clientToken.AccessToken, k.Realm, userID)
+	return k.Client.GetCompositeRealmRolesByUserID(k.Context, k.adminAccessToken(), k.Realm, userID)
 }
 
 // GetUserGroups function returns the user groups
 func (k *Keycloak) GetUserGroups(userID string) ([]*gocloak.Group, error) {
 	k.checkAdminToken()
-	return k.Client.GetUserGroups(k.Context, k.clientToken.AccessToken, k.Realm, userID, gocloak.GetGroupsParams{})
+	return k.Client.GetUserGroups(k.Context, k.adminAccessToken(), k.Realm, userID, gocloak.GetGroupsParams{})
 }
 
 func (k *Keycloak) checkAdminToken() {
@@ -199,10 +200,21 @@ func (k *Keycloak) renewClientToken() error {
 	return nil
 }
 
+// adminAccessToken returns the current admin access token, or an empty string
+// if no token could be obtained so that Keycloak calls fail with an error.
+func (k *Keycloak) adminAccessToken() string {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if k.clientToken == nil {
+		return ""
+	}
+	return k.clientToken.AccessToken
+}
+
 // GetRole function returns the role of the given name
 func (k *Keycloak) GetRole(name string) (*gocloak.Role, error) {
 	k.checkAdminToken()
-	return k.Client.GetRealmRole(k.Context, k.clientToken.AccessToken, k.Realm, name)
+	return k.Client.GetRealmRole(k.Context, k.adminAccessToken(), k.Realm, name)
 }
 
 // CreateRole function creates a role given by name
@@ -210,14 +222,14 @@ func (k *Keycloak) CreateRole(name string) error {
 	var role = gocloak.Role{
 		Name: &name,
 	}
-	_, err := k.Client.CreateRealmRole(k.Context, k.clientToken.AccessToken, k.Realm, role)
+	_, err := k.Client.CreateRealmRole(k.Context, k.adminAccessToken(), k.Realm, role)
 	return err
 }
 
 // DeleteRole function deletes a role given by name
 func (k *Keycloak) DeleteRole(name string) error {
 	k.checkAdminToken()
-	return k.Client.DeleteRealmRole(k.Context, k.clientToken.AccessToken, k.Realm, name)
+	return k.Client.DeleteRealmRole(k.Context, k.adminAccessToken(), k.Realm, name)
 }
 
 // AssignRole function assigns a role to a user by userID
@@ -228,7 +240,7 @@ func (k *Keycloak) AssignRole(userID string, roleName string) error {
 		return err
 	}
 	fmt.Printf("Assigning role %s to user %s\n", roleName, userID)
-	return k.Client.AddRealmRoleToUser(k.Context, k.clientToken.AccessToken, k.Realm, userID, []gocloak.Role{*role})
+	return k.Client.AddRealmRoleToUser(k.Context, k.adminAccessToken(), k.Realm, userID, []gocloak.Role{*role})
 }
 
 // Assign group to user
@@ -250,7 +262,7 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 		return err
 	}
 	log.Infof("AssignGroup: Assigning user to group %s %s %s", userID, *group.ID, groupName)
-	return k.Client.AddUserToGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID)
+	return k.Client.AddUserToGroup(k.Context, k.adminAccessToken(), k.Realm, userID, *group.ID)
 }
 
 func (k *Keycloak) AssignDigitalLicenseGroup(userID string, licenseGroup string) error {
@@ -317,7 +329,7 @@ func (k *Keycloak) SyncLicenseGroupsDiffToKeycloak(userID string, oldGroups, new
 				continue // group doesn't exist in Keycloak, nothing to remove
 			}
 			k.checkAdminToken()
-			if err := k.Client.DeleteUserFromGroup(k.Context, k.clientToken.AccessToken, k.Realm, userID, *group.ID); err != nil {
+			if err := k.Client.DeleteUserFromGroup(k.Context, k.adminAccessToken(), k.Realm, userID, *group.ID); err != nil {
 				log.Errorf("SyncLicenseGroupsDiffToKeycloak: remove %s from %s: %v", g, userID, err)
 			}
 		}
@@ -330,7 +342,7 @@ func (k *Keycloak) CreateGroup(groupName string) (string, error) {
 	group := gocloak.Group{
 		Name: &groupName,
 	}
-	id, err := k.Client.CreateGroup(k.Context, k.clientToken.AccessToken, k.Realm, group)
+	id, err := k.Client.CreateGroup(k.Context, k.adminAccessToken(), k.Realm, group)
 	return id, err
 }
 func (k *Keycloak) CreateSubGroup(groupName string, parentGroupID string) (string, error) {
@@ -338,12 +350,14 @@ func (k *Keycloak) CreateSubGroup(groupName string, parentGroupID string) (strin
 	group := gocloak.Group{
 		Name: &groupName,
 	}
-	id, err := k.Client.CreateChildGroup(k.Context, k.clientToken.AccessToken, k.Realm, parentGroupID, group)
+	id, err := k.Client.CreateChildGroup(k.Context, k.adminAccessToken(), k.Realm, parentGroupID, group)
 	return id, err
 }
 
 // EnsureGroupPath ensures that a group path (e.g. "/customers/newspapers/edition") exists.
 // It will create any missing top-level groups or subgroups along the path.
+// Each level is looked up by its path: Keycloak no longer lists subgroups in a
+// group's representation, so they can't be found through the parent.
 func (k *Keycloak) EnsureGroupPath(path string) error {
 	k.checkAdminToken()
 	// Normalize path
@@ -354,97 +368,49 @@ func (k *Keycloak) EnsureGroupPath(path string) error {
 	parts := strings.Split(strings.Trim(p, "/"), "/")
 
 	var currentParentID string
-
 	for i, part := range parts {
-		if i == 0 {
-			// Top-level group: search to get ID
-			params := gocloak.GetGroupsParams{Search: &part}
-			foundGroups, err := k.Client.GetGroups(k.Context, k.clientToken.AccessToken, k.Realm, params)
-			var matched *gocloak.Group
-			if err == nil {
-				for _, g := range foundGroups {
-					if g.Name != nil && *g.Name == part {
-						matched = g
-						break
-					}
-				}
-			}
-
-			if matched != nil {
-				currentParentID = *matched.ID
+		currentPath := "/" + strings.Join(parts[:i+1], "/")
+		id, err := k.groupIDByPath(currentPath)
+		if err != nil {
+			return fmt.Errorf("EnsureGroupPath: failed to look up %s: %w", currentPath, err)
+		}
+		if id == "" {
+			if i == 0 {
+				id, err = k.CreateGroup(part)
 			} else {
-				// Not found, create
-				id, err := k.CreateGroup(part)
-				if err != nil {
-					// Handle 409 Conflict if created concurrently
-					if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "Conflict") {
-						// Fetch again
-						foundGroups, _ := k.Client.GetGroups(k.Context, k.clientToken.AccessToken, k.Realm, params)
-						for _, g := range foundGroups {
-							if g.Name != nil && *g.Name == part {
-								currentParentID = *g.ID
-								break
-							}
-						}
-						if currentParentID == "" {
-							return fmt.Errorf("EnsureGroupPath: failed to find top-level group %s after conflict: %w", part, err)
-						}
-					} else {
-						return fmt.Errorf("EnsureGroupPath: failed to create top-level group %s: %w", part, err)
-					}
-				} else {
-					currentParentID = id
-				}
+				id, err = k.CreateSubGroup(part, currentParentID)
 			}
-		} else {
-			// Subgroup: must exist under currentParentID
-			// Get parent details to find children
-			parentGroup, err := k.Client.GetGroup(k.Context, k.clientToken.AccessToken, k.Realm, currentParentID)
 			if err != nil {
-				return fmt.Errorf("EnsureGroupPath: failed to fetch parent group %s: %w", currentParentID, err)
-			}
-
-			var matched *gocloak.Group
-			if parentGroup.SubGroups != nil {
-				for _, sub := range *parentGroup.SubGroups {
-					if sub.Name != nil && *sub.Name == part {
-						matched = &sub // Be careful taking address of range var if modifying, but here we read ID
-						// Re-assign to a variable to be safe, though ID should be accessible
-						m := sub
-						matched = &m
-						break
-					}
+				// Created concurrently
+				if !strings.Contains(err.Error(), "409") && !strings.Contains(err.Error(), "Conflict") {
+					return fmt.Errorf("EnsureGroupPath: failed to create %s: %w", currentPath, err)
 				}
-			}
-
-			if matched != nil {
-				currentParentID = *matched.ID
-			} else {
-				// Create subgroup
-				id, err := k.CreateSubGroup(part, currentParentID)
-				if err != nil {
-					if strings.Contains(err.Error(), "409") || strings.Contains(err.Error(), "Conflict") {
-						// Refetch parent to find the child
-						parentGroup, _ = k.Client.GetGroup(k.Context, k.clientToken.AccessToken, k.Realm, currentParentID)
-						if parentGroup.SubGroups != nil {
-							for _, sub := range *parentGroup.SubGroups {
-								if sub.Name != nil && *sub.Name == part {
-									currentParentID = *sub.ID
-									break
-								}
-							}
-						}
-						// If still not found, error out? but it said conflict...
-					} else {
-						return fmt.Errorf("EnsureGroupPath: failed to create subgroup %s: %w", part, err)
-					}
-				} else {
-					currentParentID = id
+				id, err = k.groupIDByPath(currentPath)
+				if err != nil || id == "" {
+					return fmt.Errorf("EnsureGroupPath: failed to find %s after conflict: %v", currentPath, err)
 				}
 			}
 		}
+		currentParentID = id
 	}
 	return nil
+}
+
+// groupIDByPath returns the ID of the group at path, or "" when there is none
+func (k *Keycloak) groupIDByPath(path string) (string, error) {
+	// gocloak puts a "/" before the path; a second one is rejected as not normalized
+	group, err := k.Client.GetGroupByPath(k.Context, k.adminAccessToken(), k.Realm, strings.TrimPrefix(path, "/"))
+	if err != nil {
+		var apiErr *gocloak.APIError
+		if errors.As(err, &apiErr) && apiErr.Code == http.StatusNotFound {
+			return "", nil
+		}
+		return "", err
+	}
+	if group == nil || group.ID == nil {
+		return "", nil
+	}
+	return *group.ID, nil
 }
 
 // GetGroupByPath function returns the group of the given name
@@ -462,7 +428,7 @@ func (k *Keycloak) GetGroupByPath(path string) (*gocloak.Group, error) {
 	for i, part := range parts {
 		if i == 0 {
 			params := gocloak.GetGroupsParams{Search: &part}
-			foundGroups, err := k.Client.GetGroups(k.Context, k.clientToken.AccessToken, k.Realm, params)
+			foundGroups, err := k.Client.GetGroups(k.Context, k.adminAccessToken(), k.Realm, params)
 			if err != nil {
 				return nil, err
 			}
@@ -480,7 +446,7 @@ func (k *Keycloak) GetGroupByPath(path string) (*gocloak.Group, error) {
 			var found *gocloak.Group
 			for attempt := 0; attempt < 20; attempt++ {
 				// Refresh current group to get subgroups
-				fullGroup, err := k.Client.GetGroup(k.Context, k.clientToken.AccessToken, k.Realm, *currentGroup.ID)
+				fullGroup, err := k.Client.GetGroup(k.Context, k.adminAccessToken(), k.Realm, *currentGroup.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -503,7 +469,7 @@ func (k *Keycloak) GetGroupByPath(path string) (*gocloak.Group, error) {
 				searchParams := gocloak.GetGroupsParams{
 					Search: &part,
 				}
-				searchResults, err := k.Client.GetGroups(k.Context, k.clientToken.AccessToken, k.Realm, searchParams)
+				searchResults, err := k.Client.GetGroups(k.Context, k.adminAccessToken(), k.Realm, searchParams)
 				if err == nil {
 					expectedPath := "/" + strings.Join(parts[:i+1], "/")
 					for _, g := range searchResults {
@@ -559,7 +525,7 @@ func (k *Keycloak) GetGroup(name string) (*gocloak.Group, error) {
 	params := gocloak.GetGroupsParams{
 		Search: &name,
 	}
-	groups, err := k.Client.GetGroups(k.Context, k.clientToken.AccessToken, k.Realm, params)
+	groups, err := k.Client.GetGroups(k.Context, k.adminAccessToken(), k.Realm, params)
 	if err == nil {
 		for _, g := range groups {
 			if g.Name != nil && *g.Name == name {
@@ -568,7 +534,7 @@ func (k *Keycloak) GetGroup(name string) (*gocloak.Group, error) {
 		}
 	}
 	// Fallback to path
-	return k.Client.GetGroupByPath(k.Context, k.clientToken.AccessToken, k.Realm, "/"+name)
+	return k.Client.GetGroupByPath(k.Context, k.adminAccessToken(), k.Realm, "/"+name)
 }
 
 // DeleteGroup function deletes a group given by name
@@ -578,16 +544,19 @@ func (k *Keycloak) DeleteGroup(name string) error {
 	if err != nil {
 		return err
 	}
-	return k.Client.DeleteGroup(k.Context, k.clientToken.AccessToken, k.Realm, *group.ID)
+	return k.Client.DeleteGroup(k.Context, k.adminAccessToken(), k.Realm, *group.ID)
 }
 
 func (k *Keycloak) DeleteSubGroupByPath(path string) error {
 	k.checkAdminToken()
-	group, err := k.GetGroupByPath(path)
+	id, err := k.groupIDByPath("/" + strings.Trim(path, "/"))
 	if err != nil {
 		return err
 	}
-	return k.Client.DeleteGroup(k.Context, k.clientToken.AccessToken, k.Realm, *group.ID)
+	if id == "" {
+		return fmt.Errorf("group not found: %s", path)
+	}
+	return k.Client.DeleteGroup(k.Context, k.adminAccessToken(), k.Realm, id)
 }
 
 // UnassignRole function unassigns a role from a user by userID
@@ -597,7 +566,7 @@ func (k *Keycloak) UnassignRole(userID string, roleName string) error {
 	if err != nil {
 		return err
 	}
-	return k.Client.DeleteRealmRoleFromUser(k.Context, k.clientToken.AccessToken, k.Realm, userID, []gocloak.Role{*role})
+	return k.Client.DeleteRealmRoleFromUser(k.Context, k.adminAccessToken(), k.Realm, userID, []gocloak.Role{*role})
 }
 
 // GetUser function returns the user by username
@@ -614,7 +583,7 @@ func (k *Keycloak) GetUser(username string) (*gocloak.User, error) {
 		Username: &username,
 		Exact:    &exact,
 	}
-	users, err := k.Client.GetUsers(k.Context, k.clientToken.AccessToken, k.Realm, p)
+	users, err := k.Client.GetUsers(k.Context, k.adminAccessToken(), k.Realm, p)
 	if err != nil {
 		log.Error("Keycloak GetUser: Error getting users ", err)
 		return nil, err
@@ -643,7 +612,7 @@ func (k *Keycloak) GetUserByEmail(email string) (*gocloak.User, error) {
 		Email: &email,
 		Exact: &exact,
 	}
-	users, err := k.Client.GetUsers(k.Context, k.clientToken.AccessToken, k.Realm, p)
+	users, err := k.Client.GetUsers(k.Context, k.adminAccessToken(), k.Realm, p)
 	if err != nil {
 		return nil, err
 	}
@@ -658,6 +627,22 @@ func (k *Keycloak) GetUserByEmail(email string) (*gocloak.User, error) {
 	return users[0], err
 }
 
+// personNameProhibited mirrors Keycloak's default person-name-prohibited-characters
+// validator, which rejects firstName/lastName containing any of these runes.
+const personNameProhibited = "<>&\"$%!#?§;*~/\\|^=[]{}()\v"
+
+// sanitizePersonName drops the runes Keycloak refuses in a person name and
+// collapses the whitespace left behind.
+func sanitizePersonName(name string) string {
+	cleaned := strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) || strings.ContainsRune(personNameProhibited, r) {
+			return ' '
+		}
+		return r
+	}, name)
+	return strings.Join(strings.Fields(cleaned), " ")
+}
+
 // CreateUser function creates a user given by first_name, last_name and email returns the userID.
 // An empty password creates the user without one; they set it themselves through a Keycloak link.
 func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, email string, password string) (userID string, err error) {
@@ -666,6 +651,8 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 	}
 	// set email to lowercase
 	email = utils.ToLower(email)
+	firstName = sanitizePersonName(firstName)
+	lastName = sanitizePersonName(lastName)
 	k.checkAdminToken()
 	user := gocloak.User{
 		Username:      &userid,
@@ -684,7 +671,7 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 			},
 		}
 	}
-	return k.Client.CreateUser(k.Context, k.clientToken.AccessToken, k.Realm, user)
+	return k.Client.CreateUser(k.Context, k.adminAccessToken(), k.Realm, user)
 }
 
 // GetOrCreateVendor returns the Keycloak user for email, creating it if needed.
@@ -811,7 +798,7 @@ func (k *Keycloak) sendActionsEmail(email, redirectURI, action string) error {
 	}
 
 	log.Info("SendPasswordResetEmail: Keycloak: execute "+action+" email for ", email)
-	err = k.Client.ExecuteActionsEmail(k.Context, k.clientToken.AccessToken, k.Realm, gocloak.ExecuteActionsEmail{
+	err = k.Client.ExecuteActionsEmail(k.Context, k.adminAccessToken(), k.Realm, gocloak.ExecuteActionsEmail{
 		UserID: user.ID,
 		// The mail is often only read hours later, e.g. after the welcome mail for a
 		// new vendor or abo customer, so 10 minutes were far too short. Whole days
@@ -838,7 +825,7 @@ func (k *Keycloak) DeleteUser(username string) error {
 	if err != nil {
 		return err
 	}
-	return k.Client.DeleteUser(k.Context, k.clientToken.AccessToken, k.Realm, *user.ID)
+	return k.Client.DeleteUser(k.Context, k.adminAccessToken(), k.Realm, *user.ID)
 }
 
 // UpdateUserPassword function updates a user password given by userID
@@ -849,7 +836,7 @@ func (k *Keycloak) UpdateUserPassword(username string, password string) error {
 	if err != nil {
 		return err
 	}
-	return k.Client.SetPassword(k.Context, k.clientToken.AccessToken, *user.ID, k.Realm, password, false)
+	return k.Client.SetPassword(k.Context, k.adminAccessToken(), *user.ID, k.Realm, password, false)
 }
 
 // UpdateUser function updates a user given by userID
@@ -862,13 +849,15 @@ func (k *Keycloak) UpdateUser(username string, firstName string, lastName string
 	if err != nil {
 		return err
 	}
+	firstName = sanitizePersonName(firstName)
+	lastName = sanitizePersonName(lastName)
 	user.FirstName = &firstName
 	user.LastName = &lastName
 	user.Email = &email
 	user.EmailVerified = gocloak.BoolP(true)
 	user.Enabled = gocloak.BoolP(true)
 	user.Username = &username
-	return k.Client.UpdateUser(k.Context, k.clientToken.AccessToken, k.Realm, *user)
+	return k.Client.UpdateUser(k.Context, k.adminAccessToken(), k.Realm, *user)
 }
 
 func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email string) error {
@@ -883,12 +872,14 @@ func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email s
 	} else {
 		user.EmailVerified = gocloak.BoolP(true)
 	}
+	firstName = sanitizePersonName(firstName)
+	lastName = sanitizePersonName(lastName)
 	user.FirstName = &firstName
 	user.LastName = &lastName
 	user.Email = &email
 	user.Enabled = gocloak.BoolP(true)
 	user.Username = &email
-	return k.Client.UpdateUser(k.Context, k.clientToken.AccessToken, k.Realm, *user)
+	return k.Client.UpdateUser(k.Context, k.adminAccessToken(), k.Realm, *user)
 }
 
 func (k *Keycloak) GetVendorGroup() string {
