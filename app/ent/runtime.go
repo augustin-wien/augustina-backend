@@ -11,6 +11,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/campaign"
 	"github.com/augustin-wien/augustina-backend/ent/customer"
 	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
+	"github.com/augustin-wien/augustina-backend/ent/externalpayment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/order"
@@ -111,6 +112,48 @@ func init() {
 	dbsettingsDescID := dbsettingsFields[0].Descriptor()
 	// dbsettings.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	dbsettings.IDValidator = dbsettingsDescID.Validators[0].(func(int) error)
+	externalpaymentFields := schema.ExternalPayment{}.Fields()
+	_ = externalpaymentFields
+	// externalpaymentDescOrderCode is the schema descriptor for order_code field.
+	externalpaymentDescOrderCode := externalpaymentFields[2].Descriptor()
+	// externalpayment.DefaultOrderCode holds the default value on creation for the order_code field.
+	externalpayment.DefaultOrderCode = externalpaymentDescOrderCode.Default.(string)
+	// externalpaymentDescAmount is the schema descriptor for amount field.
+	externalpaymentDescAmount := externalpaymentFields[3].Descriptor()
+	// externalpayment.DefaultAmount holds the default value on creation for the amount field.
+	externalpayment.DefaultAmount = externalpaymentDescAmount.Default.(int)
+	// externalpaymentDescFee is the schema descriptor for fee field.
+	externalpaymentDescFee := externalpaymentFields[4].Descriptor()
+	// externalpayment.DefaultFee holds the default value on creation for the fee field.
+	externalpayment.DefaultFee = externalpaymentDescFee.Default.(int)
+	// externalpaymentDescStatusID is the schema descriptor for status_id field.
+	externalpaymentDescStatusID := externalpaymentFields[5].Descriptor()
+	// externalpayment.DefaultStatusID holds the default value on creation for the status_id field.
+	externalpayment.DefaultStatusID = externalpaymentDescStatusID.Default.(string)
+	// externalpaymentDescSourceCode is the schema descriptor for source_code field.
+	externalpaymentDescSourceCode := externalpaymentFields[6].Descriptor()
+	// externalpayment.DefaultSourceCode holds the default value on creation for the source_code field.
+	externalpayment.DefaultSourceCode = externalpaymentDescSourceCode.Default.(string)
+	// externalpaymentDescSourceName is the schema descriptor for source_name field.
+	externalpaymentDescSourceName := externalpaymentFields[7].Descriptor()
+	// externalpayment.DefaultSourceName holds the default value on creation for the source_name field.
+	externalpayment.DefaultSourceName = externalpaymentDescSourceName.Default.(string)
+	// externalpaymentDescTerminalID is the schema descriptor for terminal_id field.
+	externalpaymentDescTerminalID := externalpaymentFields[8].Descriptor()
+	// externalpayment.DefaultTerminalID holds the default value on creation for the terminal_id field.
+	externalpayment.DefaultTerminalID = externalpaymentDescTerminalID.Default.(int)
+	// externalpaymentDescMerchantTrns is the schema descriptor for merchant_trns field.
+	externalpaymentDescMerchantTrns := externalpaymentFields[9].Descriptor()
+	// externalpayment.DefaultMerchantTrns holds the default value on creation for the merchant_trns field.
+	externalpayment.DefaultMerchantTrns = externalpaymentDescMerchantTrns.Default.(string)
+	// externalpaymentDescPaidAt is the schema descriptor for paid_at field.
+	externalpaymentDescPaidAt := externalpaymentFields[10].Descriptor()
+	// externalpayment.DefaultPaidAt holds the default value on creation for the paid_at field.
+	externalpayment.DefaultPaidAt = externalpaymentDescPaidAt.Default.(func() time.Time)
+	// externalpaymentDescCreatedAt is the schema descriptor for created_at field.
+	externalpaymentDescCreatedAt := externalpaymentFields[11].Descriptor()
+	// externalpayment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	externalpayment.DefaultCreatedAt = externalpaymentDescCreatedAt.Default.(func() time.Time)
 	itemFields := schema.Item{}.Fields()
 	_ = itemFields
 	// itemDescName is the schema descriptor for Name field.
@@ -359,6 +402,10 @@ func init() {
 	settingsDescMailSenderName := settingsFields[33].Descriptor()
 	// settings.DefaultMailSenderName holds the default value on creation for the MailSenderName field.
 	settings.DefaultMailSenderName = settingsDescMailSenderName.Default.(string)
+	// settingsDescDonationTrackingEnabled is the schema descriptor for DonationTrackingEnabled field.
+	settingsDescDonationTrackingEnabled := settingsFields[34].Descriptor()
+	// settings.DefaultDonationTrackingEnabled holds the default value on creation for the DonationTrackingEnabled field.
+	settings.DefaultDonationTrackingEnabled = settingsDescDonationTrackingEnabled.Default.(bool)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

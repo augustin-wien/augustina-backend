@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 	"strings"
 
@@ -273,6 +274,38 @@ func isForeignTransaction(data EventData) bool {
 	return data.SourceCode != config.Config.VivaWalletSourceCode
 }
 
+// toCents converts a VivaWallet amount in euros to cents
+func toCents(amount float64) int {
+	return int(math.Round(amount * 100))
+}
+
+// parseVivaTime parses a VivaWallet timestamp. It returns the zero time when the value is
+// missing or in an unknown format.
+func parseVivaTime(value string) time.Time {
+	if t, err := time.Parse(time.RFC3339, value); err == nil {
+		return t
+	}
+	if loc, err := time.LoadLocation("Europe/Vienna"); err == nil {
+		if t, err := time.ParseInLocation("2006-01-02T15:04:05.999999999", value, loc); err == nil {
+			return t
+		}
+	}
+	return time.Time{}
+}
+
+// recordExternalPayment stores a payment from another sales channel while donation tracking is
+// enabled, so the backoffice can list it
+func recordExternalPayment(p database.ExternalPaymentUpdate) error {
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		return err
+	}
+	if !settings.DonationTrackingEnabled {
+		return nil
+	}
+	return database.Db.RecordExternalPayment(p)
+}
+
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest) (err error) {
 	data := paymentSuccessful.EventData
 
@@ -297,7 +330,17 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 			"terminal_id", data.TerminalID,
 			"amount", data.Amount,
 		)
-		return nil
+		return recordExternalPayment(database.ExternalPaymentUpdate{
+			TransactionID: data.TransactionID,
+			OrderCode:     data.OrderCode.String(),
+			Amount:        toCents(data.Amount),
+			StatusID:      data.StatusID,
+			SourceCode:    data.SourceCode,
+			SourceName:    data.SourceName,
+			TerminalID:    data.TerminalID,
+			MerchantTrns:  data.MerchantTrns,
+			PaidAt:        parseVivaTime(data.InsDate),
+		})
 	}
 	if err != nil {
 		logWebhookNotVerified("order_not_found", 0, data, err)
@@ -645,7 +688,15 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 			"viva_merchant_trns", verification.MerchantTrns,
 			"total_commission", data.TotalCommission,
 		)
-		return nil
+		return recordExternalPayment(database.ExternalPaymentUpdate{
+			TransactionID: data.TransactionID,
+			OrderCode:     data.OrderCode.String(),
+			Amount:        toCents(verification.Amount),
+			Fee:           toCents(data.TotalCommission),
+			StatusID:      verification.StatusID,
+			MerchantTrns:  verification.MerchantTrns,
+			PaidAt:        parseVivaTime(verification.InsDate),
+		})
 	}
 	if err != nil {
 		logPriceNotBooked("order_not_found", 0, data, verification, err)

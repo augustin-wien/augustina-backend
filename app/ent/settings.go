@@ -83,6 +83,8 @@ type Settings struct {
 	OnlinePaperUrl string `json:"OnlinePaperUrl"`
 	// MailSenderName holds the value of the "MailSenderName" field.
 	MailSenderName string `json:"MailSenderName"`
+	// DonationTrackingEnabled holds the value of the "DonationTrackingEnabled" field.
+	DonationTrackingEnabled bool `json:"DonationTrackingEnabled"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -115,7 +117,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
@@ -344,6 +346,12 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.MailSenderName = value.String
 			}
+		case settings.FieldDonationTrackingEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field DonationTrackingEnabled", values[i])
+			} else if value.Valid {
+				_m.DonationTrackingEnabled = value.Bool
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -490,6 +498,9 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("MailSenderName=")
 	builder.WriteString(_m.MailSenderName)
+	builder.WriteString(", ")
+	builder.WriteString("DonationTrackingEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DonationTrackingEnabled))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -65,6 +65,7 @@ type PublicSettings struct {
 	PrivacyPolicyUrl           string
 	MatomoUrl                  string
 	MatomoSiteId               string
+	DonationTrackingEnabled    bool
 	Edges                      ent.SettingsEdges
 }
 
@@ -105,6 +106,7 @@ func toPublicSettings(s *ent.Settings) PublicSettings {
 		PrivacyPolicyUrl:           s.PrivacyPolicyUrl,
 		MatomoUrl:                  s.MatomoUrl,
 		MatomoSiteId:               s.MatomoSiteId,
+		DonationTrackingEnabled:    s.DonationTrackingEnabled,
 		Edges:                      s.Edges,
 	}
 }
@@ -351,6 +353,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Error("POSEnabled is not a boolean")
 				utils.ErrorJSON(w, errors.New("POSEnabled is not a boolean"), http.StatusBadRequest)
+				return
+			}
+		} else if key == "DonationTrackingEnabled" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error("DonationTrackingEnabled is not a boolean")
+				utils.ErrorJSON(w, errors.New("DonationTrackingEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
 		} else if key == "WordPressInviteTTL" {

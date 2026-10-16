@@ -22,6 +22,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/customer"
 	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
+	"github.com/augustin-wien/augustina-backend/ent/externalpayment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/mailtemplate"
@@ -53,6 +54,8 @@ type Client struct {
 	Customer *CustomerClient
 	// DBSettings is the client for interacting with the DBSettings builders.
 	DBSettings *DBSettingsClient
+	// ExternalPayment is the client for interacting with the ExternalPayment builders.
+	ExternalPayment *ExternalPaymentClient
 	// Item is the client for interacting with the Item builders.
 	Item *ItemClient
 	// Location is the client for interacting with the Location builders.
@@ -91,6 +94,7 @@ func (c *Client) init() {
 	c.Comment = NewCommentClient(c.config)
 	c.Customer = NewCustomerClient(c.config)
 	c.DBSettings = NewDBSettingsClient(c.config)
+	c.ExternalPayment = NewExternalPaymentClient(c.config)
 	c.Item = NewItemClient(c.config)
 	c.Location = NewLocationClient(c.config)
 	c.MailTemplate = NewMailTemplateClient(c.config)
@@ -191,25 +195,26 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Abonement:    NewAbonementClient(cfg),
-		Account:      NewAccountClient(cfg),
-		BlockedIP:    NewBlockedIPClient(cfg),
-		Campaign:     NewCampaignClient(cfg),
-		Comment:      NewCommentClient(cfg),
-		Customer:     NewCustomerClient(cfg),
-		DBSettings:   NewDBSettingsClient(cfg),
-		Item:         NewItemClient(cfg),
-		Location:     NewLocationClient(cfg),
-		MailTemplate: NewMailTemplateClient(cfg),
-		Order:        NewOrderClient(cfg),
-		OrderEntry:   NewOrderEntryClient(cfg),
-		PDF:          NewPDFClient(cfg),
-		PDFDownload:  NewPDFDownloadClient(cfg),
-		Payment:      NewPaymentClient(cfg),
-		Settings:     NewSettingsClient(cfg),
-		Vendor:       NewVendorClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Abonement:       NewAbonementClient(cfg),
+		Account:         NewAccountClient(cfg),
+		BlockedIP:       NewBlockedIPClient(cfg),
+		Campaign:        NewCampaignClient(cfg),
+		Comment:         NewCommentClient(cfg),
+		Customer:        NewCustomerClient(cfg),
+		DBSettings:      NewDBSettingsClient(cfg),
+		ExternalPayment: NewExternalPaymentClient(cfg),
+		Item:            NewItemClient(cfg),
+		Location:        NewLocationClient(cfg),
+		MailTemplate:    NewMailTemplateClient(cfg),
+		Order:           NewOrderClient(cfg),
+		OrderEntry:      NewOrderEntryClient(cfg),
+		PDF:             NewPDFClient(cfg),
+		PDFDownload:     NewPDFDownloadClient(cfg),
+		Payment:         NewPaymentClient(cfg),
+		Settings:        NewSettingsClient(cfg),
+		Vendor:          NewVendorClient(cfg),
 	}, nil
 }
 
@@ -227,25 +232,26 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Abonement:    NewAbonementClient(cfg),
-		Account:      NewAccountClient(cfg),
-		BlockedIP:    NewBlockedIPClient(cfg),
-		Campaign:     NewCampaignClient(cfg),
-		Comment:      NewCommentClient(cfg),
-		Customer:     NewCustomerClient(cfg),
-		DBSettings:   NewDBSettingsClient(cfg),
-		Item:         NewItemClient(cfg),
-		Location:     NewLocationClient(cfg),
-		MailTemplate: NewMailTemplateClient(cfg),
-		Order:        NewOrderClient(cfg),
-		OrderEntry:   NewOrderEntryClient(cfg),
-		PDF:          NewPDFClient(cfg),
-		PDFDownload:  NewPDFDownloadClient(cfg),
-		Payment:      NewPaymentClient(cfg),
-		Settings:     NewSettingsClient(cfg),
-		Vendor:       NewVendorClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Abonement:       NewAbonementClient(cfg),
+		Account:         NewAccountClient(cfg),
+		BlockedIP:       NewBlockedIPClient(cfg),
+		Campaign:        NewCampaignClient(cfg),
+		Comment:         NewCommentClient(cfg),
+		Customer:        NewCustomerClient(cfg),
+		DBSettings:      NewDBSettingsClient(cfg),
+		ExternalPayment: NewExternalPaymentClient(cfg),
+		Item:            NewItemClient(cfg),
+		Location:        NewLocationClient(cfg),
+		MailTemplate:    NewMailTemplateClient(cfg),
+		Order:           NewOrderClient(cfg),
+		OrderEntry:      NewOrderEntryClient(cfg),
+		PDF:             NewPDFClient(cfg),
+		PDFDownload:     NewPDFDownloadClient(cfg),
+		Payment:         NewPaymentClient(cfg),
+		Settings:        NewSettingsClient(cfg),
+		Vendor:          NewVendorClient(cfg),
 	}, nil
 }
 
@@ -276,8 +282,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Abonement, c.Account, c.BlockedIP, c.Campaign, c.Comment, c.Customer,
-		c.DBSettings, c.Item, c.Location, c.MailTemplate, c.Order, c.OrderEntry, c.PDF,
-		c.PDFDownload, c.Payment, c.Settings, c.Vendor,
+		c.DBSettings, c.ExternalPayment, c.Item, c.Location, c.MailTemplate, c.Order,
+		c.OrderEntry, c.PDF, c.PDFDownload, c.Payment, c.Settings, c.Vendor,
 	} {
 		n.Use(hooks...)
 	}
@@ -288,8 +294,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Abonement, c.Account, c.BlockedIP, c.Campaign, c.Comment, c.Customer,
-		c.DBSettings, c.Item, c.Location, c.MailTemplate, c.Order, c.OrderEntry, c.PDF,
-		c.PDFDownload, c.Payment, c.Settings, c.Vendor,
+		c.DBSettings, c.ExternalPayment, c.Item, c.Location, c.MailTemplate, c.Order,
+		c.OrderEntry, c.PDF, c.PDFDownload, c.Payment, c.Settings, c.Vendor,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -312,6 +318,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Customer.mutate(ctx, m)
 	case *DBSettingsMutation:
 		return c.DBSettings.mutate(ctx, m)
+	case *ExternalPaymentMutation:
+		return c.ExternalPayment.mutate(ctx, m)
 	case *ItemMutation:
 		return c.Item.mutate(ctx, m)
 	case *LocationMutation:
@@ -1345,6 +1353,139 @@ func (c *DBSettingsClient) mutate(ctx context.Context, m *DBSettingsMutation) (V
 		return (&DBSettingsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown DBSettings mutation op: %q", m.Op())
+	}
+}
+
+// ExternalPaymentClient is a client for the ExternalPayment schema.
+type ExternalPaymentClient struct {
+	config
+}
+
+// NewExternalPaymentClient returns a client for the ExternalPayment from the given config.
+func NewExternalPaymentClient(c config) *ExternalPaymentClient {
+	return &ExternalPaymentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `externalpayment.Hooks(f(g(h())))`.
+func (c *ExternalPaymentClient) Use(hooks ...Hook) {
+	c.hooks.ExternalPayment = append(c.hooks.ExternalPayment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `externalpayment.Intercept(f(g(h())))`.
+func (c *ExternalPaymentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ExternalPayment = append(c.inters.ExternalPayment, interceptors...)
+}
+
+// Create returns a builder for creating a ExternalPayment entity.
+func (c *ExternalPaymentClient) Create() *ExternalPaymentCreate {
+	mutation := newExternalPaymentMutation(c.config, OpCreate)
+	return &ExternalPaymentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ExternalPayment entities.
+func (c *ExternalPaymentClient) CreateBulk(builders ...*ExternalPaymentCreate) *ExternalPaymentCreateBulk {
+	return &ExternalPaymentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ExternalPaymentClient) MapCreateBulk(slice any, setFunc func(*ExternalPaymentCreate, int)) *ExternalPaymentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ExternalPaymentCreateBulk{err: fmt.Errorf("calling to ExternalPaymentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ExternalPaymentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ExternalPaymentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ExternalPayment.
+func (c *ExternalPaymentClient) Update() *ExternalPaymentUpdate {
+	mutation := newExternalPaymentMutation(c.config, OpUpdate)
+	return &ExternalPaymentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ExternalPaymentClient) UpdateOne(_m *ExternalPayment) *ExternalPaymentUpdateOne {
+	mutation := newExternalPaymentMutation(c.config, OpUpdateOne, withExternalPayment(_m))
+	return &ExternalPaymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ExternalPaymentClient) UpdateOneID(id int) *ExternalPaymentUpdateOne {
+	mutation := newExternalPaymentMutation(c.config, OpUpdateOne, withExternalPaymentID(id))
+	return &ExternalPaymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ExternalPayment.
+func (c *ExternalPaymentClient) Delete() *ExternalPaymentDelete {
+	mutation := newExternalPaymentMutation(c.config, OpDelete)
+	return &ExternalPaymentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ExternalPaymentClient) DeleteOne(_m *ExternalPayment) *ExternalPaymentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ExternalPaymentClient) DeleteOneID(id int) *ExternalPaymentDeleteOne {
+	builder := c.Delete().Where(externalpayment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ExternalPaymentDeleteOne{builder}
+}
+
+// Query returns a query builder for ExternalPayment.
+func (c *ExternalPaymentClient) Query() *ExternalPaymentQuery {
+	return &ExternalPaymentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeExternalPayment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ExternalPayment entity by its id.
+func (c *ExternalPaymentClient) Get(ctx context.Context, id int) (*ExternalPayment, error) {
+	return c.Query().Where(externalpayment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ExternalPaymentClient) GetX(ctx context.Context, id int) *ExternalPayment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ExternalPaymentClient) Hooks() []Hook {
+	return c.hooks.ExternalPayment
+}
+
+// Interceptors returns the client interceptors.
+func (c *ExternalPaymentClient) Interceptors() []Interceptor {
+	return c.inters.ExternalPayment
+}
+
+func (c *ExternalPaymentClient) mutate(ctx context.Context, m *ExternalPaymentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ExternalPaymentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ExternalPaymentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ExternalPaymentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ExternalPaymentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ExternalPayment mutation op: %q", m.Op())
 	}
 }
 
@@ -2937,13 +3078,13 @@ func (c *VendorClient) mutate(ctx context.Context, m *VendorMutation) (Value, er
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings, Item,
-		Location, MailTemplate, Order, OrderEntry, PDF, PDFDownload, Payment, Settings,
-		Vendor []ent.Hook
+		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings,
+		ExternalPayment, Item, Location, MailTemplate, Order, OrderEntry, PDF,
+		PDFDownload, Payment, Settings, Vendor []ent.Hook
 	}
 	inters struct {
-		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings, Item,
-		Location, MailTemplate, Order, OrderEntry, PDF, PDFDownload, Payment, Settings,
-		Vendor []ent.Interceptor
+		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings,
+		ExternalPayment, Item, Location, MailTemplate, Order, OrderEntry, PDF,
+		PDFDownload, Payment, Settings, Vendor []ent.Interceptor
 	}
 )

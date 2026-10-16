@@ -218,6 +218,11 @@ func MailSenderName(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldMailSenderName, v))
 }
 
+// DonationTrackingEnabled applies equality check predicate on the "DonationTrackingEnabled" field. It's identical to DonationTrackingEnabledEQ.
+func DonationTrackingEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldDonationTrackingEnabled, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1821,6 +1826,16 @@ func MailSenderNameEqualFold(v string) predicate.Settings {
 // MailSenderNameContainsFold applies the ContainsFold predicate on the "MailSenderName" field.
 func MailSenderNameContainsFold(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldContainsFold(FieldMailSenderName, v))
+}
+
+// DonationTrackingEnabledEQ applies the EQ predicate on the "DonationTrackingEnabled" field.
+func DonationTrackingEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldDonationTrackingEnabled, v))
+}
+
+// DonationTrackingEnabledNEQ applies the NEQ predicate on the "DonationTrackingEnabled" field.
+func DonationTrackingEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldDonationTrackingEnabled, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

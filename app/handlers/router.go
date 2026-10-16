@@ -361,6 +361,13 @@ func GetRouter() (r *chi.Mux) {
 			})
 		})
 
+		// Payments from other sales channels on the VivaWallet account
+		r.Route("/api/external-payments", func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/", ListExternalPayments)
+		})
+
 		// Payments
 		r.Route("/api/payments", func(r chi.Router) {
 			r.Group(func(r chi.Router) {

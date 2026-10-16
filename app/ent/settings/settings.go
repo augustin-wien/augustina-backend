@@ -78,6 +78,8 @@ const (
 	FieldOnlinePaperUrl = "onlinepaperurl"
 	// FieldMailSenderName holds the string denoting the mailsendername field in the database.
 	FieldMailSenderName = "mailsendername"
+	// FieldDonationTrackingEnabled holds the string denoting the donationtrackingenabled field in the database.
+	FieldDonationTrackingEnabled = "donationtrackingenabled"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -127,6 +129,7 @@ var Columns = []string{
 	FieldMatomoSiteId,
 	FieldOnlinePaperUrl,
 	FieldMailSenderName,
+	FieldDonationTrackingEnabled,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -217,6 +220,8 @@ var (
 	DefaultOnlinePaperUrl string
 	// DefaultMailSenderName holds the default value on creation for the "MailSenderName" field.
 	DefaultMailSenderName string
+	// DefaultDonationTrackingEnabled holds the default value on creation for the "DonationTrackingEnabled" field.
+	DefaultDonationTrackingEnabled bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -392,6 +397,11 @@ func ByOnlinePaperUrl(opts ...sql.OrderTermOption) OrderOption {
 // ByMailSenderName orders the results by the MailSenderName field.
 func ByMailSenderName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMailSenderName, opts...).ToFunc()
+}
+
+// ByDonationTrackingEnabled orders the results by the DonationTrackingEnabled field.
+func ByDonationTrackingEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDonationTrackingEnabled, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

@@ -120,6 +120,10 @@ func (Settings) Fields() []ent.Field {
 		field.String("MailSenderName").
 			StorageKey("mailsendername").
 			Default(""),
+		// Records VivaWallet payments from other sales channels, such as the donation terminal
+		field.Bool("DonationTrackingEnabled").
+			StorageKey("donationtrackingenabled").
+			Default(false),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`
