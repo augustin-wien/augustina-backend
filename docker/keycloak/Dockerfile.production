@@ -4,7 +4,7 @@ FROM maven:3.9-eclipse-temurin-21 AS invite
 COPY ./providers/augustin-invite /src
 RUN mvn -q -B -f /src/pom.xml package
 
-FROM quay.io/keycloak/keycloak:26.4 as builder
+FROM quay.io/keycloak/keycloak:26.8.1 as builder
 
 # Enable health and metrics support
 ENV KC_HEALTH_ENABLED=true
@@ -17,7 +17,7 @@ COPY --from=invite /src/target/augustin-invite.jar /opt/keycloak/providers/
 RUN /opt/keycloak/bin/kc.sh build --db=postgres
 RUN /opt/keycloak/bin/kc.sh show-config
 
-FROM quay.io/keycloak/keycloak:26.4
+FROM quay.io/keycloak/keycloak:26.8.1
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
 COPY ./scripts/kcWithAutoImport.sh /opt/keycloak/bin/kcWithAutoImport.sh

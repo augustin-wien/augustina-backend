@@ -12,7 +12,7 @@
 
   <properties>
     <!-- Must match the Keycloak server (docker-compose.dev.yml, login.augustin.or.at) -->
-    <keycloak.version>26.4.7</keycloak.version>
+    <keycloak.version>26.8.1</keycloak.version>
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
