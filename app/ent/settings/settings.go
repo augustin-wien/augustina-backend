@@ -76,6 +76,8 @@ const (
 	FieldMatomoSiteId = "matomositeid"
 	// FieldOnlinePaperUrl holds the string denoting the onlinepaperurl field in the database.
 	FieldOnlinePaperUrl = "onlinepaperurl"
+	// FieldMailSenderName holds the string denoting the mailsendername field in the database.
+	FieldMailSenderName = "mailsendername"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -124,6 +126,7 @@ var Columns = []string{
 	FieldMatomoUrl,
 	FieldMatomoSiteId,
 	FieldOnlinePaperUrl,
+	FieldMailSenderName,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -212,6 +215,8 @@ var (
 	DefaultMatomoSiteId string
 	// DefaultOnlinePaperUrl holds the default value on creation for the "OnlinePaperUrl" field.
 	DefaultOnlinePaperUrl string
+	// DefaultMailSenderName holds the default value on creation for the "MailSenderName" field.
+	DefaultMailSenderName string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -382,6 +387,11 @@ func ByMatomoSiteId(opts ...sql.OrderTermOption) OrderOption {
 // ByOnlinePaperUrl orders the results by the OnlinePaperUrl field.
 func ByOnlinePaperUrl(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOnlinePaperUrl, opts...).ToFunc()
+}
+
+// ByMailSenderName orders the results by the MailSenderName field.
+func ByMailSenderName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMailSenderName, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

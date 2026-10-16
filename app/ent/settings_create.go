@@ -468,6 +468,20 @@ func (_c *SettingsCreate) SetNillableOnlinePaperUrl(v *string) *SettingsCreate {
 	return _c
 }
 
+// SetMailSenderName sets the "MailSenderName" field.
+func (_c *SettingsCreate) SetMailSenderName(v string) *SettingsCreate {
+	_c.mutation.SetMailSenderName(v)
+	return _c
+}
+
+// SetNillableMailSenderName sets the "MailSenderName" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableMailSenderName(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetMailSenderName(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
 	_c.mutation.SetID(v)
@@ -656,6 +670,10 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultOnlinePaperUrl
 		_c.mutation.SetOnlinePaperUrl(v)
 	}
+	if _, ok := _c.mutation.MailSenderName(); !ok {
+		v := settings.DefaultMailSenderName
+		_c.mutation.SetMailSenderName(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -755,6 +773,9 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.OnlinePaperUrl(); !ok {
 		return &ValidationError{Name: "OnlinePaperUrl", err: errors.New(`ent: missing required field "Settings.OnlinePaperUrl"`)}
+	}
+	if _, ok := _c.mutation.MailSenderName(); !ok {
+		return &ValidationError{Name: "MailSenderName", err: errors.New(`ent: missing required field "Settings.MailSenderName"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -920,6 +941,10 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OnlinePaperUrl(); ok {
 		_spec.SetField(settings.FieldOnlinePaperUrl, field.TypeString, value)
 		_node.OnlinePaperUrl = value
+	}
+	if value, ok := _c.mutation.MailSenderName(); ok {
+		_spec.SetField(settings.FieldMailSenderName, field.TypeString, value)
+		_node.MailSenderName = value
 	}
 	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

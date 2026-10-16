@@ -1,0 +1,2 @@
+ALTER TABLE settings
+    ADD COLUMN IF NOT EXISTS mailsendername TEXT NOT NULL DEFAULT '';

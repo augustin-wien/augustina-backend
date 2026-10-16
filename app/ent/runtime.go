@@ -355,6 +355,10 @@ func init() {
 	settingsDescOnlinePaperUrl := settingsFields[32].Descriptor()
 	// settings.DefaultOnlinePaperUrl holds the default value on creation for the OnlinePaperUrl field.
 	settings.DefaultOnlinePaperUrl = settingsDescOnlinePaperUrl.Default.(string)
+	// settingsDescMailSenderName is the schema descriptor for MailSenderName field.
+	settingsDescMailSenderName := settingsFields[33].Descriptor()
+	// settings.DefaultMailSenderName holds the default value on creation for the MailSenderName field.
+	settings.DefaultMailSenderName = settingsDescMailSenderName.Default.(string)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.
