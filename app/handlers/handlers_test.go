@@ -707,6 +707,7 @@ func TestCreateItemsWithAndWithoutPDFAndLicense(t *testing.T) {
 	writer.WriteField("Price", strconv.Itoa(700))
 	writer.WriteField("Type", "online_issue")
 	writer.WriteField("license_cost", strconv.Itoa(150))
+	writer.WriteField("LicenseGroup", "digital_edition")
 	writer.Close()
 	res = utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 200, adminUserToken)
 	idOnline := strings.TrimSpace(res.Body.String())
@@ -761,7 +762,21 @@ func TestCreateOnlineIssueCreatesLicenseItem(t *testing.T) {
 	writer.Close()
 	utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 400, adminUserToken)
 
-	// 3) Valid online_issue → 200; license item auto-created and linked
+	// 3) Missing license group → 400
+	for _, licenseGroup := range []string{"", "   "} {
+		body = new(bytes.Buffer)
+		writer = multipart.NewWriter(body)
+		writer.WriteField("Name", "no-group-issue")
+		writer.WriteField("Description", "Missing license group")
+		writer.WriteField("Price", "500")
+		writer.WriteField("Type", "online_issue")
+		writer.WriteField("LicenseCost", "150")
+		writer.WriteField("LicenseGroup", licenseGroup)
+		writer.Close()
+		utils.TestRequestMultiPartWithAuth(t, r, "POST", "/api/items/", body, writer.FormDataContentType(), 400, adminUserToken)
+	}
+
+	// 4) Valid online_issue → 200; license item auto-created and linked
 	body = new(bytes.Buffer)
 	writer = multipart.NewWriter(body)
 	writer.WriteField("Name", "test-online-issue")
@@ -791,6 +806,25 @@ func TestCreateOnlineIssueCreatesLicenseItem(t *testing.T) {
 	require.Equal(t, 150, licenseItem.Price)
 	require.True(t, licenseItem.IsLicenseItem)
 	require.Equal(t, "license_item", licenseItem.Type)
+
+	// 5) Removing the license group of the online issue → 400, unless it is a PDF item
+	updateOnlineIssue := func(isPDFItem string, status int) {
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		writer.WriteField("Name", "test-online-issue")
+		writer.WriteField("Description", "Online issue with license")
+		writer.WriteField("Price", "700")
+		writer.WriteField("Type", "online_issue")
+		writer.WriteField("IsPDFItem", isPDFItem)
+		writer.WriteField("LicenseGroup", "")
+		writer.Close()
+		utils.TestRequestMultiPartWithAuth(t, r, "PUT", "/api/items/"+strconv.Itoa(idOnline)+"/", body, writer.FormDataContentType(), status, adminUserToken)
+	}
+	updateOnlineIssue("false", 400)
+	onlineIssue, err = database.Db.GetItemIncludingDisabled(idOnline)
+	require.NoError(t, err)
+	require.Equal(t, "testgroup", onlineIssue.LicenseGroup.String)
+	updateOnlineIssue("true", 200)
 }
 
 // TestUpdateItemLicenseConflict reproduces the ent unique constraint when two

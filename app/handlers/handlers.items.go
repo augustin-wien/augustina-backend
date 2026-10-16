@@ -185,6 +185,11 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 		item.PDF = null.IntFrom(pdfId)
 	}
 
+	if err := validateLicenseGroup(item); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
 	if item.Type == "online_issue" || item.Type == "abonement" {
 		licenseCost, err := parseLicenseCost(mForm.Value)
 		if err != nil {
@@ -460,6 +465,23 @@ func parseLicenseCost(fields map[string][]string) (licenseCost int, err error) {
 	return licenseCost, nil
 }
 
+// validateLicenseGroup rejects digital items without a license group. Keycloak
+// gates access to online issues and abonements by that group, so without it
+// customers can buy the item but never read it. PDF items are delivered as a
+// download link and need no group.
+func validateLicenseGroup(item database.Item) error {
+	if item.Type != "online_issue" && item.Type != "abonement" {
+		return nil
+	}
+	if item.IsPDFItem {
+		return nil
+	}
+	if strings.TrimSpace(item.LicenseGroup.String) == "" {
+		return errors.New("license group is required for " + item.Type)
+	}
+	return nil
+}
+
 // UpdateItem godoc
 //
 //	 	@Summary 		Update Item
@@ -556,6 +578,11 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	if pdfId != -1 {
 		item.PDF = null.IntFrom(pdfId)
+	}
+
+	if err := validateLicenseGroup(item); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	// Save item to database
