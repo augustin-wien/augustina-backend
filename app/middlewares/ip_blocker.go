@@ -19,6 +19,8 @@ type IPBlocker struct {
 	blockedIPs map[string]time.Time
 	strikes    map[string]int
 	client     *ent.Client
+	// dbMu serializes the check-then-write in saveBlockToDB and saveStrikeToDB
+	dbMu sync.Mutex
 }
 
 var (
@@ -307,6 +309,9 @@ func (b *IPBlocker) AddStrike(ip string) {
 }
 
 func (b *IPBlocker) saveBlockToDB(ctx context.Context, ip string, expiry time.Time) error {
+	b.dbMu.Lock()
+	defer b.dbMu.Unlock()
+
 	// Check if exists
 	exists, err := b.client.BlockedIP.Query().Where(blockedip.IP(ip)).Exist(ctx)
 	if err != nil {
@@ -330,6 +335,9 @@ func (b *IPBlocker) saveBlockToDB(ctx context.Context, ip string, expiry time.Ti
 }
 
 func (b *IPBlocker) saveStrikeToDB(ctx context.Context, ip string, strikes int) error {
+	b.dbMu.Lock()
+	defer b.dbMu.Unlock()
+
 	// Check if exists
 	exists, err := b.client.BlockedIP.Query().Where(blockedip.IP(ip)).Exist(ctx)
 	if err != nil {
