@@ -26,6 +26,11 @@ import (
 
 var log = utils.GetLogger()
 
+// merchantTrns is sent with every payment order this backend creates and comes back in the
+// transaction details, so it tells our transactions apart from others on the same VivaWallet
+// account, such as payments at a card terminal.
+const merchantTrns = "Ein gutes Leben für alle!"
+
 // ErrTransactionNotSuccessful means VivaWallet answered normally and
 // positively confirmed the transaction did not succeed - unlike every other
 // error VerifyTransactionID can return (network failure, auth failure,
@@ -162,7 +167,7 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 		DisableCash:         false,
 		DisableWallet:       false,
 		SourceCode:          config.Config.VivaWalletSourceCode,
-		MerchantTrns:        "Ein gutes Leben für alle!",
+		MerchantTrns:        merchantTrns,
 		Tags:                items,
 	}
 
@@ -252,9 +257,20 @@ func logWebhookNotVerified(reason string, orderID int, data EventData, err error
 		"transaction_id", data.TransactionID,
 		"status_id", data.StatusID,
 		"amount", data.Amount,
+		"source_code", data.SourceCode,
+		"source_name", data.SourceName,
+		"terminal_id", data.TerminalID,
 		"error", err,
 	}
 	log.Errorw("HandlePaymentSuccessfulResponse: order not verified", append(fields, extra...)...)
+}
+
+// isForeignTransaction reports whether a webhook belongs to a payment this backend did not
+// create. The VivaWallet account is shared with other sales channels, such as the donation
+// terminal, and VivaWallet sends their webhooks here as well. Every payment order created by
+// this backend carries the configured source code.
+func isForeignTransaction(data EventData) bool {
+	return data.SourceCode != config.Config.VivaWalletSourceCode
 }
 
 func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest) (err error) {
@@ -271,6 +287,17 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 			break
 		}
 		time.Sleep(500 * time.Millisecond)
+	}
+	if ent.IsNotFound(err) && isForeignTransaction(data) {
+		log.Infow("HandlePaymentSuccessfulResponse: ignoring transaction from another sales channel",
+			"order_code", data.OrderCode.String(),
+			"transaction_id", data.TransactionID,
+			"source_code", data.SourceCode,
+			"source_name", data.SourceName,
+			"terminal_id", data.TerminalID,
+			"amount", data.Amount,
+		)
+		return nil
 	}
 	if err != nil {
 		logWebhookNotVerified("order_not_found", 0, data, err)
@@ -569,14 +596,33 @@ func HandlePaymentFailureResponse(paymentFailure TransactionSuccessRequest) (err
 	return
 }
 
+// logPriceNotBooked logs why a price webhook left its transaction costs unbooked. It is the one
+// error log per failed delivery, carrying enough to find the order and the cause from the alert
+// alone: reason is a short stable slug to search and group by.
+func logPriceNotBooked(reason string, orderID int, data PriceEventData, verification TransactionVerificationResponse, err error) {
+	log.Errorw("HandlePaymentPriceResponse: transaction costs not booked",
+		"reason", reason,
+		"order_id", orderID,
+		"order_code", data.OrderCode.String(),
+		"transaction_id", data.TransactionID,
+		"total_commission", data.TotalCommission,
+		"viva_order_code", verification.OrderCode.String(),
+		"viva_amount", verification.Amount,
+		"viva_status_id", verification.StatusID,
+		"viva_merchant_trns", verification.MerchantTrns,
+		"viva_customer_trns", verification.CustomerTrns,
+		"error", err,
+	)
+}
+
 // HandlePaymentPriceResponse handles the webhook response for a price change for now only for Card transactions
 func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error) {
-	//Log the request body
+	data := paymentPrice.EventData
 
 	// 1. Check: Verify that webhook request belongs to VivaWallet by verifying transactionID
-	_, err = VerifyTransactionID(paymentPrice.EventData.TransactionID, false)
+	verification, err := VerifyTransactionID(data.TransactionID, false)
 	if err != nil {
-		log.Error("HandlePaymentPriceResponse: TransactionID could not be verified: ", err)
+		logPriceNotBooked("viva_verification_failed", 0, data, verification, err)
 		return err
 	}
 
@@ -584,31 +630,68 @@ func HandlePaymentPriceResponse(paymentPrice TransactionPriceRequest) (err error
 	var order database.Order
 	// Retry getting order from database to avoid race conditions
 	for i := 0; i < 5; i++ {
-		order, err = database.Db.GetOrderByOrderCode(paymentPrice.EventData.OrderCode.String())
+		order, err = database.Db.GetOrderByOrderCode(data.OrderCode.String())
 		if err == nil {
 			break
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
+	// The price event carries no source code, so the merchant reference from the transaction
+	// details tells payments from other sales channels apart
+	if ent.IsNotFound(err) && verification.MerchantTrns != merchantTrns {
+		log.Infow("HandlePaymentPriceResponse: ignoring transaction from another sales channel",
+			"order_code", data.OrderCode.String(),
+			"transaction_id", data.TransactionID,
+			"viva_merchant_trns", verification.MerchantTrns,
+			"total_commission", data.TotalCommission,
+		)
+		return nil
+	}
 	if err != nil {
-		log.Error("HandlePaymentPriceResponse: Getting order from database failed: ", err, " for order code ", paymentPrice.EventData.OrderCode)
+		logPriceNotBooked("order_not_found", 0, data, verification, err)
 		return err
 	}
 
 	// 3. Check: If TotalCommission is 0.0, return without creating transaction costs
-	if paymentPrice.EventData.TotalCommission == 0.0 {
+	if data.TotalCommission == 0.0 {
 		return
 	}
 
-	transactionCosts := int(paymentPrice.EventData.TotalCommission * 100) // Convert to cents
+	// VivaWallet retries failed deliveries, so costs booked by an earlier delivery must not be
+	// booked again
+	booked, err := hasTransactionCostEntries(order)
+	if err != nil {
+		logPriceNotBooked("check_existing_costs_failed", order.ID, data, verification, err)
+		return err
+	}
+	if booked {
+		log.Infow("HandlePaymentPriceResponse: transaction costs already booked, skipping", "order_id", order.ID, "transaction_id", data.TransactionID)
+		return nil
+	}
+
+	transactionCosts := int(data.TotalCommission * 100) // Convert to cents
 	// Create order entries for transaction costs
 	err = CreateTransactionCostEntries(order, transactionCosts, "VivaWallet")
 	if err != nil {
-		log.Error("HandlePaymentPriceResponse: Creating transaction costs failed: ", err)
+		logPriceNotBooked("booking_failed", order.ID, data, verification, err)
 		return err
 	}
 
 	return
+}
+
+// hasTransactionCostEntries reports whether transaction costs were already booked on the order
+func hasTransactionCostEntries(order database.Order) (bool, error) {
+	transactionCostsItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
+	if err != nil {
+		return false, err
+	}
+	for _, entry := range order.Entries {
+		if entry.Item == transactionCostsItem.ID {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // CreateTransactionCostEntries creates payments and order entries to list transaction costs

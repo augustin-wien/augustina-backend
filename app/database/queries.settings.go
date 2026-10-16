@@ -43,6 +43,7 @@ func (db *Database) GetSettings() (*ent.Settings, error) {
 	// an import cycle if they queried the DB directly - config.Config is the shared read point
 	// they already use, so mirror the DB value into it here on every read.
 	config.Config.OnlinePaperUrl = s.OnlinePaperUrl
+	config.Config.MailSenderName = s.MailSenderName
 	return s, err
 }
 
@@ -120,7 +121,8 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetPrivacyPolicyUrl(settings.PrivacyPolicyUrl).
 		SetMatomoUrl(settings.MatomoUrl).
 		SetMatomoSiteId(settings.MatomoSiteId).
-		SetOnlinePaperUrl(settings.OnlinePaperUrl)
+		SetOnlinePaperUrl(settings.OnlinePaperUrl).
+		SetMailSenderName(settings.MailSenderName)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {
@@ -140,6 +142,7 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 	// Keep config.Config.OnlinePaperUrl's mirror fresh immediately, rather than waiting for
 	// the next GetSettings() call elsewhere - see the comment there for why it's mirrored.
 	config.Config.OnlinePaperUrl = settings.OnlinePaperUrl
+	config.Config.MailSenderName = settings.MailSenderName
 	return nil
 }
 

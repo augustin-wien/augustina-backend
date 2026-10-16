@@ -302,6 +302,10 @@ func TestVivaWalletWebhookSuccess_EmptyBody(t *testing.T) {
 	mutex_test.Lock()
 	defer mutex_test.Unlock()
 
+	originalSourceCode := config.Config.VivaWalletSourceCode
+	defer func() { config.Config.VivaWalletSourceCode = originalSourceCode }()
+	config.Config.VivaWalletSourceCode = "1234"
+
 	// Create Request with empty body
 	req := httptest.NewRequest("POST", "/webhooks/vivawallet/success/", bytes.NewReader([]byte("{}")))
 	req.Header.Set("Content-Type", "application/json")
@@ -310,9 +314,9 @@ func TestVivaWalletWebhookSuccess_EmptyBody(t *testing.T) {
 	// Call Handler
 	VivaWalletWebhookSuccess(rec, req)
 
-	// Handler should successfully parse empty JSON object, but fail during payment
-	// handling and return 500 so VivaWallet retries the delivery
-	require.Equal(t, http.StatusInternalServerError, rec.Code)
+	// An empty JSON object parses, but carries neither a known order nor our source code,
+	// so it is acknowledged like a payment from another sales channel
+	require.Equal(t, http.StatusOK, rec.Code)
 }
 
 func TestVivaWalletWebhookSuccess_NonexistentOrder(t *testing.T) {
@@ -325,6 +329,10 @@ func TestVivaWalletWebhookSuccess_NonexistentOrder(t *testing.T) {
 		panic(err)
 	}
 
+	originalSourceCode := config.Config.VivaWalletSourceCode
+	defer func() { config.Config.VivaWalletSourceCode = originalSourceCode }()
+	config.Config.VivaWalletSourceCode = "1234"
+
 	// Create Webhook Request with nonexistent order code
 	webhookPayload := paymentprovider.TransactionSuccessRequest{
 		EventData: paymentprovider.EventData{
@@ -333,6 +341,7 @@ func TestVivaWalletWebhookSuccess_NonexistentOrder(t *testing.T) {
 			Amount:            50.00,
 			StatusID:          "F",
 			TransactionTypeID: 0,
+			SourceCode:        "1234",
 		},
 	}
 	payloadBytes, _ := json.Marshal(webhookPayload)
@@ -347,6 +356,42 @@ func TestVivaWalletWebhookSuccess_NonexistentOrder(t *testing.T) {
 	// HandlePaymentSuccessfulResponse fails because the order does not exist;
 	// the handler returns 500 so VivaWallet retries the delivery
 	require.Equal(t, http.StatusInternalServerError, rec.Code)
+}
+
+// A payment from another sales channel on the same VivaWallet account, such as the donation
+// terminal, has no order here and must be acknowledged instead of retried forever
+func TestVivaWalletWebhookSuccess_ForeignTransactionIsAcknowledged(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	err := database.Db.InitEmptyTestDb()
+	if err != nil {
+		panic(err)
+	}
+
+	originalSourceCode := config.Config.VivaWalletSourceCode
+	defer func() { config.Config.VivaWalletSourceCode = originalSourceCode }()
+	config.Config.VivaWalletSourceCode = "1234"
+
+	webhookPayload := paymentprovider.TransactionSuccessRequest{
+		EventData: paymentprovider.EventData{
+			OrderCode:     6289177113801428,
+			TransactionID: "terminal-txn-id",
+			Amount:        10.00,
+			StatusID:      "F",
+			SourceCode:    "Default",
+			TerminalID:    16000001,
+		},
+	}
+	payloadBytes, _ := json.Marshal(webhookPayload)
+
+	req := httptest.NewRequest("POST", "/webhooks/vivawallet/success/", bytes.NewReader(payloadBytes))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	VivaWalletWebhookSuccess(rec, req)
+
+	require.Equal(t, http.StatusOK, rec.Code)
 }
 
 func TestVivaWalletWebhookSuccess_VerificationFailureKeepsTransactionID(t *testing.T) {

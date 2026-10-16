@@ -14,8 +14,10 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/utils"
+	"github.com/augustin-wien/augustina-backend/wordpress"
 	"github.com/go-chi/chi/v5"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/guregu/null.v4"
@@ -605,18 +607,8 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Publishing an online_issue no longer mails the abonnents - the backoffice sends that
-	// mail explicitly via NotifyAbonementsOnlineIssue.
-	if existingItem.Type == "online_issue" && existingItem.Disabled && !item.Disabled {
-		// Assign license groups to all customers with active abonements so they
-		// immediately get access to the newly published online issue in Keycloak.
-		go func() {
-			svc := database.NewAbonementService(&database.Db)
-			if processErr := svc.ProcessAbonementLicenseGroupsForDate(time.Now()); processErr != nil {
-				log.Error("UpdateItem: failed to process abonement license groups for online_issue publication: ", processErr)
-			}
-		}()
-	}
+	// Publishing an online_issue neither mails the abonnents nor grants it to them - the
+	// backoffice does both explicitly via NotifyAbonementsOnlineIssue.
 
 	err = utils.WriteJSON(w, http.StatusOK, err)
 	if err != nil {
@@ -627,7 +619,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 // NotifyAbonementsOnlineIssue godoc
 //
 //	@Summary		Send an online issue to the abonnents
-//	@Description	Mails the published online issue to every customer with an active abonement. The mails are sent in the background; the response contains the number of recipients.
+//	@Description	Checks the issue in WordPress (when the WordPress invite is set up) and makes sure its Keycloak group exists, then grants the online issue's license group to every customer with an active abonement and mails them the issue. Granting and mailing happen in the background, the access first; the response contains the number of recipients.
 //	@Tags			Items
 //	@Produce		json
 //	@Param			id	path		int	true	"Item ID"
@@ -653,6 +645,30 @@ func NotifyAbonementsOnlineIssue(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("the online issue has to be enabled before it is sent to the abonnents"), http.StatusBadRequest)
 		return
 	}
+	licenseGroup := strings.TrimSpace(issue.LicenseGroup.String)
+	if licenseGroup == "" {
+		utils.ErrorJSON(w, errors.New("the online issue has no license group"), http.StatusBadRequest)
+		return
+	}
+
+	// With the WordPress invite set up, only an issue readers can open in WordPress is sent
+	wpCheck, err := checkWordPressIssue(licenseGroup)
+	if err != nil {
+		log.Error("NotifyAbonementsOnlineIssue: ", err)
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	if wpCheck.Configured && !wpCheck.OK {
+		utils.ErrorJSON(w, errors.New(wpCheck.Message), http.StatusBadRequest)
+		return
+	}
+
+	groupPath := "/" + keycloak.KeycloakClient.CustomerGroup + "/" + keycloak.KeycloakClient.NewspaperGroup + "/" + licenseGroup
+	if err = keycloak.KeycloakClient.EnsureGroupPath(groupPath); err != nil {
+		log.Error("NotifyAbonementsOnlineIssue: failed to ensure keycloak group ", groupPath, ": ", err)
+		utils.ErrorJSON(w, errors.New("Die Keycloak-Gruppe "+groupPath+" konnte nicht angelegt werden"), http.StatusInternalServerError)
+		return
+	}
 
 	recipients, err := activeAbonementRecipients()
 	if err != nil {
@@ -661,10 +677,16 @@ func NotifyAbonementsOnlineIssue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sending one mail per recipient easily takes longer than the request may, so the mails
-	// go out in the background.
+	// Granting access and sending one mail per recipient easily take longer than the request
+	// may, so both happen in the background. Access comes first so the mailed link works.
 	issueImageURL := resolveIssueImageURL(r, issue.Image)
-	go sendOnlineIssueMails(issue, issueImageURL, recipients)
+	go func() {
+		svc := database.NewAbonementService(&database.Db)
+		if err := svc.ProcessAbonementLicenseGroupsForDate(time.Now(), licenseGroup); err != nil {
+			log.Error("NotifyAbonementsOnlineIssue: failed to grant the online issue to the abonnents: ", err)
+		}
+		sendOnlineIssueMails(issue, issueImageURL, recipients)
+	}()
 
 	respond(w, nil, NotifyAbonementsResponse{Recipients: len(recipients)})
 }
@@ -869,4 +891,84 @@ func RestoreItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// WordPressIssueCheck tells the backoffice whether a license group names an
+// issue in WordPress and whether a new subscriber would get it
+type WordPressIssueCheck struct {
+	// Configured is false when the WordPress invite settings are empty
+	Configured bool `json:"configured"`
+	// OK is true when the issue exists, is published and is no demo
+	OK      bool            `json:"ok"`
+	Message string          `json:"message"`
+	Issue   wordpress.Issue `json:"issue"`
+}
+
+// CheckWordPressIssue godoc
+//
+//	@Summary		Check a license group in WordPress
+//	@Description	Asks the augustin-ki plugin whether an issue with this number (the license group) exists, is published and is a demo issue. Uses the WordPress invite settings.
+//	@Tags			Items
+//	@Produce		json
+//	@Param			licenseGroup	query		string	true	"License group (issue number)"
+//	@Success		200	{object}	WordPressIssueCheck
+//	@Security		KeycloakAuth
+//	@Router			/items/wordpress-issue/ [get]
+func CheckWordPressIssue(w http.ResponseWriter, r *http.Request) {
+	res, err := checkWordPressIssue(strings.TrimSpace(r.URL.Query().Get("licenseGroup")))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	if err = utils.WriteJSON(w, http.StatusOK, res); err != nil {
+		log.Error("CheckWordPressIssue: ", err)
+	}
+}
+
+// checkWordPressIssue asks WordPress about the issue with this license group.
+// The error is only set when the settings can't be read.
+func checkWordPressIssue(licenseGroup string) (WordPressIssueCheck, error) {
+	res := WordPressIssueCheck{Issue: wordpress.Issue{IssueNumber: licenseGroup}}
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		return res, err
+	}
+
+	switch {
+	case settings.WordPressInviteURL == "" || settings.WordPressInviteAPIKey == "":
+		res.Message = "Die WordPress-Einladung ist in den Einstellungen nicht eingerichtet"
+	case licenseGroup == "":
+		res.Configured = true
+		res.Message = "Keine Lizenzgruppe eingetragen"
+	case wordpress.IssueNumber(licenseGroup) == "":
+		res.Configured = true
+		res.Message = "Die Lizenzgruppe darf nur Buchstaben, Ziffern, _ und - enthalten (höchstens 32 Zeichen)"
+	default:
+		res.Configured = true
+		issue, err := wordpress.LookupIssue(settings.WordPressInviteURL, settings.WordPressInviteAPIKey, licenseGroup)
+		var statusErr *wordpress.StatusError
+		switch {
+		case errors.As(err, &statusErr) && statusErr.Status == http.StatusNotFound && statusErr.Code == "rest_no_route":
+			res.Message = "Das augustin-ki-Plugin in WordPress ist zu alt für diese Prüfung"
+		case errors.As(err, &statusErr):
+			res.Message = statusErr.Hint()
+		case err != nil:
+			log.Info("CheckWordPressIssue: ", err)
+			res.Message = "WordPress ist nicht erreichbar: " + err.Error()
+		case !issue.Exists:
+			res.Issue = issue
+			res.Message = "In WordPress gibt es keine Ausgabe mit der Nummer " + licenseGroup
+		case issue.IsDemo:
+			res.Issue = issue
+			res.Message = "„" + issue.Title + "“ ist in WordPress eine Demo-Ausgabe – Abonnent·innen bekommen sie nicht"
+		case !issue.Published:
+			res.Issue = issue
+			res.Message = "„" + issue.Title + "“ existiert in WordPress, ist aber noch nicht veröffentlicht"
+		default:
+			res.Issue = issue
+			res.OK = true
+			res.Message = "„" + issue.Title + "“ ist in WordPress veröffentlicht"
+		}
+	}
+	return res, nil
 }

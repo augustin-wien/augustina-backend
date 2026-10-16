@@ -213,6 +213,11 @@ func OnlinePaperUrl(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldOnlinePaperUrl, v))
 }
 
+// MailSenderName applies equality check predicate on the "MailSenderName" field. It's identical to MailSenderNameEQ.
+func MailSenderName(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldMailSenderName, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1751,6 +1756,71 @@ func OnlinePaperUrlEqualFold(v string) predicate.Settings {
 // OnlinePaperUrlContainsFold applies the ContainsFold predicate on the "OnlinePaperUrl" field.
 func OnlinePaperUrlContainsFold(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldContainsFold(FieldOnlinePaperUrl, v))
+}
+
+// MailSenderNameEQ applies the EQ predicate on the "MailSenderName" field.
+func MailSenderNameEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldMailSenderName, v))
+}
+
+// MailSenderNameNEQ applies the NEQ predicate on the "MailSenderName" field.
+func MailSenderNameNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldMailSenderName, v))
+}
+
+// MailSenderNameIn applies the In predicate on the "MailSenderName" field.
+func MailSenderNameIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldMailSenderName, vs...))
+}
+
+// MailSenderNameNotIn applies the NotIn predicate on the "MailSenderName" field.
+func MailSenderNameNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldMailSenderName, vs...))
+}
+
+// MailSenderNameGT applies the GT predicate on the "MailSenderName" field.
+func MailSenderNameGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldMailSenderName, v))
+}
+
+// MailSenderNameGTE applies the GTE predicate on the "MailSenderName" field.
+func MailSenderNameGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldMailSenderName, v))
+}
+
+// MailSenderNameLT applies the LT predicate on the "MailSenderName" field.
+func MailSenderNameLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldMailSenderName, v))
+}
+
+// MailSenderNameLTE applies the LTE predicate on the "MailSenderName" field.
+func MailSenderNameLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldMailSenderName, v))
+}
+
+// MailSenderNameContains applies the Contains predicate on the "MailSenderName" field.
+func MailSenderNameContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldMailSenderName, v))
+}
+
+// MailSenderNameHasPrefix applies the HasPrefix predicate on the "MailSenderName" field.
+func MailSenderNameHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldMailSenderName, v))
+}
+
+// MailSenderNameHasSuffix applies the HasSuffix predicate on the "MailSenderName" field.
+func MailSenderNameHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldMailSenderName, v))
+}
+
+// MailSenderNameEqualFold applies the EqualFold predicate on the "MailSenderName" field.
+func MailSenderNameEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldMailSenderName, v))
+}
+
+// MailSenderNameContainsFold applies the ContainsFold predicate on the "MailSenderName" field.
+func MailSenderNameContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldMailSenderName, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

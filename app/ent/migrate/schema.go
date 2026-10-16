@@ -395,6 +395,7 @@ var (
 		{Name: "matomourl", Type: field.TypeString, Default: ""},
 		{Name: "matomositeid", Type: field.TypeString, Default: ""},
 		{Name: "onlinepaperurl", Type: field.TypeString, Default: ""},
+		{Name: "mailsendername", Type: field.TypeString, Default: ""},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -405,7 +406,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[33]},
+				Columns:    []*schema.Column{SettingsColumns[34]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

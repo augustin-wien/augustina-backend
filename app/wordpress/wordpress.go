@@ -114,6 +114,8 @@ func CreateInvite(baseURL, apiKey string, invite Invite) (string, error) {
 // set when WordPress answered with a WP_Error; otherwise the answer did not
 // come from the augustin-ki plugin and Body holds the start of it.
 type StatusError struct {
+	// Op names the failed call, "wordpress.CreateInvite: POST" when empty
+	Op      string
 	URL     string
 	Status  int
 	Code    string
@@ -122,15 +124,19 @@ type StatusError struct {
 }
 
 func (e *StatusError) Error() string {
+	op := e.Op
+	if op == "" {
+		op = "wordpress.CreateInvite: POST"
+	}
 	status := fmt.Sprintf("%d %s", e.Status, http.StatusText(e.Status))
 	if e.Message != "" {
-		return fmt.Sprintf("wordpress.CreateInvite: POST %s: %s: %s (%s)", e.URL, status, e.Message, e.Code)
+		return fmt.Sprintf("%s %s: %s: %s (%s)", op, e.URL, status, e.Message, e.Code)
 	}
 	body := "empty body"
 	if e.Body != "" {
 		body = fmt.Sprintf("body %q", e.Body)
 	}
-	return fmt.Sprintf("wordpress.CreateInvite: POST %s: %s, %s; not an answer of the augustin-ki plugin, check the WordPress invite URL setting", e.URL, status, body)
+	return fmt.Sprintf("%s %s: %s, %s; not an answer of the augustin-ki plugin, check the WordPress invite URL setting", op, e.URL, status, body)
 }
 
 // Hint explains the error to the admin who configures the invite settings
@@ -147,6 +153,82 @@ func (e *StatusError) Hint() string {
 	default:
 		return fmt.Sprintf("Unter %s antwortet kein augustin-ki-Plugin (Status %d). Bitte die API-URL prüfen.", e.URL, e.Status)
 	}
+}
+
+// Issue is what WordPress knows about an issue number. Readers can open the
+// issue when it is Published; demo issues are only for showing the app.
+type Issue struct {
+	Exists      bool   `json:"exists"`
+	IssueNumber string `json:"issue_number"`
+	ID          int    `json:"id,omitempty"`
+	Title       string `json:"title,omitempty"`
+	Status      string `json:"status,omitempty"`
+	Published   bool   `json:"published"`
+	IsDemo      bool   `json:"is_demo"`
+}
+
+// Current reports whether the issue can be handed to a new subscriber
+func (i Issue) Current() bool {
+	return i.Exists && i.Published && !i.IsDemo
+}
+
+// issueURL turns the create-invite URL into the issue lookup URL of the same
+// plugin, …/shop/create-invite → …/shop/issue/{number}
+func issueURL(inviteURL, number string) (string, error) {
+	u, err := url.Parse(inviteURL)
+	if err != nil {
+		return "", fmt.Errorf("wordpress.LookupIssue: invalid invite URL: %w", err)
+	}
+	path := strings.TrimSuffix(u.Path, "/")
+	if !strings.HasSuffix(path, "/create-invite") {
+		return "", fmt.Errorf("wordpress.LookupIssue: invite URL %s does not end in /create-invite", endpoint(inviteURL))
+	}
+	u.Path = strings.TrimSuffix(path, "create-invite") + "issue/" + url.PathEscape(number)
+	u.RawPath = ""
+	return u.String(), nil
+}
+
+// LookupIssue asks the augustin-ki plugin whether an issue with this number
+// exists. inviteURL is the create-invite URL from the settings; the lookup
+// lives next to it.
+func LookupIssue(inviteURL, apiKey, number string) (Issue, error) {
+	var issue Issue
+	if IssueNumber(number) == "" {
+		return issue, fmt.Errorf("wordpress.LookupIssue: %q is not a valid issue number", number)
+	}
+	lookupURL, err := issueURL(inviteURL, number)
+	if err != nil {
+		return issue, err
+	}
+	req, err := http.NewRequest(http.MethodGet, lookupURL, nil)
+	if err != nil {
+		return issue, fmt.Errorf("wordpress.LookupIssue: build request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("User-Agent", userAgent)
+
+	client := http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return issue, fmt.Errorf("wordpress.LookupIssue: send request: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		statusErr := &StatusError{Op: "wordpress.LookupIssue: GET", URL: endpoint(lookupURL), Status: resp.StatusCode}
+		var wpErr errorResponse
+		if json.Unmarshal(raw, &wpErr) == nil && wpErr.Message != "" {
+			statusErr.Code, statusErr.Message = wpErr.Code, wpErr.Message
+		} else {
+			statusErr.Body = snippet(raw)
+		}
+		return issue, statusErr
+	}
+	if err = json.NewDecoder(resp.Body).Decode(&issue); err != nil {
+		return issue, fmt.Errorf("wordpress.LookupIssue: decode response: %w", err)
+	}
+	return issue, nil
 }
 
 // endpoint is baseURL without query and credentials, so it can be logged

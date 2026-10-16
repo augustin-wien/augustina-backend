@@ -63,12 +63,13 @@ func main() {
 	// Initialize Keycloak client
 	// Initialize Keycloak client with retries: Keycloak service may not be ready
 	var kcErr error
-	for i := 0; i < 5; i++ {
+	kcDeadline := time.Now().Add(time.Minute)
+	for i := 1; ; i++ {
 		kcErr = keycloak.InitializeOauthServer()
-		if kcErr == nil {
+		if kcErr == nil || time.Now().After(kcDeadline) {
 			break
 		}
-		log.Warnf("Keycloak init attempt %d failed: %v; retrying...", i+1, kcErr)
+		log.Warnf("Keycloak init attempt %d failed: %v; retrying...", i, kcErr)
 		time.Sleep(2 * time.Second)
 	}
 	if kcErr != nil {
