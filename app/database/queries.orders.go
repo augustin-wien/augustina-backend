@@ -180,8 +180,13 @@ func (db *Database) GetOrderByOrderCode(OrderCode string) (o Order, err error) {
 		}).
 		Only(context.Background())
 
+	if ent.IsNotFound(err) {
+		// Callers decide whether a missing order is an error
+		log.Infow("GetOrderByOrderCode: order not found", "order_code", OrderCode)
+		return
+	}
 	if err != nil {
-		log.Error("GetOrderByOrderCode: failed to get order", err, " orderCode: ", OrderCode)
+		log.Errorw("GetOrderByOrderCode: failed to get order", "order_code", OrderCode, "error", err)
 		return
 	}
 
