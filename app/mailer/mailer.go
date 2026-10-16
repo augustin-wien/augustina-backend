@@ -6,12 +6,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"html"
+	"html/template"
 	"mime/quotedprintable"
 	"net/smtp"
 	"net/textproto"
 	"regexp"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
@@ -206,7 +207,7 @@ func htmlToPlain(body string) string {
 		}
 		return text + " (" + href + ")"
 	})
-	return plainTagRe.ReplaceAllString(plain, "")
+	return html.UnescapeString(plainTagRe.ReplaceAllString(plain, ""))
 }
 
 // BuildMessage builds the raw email message bytes (multipart/alternative)
