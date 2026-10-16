@@ -482,6 +482,20 @@ func (_c *SettingsCreate) SetNillableMailSenderName(v *string) *SettingsCreate {
 	return _c
 }
 
+// SetDonationTrackingEnabled sets the "DonationTrackingEnabled" field.
+func (_c *SettingsCreate) SetDonationTrackingEnabled(v bool) *SettingsCreate {
+	_c.mutation.SetDonationTrackingEnabled(v)
+	return _c
+}
+
+// SetNillableDonationTrackingEnabled sets the "DonationTrackingEnabled" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableDonationTrackingEnabled(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetDonationTrackingEnabled(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
 	_c.mutation.SetID(v)
@@ -674,6 +688,10 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultMailSenderName
 		_c.mutation.SetMailSenderName(v)
 	}
+	if _, ok := _c.mutation.DonationTrackingEnabled(); !ok {
+		v := settings.DefaultDonationTrackingEnabled
+		_c.mutation.SetDonationTrackingEnabled(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -776,6 +794,9 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.MailSenderName(); !ok {
 		return &ValidationError{Name: "MailSenderName", err: errors.New(`ent: missing required field "Settings.MailSenderName"`)}
+	}
+	if _, ok := _c.mutation.DonationTrackingEnabled(); !ok {
+		return &ValidationError{Name: "DonationTrackingEnabled", err: errors.New(`ent: missing required field "Settings.DonationTrackingEnabled"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -945,6 +966,10 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.MailSenderName(); ok {
 		_spec.SetField(settings.FieldMailSenderName, field.TypeString, value)
 		_node.MailSenderName = value
+	}
+	if value, ok := _c.mutation.DonationTrackingEnabled(); ok {
+		_spec.SetField(settings.FieldDonationTrackingEnabled, field.TypeBool, value)
+		_node.DonationTrackingEnabled = value
 	}
 	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

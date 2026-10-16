@@ -518,6 +518,20 @@ func (_u *SettingsUpdate) SetNillableMailSenderName(v *string) *SettingsUpdate {
 	return _u
 }
 
+// SetDonationTrackingEnabled sets the "DonationTrackingEnabled" field.
+func (_u *SettingsUpdate) SetDonationTrackingEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetDonationTrackingEnabled(v)
+	return _u
+}
+
+// SetNillableDonationTrackingEnabled sets the "DonationTrackingEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableDonationTrackingEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetDonationTrackingEnabled(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -694,6 +708,9 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.MailSenderName(); ok {
 		_spec.SetField(settings.FieldMailSenderName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.DonationTrackingEnabled(); ok {
+		_spec.SetField(settings.FieldDonationTrackingEnabled, field.TypeBool, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1234,6 +1251,20 @@ func (_u *SettingsUpdateOne) SetNillableMailSenderName(v *string) *SettingsUpdat
 	return _u
 }
 
+// SetDonationTrackingEnabled sets the "DonationTrackingEnabled" field.
+func (_u *SettingsUpdateOne) SetDonationTrackingEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetDonationTrackingEnabled(v)
+	return _u
+}
+
+// SetNillableDonationTrackingEnabled sets the "DonationTrackingEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableDonationTrackingEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetDonationTrackingEnabled(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -1440,6 +1471,9 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.MailSenderName(); ok {
 		_spec.SetField(settings.FieldMailSenderName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.DonationTrackingEnabled(); ok {
+		_spec.SetField(settings.FieldDonationTrackingEnabled, field.TypeBool, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

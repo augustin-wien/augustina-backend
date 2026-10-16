@@ -148,6 +148,27 @@ var (
 		Columns:    DbSettingsColumns,
 		PrimaryKey: []*schema.Column{DbSettingsColumns[0]},
 	}
+	// ExternalPaymentsColumns holds the columns for the "external_payments" table.
+	ExternalPaymentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "transaction_id", Type: field.TypeString, Unique: true},
+		{Name: "order_code", Type: field.TypeString, Default: ""},
+		{Name: "amount", Type: field.TypeInt, Default: 0},
+		{Name: "fee", Type: field.TypeInt, Default: 0},
+		{Name: "status_id", Type: field.TypeString, Default: ""},
+		{Name: "source_code", Type: field.TypeString, Default: ""},
+		{Name: "source_name", Type: field.TypeString, Default: ""},
+		{Name: "terminal_id", Type: field.TypeInt, Default: 0},
+		{Name: "merchant_trns", Type: field.TypeString, Default: ""},
+		{Name: "paid_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// ExternalPaymentsTable holds the schema information for the "external_payments" table.
+	ExternalPaymentsTable = &schema.Table{
+		Name:       "external_payments",
+		Columns:    ExternalPaymentsColumns,
+		PrimaryKey: []*schema.Column{ExternalPaymentsColumns[0]},
+	}
 	// ItemColumns holds the columns for the "item" table.
 	ItemColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -396,6 +417,7 @@ var (
 		{Name: "matomositeid", Type: field.TypeString, Default: ""},
 		{Name: "onlinepaperurl", Type: field.TypeString, Default: ""},
 		{Name: "mailsendername", Type: field.TypeString, Default: ""},
+		{Name: "donationtrackingenabled", Type: field.TypeBool, Default: false},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -406,7 +428,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[34]},
+				Columns:    []*schema.Column{SettingsColumns[35]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -452,6 +474,7 @@ var (
 		CommentsTable,
 		CustomerTable,
 		DbSettingsTable,
+		ExternalPaymentsTable,
 		ItemTable,
 		LocationsTable,
 		MailTemplatesTable,

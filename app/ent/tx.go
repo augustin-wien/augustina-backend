@@ -26,6 +26,8 @@ type Tx struct {
 	Customer *CustomerClient
 	// DBSettings is the client for interacting with the DBSettings builders.
 	DBSettings *DBSettingsClient
+	// ExternalPayment is the client for interacting with the ExternalPayment builders.
+	ExternalPayment *ExternalPaymentClient
 	// Item is the client for interacting with the Item builders.
 	Item *ItemClient
 	// Location is the client for interacting with the Location builders.
@@ -184,6 +186,7 @@ func (tx *Tx) init() {
 	tx.Comment = NewCommentClient(tx.config)
 	tx.Customer = NewCustomerClient(tx.config)
 	tx.DBSettings = NewDBSettingsClient(tx.config)
+	tx.ExternalPayment = NewExternalPaymentClient(tx.config)
 	tx.Item = NewItemClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
 	tx.MailTemplate = NewMailTemplateClient(tx.config)

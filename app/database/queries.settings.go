@@ -122,7 +122,8 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetMatomoUrl(settings.MatomoUrl).
 		SetMatomoSiteId(settings.MatomoSiteId).
 		SetOnlinePaperUrl(settings.OnlinePaperUrl).
-		SetMailSenderName(settings.MailSenderName)
+		SetMailSenderName(settings.MailSenderName).
+		SetDonationTrackingEnabled(settings.DonationTrackingEnabled)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {

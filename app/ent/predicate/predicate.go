@@ -27,6 +27,9 @@ type Customer func(*sql.Selector)
 // DBSettings is the predicate function for dbsettings builders.
 type DBSettings func(*sql.Selector)
 
+// ExternalPayment is the predicate function for externalpayment builders.
+type ExternalPayment func(*sql.Selector)
+
 // Item is the predicate function for item builders.
 type Item func(*sql.Selector)
 

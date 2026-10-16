@@ -19,6 +19,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/comment"
 	"github.com/augustin-wien/augustina-backend/ent/customer"
 	"github.com/augustin-wien/augustina-backend/ent/dbsettings"
+	"github.com/augustin-wien/augustina-backend/ent/externalpayment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
 	"github.com/augustin-wien/augustina-backend/ent/mailtemplate"
@@ -89,23 +90,24 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			abonement.Table:    abonement.ValidColumn,
-			account.Table:      account.ValidColumn,
-			blockedip.Table:    blockedip.ValidColumn,
-			campaign.Table:     campaign.ValidColumn,
-			comment.Table:      comment.ValidColumn,
-			customer.Table:     customer.ValidColumn,
-			dbsettings.Table:   dbsettings.ValidColumn,
-			item.Table:         item.ValidColumn,
-			location.Table:     location.ValidColumn,
-			mailtemplate.Table: mailtemplate.ValidColumn,
-			order.Table:        order.ValidColumn,
-			orderentry.Table:   orderentry.ValidColumn,
-			pdf.Table:          pdf.ValidColumn,
-			pdfdownload.Table:  pdfdownload.ValidColumn,
-			payment.Table:      payment.ValidColumn,
-			settings.Table:     settings.ValidColumn,
-			vendor.Table:       vendor.ValidColumn,
+			abonement.Table:       abonement.ValidColumn,
+			account.Table:         account.ValidColumn,
+			blockedip.Table:       blockedip.ValidColumn,
+			campaign.Table:        campaign.ValidColumn,
+			comment.Table:         comment.ValidColumn,
+			customer.Table:        customer.ValidColumn,
+			dbsettings.Table:      dbsettings.ValidColumn,
+			externalpayment.Table: externalpayment.ValidColumn,
+			item.Table:            item.ValidColumn,
+			location.Table:        location.ValidColumn,
+			mailtemplate.Table:    mailtemplate.ValidColumn,
+			order.Table:           order.ValidColumn,
+			orderentry.Table:      orderentry.ValidColumn,
+			pdf.Table:             pdf.ValidColumn,
+			pdfdownload.Table:     pdfdownload.ValidColumn,
+			payment.Table:         payment.ValidColumn,
+			settings.Table:        settings.ValidColumn,
+			vendor.Table:          vendor.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

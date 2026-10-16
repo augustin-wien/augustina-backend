@@ -93,6 +93,18 @@ func (f DBSettingsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DBSettingsMutation", m)
 }
 
+// The ExternalPaymentFunc type is an adapter to allow the use of ordinary
+// function as ExternalPayment mutator.
+type ExternalPaymentFunc func(context.Context, *ent.ExternalPaymentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ExternalPaymentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ExternalPaymentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExternalPaymentMutation", m)
+}
+
 // The ItemFunc type is an adapter to allow the use of ordinary
 // function as Item mutator.
 type ItemFunc func(context.Context, *ent.ItemMutation) (ent.Value, error)

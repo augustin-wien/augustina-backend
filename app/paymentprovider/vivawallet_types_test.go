@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/stretchr/testify/require"
@@ -66,4 +67,25 @@ func TestTransactionPriceRequest_NumericOrderCode(t *testing.T) {
 	var req TransactionPriceRequest
 	require.NoError(t, json.Unmarshal([]byte(`{"EventData":{"OrderCode":2295536933107359,"TransactionId":"x"}}`), &req))
 	require.Equal(t, "2295536933107359", req.EventData.OrderCode.String())
+}
+
+func TestParseVivaTime(t *testing.T) {
+	withZone := parseVivaTime("2026-10-15T19:42:41.48+02:00")
+	if !withZone.Equal(time.Date(2026, 10, 15, 17, 42, 41, 480000000, time.UTC)) {
+		t.Errorf("unexpected time with zone: %v", withZone)
+	}
+	vienna, _ := time.LoadLocation("Europe/Vienna")
+	withoutZone := parseVivaTime("2026-10-15T19:42:41.48")
+	if !withoutZone.Equal(time.Date(2026, 10, 15, 19, 42, 41, 480000000, vienna)) {
+		t.Errorf("unexpected time without zone: %v", withoutZone)
+	}
+	if !parseVivaTime("").IsZero() {
+		t.Error("expected zero time for an empty value")
+	}
+}
+
+func TestToCents(t *testing.T) {
+	if got := toCents(0.29); got != 29 {
+		t.Errorf("toCents(0.29) = %d", got)
+	}
 }
