@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/utils"
@@ -574,6 +575,22 @@ func (k *Keycloak) GetUserByEmail(email string) (*gocloak.User, error) {
 	return users[0], err
 }
 
+// personNameProhibited mirrors Keycloak's default person-name-prohibited-characters
+// validator, which rejects firstName/lastName containing any of these runes.
+const personNameProhibited = "<>&\"$%!#?§;*~/\\|^=[]{}()\v"
+
+// sanitizePersonName drops the runes Keycloak refuses in a person name and
+// collapses the whitespace left behind.
+func sanitizePersonName(name string) string {
+	cleaned := strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) || strings.ContainsRune(personNameProhibited, r) {
+			return ' '
+		}
+		return r
+	}, name)
+	return strings.Join(strings.Fields(cleaned), " ")
+}
+
 // CreateUser function creates a user given by first_name, last_name and email returns the userID.
 // An empty password creates the user without one; they set it themselves through a Keycloak link.
 func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, email string, password string) (userID string, err error) {
@@ -582,6 +599,8 @@ func (k *Keycloak) CreateUser(userid string, firstName string, lastName string, 
 	}
 	// set email to lowercase
 	email = utils.ToLower(email)
+	firstName = sanitizePersonName(firstName)
+	lastName = sanitizePersonName(lastName)
 	k.checkAdminToken()
 	user := gocloak.User{
 		Username:      &userid,
@@ -777,6 +796,8 @@ func (k *Keycloak) UpdateUser(username string, firstName string, lastName string
 	if err != nil {
 		return err
 	}
+	firstName = sanitizePersonName(firstName)
+	lastName = sanitizePersonName(lastName)
 	user.FirstName = &firstName
 	user.LastName = &lastName
 	user.Email = &email
@@ -798,6 +819,8 @@ func (k *Keycloak) UpdateUserById(userID, username, firstName, lastName, email s
 	} else {
 		user.EmailVerified = gocloak.BoolP(true)
 	}
+	firstName = sanitizePersonName(firstName)
+	lastName = sanitizePersonName(lastName)
 	user.FirstName = &firstName
 	user.LastName = &lastName
 	user.Email = &email
