@@ -65,7 +65,7 @@ func InitializeOauthServer() (err error) {
 	KeycloakClient.clientTokenCreationTime = utils.GetUnixTime()
 	KeycloakClient.clientToken, err = KeycloakClient.LoginClient()
 	if err != nil {
-		log.Fatalf("Error logging in Keycloak client. A running keycloak server is necessary! ", err)
+		return fmt.Errorf("logging in Keycloak client, a running keycloak server is necessary: %w", err)
 	}
 
 	// Ensure required group paths exist (creates missing groups and subgroups)
