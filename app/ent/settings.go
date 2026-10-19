@@ -85,6 +85,16 @@ type Settings struct {
 	MailSenderName string `json:"MailSenderName"`
 	// DonationTrackingEnabled holds the value of the "DonationTrackingEnabled" field.
 	DonationTrackingEnabled bool `json:"DonationTrackingEnabled"`
+	// AGBRequired holds the value of the "AGBRequired" field.
+	AGBRequired bool `json:"AGBRequired"`
+	// DonationPageEnabled holds the value of the "DonationPageEnabled" field.
+	DonationPageEnabled bool `json:"DonationPageEnabled"`
+	// MatomoTrackCart holds the value of the "MatomoTrackCart" field.
+	MatomoTrackCart bool `json:"MatomoTrackCart"`
+	// FeedbackEnabled holds the value of the "FeedbackEnabled" field.
+	FeedbackEnabled bool `json:"FeedbackEnabled"`
+	// FeedbackEmail holds the value of the "FeedbackEmail" field.
+	FeedbackEmail string `json:"FeedbackEmail"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -117,13 +127,13 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
 		case settings.FieldID, settings.FieldMaxOrderAmount, settings.FieldWordPressInviteTTL:
 			values[i] = new(sql.NullInt64)
-		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId, settings.FieldOnlinePaperUrl, settings.FieldMailSenderName:
+		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId, settings.FieldOnlinePaperUrl, settings.FieldMailSenderName, settings.FieldFeedbackEmail:
 			values[i] = new(sql.NullString)
 		case settings.ForeignKeys[0]: // mainitem
 			values[i] = new(sql.NullInt64)
@@ -352,6 +362,36 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DonationTrackingEnabled = value.Bool
 			}
+		case settings.FieldAGBRequired:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field AGBRequired", values[i])
+			} else if value.Valid {
+				_m.AGBRequired = value.Bool
+			}
+		case settings.FieldDonationPageEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field DonationPageEnabled", values[i])
+			} else if value.Valid {
+				_m.DonationPageEnabled = value.Bool
+			}
+		case settings.FieldMatomoTrackCart:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field MatomoTrackCart", values[i])
+			} else if value.Valid {
+				_m.MatomoTrackCart = value.Bool
+			}
+		case settings.FieldFeedbackEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field FeedbackEnabled", values[i])
+			} else if value.Valid {
+				_m.FeedbackEnabled = value.Bool
+			}
+		case settings.FieldFeedbackEmail:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field FeedbackEmail", values[i])
+			} else if value.Valid {
+				_m.FeedbackEmail = value.String
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -501,6 +541,21 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("DonationTrackingEnabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.DonationTrackingEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("AGBRequired=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AGBRequired))
+	builder.WriteString(", ")
+	builder.WriteString("DonationPageEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DonationPageEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("MatomoTrackCart=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MatomoTrackCart))
+	builder.WriteString(", ")
+	builder.WriteString("FeedbackEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FeedbackEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("FeedbackEmail=")
+	builder.WriteString(_m.FeedbackEmail)
 	builder.WriteByte(')')
 	return builder.String()
 }

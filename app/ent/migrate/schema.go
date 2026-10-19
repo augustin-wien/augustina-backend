@@ -418,6 +418,11 @@ var (
 		{Name: "onlinepaperurl", Type: field.TypeString, Default: ""},
 		{Name: "mailsendername", Type: field.TypeString, Default: ""},
 		{Name: "donationtrackingenabled", Type: field.TypeBool, Default: false},
+		{Name: "agbrequired", Type: field.TypeBool, Default: true},
+		{Name: "donationpageenabled", Type: field.TypeBool, Default: true},
+		{Name: "matomotrackcart", Type: field.TypeBool, Default: false},
+		{Name: "feedbackenabled", Type: field.TypeBool, Default: false},
+		{Name: "feedbackemail", Type: field.TypeString, Default: ""},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -428,7 +433,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[35]},
+				Columns:    []*schema.Column{SettingsColumns[40]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

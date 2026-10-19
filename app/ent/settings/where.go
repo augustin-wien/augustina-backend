@@ -223,6 +223,31 @@ func DonationTrackingEnabled(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldDonationTrackingEnabled, v))
 }
 
+// AGBRequired applies equality check predicate on the "AGBRequired" field. It's identical to AGBRequiredEQ.
+func AGBRequired(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAGBRequired, v))
+}
+
+// DonationPageEnabled applies equality check predicate on the "DonationPageEnabled" field. It's identical to DonationPageEnabledEQ.
+func DonationPageEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldDonationPageEnabled, v))
+}
+
+// MatomoTrackCart applies equality check predicate on the "MatomoTrackCart" field. It's identical to MatomoTrackCartEQ.
+func MatomoTrackCart(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldMatomoTrackCart, v))
+}
+
+// FeedbackEnabled applies equality check predicate on the "FeedbackEnabled" field. It's identical to FeedbackEnabledEQ.
+func FeedbackEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldFeedbackEnabled, v))
+}
+
+// FeedbackEmail applies equality check predicate on the "FeedbackEmail" field. It's identical to FeedbackEmailEQ.
+func FeedbackEmail(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldFeedbackEmail, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1836,6 +1861,111 @@ func DonationTrackingEnabledEQ(v bool) predicate.Settings {
 // DonationTrackingEnabledNEQ applies the NEQ predicate on the "DonationTrackingEnabled" field.
 func DonationTrackingEnabledNEQ(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldNEQ(FieldDonationTrackingEnabled, v))
+}
+
+// AGBRequiredEQ applies the EQ predicate on the "AGBRequired" field.
+func AGBRequiredEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAGBRequired, v))
+}
+
+// AGBRequiredNEQ applies the NEQ predicate on the "AGBRequired" field.
+func AGBRequiredNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldAGBRequired, v))
+}
+
+// DonationPageEnabledEQ applies the EQ predicate on the "DonationPageEnabled" field.
+func DonationPageEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldDonationPageEnabled, v))
+}
+
+// DonationPageEnabledNEQ applies the NEQ predicate on the "DonationPageEnabled" field.
+func DonationPageEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldDonationPageEnabled, v))
+}
+
+// MatomoTrackCartEQ applies the EQ predicate on the "MatomoTrackCart" field.
+func MatomoTrackCartEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldMatomoTrackCart, v))
+}
+
+// MatomoTrackCartNEQ applies the NEQ predicate on the "MatomoTrackCart" field.
+func MatomoTrackCartNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldMatomoTrackCart, v))
+}
+
+// FeedbackEnabledEQ applies the EQ predicate on the "FeedbackEnabled" field.
+func FeedbackEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldFeedbackEnabled, v))
+}
+
+// FeedbackEnabledNEQ applies the NEQ predicate on the "FeedbackEnabled" field.
+func FeedbackEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldFeedbackEnabled, v))
+}
+
+// FeedbackEmailEQ applies the EQ predicate on the "FeedbackEmail" field.
+func FeedbackEmailEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailNEQ applies the NEQ predicate on the "FeedbackEmail" field.
+func FeedbackEmailNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailIn applies the In predicate on the "FeedbackEmail" field.
+func FeedbackEmailIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldFeedbackEmail, vs...))
+}
+
+// FeedbackEmailNotIn applies the NotIn predicate on the "FeedbackEmail" field.
+func FeedbackEmailNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldFeedbackEmail, vs...))
+}
+
+// FeedbackEmailGT applies the GT predicate on the "FeedbackEmail" field.
+func FeedbackEmailGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailGTE applies the GTE predicate on the "FeedbackEmail" field.
+func FeedbackEmailGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailLT applies the LT predicate on the "FeedbackEmail" field.
+func FeedbackEmailLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailLTE applies the LTE predicate on the "FeedbackEmail" field.
+func FeedbackEmailLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailContains applies the Contains predicate on the "FeedbackEmail" field.
+func FeedbackEmailContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailHasPrefix applies the HasPrefix predicate on the "FeedbackEmail" field.
+func FeedbackEmailHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailHasSuffix applies the HasSuffix predicate on the "FeedbackEmail" field.
+func FeedbackEmailHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailEqualFold applies the EqualFold predicate on the "FeedbackEmail" field.
+func FeedbackEmailEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldFeedbackEmail, v))
+}
+
+// FeedbackEmailContainsFold applies the ContainsFold predicate on the "FeedbackEmail" field.
+func FeedbackEmailContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldFeedbackEmail, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

@@ -13353,6 +13353,11 @@ type SettingsMutation struct {
 	_OnlinePaperUrl             *string
 	_MailSenderName             *string
 	_DonationTrackingEnabled    *bool
+	_AGBRequired                *bool
+	_DonationPageEnabled        *bool
+	_MatomoTrackCart            *bool
+	_FeedbackEnabled            *bool
+	_FeedbackEmail              *string
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -14769,6 +14774,186 @@ func (m *SettingsMutation) ResetDonationTrackingEnabled() {
 	m._DonationTrackingEnabled = nil
 }
 
+// SetAGBRequired sets the "AGBRequired" field.
+func (m *SettingsMutation) SetAGBRequired(b bool) {
+	m._AGBRequired = &b
+}
+
+// AGBRequired returns the value of the "AGBRequired" field in the mutation.
+func (m *SettingsMutation) AGBRequired() (r bool, exists bool) {
+	v := m._AGBRequired
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAGBRequired returns the old "AGBRequired" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldAGBRequired(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAGBRequired is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAGBRequired requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAGBRequired: %w", err)
+	}
+	return oldValue.AGBRequired, nil
+}
+
+// ResetAGBRequired resets all changes to the "AGBRequired" field.
+func (m *SettingsMutation) ResetAGBRequired() {
+	m._AGBRequired = nil
+}
+
+// SetDonationPageEnabled sets the "DonationPageEnabled" field.
+func (m *SettingsMutation) SetDonationPageEnabled(b bool) {
+	m._DonationPageEnabled = &b
+}
+
+// DonationPageEnabled returns the value of the "DonationPageEnabled" field in the mutation.
+func (m *SettingsMutation) DonationPageEnabled() (r bool, exists bool) {
+	v := m._DonationPageEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDonationPageEnabled returns the old "DonationPageEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldDonationPageEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDonationPageEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDonationPageEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDonationPageEnabled: %w", err)
+	}
+	return oldValue.DonationPageEnabled, nil
+}
+
+// ResetDonationPageEnabled resets all changes to the "DonationPageEnabled" field.
+func (m *SettingsMutation) ResetDonationPageEnabled() {
+	m._DonationPageEnabled = nil
+}
+
+// SetMatomoTrackCart sets the "MatomoTrackCart" field.
+func (m *SettingsMutation) SetMatomoTrackCart(b bool) {
+	m._MatomoTrackCart = &b
+}
+
+// MatomoTrackCart returns the value of the "MatomoTrackCart" field in the mutation.
+func (m *SettingsMutation) MatomoTrackCart() (r bool, exists bool) {
+	v := m._MatomoTrackCart
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMatomoTrackCart returns the old "MatomoTrackCart" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldMatomoTrackCart(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMatomoTrackCart is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMatomoTrackCart requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMatomoTrackCart: %w", err)
+	}
+	return oldValue.MatomoTrackCart, nil
+}
+
+// ResetMatomoTrackCart resets all changes to the "MatomoTrackCart" field.
+func (m *SettingsMutation) ResetMatomoTrackCart() {
+	m._MatomoTrackCart = nil
+}
+
+// SetFeedbackEnabled sets the "FeedbackEnabled" field.
+func (m *SettingsMutation) SetFeedbackEnabled(b bool) {
+	m._FeedbackEnabled = &b
+}
+
+// FeedbackEnabled returns the value of the "FeedbackEnabled" field in the mutation.
+func (m *SettingsMutation) FeedbackEnabled() (r bool, exists bool) {
+	v := m._FeedbackEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeedbackEnabled returns the old "FeedbackEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldFeedbackEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeedbackEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeedbackEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeedbackEnabled: %w", err)
+	}
+	return oldValue.FeedbackEnabled, nil
+}
+
+// ResetFeedbackEnabled resets all changes to the "FeedbackEnabled" field.
+func (m *SettingsMutation) ResetFeedbackEnabled() {
+	m._FeedbackEnabled = nil
+}
+
+// SetFeedbackEmail sets the "FeedbackEmail" field.
+func (m *SettingsMutation) SetFeedbackEmail(s string) {
+	m._FeedbackEmail = &s
+}
+
+// FeedbackEmail returns the value of the "FeedbackEmail" field in the mutation.
+func (m *SettingsMutation) FeedbackEmail() (r string, exists bool) {
+	v := m._FeedbackEmail
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeedbackEmail returns the old "FeedbackEmail" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldFeedbackEmail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeedbackEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeedbackEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeedbackEmail: %w", err)
+	}
+	return oldValue.FeedbackEmail, nil
+}
+
+// ResetFeedbackEmail resets all changes to the "FeedbackEmail" field.
+func (m *SettingsMutation) ResetFeedbackEmail() {
+	m._FeedbackEmail = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -14842,7 +15027,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 34)
+	fields := make([]string, 0, 39)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -14945,6 +15130,21 @@ func (m *SettingsMutation) Fields() []string {
 	if m._DonationTrackingEnabled != nil {
 		fields = append(fields, settings.FieldDonationTrackingEnabled)
 	}
+	if m._AGBRequired != nil {
+		fields = append(fields, settings.FieldAGBRequired)
+	}
+	if m._DonationPageEnabled != nil {
+		fields = append(fields, settings.FieldDonationPageEnabled)
+	}
+	if m._MatomoTrackCart != nil {
+		fields = append(fields, settings.FieldMatomoTrackCart)
+	}
+	if m._FeedbackEnabled != nil {
+		fields = append(fields, settings.FieldFeedbackEnabled)
+	}
+	if m._FeedbackEmail != nil {
+		fields = append(fields, settings.FieldFeedbackEmail)
+	}
 	return fields
 }
 
@@ -15021,6 +15221,16 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.MailSenderName()
 	case settings.FieldDonationTrackingEnabled:
 		return m.DonationTrackingEnabled()
+	case settings.FieldAGBRequired:
+		return m.AGBRequired()
+	case settings.FieldDonationPageEnabled:
+		return m.DonationPageEnabled()
+	case settings.FieldMatomoTrackCart:
+		return m.MatomoTrackCart()
+	case settings.FieldFeedbackEnabled:
+		return m.FeedbackEnabled()
+	case settings.FieldFeedbackEmail:
+		return m.FeedbackEmail()
 	}
 	return nil, false
 }
@@ -15098,6 +15308,16 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldMailSenderName(ctx)
 	case settings.FieldDonationTrackingEnabled:
 		return m.OldDonationTrackingEnabled(ctx)
+	case settings.FieldAGBRequired:
+		return m.OldAGBRequired(ctx)
+	case settings.FieldDonationPageEnabled:
+		return m.OldDonationPageEnabled(ctx)
+	case settings.FieldMatomoTrackCart:
+		return m.OldMatomoTrackCart(ctx)
+	case settings.FieldFeedbackEnabled:
+		return m.OldFeedbackEnabled(ctx)
+	case settings.FieldFeedbackEmail:
+		return m.OldFeedbackEmail(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -15345,6 +15565,41 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDonationTrackingEnabled(v)
 		return nil
+	case settings.FieldAGBRequired:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAGBRequired(v)
+		return nil
+	case settings.FieldDonationPageEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDonationPageEnabled(v)
+		return nil
+	case settings.FieldMatomoTrackCart:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMatomoTrackCart(v)
+		return nil
+	case settings.FieldFeedbackEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeedbackEnabled(v)
+		return nil
+	case settings.FieldFeedbackEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeedbackEmail(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -15546,6 +15801,21 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldDonationTrackingEnabled:
 		m.ResetDonationTrackingEnabled()
+		return nil
+	case settings.FieldAGBRequired:
+		m.ResetAGBRequired()
+		return nil
+	case settings.FieldDonationPageEnabled:
+		m.ResetDonationPageEnabled()
+		return nil
+	case settings.FieldMatomoTrackCart:
+		m.ResetMatomoTrackCart()
+		return nil
+	case settings.FieldFeedbackEnabled:
+		m.ResetFeedbackEnabled()
+		return nil
+	case settings.FieldFeedbackEmail:
+		m.ResetFeedbackEmail()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

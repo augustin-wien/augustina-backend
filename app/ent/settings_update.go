@@ -532,6 +532,76 @@ func (_u *SettingsUpdate) SetNillableDonationTrackingEnabled(v *bool) *SettingsU
 	return _u
 }
 
+// SetAGBRequired sets the "AGBRequired" field.
+func (_u *SettingsUpdate) SetAGBRequired(v bool) *SettingsUpdate {
+	_u.mutation.SetAGBRequired(v)
+	return _u
+}
+
+// SetNillableAGBRequired sets the "AGBRequired" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableAGBRequired(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetAGBRequired(*v)
+	}
+	return _u
+}
+
+// SetDonationPageEnabled sets the "DonationPageEnabled" field.
+func (_u *SettingsUpdate) SetDonationPageEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetDonationPageEnabled(v)
+	return _u
+}
+
+// SetNillableDonationPageEnabled sets the "DonationPageEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableDonationPageEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetDonationPageEnabled(*v)
+	}
+	return _u
+}
+
+// SetMatomoTrackCart sets the "MatomoTrackCart" field.
+func (_u *SettingsUpdate) SetMatomoTrackCart(v bool) *SettingsUpdate {
+	_u.mutation.SetMatomoTrackCart(v)
+	return _u
+}
+
+// SetNillableMatomoTrackCart sets the "MatomoTrackCart" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableMatomoTrackCart(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetMatomoTrackCart(*v)
+	}
+	return _u
+}
+
+// SetFeedbackEnabled sets the "FeedbackEnabled" field.
+func (_u *SettingsUpdate) SetFeedbackEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetFeedbackEnabled(v)
+	return _u
+}
+
+// SetNillableFeedbackEnabled sets the "FeedbackEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableFeedbackEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetFeedbackEnabled(*v)
+	}
+	return _u
+}
+
+// SetFeedbackEmail sets the "FeedbackEmail" field.
+func (_u *SettingsUpdate) SetFeedbackEmail(v string) *SettingsUpdate {
+	_u.mutation.SetFeedbackEmail(v)
+	return _u
+}
+
+// SetNillableFeedbackEmail sets the "FeedbackEmail" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableFeedbackEmail(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetFeedbackEmail(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -711,6 +781,21 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.DonationTrackingEnabled(); ok {
 		_spec.SetField(settings.FieldDonationTrackingEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AGBRequired(); ok {
+		_spec.SetField(settings.FieldAGBRequired, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.DonationPageEnabled(); ok {
+		_spec.SetField(settings.FieldDonationPageEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MatomoTrackCart(); ok {
+		_spec.SetField(settings.FieldMatomoTrackCart, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FeedbackEnabled(); ok {
+		_spec.SetField(settings.FieldFeedbackEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FeedbackEmail(); ok {
+		_spec.SetField(settings.FieldFeedbackEmail, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1265,6 +1350,76 @@ func (_u *SettingsUpdateOne) SetNillableDonationTrackingEnabled(v *bool) *Settin
 	return _u
 }
 
+// SetAGBRequired sets the "AGBRequired" field.
+func (_u *SettingsUpdateOne) SetAGBRequired(v bool) *SettingsUpdateOne {
+	_u.mutation.SetAGBRequired(v)
+	return _u
+}
+
+// SetNillableAGBRequired sets the "AGBRequired" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableAGBRequired(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetAGBRequired(*v)
+	}
+	return _u
+}
+
+// SetDonationPageEnabled sets the "DonationPageEnabled" field.
+func (_u *SettingsUpdateOne) SetDonationPageEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetDonationPageEnabled(v)
+	return _u
+}
+
+// SetNillableDonationPageEnabled sets the "DonationPageEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableDonationPageEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetDonationPageEnabled(*v)
+	}
+	return _u
+}
+
+// SetMatomoTrackCart sets the "MatomoTrackCart" field.
+func (_u *SettingsUpdateOne) SetMatomoTrackCart(v bool) *SettingsUpdateOne {
+	_u.mutation.SetMatomoTrackCart(v)
+	return _u
+}
+
+// SetNillableMatomoTrackCart sets the "MatomoTrackCart" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableMatomoTrackCart(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetMatomoTrackCart(*v)
+	}
+	return _u
+}
+
+// SetFeedbackEnabled sets the "FeedbackEnabled" field.
+func (_u *SettingsUpdateOne) SetFeedbackEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetFeedbackEnabled(v)
+	return _u
+}
+
+// SetNillableFeedbackEnabled sets the "FeedbackEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableFeedbackEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetFeedbackEnabled(*v)
+	}
+	return _u
+}
+
+// SetFeedbackEmail sets the "FeedbackEmail" field.
+func (_u *SettingsUpdateOne) SetFeedbackEmail(v string) *SettingsUpdateOne {
+	_u.mutation.SetFeedbackEmail(v)
+	return _u
+}
+
+// SetNillableFeedbackEmail sets the "FeedbackEmail" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableFeedbackEmail(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetFeedbackEmail(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -1474,6 +1629,21 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.DonationTrackingEnabled(); ok {
 		_spec.SetField(settings.FieldDonationTrackingEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AGBRequired(); ok {
+		_spec.SetField(settings.FieldAGBRequired, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.DonationPageEnabled(); ok {
+		_spec.SetField(settings.FieldDonationPageEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MatomoTrackCart(); ok {
+		_spec.SetField(settings.FieldMatomoTrackCart, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FeedbackEnabled(); ok {
+		_spec.SetField(settings.FieldFeedbackEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.FeedbackEmail(); ok {
+		_spec.SetField(settings.FieldFeedbackEmail, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -44,6 +44,11 @@ func RequestLogger(next http.Handler) http.Handler {
 		ctx := utils.WithLogger(r.Context(), logger)
 		r = r.WithContext(ctx)
 
+		// The shop reads it back to attach it to its Sentry events and feedback
+		if reqID != "" {
+			w.Header().Set("X-Request-Id", reqID)
+		}
+
 		sr := &statusRecorder{ResponseWriter: w}
 		next.ServeHTTP(sr, r)
 		duration := time.Since(start)
