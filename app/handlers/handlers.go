@@ -343,6 +343,9 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	if !settings.NewsletterEnabled {
+		order.Newsletter = false
+	}
 
 	// Add user to order
 	// TODO-Question: This line is not necessary anymore, since the user is already in the request?

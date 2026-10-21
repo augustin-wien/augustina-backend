@@ -13539,6 +13539,7 @@ type SettingsMutation struct {
 	_MatomoTrackCart            *bool
 	_FeedbackEnabled            *bool
 	_FeedbackEmail              *string
+	_NewsletterEnabled          *bool
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -15135,6 +15136,42 @@ func (m *SettingsMutation) ResetFeedbackEmail() {
 	m._FeedbackEmail = nil
 }
 
+// SetNewsletterEnabled sets the "NewsletterEnabled" field.
+func (m *SettingsMutation) SetNewsletterEnabled(b bool) {
+	m._NewsletterEnabled = &b
+}
+
+// NewsletterEnabled returns the value of the "NewsletterEnabled" field in the mutation.
+func (m *SettingsMutation) NewsletterEnabled() (r bool, exists bool) {
+	v := m._NewsletterEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNewsletterEnabled returns the old "NewsletterEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldNewsletterEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNewsletterEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNewsletterEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNewsletterEnabled: %w", err)
+	}
+	return oldValue.NewsletterEnabled, nil
+}
+
+// ResetNewsletterEnabled resets all changes to the "NewsletterEnabled" field.
+func (m *SettingsMutation) ResetNewsletterEnabled() {
+	m._NewsletterEnabled = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -15208,7 +15245,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 39)
+	fields := make([]string, 0, 40)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -15326,6 +15363,9 @@ func (m *SettingsMutation) Fields() []string {
 	if m._FeedbackEmail != nil {
 		fields = append(fields, settings.FieldFeedbackEmail)
 	}
+	if m._NewsletterEnabled != nil {
+		fields = append(fields, settings.FieldNewsletterEnabled)
+	}
 	return fields
 }
 
@@ -15412,6 +15452,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.FeedbackEnabled()
 	case settings.FieldFeedbackEmail:
 		return m.FeedbackEmail()
+	case settings.FieldNewsletterEnabled:
+		return m.NewsletterEnabled()
 	}
 	return nil, false
 }
@@ -15499,6 +15541,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldFeedbackEnabled(ctx)
 	case settings.FieldFeedbackEmail:
 		return m.OldFeedbackEmail(ctx)
+	case settings.FieldNewsletterEnabled:
+		return m.OldNewsletterEnabled(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -15781,6 +15825,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFeedbackEmail(v)
 		return nil
+	case settings.FieldNewsletterEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNewsletterEnabled(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -15997,6 +16048,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldFeedbackEmail:
 		m.ResetFeedbackEmail()
+		return nil
+	case settings.FieldNewsletterEnabled:
+		m.ResetNewsletterEnabled()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

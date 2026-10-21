@@ -248,6 +248,11 @@ func FeedbackEmail(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldFeedbackEmail, v))
 }
 
+// NewsletterEnabled applies equality check predicate on the "NewsletterEnabled" field. It's identical to NewsletterEnabledEQ.
+func NewsletterEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNewsletterEnabled, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1966,6 +1971,16 @@ func FeedbackEmailEqualFold(v string) predicate.Settings {
 // FeedbackEmailContainsFold applies the ContainsFold predicate on the "FeedbackEmail" field.
 func FeedbackEmailContainsFold(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldContainsFold(FieldFeedbackEmail, v))
+}
+
+// NewsletterEnabledEQ applies the EQ predicate on the "NewsletterEnabled" field.
+func NewsletterEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNewsletterEnabled, v))
+}
+
+// NewsletterEnabledNEQ applies the NEQ predicate on the "NewsletterEnabled" field.
+func NewsletterEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldNewsletterEnabled, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

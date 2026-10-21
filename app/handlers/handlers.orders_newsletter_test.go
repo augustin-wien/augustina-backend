@@ -27,6 +27,16 @@ func createTestOrder(t *testing.T, req createOrderRequest) database.Order {
 	return order
 }
 
+// setNewsletterEnabled switches the opt-in on or off through the settings API
+func setNewsletterEnabled(t *testing.T, enabled bool) {
+	putSettingsFields(t, map[string]string{"NewsletterEnabled": strconv.FormatBool(enabled)}, 200)
+
+	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
+	var public map[string]map[string]any
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &public))
+	require.Equal(t, enabled, public["Settings"]["NewsletterEnabled"])
+}
+
 func TestOrderNewsletterOptIn(t *testing.T) {
 	mutex_test.Lock()
 	defer mutex_test.Unlock()
@@ -44,6 +54,16 @@ func TestOrderNewsletterOptIn(t *testing.T) {
 	itemWithLicense, _ := CreateTestItemWithLicense(t)
 	itemWithLicenseID, _ := strconv.Atoi(itemWithLicense)
 	normalItemID, _ := strconv.Atoi(CreateTestItem(t, "Newsletter normal item", 20, "", ""))
+
+	// The opt-in is off by default and then ignored
+	disabledOrder := createTestOrder(t, createOrderRequest{
+		Entries:         []createOrderRequestEntry{{Item: itemWithLicenseID, Quantity: 1}},
+		VendorLicenseID: vendorLicenseID,
+		CustomerEmail:   null.StringFrom(customerEmail),
+		Newsletter:      true,
+	})
+	require.False(t, disabledOrder.Newsletter)
+	setNewsletterEnabled(t, true)
 
 	// The opt-in is only kept for digital items, which require a customer email
 	normalOrder := createTestOrder(t, createOrderRequest{
@@ -98,6 +118,7 @@ func TestOrderNewsletterOptInPDF(t *testing.T) {
 	vendorLicenseID := "testnewsletterpdf"
 	createTestVendor(t, vendorLicenseID)
 	setMaxOrderAmount(t, 100000)
+	setNewsletterEnabled(t, true)
 
 	origBuild := database.BuildEmailRequestFromTemplate
 	origSend := mailer.Send

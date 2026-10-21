@@ -434,6 +434,10 @@ func init() {
 	settingsDescFeedbackEmail := settingsFields[39].Descriptor()
 	// settings.DefaultFeedbackEmail holds the default value on creation for the FeedbackEmail field.
 	settings.DefaultFeedbackEmail = settingsDescFeedbackEmail.Default.(string)
+	// settingsDescNewsletterEnabled is the schema descriptor for NewsletterEnabled field.
+	settingsDescNewsletterEnabled := settingsFields[40].Descriptor()
+	// settings.DefaultNewsletterEnabled holds the default value on creation for the NewsletterEnabled field.
+	settings.DefaultNewsletterEnabled = settingsDescNewsletterEnabled.Default.(bool)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

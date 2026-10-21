@@ -426,6 +426,7 @@ var (
 		{Name: "matomotrackcart", Type: field.TypeBool, Default: false},
 		{Name: "feedbackenabled", Type: field.TypeBool, Default: false},
 		{Name: "feedbackemail", Type: field.TypeString, Default: ""},
+		{Name: "newsletterenabled", Type: field.TypeBool, Default: false},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -436,7 +437,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[40]},
+				Columns:    []*schema.Column{SettingsColumns[41]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

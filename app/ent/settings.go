@@ -95,6 +95,8 @@ type Settings struct {
 	FeedbackEnabled bool `json:"FeedbackEnabled"`
 	// FeedbackEmail holds the value of the "FeedbackEmail" field.
 	FeedbackEmail string `json:"FeedbackEmail"`
+	// NewsletterEnabled holds the value of the "NewsletterEnabled" field.
+	NewsletterEnabled bool `json:"NewsletterEnabled"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -127,7 +129,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled, settings.FieldNewsletterEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
@@ -392,6 +394,12 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.FeedbackEmail = value.String
 			}
+		case settings.FieldNewsletterEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field NewsletterEnabled", values[i])
+			} else if value.Valid {
+				_m.NewsletterEnabled = value.Bool
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -556,6 +564,9 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("FeedbackEmail=")
 	builder.WriteString(_m.FeedbackEmail)
+	builder.WriteString(", ")
+	builder.WriteString("NewsletterEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.NewsletterEnabled))
 	builder.WriteByte(')')
 	return builder.String()
 }

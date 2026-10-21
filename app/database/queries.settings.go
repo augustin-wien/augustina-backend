@@ -128,7 +128,8 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetDonationPageEnabled(settings.DonationPageEnabled).
 		SetMatomoTrackCart(settings.MatomoTrackCart).
 		SetFeedbackEnabled(settings.FeedbackEnabled).
-		SetFeedbackEmail(settings.FeedbackEmail)
+		SetFeedbackEmail(settings.FeedbackEmail).
+		SetNewsletterEnabled(settings.NewsletterEnabled)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {
