@@ -1197,8 +1197,7 @@ func TestPayments(t *testing.T) {
 	require.Equal(t, payments[0].Receiver, testReceiverAccount.ID)
 	require.Equal(t, payments[0].SenderName, null.StringFrom("Test sender"))
 	require.Equal(t, payments[0].ReceiverName, null.StringFrom("Test receiver"))
-	require.Equal(t, payments[0].Timestamp.Day(), time.Now().Day())
-	require.Equal(t, payments[0].Timestamp.Hour(), time.Now().UTC().Hour())
+	require.WithinDuration(t, time.Now(), payments[0].Timestamp, time.Minute)
 
 	// Test account balances
 	require.Equal(t, 0, testSenderAccount.Balance)
@@ -1681,7 +1680,7 @@ func TestPaymentPayout(t *testing.T) {
 	require.Equal(t, vendor.Balance, 0)
 	require.Equal(t, cashAccount.Balance, 314-1)
 	require.Equal(t, vendor.LastPayout.Time.Day(), time.Now().Day())
-	require.Equal(t, vendor.LastPayout.Time.Hour(), time.Now().Hour())
+	require.WithinDuration(t, time.Now(), vendor.LastPayout.Time, time.Minute)
 
 	// Test GET payment filters for payout
 	otherVendorID := createTestVendor(t, "testOTHERLicenseID")

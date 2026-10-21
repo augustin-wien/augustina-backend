@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
@@ -14,6 +15,12 @@ import (
 )
 
 var log = utils.GetLogger()
+
+// The timestamp columns have no time zone and are meant to hold UTC, but they are written with
+// time.Now(). Pinning the process to UTC keeps that correct on hosts without TZ=UTC.
+func init() {
+	time.Local = time.UTC
+}
 
 // Database struct
 type Database struct {
