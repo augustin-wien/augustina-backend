@@ -51,6 +51,10 @@ func (Order) Fields() []ent.Field {
 		field.Time("invalidated_at").
 			Optional().
 			Nillable(),
+		// Customer opted in to the newsletter at checkout; copied to the
+		// customer record once the order is verified.
+		field.Bool("newsletter").
+			Default(false),
 	}
 }
 

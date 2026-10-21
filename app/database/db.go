@@ -100,6 +100,10 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "matomotrackcart" BOOLEAN NOT NULL DEFAULT FALSE;`,
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "feedbackenabled" BOOLEAN NOT NULL DEFAULT FALSE;`,
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "feedbackemail" TEXT NOT NULL DEFAULT '';`,
+		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "newsletterenabled" BOOLEAN NOT NULL DEFAULT FALSE;`,
+		`ALTER TABLE "paymentorder" ADD COLUMN IF NOT EXISTS "newsletter" BOOLEAN NOT NULL DEFAULT FALSE;`,
+		`ALTER TABLE "customer" ADD COLUMN IF NOT EXISTS "newsletter" BOOLEAN NOT NULL DEFAULT FALSE;`,
+		`ALTER TABLE "customer" ADD COLUMN IF NOT EXISTS "newsletter_at" TIMESTAMPTZ;`,
 		`CREATE TABLE IF NOT EXISTS "external_payments" (
 			"id" SERIAL PRIMARY KEY,
 			"transaction_id" TEXT NOT NULL UNIQUE,

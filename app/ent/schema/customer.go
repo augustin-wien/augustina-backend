@@ -29,6 +29,11 @@ func (Customer) Fields() []ent.Field {
 		field.String("licensegroups").
 			Default("").
 			StorageKey("licensegroups"),
+		field.Bool("newsletter").
+			Default(false),
+		field.Time("newsletter_at").
+			Optional().
+			Nillable(),
 		field.Time("created_at").
 			Optional().
 			Nillable().

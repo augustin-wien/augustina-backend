@@ -41,6 +41,8 @@ type Order struct {
 	OdooSyncError *string `json:"odoo_sync_error,omitempty"`
 	// InvalidatedAt holds the value of the "invalidated_at" field.
 	InvalidatedAt *time.Time `json:"invalidated_at,omitempty"`
+	// Newsletter holds the value of the "newsletter" field.
+	Newsletter bool `json:"newsletter,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderQuery when eager-loading is set.
 	Edges        OrderEdges `json:"edges"`
@@ -81,7 +83,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case order.FieldVerified:
+		case order.FieldVerified, order.FieldNewsletter:
 			values[i] = new(sql.NullBool)
 		case order.FieldID, order.FieldTransactionTypeID, order.FieldVendorID:
 			values[i] = new(sql.NullInt64)
@@ -189,6 +191,12 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				_m.InvalidatedAt = new(time.Time)
 				*_m.InvalidatedAt = value.Time
 			}
+		case order.FieldNewsletter:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field newsletter", values[i])
+			} else if value.Valid {
+				_m.Newsletter = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -284,6 +292,9 @@ func (_m *Order) String() string {
 		builder.WriteString("invalidated_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("newsletter=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Newsletter))
 	builder.WriteByte(')')
 	return builder.String()
 }
