@@ -14,6 +14,7 @@ func TestBuildPaymentsStatistics(t *testing.T) {
 		{ID: 10, Name: "Zeitung", Type: "issue"},
 		{ID: 93, Name: "donation", Type: "donation"},
 		{ID: 94, Name: "transactionCosts", Type: "transaction_costs"},
+		{ID: 95, Name: "Digitale Lizenz", Type: "license_item", IsLicenseItem: true},
 	}
 	accounts := []database.Account{
 		{ID: 1, Type: "UserAnon"},
@@ -34,6 +35,8 @@ func TestBuildPaymentsStatistics(t *testing.T) {
 		// 23:30 UTC is already the next day in Vienna
 		{Item: null.IntFrom(10), Sender: 1, Receiver: 2, IsSale: true, Quantity: 2, Amount: 600, Timestamp: time.Date(2026, 9, 1, 23, 30, 0, 0, time.UTC)},
 		{Item: null.IntFrom(10), Sender: 1, Receiver: 3, IsSale: true, Quantity: 1, Amount: 300, Timestamp: day2},
+		// The digital license sold with the issue is left out
+		{Item: null.IntFrom(95), Sender: 3, Receiver: 5, Quantity: 1, Amount: 50, Timestamp: day2},
 		// Donations store the amount as quantity; shop orders book them as sales
 		{Item: null.IntFrom(93), Sender: 1, Receiver: 3, IsSale: true, Quantity: 150, Amount: 150, Timestamp: day2},
 		{Item: null.IntFrom(93), Sender: 1, Receiver: 7, IsSale: true, Quantity: 200, Amount: 200, Timestamp: time.Date(2026, 9, 3, 10, 0, 0, 0, time.UTC)},
@@ -60,6 +63,7 @@ func TestBuildPaymentsStatistics(t *testing.T) {
 	require.Equal(t, 350, sums[93].SumAmount)
 	require.Equal(t, 1, sums[94].SumQuantity)
 	require.Equal(t, 27, sums[94].SumAmount)
+	require.NotContains(t, sums, 95)
 
 	require.Equal(t, []DailyItemStatistics{
 		{Date: "2026-09-02", ItemID: 10, SumQuantity: 3, SumAmount: 900},
