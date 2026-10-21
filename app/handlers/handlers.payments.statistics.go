@@ -154,7 +154,13 @@ func buildPaymentsStatistics(items []database.Item, payments []database.Payment,
 	itemsMap := make(map[int]ItemStatistics)
 	donationItemIDs := make(map[int]bool)
 	transactionCostsItemIDs := make(map[int]bool)
+	licenseItemIDs := make(map[int]bool)
 	for _, item := range items {
+		// A digital license is always sold together with its issue, so it would only repeat the issue's numbers
+		if item.IsLicenseItem || item.Type == "license_item" {
+			licenseItemIDs[item.ID] = true
+			continue
+		}
 		if item.Type == "donation" {
 			donationItemIDs[item.ID] = true
 		}
@@ -192,6 +198,9 @@ func buildPaymentsStatistics(items []database.Item, payments []database.Payment,
 			continue
 		}
 		itemID := int(payment.Item.Int64)
+		if licenseItemIDs[itemID] {
+			continue
+		}
 		if entry, ok := itemsMap[itemID]; ok {
 			// Transaction costs are booked twice when the organisation takes them over
 			// (vendor -> provider, orga -> vendor); only what goes to the provider is a cost
