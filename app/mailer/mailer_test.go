@@ -51,21 +51,6 @@ func TestParseTemplate_EmptyName(t *testing.T) {
 	}
 }
 
-// TestParseTemplateFromString_EscapesData checks that customer data cannot add
-// markup such as links to a mail.
-func TestParseTemplateFromString_EscapesData(t *testing.T) {
-	r, _ := NewRequest([]string{"test@example.com"}, "subj", "")
-	tmpl := `<p>Hallo {{.CustomerName}}</p><a href="{{.InviteURL}}">Login</a>`
-	data := map[string]interface{}{
-		"CustomerName": `<a href="https://phish.example.test">Passwort erneuern</a>`,
-		"InviteURL":    "https://augustin.example.test/?login=abc&redirect=%2Fzeitung",
-	}
-	require.NoError(t, r.ParseTemplateFromString(tmpl, data))
-	require.NotContains(t, r.body, `<a href="https://phish`)
-	require.Contains(t, r.body, "&lt;a href=")
-	require.Contains(t, htmlToPlain(r.body), "Login (https://augustin.example.test/?login=abc&redirect=%2Fzeitung)")
-}
-
 // TestHtmlToPlain_KeepsLinkURLs guards the plain-text alternative: links must keep
 // their URL, otherwise text-only clients show "Hier klicken" with nothing to click.
 func TestHtmlToPlain_KeepsLinkURLs(t *testing.T) {

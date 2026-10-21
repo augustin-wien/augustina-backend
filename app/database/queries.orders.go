@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"slices"
 	"sync"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/order"
 	"github.com/augustin-wien/augustina-backend/ent/orderentry"
 	"github.com/augustin-wien/augustina-backend/ent/payment"
+	"github.com/augustin-wien/augustina-backend/ent/predicate"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
 	"go.uber.org/zap"
@@ -133,6 +135,43 @@ func (db *Database) InvalidateOrder(orderID int) error {
 		Exec(context.Background())
 }
 
+// OrderStatistics counts the online checkouts started in a period by outcome
+type OrderStatistics struct {
+	Started   int // all checkouts
+	Completed int // paid and verified
+	Abandoned int // judged abandoned (see InvalidateOrder)
+	Open      int // neither verified nor abandoned yet
+}
+
+// GetOrderStatistics counts the orders created in [from, to); a zero time leaves that side open
+func (db *Database) GetOrderStatistics(from, to time.Time) (stats OrderStatistics, err error) {
+	ctx := context.Background()
+	var timeFilter []predicate.Order
+	if !from.IsZero() {
+		timeFilter = append(timeFilter, order.TimestampGTE(from))
+	}
+	if !to.IsZero() {
+		timeFilter = append(timeFilter, order.TimestampLT(to))
+	}
+	count := func(extra ...predicate.Order) (int, error) {
+		return db.EntClient.Order.Query().
+			Where(append(slices.Clone(timeFilter), extra...)...).
+			Count(ctx)
+	}
+
+	if stats.Started, err = count(); err != nil {
+		return
+	}
+	if stats.Completed, err = count(order.Verified(true)); err != nil {
+		return
+	}
+	if stats.Abandoned, err = count(order.Verified(false), order.InvalidatedAtNotNil()); err != nil {
+		return
+	}
+	stats.Open = stats.Started - stats.Completed - stats.Abandoned
+	return
+}
+
 // GetOrderByID returns Order by OrderID
 func (db *Database) GetOrderByID(id int) (o Order, err error) {
 	res, err := db.EntClient.Order.Query().
@@ -212,7 +251,8 @@ func (db *Database) CreateOrder(o Order) (orderID int, err error) {
 		SetVendorID(o.Vendor).
 		SetVerified(o.Verified).
 		SetTransactionTypeID(o.TransactionTypeID).
-		SetTimestamp(time.Now().UTC())
+		SetTimestamp(time.Now().UTC()).
+		SetNewsletter(o.Newsletter)
 
 	if o.TransactionID != "" {
 		tCreate.SetTransactionID(o.TransactionID)
@@ -688,6 +728,22 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 
 			}
 		}
+
+		// PDF purchases create no customer record of their own, so the
+		// opt-in needs one to be visible in the backoffice
+		if o.Newsletter {
+			if dbCustomer == nil {
+				dbCustomer, err = db.GetOrCreateCustomerByEmail(o.CustomerEmail.String, "")
+				if err != nil {
+					log.Error("VerifyOrderAndCreatePayments: failed to get/create customer for newsletter: ", orderID, err)
+				}
+			}
+			if dbCustomer != nil {
+				if err = db.SubscribeCustomerToNewsletter(dbCustomer.ID); err != nil {
+					log.Error("VerifyOrderAndCreatePayments: failed to subscribe customer to newsletter: ", orderID, err)
+				}
+			}
+		}
 	}
 	log.Info("VerifyOrderAndCreatePayments: Creating payments for order ", orderID)
 	// Create payments
@@ -761,6 +817,7 @@ func convertOrder(e *ent.Order) Order {
 		TransactionTypeID: e.TransactionTypeID,
 		Timestamp:         e.Timestamp,
 		Vendor:            e.VendorID,
+		Newsletter:        e.Newsletter,
 	}
 	if e.OrderCode != nil {
 		o.OrderCode = null.StringFrom(*e.OrderCode)

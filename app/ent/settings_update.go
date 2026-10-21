@@ -602,6 +602,20 @@ func (_u *SettingsUpdate) SetNillableFeedbackEmail(v *string) *SettingsUpdate {
 	return _u
 }
 
+// SetNewsletterEnabled sets the "NewsletterEnabled" field.
+func (_u *SettingsUpdate) SetNewsletterEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetNewsletterEnabled(v)
+	return _u
+}
+
+// SetNillableNewsletterEnabled sets the "NewsletterEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableNewsletterEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetNewsletterEnabled(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -796,6 +810,9 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.FeedbackEmail(); ok {
 		_spec.SetField(settings.FieldFeedbackEmail, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NewsletterEnabled(); ok {
+		_spec.SetField(settings.FieldNewsletterEnabled, field.TypeBool, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1420,6 +1437,20 @@ func (_u *SettingsUpdateOne) SetNillableFeedbackEmail(v *string) *SettingsUpdate
 	return _u
 }
 
+// SetNewsletterEnabled sets the "NewsletterEnabled" field.
+func (_u *SettingsUpdateOne) SetNewsletterEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetNewsletterEnabled(v)
+	return _u
+}
+
+// SetNillableNewsletterEnabled sets the "NewsletterEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableNewsletterEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetNewsletterEnabled(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -1644,6 +1675,9 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.FeedbackEmail(); ok {
 		_spec.SetField(settings.FieldFeedbackEmail, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NewsletterEnabled(); ok {
+		_spec.SetField(settings.FieldNewsletterEnabled, field.TypeBool, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -150,6 +150,20 @@ func (_c *OrderCreate) SetNillableInvalidatedAt(v *time.Time) *OrderCreate {
 	return _c
 }
 
+// SetNewsletter sets the "newsletter" field.
+func (_c *OrderCreate) SetNewsletter(v bool) *OrderCreate {
+	_c.mutation.SetNewsletter(v)
+	return _c
+}
+
+// SetNillableNewsletter sets the "newsletter" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableNewsletter(v *bool) *OrderCreate {
+	if v != nil {
+		_c.SetNewsletter(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrderCreate) SetID(v int) *OrderCreate {
 	_c.mutation.SetID(v)
@@ -193,6 +207,7 @@ func (_c *OrderCreate) Mutation() *OrderMutation {
 
 // Save creates the Order in the database.
 func (_c *OrderCreate) Save(ctx context.Context) (*Order, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -218,6 +233,14 @@ func (_c *OrderCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *OrderCreate) defaults() {
+	if _, ok := _c.mutation.Newsletter(); !ok {
+		v := order.DefaultNewsletter
+		_c.mutation.SetNewsletter(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *OrderCreate) check() error {
 	if _, ok := _c.mutation.TransactionID(); !ok {
@@ -234,6 +257,9 @@ func (_c *OrderCreate) check() error {
 	}
 	if _, ok := _c.mutation.VendorID(); !ok {
 		return &ValidationError{Name: "vendor_id", err: errors.New(`ent: missing required field "Order.vendor_id"`)}
+	}
+	if _, ok := _c.mutation.Newsletter(); !ok {
+		return &ValidationError{Name: "newsletter", err: errors.New(`ent: missing required field "Order.newsletter"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := order.IDValidator(v); err != nil {
@@ -320,6 +346,10 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 		_spec.SetField(order.FieldInvalidatedAt, field.TypeTime, value)
 		_node.InvalidatedAt = &value
 	}
+	if value, ok := _c.mutation.Newsletter(); ok {
+		_spec.SetField(order.FieldNewsletter, field.TypeBool, value)
+		_node.Newsletter = value
+	}
 	if nodes := _c.mutation.EntriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -373,6 +403,7 @@ func (_c *OrderCreateBulk) Save(ctx context.Context) ([]*Order, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*OrderMutation)
 				if !ok {

@@ -36,6 +36,8 @@ const (
 	FieldOdooSyncError = "odoo_sync_error"
 	// FieldInvalidatedAt holds the string denoting the invalidated_at field in the database.
 	FieldInvalidatedAt = "invalidated_at"
+	// FieldNewsletter holds the string denoting the newsletter field in the database.
+	FieldNewsletter = "newsletter"
 	// EdgeEntries holds the string denoting the entries edge name in mutations.
 	EdgeEntries = "entries"
 	// EdgePayments holds the string denoting the payments edge name in mutations.
@@ -73,6 +75,7 @@ var Columns = []string{
 	FieldOdooSyncedAt,
 	FieldOdooSyncError,
 	FieldInvalidatedAt,
+	FieldNewsletter,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -86,6 +89,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultNewsletter holds the default value on creation for the "newsletter" field.
+	DefaultNewsletter bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -156,6 +161,11 @@ func ByOdooSyncError(opts ...sql.OrderTermOption) OrderOption {
 // ByInvalidatedAt orders the results by the invalidated_at field.
 func ByInvalidatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldInvalidatedAt, opts...).ToFunc()
+}
+
+// ByNewsletter orders the results by the newsletter field.
+func ByNewsletter(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNewsletter, opts...).ToFunc()
 }
 
 // ByEntriesCount orders the results by entries count.

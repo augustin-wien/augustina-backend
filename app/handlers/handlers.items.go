@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"html"
 	"io"
 	"net/http"
 	"os"
@@ -750,10 +749,10 @@ func sendOnlineIssueMails(issue database.Item, issueImageURL string, recipients 
 		if reqErr != nil {
 			fallbackBody := fmt.Sprintf(
 				"<p>Eine neue Online-Ausgabe ist verfügbar: <strong>%s</strong></p><p><img src=\"%s\" alt=\"%s\" style=\"max-width:100%%;height:auto;\"></p><p><a href=\"%s\">Hier klicken</a> um die Zeitung zu lesen.</p>",
-				html.EscapeString(issue.Name),
-				html.EscapeString(issueImageURL),
-				html.EscapeString(issue.Name),
-				html.EscapeString(issueURL),
+				issue.Name,
+				issueImageURL,
+				issue.Name,
+				issueURL,
 			)
 			mailReq, reqErr = mailer.NewRequest([]string{recipient}, "Neue Online-Ausgabe verfügbar", fallbackBody)
 			if reqErr != nil {

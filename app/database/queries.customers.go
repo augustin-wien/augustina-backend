@@ -17,6 +17,8 @@ type Customer struct {
 	FirstName     string     `json:"firstname"`
 	LastName      string     `json:"lastname"`
 	LicenseGroups []string   `json:"licensegroups"`
+	Newsletter    bool       `json:"newsletter"`
+	NewsletterAt  *time.Time `json:"newsletter_at,omitempty"`
 	CreatedAt     *time.Time `json:"created_at,omitempty"`
 	UpdatedAt     *time.Time `json:"updated_at,omitempty"`
 }
@@ -41,6 +43,8 @@ func (db *Database) CustomerEntIntoCustomer(c *ent.Customer) Customer {
 		FirstName:     c.Firstname,
 		LastName:      c.Lastname,
 		LicenseGroups: licenseGroupsFromString(c.Licensegroups),
+		Newsletter:    c.Newsletter,
+		NewsletterAt:  c.NewsletterAt,
 		CreatedAt:     c.CreatedAt,
 		UpdatedAt:     c.UpdatedAt,
 	}
@@ -50,15 +54,20 @@ func (db *Database) CustomerEntIntoCustomer(c *ent.Customer) Customer {
 func (db *Database) CreateCustomer(customer *Customer) (*Customer, error) {
 	ctx := context.Background()
 
-	entCustomer, err := db.EntClient.Customer.Create().
+	create := db.EntClient.Customer.Create().
 		SetKeycloakid(customer.KeycloakID).
 		SetEmail(customer.Email).
 		SetFirstname(customer.FirstName).
 		SetLastname(customer.LastName).
 		SetLicensegroups(licenseGroupsToString(customer.LicenseGroups)).
+		SetNewsletter(customer.Newsletter).
 		SetCreatedAt(time.Now()).
-		SetUpdatedAt(time.Now()).
-		Save(ctx)
+		SetUpdatedAt(time.Now())
+	if customer.Newsletter {
+		create.SetNewsletterAt(time.Now())
+	}
+
+	entCustomer, err := create.Save(ctx)
 
 	if err != nil {
 		return nil, err
@@ -119,14 +128,26 @@ func (db *Database) ListCustomers() ([]*Customer, error) {
 func (db *Database) UpdateCustomer(customer *Customer) (*Customer, error) {
 	ctx := context.Background()
 
-	entCustomer, err := db.EntClient.Customer.UpdateOneID(customer.ID).
+	current, err := db.EntClient.Customer.Get(ctx, customer.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	update := db.EntClient.Customer.UpdateOneID(customer.ID).
 		SetKeycloakid(customer.KeycloakID).
 		SetEmail(customer.Email).
 		SetFirstname(customer.FirstName).
 		SetLastname(customer.LastName).
 		SetLicensegroups(licenseGroupsToString(customer.LicenseGroups)).
-		SetUpdatedAt(time.Now()).
-		Save(ctx)
+		SetNewsletter(customer.Newsletter).
+		SetUpdatedAt(time.Now())
+	if customer.Newsletter && !current.Newsletter {
+		update.SetNewsletterAt(time.Now())
+	} else if !customer.Newsletter {
+		update.ClearNewsletterAt()
+	}
+
+	entCustomer, err := update.Save(ctx)
 
 	if err != nil {
 		return nil, err
@@ -241,4 +262,15 @@ func (db *Database) AddLicenseGroupToCustomer(customerID int, licenseGroup strin
 
 	result := db.CustomerEntIntoCustomer(entCustomer)
 	return &result, nil
+}
+
+// SubscribeCustomerToNewsletter marks a customer as newsletter subscriber.
+// The original opt-in date is kept if the customer is already subscribed.
+func (db *Database) SubscribeCustomerToNewsletter(customerID int) error {
+	return db.EntClient.Customer.Update().
+		Where(entcustomer.ID(customerID), entcustomer.Newsletter(false)).
+		SetNewsletter(true).
+		SetNewsletterAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Exec(context.Background())
 }

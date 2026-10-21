@@ -99,6 +99,7 @@ type createOrderRequest struct {
 	User            string
 	VendorLicenseID string
 	CustomerEmail   null.String
+	Newsletter      bool
 }
 
 type createOrderResponse struct {
@@ -156,6 +157,36 @@ func ListUnverifiedOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respond(w, nil, orders)
+}
+
+// ListOrderStatistics godoc
+//
+//	@Summary		Count checkouts by outcome
+//	@Description	Count the online checkouts started in a period: completed, abandoned and still open
+//	@Tags			Orders
+//	@Produce		json
+//	@Param			from query string false "Minimum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//	@Param			to query string false "Maximum date (RFC3339, UTC)" example(2006-01-02T15:04:05Z)
+//	@Success		200	{object}	database.OrderStatistics
+//	@Security		KeycloakAuth
+//	@Router			/orders/statistics/ [get]
+func ListOrderStatistics(w http.ResponseWriter, r *http.Request) {
+	var from, to time.Time
+	var err error
+	if raw := r.URL.Query().Get("from"); raw != "" {
+		if from, err = time.Parse(time.RFC3339, raw); err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+	if raw := r.URL.Query().Get("to"); raw != "" {
+		if to, err = time.Parse(time.RFC3339, raw); err != nil {
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+	stats, err := database.Db.GetOrderStatistics(from, to)
+	respond(w, err, stats)
 }
 
 // ListUnsyncedOrders godoc
@@ -261,6 +292,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			order.CustomerEmail = requestData.CustomerEmail
+			order.Newsletter = requestData.Newsletter
 		}
 	}
 
@@ -310,6 +342,9 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	if settings, err = database.Db.GetSettings(); err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
+	}
+	if !settings.NewsletterEnabled {
+		order.Newsletter = false
 	}
 
 	// Add user to order

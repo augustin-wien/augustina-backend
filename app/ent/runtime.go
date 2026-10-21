@@ -102,6 +102,10 @@ func init() {
 	customerDescLicensegroups := customerFields[5].Descriptor()
 	// customer.DefaultLicensegroups holds the default value on creation for the licensegroups field.
 	customer.DefaultLicensegroups = customerDescLicensegroups.Default.(string)
+	// customerDescNewsletter is the schema descriptor for newsletter field.
+	customerDescNewsletter := customerFields[6].Descriptor()
+	// customer.DefaultNewsletter holds the default value on creation for the newsletter field.
+	customer.DefaultNewsletter = customerDescNewsletter.Default.(bool)
 	// customerDescID is the schema descriptor for id field.
 	customerDescID := customerFields[0].Descriptor()
 	// customer.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -228,6 +232,10 @@ func init() {
 	location.IDValidator = locationDescID.Validators[0].(func(int) error)
 	orderFields := schema.Order{}.Fields()
 	_ = orderFields
+	// orderDescNewsletter is the schema descriptor for newsletter field.
+	orderDescNewsletter := orderFields[13].Descriptor()
+	// order.DefaultNewsletter holds the default value on creation for the newsletter field.
+	order.DefaultNewsletter = orderDescNewsletter.Default.(bool)
 	// orderDescID is the schema descriptor for id field.
 	orderDescID := orderFields[0].Descriptor()
 	// order.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -426,6 +434,10 @@ func init() {
 	settingsDescFeedbackEmail := settingsFields[39].Descriptor()
 	// settings.DefaultFeedbackEmail holds the default value on creation for the FeedbackEmail field.
 	settings.DefaultFeedbackEmail = settingsDescFeedbackEmail.Default.(string)
+	// settingsDescNewsletterEnabled is the schema descriptor for NewsletterEnabled field.
+	settingsDescNewsletterEnabled := settingsFields[40].Descriptor()
+	// settings.DefaultNewsletterEnabled holds the default value on creation for the NewsletterEnabled field.
+	settings.DefaultNewsletterEnabled = settingsDescNewsletterEnabled.Default.(bool)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.
