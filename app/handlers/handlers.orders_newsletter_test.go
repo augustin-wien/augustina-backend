@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/url"
 	"strconv"
@@ -8,6 +9,8 @@ import (
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/ent"
+	entorder "github.com/augustin-wien/augustina-backend/ent/order"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/utils"
@@ -15,14 +18,15 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-// createTestOrder posts an order and returns it as stored in the database
+// createTestOrder posts an order and returns it as stored in the database. Without
+// VivaWallet every order gets the order code "0", which is unique, so it is cleared to
+// allow several orders per test.
 func createTestOrder(t *testing.T, req createOrderRequest) database.Order {
-	res := utils.TestRequest(t, r, "POST", "/api/orders/", req, 200)
-	var response createOrderResponse
-	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &response))
-	u, err := url.Parse(response.SmartCheckoutURL)
+	utils.TestRequest(t, r, "POST", "/api/orders/", req, 200)
+	id, err := database.Db.EntClient.Order.Query().Order(ent.Desc(entorder.FieldID)).FirstID(context.Background())
 	require.NoError(t, err)
-	order, err := database.Db.GetOrderByOrderCode(u.Query().Get("s"))
+	require.NoError(t, database.Db.EntClient.Order.UpdateOneID(id).ClearOrderCode().Exec(context.Background()))
+	order, err := database.Db.GetOrderByID(id)
 	require.NoError(t, err)
 	return order
 }
