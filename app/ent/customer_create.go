@@ -83,6 +83,34 @@ func (_c *CustomerCreate) SetNillableLicensegroups(v *string) *CustomerCreate {
 	return _c
 }
 
+// SetNewsletter sets the "newsletter" field.
+func (_c *CustomerCreate) SetNewsletter(v bool) *CustomerCreate {
+	_c.mutation.SetNewsletter(v)
+	return _c
+}
+
+// SetNillableNewsletter sets the "newsletter" field if the given value is not nil.
+func (_c *CustomerCreate) SetNillableNewsletter(v *bool) *CustomerCreate {
+	if v != nil {
+		_c.SetNewsletter(*v)
+	}
+	return _c
+}
+
+// SetNewsletterAt sets the "newsletter_at" field.
+func (_c *CustomerCreate) SetNewsletterAt(v time.Time) *CustomerCreate {
+	_c.mutation.SetNewsletterAt(v)
+	return _c
+}
+
+// SetNillableNewsletterAt sets the "newsletter_at" field if the given value is not nil.
+func (_c *CustomerCreate) SetNillableNewsletterAt(v *time.Time) *CustomerCreate {
+	if v != nil {
+		_c.SetNewsletterAt(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *CustomerCreate) SetCreatedAt(v time.Time) *CustomerCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -183,6 +211,10 @@ func (_c *CustomerCreate) defaults() {
 		v := customer.DefaultLicensegroups
 		_c.mutation.SetLicensegroups(v)
 	}
+	if _, ok := _c.mutation.Newsletter(); !ok {
+		v := customer.DefaultNewsletter
+		_c.mutation.SetNewsletter(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -201,6 +233,9 @@ func (_c *CustomerCreate) check() error {
 	}
 	if _, ok := _c.mutation.Licensegroups(); !ok {
 		return &ValidationError{Name: "licensegroups", err: errors.New(`ent: missing required field "Customer.licensegroups"`)}
+	}
+	if _, ok := _c.mutation.Newsletter(); !ok {
+		return &ValidationError{Name: "newsletter", err: errors.New(`ent: missing required field "Customer.newsletter"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := customer.IDValidator(v); err != nil {
@@ -258,6 +293,14 @@ func (_c *CustomerCreate) createSpec() (*Customer, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Licensegroups(); ok {
 		_spec.SetField(customer.FieldLicensegroups, field.TypeString, value)
 		_node.Licensegroups = value
+	}
+	if value, ok := _c.mutation.Newsletter(); ok {
+		_spec.SetField(customer.FieldNewsletter, field.TypeBool, value)
+		_node.Newsletter = value
+	}
+	if value, ok := _c.mutation.NewsletterAt(); ok {
+		_spec.SetField(customer.FieldNewsletterAt, field.TypeTime, value)
+		_node.NewsletterAt = &value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(customer.FieldCreatedAt, field.TypeTime, value)

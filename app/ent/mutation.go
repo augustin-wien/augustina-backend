@@ -3677,6 +3677,8 @@ type CustomerMutation struct {
 	firstname         *string
 	lastname          *string
 	licensegroups     *string
+	newsletter        *bool
+	newsletter_at     *time.Time
 	created_at        *time.Time
 	updated_at        *time.Time
 	clearedFields     map[string]struct{}
@@ -3972,6 +3974,91 @@ func (m *CustomerMutation) ResetLicensegroups() {
 	m.licensegroups = nil
 }
 
+// SetNewsletter sets the "newsletter" field.
+func (m *CustomerMutation) SetNewsletter(b bool) {
+	m.newsletter = &b
+}
+
+// Newsletter returns the value of the "newsletter" field in the mutation.
+func (m *CustomerMutation) Newsletter() (r bool, exists bool) {
+	v := m.newsletter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNewsletter returns the old "newsletter" field's value of the Customer entity.
+// If the Customer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CustomerMutation) OldNewsletter(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNewsletter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNewsletter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNewsletter: %w", err)
+	}
+	return oldValue.Newsletter, nil
+}
+
+// ResetNewsletter resets all changes to the "newsletter" field.
+func (m *CustomerMutation) ResetNewsletter() {
+	m.newsletter = nil
+}
+
+// SetNewsletterAt sets the "newsletter_at" field.
+func (m *CustomerMutation) SetNewsletterAt(t time.Time) {
+	m.newsletter_at = &t
+}
+
+// NewsletterAt returns the value of the "newsletter_at" field in the mutation.
+func (m *CustomerMutation) NewsletterAt() (r time.Time, exists bool) {
+	v := m.newsletter_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNewsletterAt returns the old "newsletter_at" field's value of the Customer entity.
+// If the Customer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CustomerMutation) OldNewsletterAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNewsletterAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNewsletterAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNewsletterAt: %w", err)
+	}
+	return oldValue.NewsletterAt, nil
+}
+
+// ClearNewsletterAt clears the value of the "newsletter_at" field.
+func (m *CustomerMutation) ClearNewsletterAt() {
+	m.newsletter_at = nil
+	m.clearedFields[customer.FieldNewsletterAt] = struct{}{}
+}
+
+// NewsletterAtCleared returns if the "newsletter_at" field was cleared in this mutation.
+func (m *CustomerMutation) NewsletterAtCleared() bool {
+	_, ok := m.clearedFields[customer.FieldNewsletterAt]
+	return ok
+}
+
+// ResetNewsletterAt resets all changes to the "newsletter_at" field.
+func (m *CustomerMutation) ResetNewsletterAt() {
+	m.newsletter_at = nil
+	delete(m.clearedFields, customer.FieldNewsletterAt)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *CustomerMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -4158,7 +4245,7 @@ func (m *CustomerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CustomerMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 9)
 	if m.keycloakid != nil {
 		fields = append(fields, customer.FieldKeycloakid)
 	}
@@ -4173,6 +4260,12 @@ func (m *CustomerMutation) Fields() []string {
 	}
 	if m.licensegroups != nil {
 		fields = append(fields, customer.FieldLicensegroups)
+	}
+	if m.newsletter != nil {
+		fields = append(fields, customer.FieldNewsletter)
+	}
+	if m.newsletter_at != nil {
+		fields = append(fields, customer.FieldNewsletterAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, customer.FieldCreatedAt)
@@ -4198,6 +4291,10 @@ func (m *CustomerMutation) Field(name string) (ent.Value, bool) {
 		return m.Lastname()
 	case customer.FieldLicensegroups:
 		return m.Licensegroups()
+	case customer.FieldNewsletter:
+		return m.Newsletter()
+	case customer.FieldNewsletterAt:
+		return m.NewsletterAt()
 	case customer.FieldCreatedAt:
 		return m.CreatedAt()
 	case customer.FieldUpdatedAt:
@@ -4221,6 +4318,10 @@ func (m *CustomerMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldLastname(ctx)
 	case customer.FieldLicensegroups:
 		return m.OldLicensegroups(ctx)
+	case customer.FieldNewsletter:
+		return m.OldNewsletter(ctx)
+	case customer.FieldNewsletterAt:
+		return m.OldNewsletterAt(ctx)
 	case customer.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case customer.FieldUpdatedAt:
@@ -4269,6 +4370,20 @@ func (m *CustomerMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLicensegroups(v)
 		return nil
+	case customer.FieldNewsletter:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNewsletter(v)
+		return nil
+	case customer.FieldNewsletterAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNewsletterAt(v)
+		return nil
 	case customer.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -4313,6 +4428,9 @@ func (m *CustomerMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *CustomerMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(customer.FieldNewsletterAt) {
+		fields = append(fields, customer.FieldNewsletterAt)
+	}
 	if m.FieldCleared(customer.FieldCreatedAt) {
 		fields = append(fields, customer.FieldCreatedAt)
 	}
@@ -4333,6 +4451,9 @@ func (m *CustomerMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *CustomerMutation) ClearField(name string) error {
 	switch name {
+	case customer.FieldNewsletterAt:
+		m.ClearNewsletterAt()
+		return nil
 	case customer.FieldCreatedAt:
 		m.ClearCreatedAt()
 		return nil
@@ -4361,6 +4482,12 @@ func (m *CustomerMutation) ResetField(name string) error {
 		return nil
 	case customer.FieldLicensegroups:
 		m.ResetLicensegroups()
+		return nil
+	case customer.FieldNewsletter:
+		m.ResetNewsletter()
+		return nil
+	case customer.FieldNewsletterAt:
+		m.ResetNewsletterAt()
 		return nil
 	case customer.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -8297,6 +8424,7 @@ type OrderMutation struct {
 	odoo_synced_at         *time.Time
 	odoo_sync_error        *string
 	invalidated_at         *time.Time
+	newsletter             *bool
 	clearedFields          map[string]struct{}
 	entries                map[int]struct{}
 	removedentries         map[int]struct{}
@@ -8976,6 +9104,42 @@ func (m *OrderMutation) ResetInvalidatedAt() {
 	delete(m.clearedFields, order.FieldInvalidatedAt)
 }
 
+// SetNewsletter sets the "newsletter" field.
+func (m *OrderMutation) SetNewsletter(b bool) {
+	m.newsletter = &b
+}
+
+// Newsletter returns the value of the "newsletter" field in the mutation.
+func (m *OrderMutation) Newsletter() (r bool, exists bool) {
+	v := m.newsletter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNewsletter returns the old "newsletter" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldNewsletter(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNewsletter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNewsletter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNewsletter: %w", err)
+	}
+	return oldValue.Newsletter, nil
+}
+
+// ResetNewsletter resets all changes to the "newsletter" field.
+func (m *OrderMutation) ResetNewsletter() {
+	m.newsletter = nil
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by ids.
 func (m *OrderMutation) AddEntryIDs(ids ...int) {
 	if m.entries == nil {
@@ -9118,7 +9282,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.order_code != nil {
 		fields = append(fields, order.FieldOrderCode)
 	}
@@ -9155,6 +9319,9 @@ func (m *OrderMutation) Fields() []string {
 	if m.invalidated_at != nil {
 		fields = append(fields, order.FieldInvalidatedAt)
 	}
+	if m.newsletter != nil {
+		fields = append(fields, order.FieldNewsletter)
+	}
 	return fields
 }
 
@@ -9187,6 +9354,8 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.OdooSyncError()
 	case order.FieldInvalidatedAt:
 		return m.InvalidatedAt()
+	case order.FieldNewsletter:
+		return m.Newsletter()
 	}
 	return nil, false
 }
@@ -9220,6 +9389,8 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldOdooSyncError(ctx)
 	case order.FieldInvalidatedAt:
 		return m.OldInvalidatedAt(ctx)
+	case order.FieldNewsletter:
+		return m.OldNewsletter(ctx)
 	}
 	return nil, fmt.Errorf("unknown Order field %s", name)
 }
@@ -9312,6 +9483,13 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetInvalidatedAt(v)
+		return nil
+	case order.FieldNewsletter:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNewsletter(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)
@@ -9469,6 +9647,9 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldInvalidatedAt:
 		m.ResetInvalidatedAt()
+		return nil
+	case order.FieldNewsletter:
+		m.ResetNewsletter()
 		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)

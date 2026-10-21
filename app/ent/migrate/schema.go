@@ -128,6 +128,8 @@ var (
 		{Name: "firstname", Type: field.TypeString, Default: ""},
 		{Name: "lastname", Type: field.TypeString, Default: ""},
 		{Name: "licensegroups", Type: field.TypeString, Default: ""},
+		{Name: "newsletter", Type: field.TypeBool, Default: false},
+		{Name: "newsletter_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime, Nullable: true},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 	}
@@ -264,6 +266,7 @@ var (
 		{Name: "odoo_synced_at", Type: field.TypeTime, Nullable: true},
 		{Name: "odoo_sync_error", Type: field.TypeString, Nullable: true},
 		{Name: "invalidated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "newsletter", Type: field.TypeBool, Default: false},
 	}
 	// PaymentorderTable holds the schema information for the "paymentorder" table.
 	PaymentorderTable = &schema.Table{

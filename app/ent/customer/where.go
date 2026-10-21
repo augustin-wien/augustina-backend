@@ -80,6 +80,16 @@ func Licensegroups(v string) predicate.Customer {
 	return predicate.Customer(sql.FieldEQ(FieldLicensegroups, v))
 }
 
+// Newsletter applies equality check predicate on the "newsletter" field. It's identical to NewsletterEQ.
+func Newsletter(v bool) predicate.Customer {
+	return predicate.Customer(sql.FieldEQ(FieldNewsletter, v))
+}
+
+// NewsletterAt applies equality check predicate on the "newsletter_at" field. It's identical to NewsletterAtEQ.
+func NewsletterAt(v time.Time) predicate.Customer {
+	return predicate.Customer(sql.FieldEQ(FieldNewsletterAt, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Customer {
 	return predicate.Customer(sql.FieldEQ(FieldCreatedAt, v))
@@ -413,6 +423,66 @@ func LicensegroupsEqualFold(v string) predicate.Customer {
 // LicensegroupsContainsFold applies the ContainsFold predicate on the "licensegroups" field.
 func LicensegroupsContainsFold(v string) predicate.Customer {
 	return predicate.Customer(sql.FieldContainsFold(FieldLicensegroups, v))
+}
+
+// NewsletterEQ applies the EQ predicate on the "newsletter" field.
+func NewsletterEQ(v bool) predicate.Customer {
+	return predicate.Customer(sql.FieldEQ(FieldNewsletter, v))
+}
+
+// NewsletterNEQ applies the NEQ predicate on the "newsletter" field.
+func NewsletterNEQ(v bool) predicate.Customer {
+	return predicate.Customer(sql.FieldNEQ(FieldNewsletter, v))
+}
+
+// NewsletterAtEQ applies the EQ predicate on the "newsletter_at" field.
+func NewsletterAtEQ(v time.Time) predicate.Customer {
+	return predicate.Customer(sql.FieldEQ(FieldNewsletterAt, v))
+}
+
+// NewsletterAtNEQ applies the NEQ predicate on the "newsletter_at" field.
+func NewsletterAtNEQ(v time.Time) predicate.Customer {
+	return predicate.Customer(sql.FieldNEQ(FieldNewsletterAt, v))
+}
+
+// NewsletterAtIn applies the In predicate on the "newsletter_at" field.
+func NewsletterAtIn(vs ...time.Time) predicate.Customer {
+	return predicate.Customer(sql.FieldIn(FieldNewsletterAt, vs...))
+}
+
+// NewsletterAtNotIn applies the NotIn predicate on the "newsletter_at" field.
+func NewsletterAtNotIn(vs ...time.Time) predicate.Customer {
+	return predicate.Customer(sql.FieldNotIn(FieldNewsletterAt, vs...))
+}
+
+// NewsletterAtGT applies the GT predicate on the "newsletter_at" field.
+func NewsletterAtGT(v time.Time) predicate.Customer {
+	return predicate.Customer(sql.FieldGT(FieldNewsletterAt, v))
+}
+
+// NewsletterAtGTE applies the GTE predicate on the "newsletter_at" field.
+func NewsletterAtGTE(v time.Time) predicate.Customer {
+	return predicate.Customer(sql.FieldGTE(FieldNewsletterAt, v))
+}
+
+// NewsletterAtLT applies the LT predicate on the "newsletter_at" field.
+func NewsletterAtLT(v time.Time) predicate.Customer {
+	return predicate.Customer(sql.FieldLT(FieldNewsletterAt, v))
+}
+
+// NewsletterAtLTE applies the LTE predicate on the "newsletter_at" field.
+func NewsletterAtLTE(v time.Time) predicate.Customer {
+	return predicate.Customer(sql.FieldLTE(FieldNewsletterAt, v))
+}
+
+// NewsletterAtIsNil applies the IsNil predicate on the "newsletter_at" field.
+func NewsletterAtIsNil() predicate.Customer {
+	return predicate.Customer(sql.FieldIsNull(FieldNewsletterAt))
+}
+
+// NewsletterAtNotNil applies the NotNil predicate on the "newsletter_at" field.
+func NewsletterAtNotNil() predicate.Customer {
+	return predicate.Customer(sql.FieldNotNull(FieldNewsletterAt))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
