@@ -22,6 +22,10 @@ const (
 	FieldLastname = "lastname"
 	// FieldLicensegroups holds the string denoting the licensegroups field in the database.
 	FieldLicensegroups = "licensegroups"
+	// FieldNewsletter holds the string denoting the newsletter field in the database.
+	FieldNewsletter = "newsletter"
+	// FieldNewsletterAt holds the string denoting the newsletter_at field in the database.
+	FieldNewsletterAt = "newsletter_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -47,6 +51,8 @@ var Columns = []string{
 	FieldFirstname,
 	FieldLastname,
 	FieldLicensegroups,
+	FieldNewsletter,
+	FieldNewsletterAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -70,6 +76,8 @@ var (
 	DefaultLastname string
 	// DefaultLicensegroups holds the default value on creation for the "licensegroups" field.
 	DefaultLicensegroups string
+	// DefaultNewsletter holds the default value on creation for the "newsletter" field.
+	DefaultNewsletter bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -105,6 +113,16 @@ func ByLastname(opts ...sql.OrderTermOption) OrderOption {
 // ByLicensegroups orders the results by the licensegroups field.
 func ByLicensegroups(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLicensegroups, opts...).ToFunc()
+}
+
+// ByNewsletter orders the results by the newsletter field.
+func ByNewsletter(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNewsletter, opts...).ToFunc()
+}
+
+// ByNewsletterAt orders the results by the newsletter_at field.
+func ByNewsletterAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNewsletterAt, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

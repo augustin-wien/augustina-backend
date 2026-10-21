@@ -254,6 +254,20 @@ func (_u *OrderUpdate) ClearInvalidatedAt() *OrderUpdate {
 	return _u
 }
 
+// SetNewsletter sets the "newsletter" field.
+func (_u *OrderUpdate) SetNewsletter(v bool) *OrderUpdate {
+	_u.mutation.SetNewsletter(v)
+	return _u
+}
+
+// SetNillableNewsletter sets the "newsletter" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableNewsletter(v *bool) *OrderUpdate {
+	if v != nil {
+		_u.SetNewsletter(*v)
+	}
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdate) AddEntryIDs(ids ...int) *OrderUpdate {
 	_u.mutation.AddEntryIDs(ids...)
@@ -429,6 +443,9 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.InvalidatedAtCleared() {
 		_spec.ClearField(order.FieldInvalidatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Newsletter(); ok {
+		_spec.SetField(order.FieldNewsletter, field.TypeBool, value)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -764,6 +781,20 @@ func (_u *OrderUpdateOne) ClearInvalidatedAt() *OrderUpdateOne {
 	return _u
 }
 
+// SetNewsletter sets the "newsletter" field.
+func (_u *OrderUpdateOne) SetNewsletter(v bool) *OrderUpdateOne {
+	_u.mutation.SetNewsletter(v)
+	return _u
+}
+
+// SetNillableNewsletter sets the "newsletter" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableNewsletter(v *bool) *OrderUpdateOne {
+	if v != nil {
+		_u.SetNewsletter(*v)
+	}
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdateOne) AddEntryIDs(ids ...int) *OrderUpdateOne {
 	_u.mutation.AddEntryIDs(ids...)
@@ -969,6 +1000,9 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.InvalidatedAtCleared() {
 		_spec.ClearField(order.FieldInvalidatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Newsletter(); ok {
+		_spec.SetField(order.FieldNewsletter, field.TypeBool, value)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -144,6 +144,10 @@ func (Settings) Fields() []ent.Field {
 		field.String("FeedbackEmail").
 			StorageKey("feedbackemail").
 			Default(""),
+		// Offers a newsletter opt-in when a digital item or abonement is bought
+		field.Bool("NewsletterEnabled").
+			StorageKey("newsletterenabled").
+			Default(false),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

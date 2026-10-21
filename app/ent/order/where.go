@@ -115,6 +115,11 @@ func InvalidatedAt(v time.Time) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldInvalidatedAt, v))
 }
 
+// Newsletter applies equality check predicate on the "newsletter" field. It's identical to NewsletterEQ.
+func Newsletter(v bool) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldNewsletter, v))
+}
+
 // OrderCodeEQ applies the EQ predicate on the "order_code" field.
 func OrderCodeEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrderCode, v))
@@ -758,6 +763,16 @@ func InvalidatedAtIsNil() predicate.Order {
 // InvalidatedAtNotNil applies the NotNil predicate on the "invalidated_at" field.
 func InvalidatedAtNotNil() predicate.Order {
 	return predicate.Order(sql.FieldNotNull(FieldInvalidatedAt))
+}
+
+// NewsletterEQ applies the EQ predicate on the "newsletter" field.
+func NewsletterEQ(v bool) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldNewsletter, v))
+}
+
+// NewsletterNEQ applies the NEQ predicate on the "newsletter" field.
+func NewsletterNEQ(v bool) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldNewsletter, v))
 }
 
 // HasEntries applies the HasEdge predicate on the "entries" edge.

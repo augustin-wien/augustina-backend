@@ -71,6 +71,7 @@ type PublicSettings struct {
 	DonationPageEnabled        bool
 	MatomoTrackCart            bool
 	FeedbackEnabled            bool
+	NewsletterEnabled          bool
 	Edges                      ent.SettingsEdges
 }
 
@@ -116,6 +117,7 @@ func toPublicSettings(s *ent.Settings) PublicSettings {
 		DonationPageEnabled:        s.DonationPageEnabled,
 		MatomoTrackCart:            s.MatomoTrackCart,
 		FeedbackEnabled:            s.FeedbackEnabled,
+		NewsletterEnabled:          s.NewsletterEnabled,
 		Edges:                      s.Edges,
 	}
 }
@@ -371,7 +373,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("DonationTrackingEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "AGBRequired" || key == "DonationPageEnabled" || key == "MatomoTrackCart" || key == "FeedbackEnabled" {
+		} else if key == "AGBRequired" || key == "DonationPageEnabled" || key == "MatomoTrackCart" || key == "FeedbackEnabled" || key == "NewsletterEnabled" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error(key + " is not a boolean")

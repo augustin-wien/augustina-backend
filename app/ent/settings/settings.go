@@ -90,6 +90,8 @@ const (
 	FieldFeedbackEnabled = "feedbackenabled"
 	// FieldFeedbackEmail holds the string denoting the feedbackemail field in the database.
 	FieldFeedbackEmail = "feedbackemail"
+	// FieldNewsletterEnabled holds the string denoting the newsletterenabled field in the database.
+	FieldNewsletterEnabled = "newsletterenabled"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -145,6 +147,7 @@ var Columns = []string{
 	FieldMatomoTrackCart,
 	FieldFeedbackEnabled,
 	FieldFeedbackEmail,
+	FieldNewsletterEnabled,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -247,6 +250,8 @@ var (
 	DefaultFeedbackEnabled bool
 	// DefaultFeedbackEmail holds the default value on creation for the "FeedbackEmail" field.
 	DefaultFeedbackEmail string
+	// DefaultNewsletterEnabled holds the default value on creation for the "NewsletterEnabled" field.
+	DefaultNewsletterEnabled bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -452,6 +457,11 @@ func ByFeedbackEnabled(opts ...sql.OrderTermOption) OrderOption {
 // ByFeedbackEmail orders the results by the FeedbackEmail field.
 func ByFeedbackEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFeedbackEmail, opts...).ToFunc()
+}
+
+// ByNewsletterEnabled orders the results by the NewsletterEnabled field.
+func ByNewsletterEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNewsletterEnabled, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

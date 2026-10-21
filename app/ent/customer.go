@@ -27,6 +27,10 @@ type Customer struct {
 	Lastname string `json:"lastname,omitempty"`
 	// Licensegroups holds the value of the "licensegroups" field.
 	Licensegroups string `json:"licensegroups,omitempty"`
+	// Newsletter holds the value of the "newsletter" field.
+	Newsletter bool `json:"newsletter,omitempty"`
+	// NewsletterAt holds the value of the "newsletter_at" field.
+	NewsletterAt *time.Time `json:"newsletter_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -60,11 +64,13 @@ func (*Customer) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case customer.FieldNewsletter:
+			values[i] = new(sql.NullBool)
 		case customer.FieldID:
 			values[i] = new(sql.NullInt64)
 		case customer.FieldKeycloakid, customer.FieldEmail, customer.FieldFirstname, customer.FieldLastname, customer.FieldLicensegroups:
 			values[i] = new(sql.NullString)
-		case customer.FieldCreatedAt, customer.FieldUpdatedAt:
+		case customer.FieldNewsletterAt, customer.FieldCreatedAt, customer.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -116,6 +122,19 @@ func (_m *Customer) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field licensegroups", values[i])
 			} else if value.Valid {
 				_m.Licensegroups = value.String
+			}
+		case customer.FieldNewsletter:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field newsletter", values[i])
+			} else if value.Valid {
+				_m.Newsletter = value.Bool
+			}
+		case customer.FieldNewsletterAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field newsletter_at", values[i])
+			} else if value.Valid {
+				_m.NewsletterAt = new(time.Time)
+				*_m.NewsletterAt = value.Time
 			}
 		case customer.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -186,6 +205,14 @@ func (_m *Customer) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("licensegroups=")
 	builder.WriteString(_m.Licensegroups)
+	builder.WriteString(", ")
+	builder.WriteString("newsletter=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Newsletter))
+	builder.WriteString(", ")
+	if v := _m.NewsletterAt; v != nil {
+		builder.WriteString("newsletter_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	if v := _m.CreatedAt; v != nil {
 		builder.WriteString("created_at=")

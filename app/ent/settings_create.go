@@ -566,6 +566,20 @@ func (_c *SettingsCreate) SetNillableFeedbackEmail(v *string) *SettingsCreate {
 	return _c
 }
 
+// SetNewsletterEnabled sets the "NewsletterEnabled" field.
+func (_c *SettingsCreate) SetNewsletterEnabled(v bool) *SettingsCreate {
+	_c.mutation.SetNewsletterEnabled(v)
+	return _c
+}
+
+// SetNillableNewsletterEnabled sets the "NewsletterEnabled" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableNewsletterEnabled(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetNewsletterEnabled(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
 	_c.mutation.SetID(v)
@@ -782,6 +796,10 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultFeedbackEmail
 		_c.mutation.SetFeedbackEmail(v)
 	}
+	if _, ok := _c.mutation.NewsletterEnabled(); !ok {
+		v := settings.DefaultNewsletterEnabled
+		_c.mutation.SetNewsletterEnabled(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -902,6 +920,9 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.FeedbackEmail(); !ok {
 		return &ValidationError{Name: "FeedbackEmail", err: errors.New(`ent: missing required field "Settings.FeedbackEmail"`)}
+	}
+	if _, ok := _c.mutation.NewsletterEnabled(); !ok {
+		return &ValidationError{Name: "NewsletterEnabled", err: errors.New(`ent: missing required field "Settings.NewsletterEnabled"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -1095,6 +1116,10 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.FeedbackEmail(); ok {
 		_spec.SetField(settings.FieldFeedbackEmail, field.TypeString, value)
 		_node.FeedbackEmail = value
+	}
+	if value, ok := _c.mutation.NewsletterEnabled(); ok {
+		_spec.SetField(settings.FieldNewsletterEnabled, field.TypeBool, value)
+		_node.NewsletterEnabled = value
 	}
 	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

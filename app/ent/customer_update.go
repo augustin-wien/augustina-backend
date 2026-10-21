@@ -99,6 +99,40 @@ func (_u *CustomerUpdate) SetNillableLicensegroups(v *string) *CustomerUpdate {
 	return _u
 }
 
+// SetNewsletter sets the "newsletter" field.
+func (_u *CustomerUpdate) SetNewsletter(v bool) *CustomerUpdate {
+	_u.mutation.SetNewsletter(v)
+	return _u
+}
+
+// SetNillableNewsletter sets the "newsletter" field if the given value is not nil.
+func (_u *CustomerUpdate) SetNillableNewsletter(v *bool) *CustomerUpdate {
+	if v != nil {
+		_u.SetNewsletter(*v)
+	}
+	return _u
+}
+
+// SetNewsletterAt sets the "newsletter_at" field.
+func (_u *CustomerUpdate) SetNewsletterAt(v time.Time) *CustomerUpdate {
+	_u.mutation.SetNewsletterAt(v)
+	return _u
+}
+
+// SetNillableNewsletterAt sets the "newsletter_at" field if the given value is not nil.
+func (_u *CustomerUpdate) SetNillableNewsletterAt(v *time.Time) *CustomerUpdate {
+	if v != nil {
+		_u.SetNewsletterAt(*v)
+	}
+	return _u
+}
+
+// ClearNewsletterAt clears the value of the "newsletter_at" field.
+func (_u *CustomerUpdate) ClearNewsletterAt() *CustomerUpdate {
+	_u.mutation.ClearNewsletterAt()
+	return _u
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_u *CustomerUpdate) SetCreatedAt(v time.Time) *CustomerUpdate {
 	_u.mutation.SetCreatedAt(v)
@@ -230,6 +264,15 @@ func (_u *CustomerUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Licensegroups(); ok {
 		_spec.SetField(customer.FieldLicensegroups, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Newsletter(); ok {
+		_spec.SetField(customer.FieldNewsletter, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NewsletterAt(); ok {
+		_spec.SetField(customer.FieldNewsletterAt, field.TypeTime, value)
+	}
+	if _u.mutation.NewsletterAtCleared() {
+		_spec.ClearField(customer.FieldNewsletterAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(customer.FieldCreatedAt, field.TypeTime, value)
@@ -375,6 +418,40 @@ func (_u *CustomerUpdateOne) SetNillableLicensegroups(v *string) *CustomerUpdate
 	if v != nil {
 		_u.SetLicensegroups(*v)
 	}
+	return _u
+}
+
+// SetNewsletter sets the "newsletter" field.
+func (_u *CustomerUpdateOne) SetNewsletter(v bool) *CustomerUpdateOne {
+	_u.mutation.SetNewsletter(v)
+	return _u
+}
+
+// SetNillableNewsletter sets the "newsletter" field if the given value is not nil.
+func (_u *CustomerUpdateOne) SetNillableNewsletter(v *bool) *CustomerUpdateOne {
+	if v != nil {
+		_u.SetNewsletter(*v)
+	}
+	return _u
+}
+
+// SetNewsletterAt sets the "newsletter_at" field.
+func (_u *CustomerUpdateOne) SetNewsletterAt(v time.Time) *CustomerUpdateOne {
+	_u.mutation.SetNewsletterAt(v)
+	return _u
+}
+
+// SetNillableNewsletterAt sets the "newsletter_at" field if the given value is not nil.
+func (_u *CustomerUpdateOne) SetNillableNewsletterAt(v *time.Time) *CustomerUpdateOne {
+	if v != nil {
+		_u.SetNewsletterAt(*v)
+	}
+	return _u
+}
+
+// ClearNewsletterAt clears the value of the "newsletter_at" field.
+func (_u *CustomerUpdateOne) ClearNewsletterAt() *CustomerUpdateOne {
+	_u.mutation.ClearNewsletterAt()
 	return _u
 }
 
@@ -539,6 +616,15 @@ func (_u *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err 
 	}
 	if value, ok := _u.mutation.Licensegroups(); ok {
 		_spec.SetField(customer.FieldLicensegroups, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Newsletter(); ok {
+		_spec.SetField(customer.FieldNewsletter, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NewsletterAt(); ok {
+		_spec.SetField(customer.FieldNewsletterAt, field.TypeTime, value)
+	}
+	if _u.mutation.NewsletterAtCleared() {
+		_spec.ClearField(customer.FieldNewsletterAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(customer.FieldCreatedAt, field.TypeTime, value)
