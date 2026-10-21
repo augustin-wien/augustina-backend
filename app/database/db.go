@@ -102,6 +102,11 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "onlinepaperurl" TEXT NOT NULL DEFAULT '';`,
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "mailsendername" TEXT NOT NULL DEFAULT '';`,
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "donationtrackingenabled" BOOLEAN NOT NULL DEFAULT FALSE;`,
+		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "agbrequired" BOOLEAN NOT NULL DEFAULT TRUE;`,
+		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "donationpageenabled" BOOLEAN NOT NULL DEFAULT TRUE;`,
+		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "matomotrackcart" BOOLEAN NOT NULL DEFAULT FALSE;`,
+		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "feedbackenabled" BOOLEAN NOT NULL DEFAULT FALSE;`,
+		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "feedbackemail" TEXT NOT NULL DEFAULT '';`,
 		`CREATE TABLE IF NOT EXISTS "external_payments" (
 			"id" SERIAL PRIMARY KEY,
 			"transaction_id" TEXT NOT NULL UNIQUE,

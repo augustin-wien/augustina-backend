@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/mail"
 	"os"
 	"strconv"
 	"strings"
@@ -66,6 +67,10 @@ type PublicSettings struct {
 	MatomoUrl                  string
 	MatomoSiteId               string
 	DonationTrackingEnabled    bool
+	AGBRequired                bool
+	DonationPageEnabled        bool
+	MatomoTrackCart            bool
+	FeedbackEnabled            bool
 	Edges                      ent.SettingsEdges
 }
 
@@ -107,6 +112,10 @@ func toPublicSettings(s *ent.Settings) PublicSettings {
 		MatomoUrl:                  s.MatomoUrl,
 		MatomoSiteId:               s.MatomoSiteId,
 		DonationTrackingEnabled:    s.DonationTrackingEnabled,
+		AGBRequired:                s.AGBRequired,
+		DonationPageEnabled:        s.DonationPageEnabled,
+		MatomoTrackCart:            s.MatomoTrackCart,
+		FeedbackEnabled:            s.FeedbackEnabled,
 		Edges:                      s.Edges,
 	}
 }
@@ -362,6 +371,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("DonationTrackingEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
+		} else if key == "AGBRequired" || key == "DonationPageEnabled" || key == "MatomoTrackCart" || key == "FeedbackEnabled" {
+			fieldsClean[key], err = strconv.ParseBool(value[0])
+			if err != nil {
+				log.Error(key + " is not a boolean")
+				utils.ErrorJSON(w, errors.New(key+" is not a boolean"), http.StatusBadRequest)
+				return
+			}
 		} else if key == "WordPressInviteTTL" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
@@ -390,6 +406,13 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	if strings.ContainsAny(settings.MailSenderName, "\r\n") {
 		utils.ErrorJSON(w, errors.New("mail sender name contains invalid characters"), http.StatusBadRequest)
 		return
+	}
+	settings.FeedbackEmail = strings.TrimSpace(settings.FeedbackEmail)
+	if settings.FeedbackEmail != "" {
+		if _, err := mail.ParseAddress(settings.FeedbackEmail); err != nil || strings.ContainsAny(settings.FeedbackEmail, "\r\n") {
+			utils.ErrorJSON(w, errors.New("feedback email is invalid"), http.StatusBadRequest)
+			return
+		}
 	}
 	log.Debug("updateSettings: settings are ", settings)
 	// Update main item only when explicitly provided by the form.

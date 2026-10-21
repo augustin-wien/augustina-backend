@@ -496,6 +496,76 @@ func (_c *SettingsCreate) SetNillableDonationTrackingEnabled(v *bool) *SettingsC
 	return _c
 }
 
+// SetAGBRequired sets the "AGBRequired" field.
+func (_c *SettingsCreate) SetAGBRequired(v bool) *SettingsCreate {
+	_c.mutation.SetAGBRequired(v)
+	return _c
+}
+
+// SetNillableAGBRequired sets the "AGBRequired" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableAGBRequired(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetAGBRequired(*v)
+	}
+	return _c
+}
+
+// SetDonationPageEnabled sets the "DonationPageEnabled" field.
+func (_c *SettingsCreate) SetDonationPageEnabled(v bool) *SettingsCreate {
+	_c.mutation.SetDonationPageEnabled(v)
+	return _c
+}
+
+// SetNillableDonationPageEnabled sets the "DonationPageEnabled" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableDonationPageEnabled(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetDonationPageEnabled(*v)
+	}
+	return _c
+}
+
+// SetMatomoTrackCart sets the "MatomoTrackCart" field.
+func (_c *SettingsCreate) SetMatomoTrackCart(v bool) *SettingsCreate {
+	_c.mutation.SetMatomoTrackCart(v)
+	return _c
+}
+
+// SetNillableMatomoTrackCart sets the "MatomoTrackCart" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableMatomoTrackCart(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetMatomoTrackCart(*v)
+	}
+	return _c
+}
+
+// SetFeedbackEnabled sets the "FeedbackEnabled" field.
+func (_c *SettingsCreate) SetFeedbackEnabled(v bool) *SettingsCreate {
+	_c.mutation.SetFeedbackEnabled(v)
+	return _c
+}
+
+// SetNillableFeedbackEnabled sets the "FeedbackEnabled" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableFeedbackEnabled(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetFeedbackEnabled(*v)
+	}
+	return _c
+}
+
+// SetFeedbackEmail sets the "FeedbackEmail" field.
+func (_c *SettingsCreate) SetFeedbackEmail(v string) *SettingsCreate {
+	_c.mutation.SetFeedbackEmail(v)
+	return _c
+}
+
+// SetNillableFeedbackEmail sets the "FeedbackEmail" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableFeedbackEmail(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetFeedbackEmail(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
 	_c.mutation.SetID(v)
@@ -692,6 +762,26 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultDonationTrackingEnabled
 		_c.mutation.SetDonationTrackingEnabled(v)
 	}
+	if _, ok := _c.mutation.AGBRequired(); !ok {
+		v := settings.DefaultAGBRequired
+		_c.mutation.SetAGBRequired(v)
+	}
+	if _, ok := _c.mutation.DonationPageEnabled(); !ok {
+		v := settings.DefaultDonationPageEnabled
+		_c.mutation.SetDonationPageEnabled(v)
+	}
+	if _, ok := _c.mutation.MatomoTrackCart(); !ok {
+		v := settings.DefaultMatomoTrackCart
+		_c.mutation.SetMatomoTrackCart(v)
+	}
+	if _, ok := _c.mutation.FeedbackEnabled(); !ok {
+		v := settings.DefaultFeedbackEnabled
+		_c.mutation.SetFeedbackEnabled(v)
+	}
+	if _, ok := _c.mutation.FeedbackEmail(); !ok {
+		v := settings.DefaultFeedbackEmail
+		_c.mutation.SetFeedbackEmail(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -797,6 +887,21 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.DonationTrackingEnabled(); !ok {
 		return &ValidationError{Name: "DonationTrackingEnabled", err: errors.New(`ent: missing required field "Settings.DonationTrackingEnabled"`)}
+	}
+	if _, ok := _c.mutation.AGBRequired(); !ok {
+		return &ValidationError{Name: "AGBRequired", err: errors.New(`ent: missing required field "Settings.AGBRequired"`)}
+	}
+	if _, ok := _c.mutation.DonationPageEnabled(); !ok {
+		return &ValidationError{Name: "DonationPageEnabled", err: errors.New(`ent: missing required field "Settings.DonationPageEnabled"`)}
+	}
+	if _, ok := _c.mutation.MatomoTrackCart(); !ok {
+		return &ValidationError{Name: "MatomoTrackCart", err: errors.New(`ent: missing required field "Settings.MatomoTrackCart"`)}
+	}
+	if _, ok := _c.mutation.FeedbackEnabled(); !ok {
+		return &ValidationError{Name: "FeedbackEnabled", err: errors.New(`ent: missing required field "Settings.FeedbackEnabled"`)}
+	}
+	if _, ok := _c.mutation.FeedbackEmail(); !ok {
+		return &ValidationError{Name: "FeedbackEmail", err: errors.New(`ent: missing required field "Settings.FeedbackEmail"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -970,6 +1075,26 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DonationTrackingEnabled(); ok {
 		_spec.SetField(settings.FieldDonationTrackingEnabled, field.TypeBool, value)
 		_node.DonationTrackingEnabled = value
+	}
+	if value, ok := _c.mutation.AGBRequired(); ok {
+		_spec.SetField(settings.FieldAGBRequired, field.TypeBool, value)
+		_node.AGBRequired = value
+	}
+	if value, ok := _c.mutation.DonationPageEnabled(); ok {
+		_spec.SetField(settings.FieldDonationPageEnabled, field.TypeBool, value)
+		_node.DonationPageEnabled = value
+	}
+	if value, ok := _c.mutation.MatomoTrackCart(); ok {
+		_spec.SetField(settings.FieldMatomoTrackCart, field.TypeBool, value)
+		_node.MatomoTrackCart = value
+	}
+	if value, ok := _c.mutation.FeedbackEnabled(); ok {
+		_spec.SetField(settings.FieldFeedbackEnabled, field.TypeBool, value)
+		_node.FeedbackEnabled = value
+	}
+	if value, ok := _c.mutation.FeedbackEmail(); ok {
+		_spec.SetField(settings.FieldFeedbackEmail, field.TypeString, value)
+		_node.FeedbackEmail = value
 	}
 	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -406,6 +406,26 @@ func init() {
 	settingsDescDonationTrackingEnabled := settingsFields[34].Descriptor()
 	// settings.DefaultDonationTrackingEnabled holds the default value on creation for the DonationTrackingEnabled field.
 	settings.DefaultDonationTrackingEnabled = settingsDescDonationTrackingEnabled.Default.(bool)
+	// settingsDescAGBRequired is the schema descriptor for AGBRequired field.
+	settingsDescAGBRequired := settingsFields[35].Descriptor()
+	// settings.DefaultAGBRequired holds the default value on creation for the AGBRequired field.
+	settings.DefaultAGBRequired = settingsDescAGBRequired.Default.(bool)
+	// settingsDescDonationPageEnabled is the schema descriptor for DonationPageEnabled field.
+	settingsDescDonationPageEnabled := settingsFields[36].Descriptor()
+	// settings.DefaultDonationPageEnabled holds the default value on creation for the DonationPageEnabled field.
+	settings.DefaultDonationPageEnabled = settingsDescDonationPageEnabled.Default.(bool)
+	// settingsDescMatomoTrackCart is the schema descriptor for MatomoTrackCart field.
+	settingsDescMatomoTrackCart := settingsFields[37].Descriptor()
+	// settings.DefaultMatomoTrackCart holds the default value on creation for the MatomoTrackCart field.
+	settings.DefaultMatomoTrackCart = settingsDescMatomoTrackCart.Default.(bool)
+	// settingsDescFeedbackEnabled is the schema descriptor for FeedbackEnabled field.
+	settingsDescFeedbackEnabled := settingsFields[38].Descriptor()
+	// settings.DefaultFeedbackEnabled holds the default value on creation for the FeedbackEnabled field.
+	settings.DefaultFeedbackEnabled = settingsDescFeedbackEnabled.Default.(bool)
+	// settingsDescFeedbackEmail is the schema descriptor for FeedbackEmail field.
+	settingsDescFeedbackEmail := settingsFields[39].Descriptor()
+	// settings.DefaultFeedbackEmail holds the default value on creation for the FeedbackEmail field.
+	settings.DefaultFeedbackEmail = settingsDescFeedbackEmail.Default.(string)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

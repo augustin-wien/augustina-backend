@@ -123,7 +123,12 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetMatomoSiteId(settings.MatomoSiteId).
 		SetOnlinePaperUrl(settings.OnlinePaperUrl).
 		SetMailSenderName(settings.MailSenderName).
-		SetDonationTrackingEnabled(settings.DonationTrackingEnabled)
+		SetDonationTrackingEnabled(settings.DonationTrackingEnabled).
+		SetAGBRequired(settings.AGBRequired).
+		SetDonationPageEnabled(settings.DonationPageEnabled).
+		SetMatomoTrackCart(settings.MatomoTrackCart).
+		SetFeedbackEnabled(settings.FeedbackEnabled).
+		SetFeedbackEmail(settings.FeedbackEmail)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {

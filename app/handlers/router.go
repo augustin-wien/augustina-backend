@@ -69,7 +69,7 @@ func GetRouter() (r *chi.Mux) {
 	corsHandler := cors.Handler(cors.Options{
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
+		ExposedHeaders:   []string{"Link", "X-Request-Id"},
 		AllowCredentials: true,
 		MaxAge:           300,
 		AllowOriginFunc: func(r *http.Request, origin string) bool {
@@ -220,6 +220,8 @@ func GetRouter() (r *chi.Mux) {
 				r.Post("/wordpress-invite/test/", testWordPressInvite)
 			})
 		})
+
+		r.With(httprate.LimitByIP(5, 1*time.Minute)).Post("/api/feedback/", SendFeedback)
 
 		// Vendors
 		r.Route("/api/vendors", func(r chi.Router) {

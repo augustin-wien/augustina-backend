@@ -114,6 +114,9 @@ func reportToSentry(ent zapcore.Entry, fields []zapcore.Field) {
 				f.AddTo(enc)
 			}
 			scope.SetContext("log_fields", enc.Fields)
+			if id, ok := enc.Fields["request_id"].(string); ok && id != "" {
+				scope.SetTag("request_id", id)
+			}
 		}
 		sentry.CaptureMessage(ent.Message)
 	})

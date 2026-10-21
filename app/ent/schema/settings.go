@@ -124,6 +124,26 @@ func (Settings) Fields() []ent.Field {
 		field.Bool("DonationTrackingEnabled").
 			StorageKey("donationtrackingenabled").
 			Default(false),
+		// Whether the shop asks the customer to accept the terms before paying
+		field.Bool("AGBRequired").
+			StorageKey("agbrequired").
+			Default(true),
+		// Whether the shop shows the donation/tip step
+		field.Bool("DonationPageEnabled").
+			StorageKey("donationpageenabled").
+			Default(true),
+		// Sends the products in the cart to Matomo as events. Only has an effect when Matomo is configured.
+		field.Bool("MatomoTrackCart").
+			StorageKey("matomotrackcart").
+			Default(false),
+		// Shows a feedback form at the end of the purchase and on the error pages
+		field.Bool("FeedbackEnabled").
+			StorageKey("feedbackenabled").
+			Default(false),
+		// Recipient of the feedback mails. Not public.
+		field.String("FeedbackEmail").
+			StorageKey("feedbackemail").
+			Default(""),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

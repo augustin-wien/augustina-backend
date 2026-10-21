@@ -80,6 +80,16 @@ const (
 	FieldMailSenderName = "mailsendername"
 	// FieldDonationTrackingEnabled holds the string denoting the donationtrackingenabled field in the database.
 	FieldDonationTrackingEnabled = "donationtrackingenabled"
+	// FieldAGBRequired holds the string denoting the agbrequired field in the database.
+	FieldAGBRequired = "agbrequired"
+	// FieldDonationPageEnabled holds the string denoting the donationpageenabled field in the database.
+	FieldDonationPageEnabled = "donationpageenabled"
+	// FieldMatomoTrackCart holds the string denoting the matomotrackcart field in the database.
+	FieldMatomoTrackCart = "matomotrackcart"
+	// FieldFeedbackEnabled holds the string denoting the feedbackenabled field in the database.
+	FieldFeedbackEnabled = "feedbackenabled"
+	// FieldFeedbackEmail holds the string denoting the feedbackemail field in the database.
+	FieldFeedbackEmail = "feedbackemail"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -130,6 +140,11 @@ var Columns = []string{
 	FieldOnlinePaperUrl,
 	FieldMailSenderName,
 	FieldDonationTrackingEnabled,
+	FieldAGBRequired,
+	FieldDonationPageEnabled,
+	FieldMatomoTrackCart,
+	FieldFeedbackEnabled,
+	FieldFeedbackEmail,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -222,6 +237,16 @@ var (
 	DefaultMailSenderName string
 	// DefaultDonationTrackingEnabled holds the default value on creation for the "DonationTrackingEnabled" field.
 	DefaultDonationTrackingEnabled bool
+	// DefaultAGBRequired holds the default value on creation for the "AGBRequired" field.
+	DefaultAGBRequired bool
+	// DefaultDonationPageEnabled holds the default value on creation for the "DonationPageEnabled" field.
+	DefaultDonationPageEnabled bool
+	// DefaultMatomoTrackCart holds the default value on creation for the "MatomoTrackCart" field.
+	DefaultMatomoTrackCart bool
+	// DefaultFeedbackEnabled holds the default value on creation for the "FeedbackEnabled" field.
+	DefaultFeedbackEnabled bool
+	// DefaultFeedbackEmail holds the default value on creation for the "FeedbackEmail" field.
+	DefaultFeedbackEmail string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -402,6 +427,31 @@ func ByMailSenderName(opts ...sql.OrderTermOption) OrderOption {
 // ByDonationTrackingEnabled orders the results by the DonationTrackingEnabled field.
 func ByDonationTrackingEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDonationTrackingEnabled, opts...).ToFunc()
+}
+
+// ByAGBRequired orders the results by the AGBRequired field.
+func ByAGBRequired(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAGBRequired, opts...).ToFunc()
+}
+
+// ByDonationPageEnabled orders the results by the DonationPageEnabled field.
+func ByDonationPageEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDonationPageEnabled, opts...).ToFunc()
+}
+
+// ByMatomoTrackCart orders the results by the MatomoTrackCart field.
+func ByMatomoTrackCart(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMatomoTrackCart, opts...).ToFunc()
+}
+
+// ByFeedbackEnabled orders the results by the FeedbackEnabled field.
+func ByFeedbackEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeedbackEnabled, opts...).ToFunc()
+}
+
+// ByFeedbackEmail orders the results by the FeedbackEmail field.
+func ByFeedbackEmail(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeedbackEmail, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.
