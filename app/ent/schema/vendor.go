@@ -53,6 +53,10 @@ func (Vendor) Fields() []ent.Field {
 			Default(""),
 		field.String("accountproofurl"),
 		field.String("debt"),
+		// when the backoffice last scanned the vendor's ID card
+		field.Time("lastidscan").
+			Optional().
+			Nillable(),
 	}
 }
 

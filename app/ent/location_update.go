@@ -127,6 +127,20 @@ func (_u *LocationUpdate) SetNillableTelephone(v *string) *LocationUpdate {
 	return _u
 }
 
+// SetMarketNumber sets the "market_number" field.
+func (_u *LocationUpdate) SetMarketNumber(v string) *LocationUpdate {
+	_u.mutation.SetMarketNumber(v)
+	return _u
+}
+
+// SetNillableMarketNumber sets the "market_number" field if the given value is not nil.
+func (_u *LocationUpdate) SetNillableMarketNumber(v *string) *LocationUpdate {
+	if v != nil {
+		_u.SetMarketNumber(*v)
+	}
+	return _u
+}
+
 // SetWorkingTime sets the "working_time" field.
 func (_u *LocationUpdate) SetWorkingTime(v *schema.WorkingTime) *LocationUpdate {
 	_u.mutation.SetWorkingTime(v)
@@ -222,6 +236,9 @@ func (_u *LocationUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Telephone(); ok {
 		_spec.SetField(location.FieldTelephone, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MarketNumber(); ok {
+		_spec.SetField(location.FieldMarketNumber, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.WorkingTime(); ok {
 		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)
@@ -373,6 +390,20 @@ func (_u *LocationUpdateOne) SetNillableTelephone(v *string) *LocationUpdateOne 
 	return _u
 }
 
+// SetMarketNumber sets the "market_number" field.
+func (_u *LocationUpdateOne) SetMarketNumber(v string) *LocationUpdateOne {
+	_u.mutation.SetMarketNumber(v)
+	return _u
+}
+
+// SetNillableMarketNumber sets the "market_number" field if the given value is not nil.
+func (_u *LocationUpdateOne) SetNillableMarketNumber(v *string) *LocationUpdateOne {
+	if v != nil {
+		_u.SetMarketNumber(*v)
+	}
+	return _u
+}
+
 // SetWorkingTime sets the "working_time" field.
 func (_u *LocationUpdateOne) SetWorkingTime(v *schema.WorkingTime) *LocationUpdateOne {
 	_u.mutation.SetWorkingTime(v)
@@ -498,6 +529,9 @@ func (_u *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err 
 	}
 	if value, ok := _u.mutation.Telephone(); ok {
 		_spec.SetField(location.FieldTelephone, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.MarketNumber(); ok {
+		_spec.SetField(location.FieldMarketNumber, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.WorkingTime(); ok {
 		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)

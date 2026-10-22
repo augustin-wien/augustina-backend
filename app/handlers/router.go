@@ -152,38 +152,13 @@ func GetRouter() (r *chi.Mux) {
 	// Flour integration is disabled globally.
 
 	// Odoo integration - NO strict security middlewares (BlockBadUserAgents, BlockFakeBrowsers, BlockMaliciousPatterns)
-	// to allow external software like Odoo to communicate without being blocked
-	if config.Config.OdooWebhookURL != "" {
-		log.Infof("Odoo integration enabled: %s", config.Config.OdooWebhookURL)
+	// to allow external software like Odoo to communicate without being blocked.
+	// The routes always exist so the integration can be switched on in the settings without a
+	// restart; while no Odoo webhook URL is set they answer 404. /api/flour is the name the
+	// Odoo API had after the Flour plugin was split off, so both paths serve it.
+	r.Route("/api/odoo", odooRoutes)
+	r.Route("/api/flour", odooRoutes)
 
-		r.Route("/api/flour", func(r chi.Router) {
-			r.Use(middlewares.AuthMiddleware)
-			r.Use(middlewares.OdooAuthMiddleware)
-			r.Route("/vendors", func(r chi.Router) {
-
-				r.Put("/license/{licenseID}/", UpdateVendorByLicenseID)
-				r.Get("/license/{licenseID}/", GetVendorByLicenseID)
-
-				r.Put("/{id}/", UpdateVendor)
-				r.Delete("/{id}/", DeleteVendor)
-				r.Get("/{id}/", GetVendor)
-				r.Post("/", CreateVendor)
-
-			})
-			r.Route("/payments", func(r chi.Router) {
-				r.Post("/payout/", CreatePaymentPayout)
-			})
-			r.Route("/items", func(r chi.Router) {
-				r.Get("/", ListItemsBackoffice)
-				r.Post("/", CreateItem)
-				r.Route("/{id}", func(r chi.Router) {
-					r.Put("/", UpdateItem)
-					r.Delete("/", DeleteItem)
-				})
-			})
-		})
-
-	}
 	// Payment service providers
 	r.Route("/api/webhooks/vivawallet", func(r chi.Router) {
 		r.Post("/success/", VivaWalletWebhookSuccess)
@@ -218,6 +193,7 @@ func GetRouter() (r *chi.Mux) {
 				r.Put("/", updateSettings)
 				r.Put("/css/", updateCSS)
 				r.Post("/wordpress-invite/test/", testWordPressInvite)
+				r.Post("/nextcloud/test/", testNextcloud)
 			})
 		})
 
@@ -246,6 +222,8 @@ func GetRouter() (r *chi.Mux) {
 
 				r.Post("/{licenseID}/pos-order/", CreatePOSOrder)
 				r.Get("/{licenseID}/pos-orders/", ListPOSOrdersForVendor)
+				r.Post("/{licenseID}/id-scan/", ScanVendorIDCard)
+				r.Post("/{licenseID}/nextcloud-folder/", OpenVendorNextcloudFolder)
 
 				r.Route("/{id}", func(r chi.Router) {
 					r.Put("/", UpdateVendor)
@@ -449,4 +427,44 @@ func GetRouter() (r *chi.Mux) {
 	})
 
 	return r
+}
+
+// odooEnabled hides the Odoo API while the integration is switched off in the settings
+func odooEnabled(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if config.Config.OdooWebhookURL == "" {
+			http.NotFound(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// odooRoutes is the API Odoo uses to manage vendors, items and payouts
+func odooRoutes(r chi.Router) {
+	r.Use(odooEnabled)
+	r.Use(middlewares.AuthMiddleware)
+	r.Use(middlewares.OdooAuthMiddleware)
+	r.Route("/vendors", func(r chi.Router) {
+
+		r.Put("/license/{licenseID}/", UpdateVendorByLicenseID)
+		r.Get("/license/{licenseID}/", GetVendorByLicenseID)
+
+		r.Put("/{id}/", UpdateVendor)
+		r.Delete("/{id}/", DeleteVendor)
+		r.Get("/{id}/", GetVendor)
+		r.Post("/", CreateVendor)
+
+	})
+	r.Route("/payments", func(r chi.Router) {
+		r.Post("/payout/", CreatePaymentPayout)
+	})
+	r.Route("/items", func(r chi.Router) {
+		r.Get("/", ListItemsBackoffice)
+		r.Post("/", CreateItem)
+		r.Route("/{id}", func(r chi.Router) {
+			r.Put("/", UpdateItem)
+			r.Delete("/", DeleteItem)
+		})
+	})
 }

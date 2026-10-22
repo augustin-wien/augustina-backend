@@ -37,6 +37,7 @@ type Vendor struct {
 	HasSmartphone    bool
 	HasBankAccount   bool
 	Debt             string
+	LastIDScan       null.Time `swaggertype:"string" format:"date-time"` // Time the backoffice last scanned the vendor's ID card, null if never; ignored on writes
 	LastOnlineSale  null.Time `swaggertype:"string" format:"date-time"` // Computed: time of the vendor's last verified online (QR code) order, null if none; ignored on writes
 }
 

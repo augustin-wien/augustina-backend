@@ -219,6 +219,7 @@ var (
 		{Name: "latitude", Type: field.TypeFloat64, Default: 0.1},
 		{Name: "zip", Type: field.TypeString},
 		{Name: "telephone", Type: field.TypeString, Default: ""},
+		{Name: "market_number", Type: field.TypeString, Default: ""},
 		{Name: "working_time", Type: field.TypeJSON},
 		{Name: "vendor_locations", Type: field.TypeInt, Nullable: true},
 	}
@@ -230,7 +231,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "locations_vendor_locations",
-				Columns:    []*schema.Column{LocationsColumns[8]},
+				Columns:    []*schema.Column{LocationsColumns[9]},
 				RefColumns: []*schema.Column{VendorColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -427,6 +428,16 @@ var (
 		{Name: "feedbackenabled", Type: field.TypeBool, Default: false},
 		{Name: "feedbackemail", Type: field.TypeString, Default: ""},
 		{Name: "newsletterenabled", Type: field.TypeBool, Default: false},
+		{Name: "idscanenabled", Type: field.TypeBool, Default: false},
+		{Name: "nextcloudenabled", Type: field.TypeBool, Default: false},
+		{Name: "nextcloudurl", Type: field.TypeString, Default: ""},
+		{Name: "nextcloudpublicurl", Type: field.TypeString, Default: ""},
+		{Name: "nextcloudusername", Type: field.TypeString, Default: ""},
+		{Name: "nextcloudapppassword", Type: field.TypeString, Default: ""},
+		{Name: "nextcloudvendorroot", Type: field.TypeString, Default: "Verkaufende"},
+		{Name: "odoowebhookurl", Type: field.TypeString, Default: ""},
+		{Name: "odoowebhooktoken", Type: field.TypeString, Default: ""},
+		{Name: "odoodbfilter", Type: field.TypeString, Default: ""},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -437,7 +448,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[41]},
+				Columns:    []*schema.Column{SettingsColumns[51]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -467,6 +478,7 @@ var (
 		{Name: "blockednote", Type: field.TypeString, Default: ""},
 		{Name: "accountproofurl", Type: field.TypeString},
 		{Name: "debt", Type: field.TypeString},
+		{Name: "lastidscan", Type: field.TypeTime, Nullable: true},
 	}
 	// VendorTable holds the schema information for the "vendor" table.
 	VendorTable = &schema.Table{

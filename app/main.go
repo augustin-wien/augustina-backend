@@ -87,6 +87,10 @@ func main() {
 		log.Error("Backfilling OnlinePaperUrl: ", err)
 	}
 
+	if err := database.Db.BackfillOdooWebhook(os.Getenv("ODOO_WEBHOOK_URL"), os.Getenv("ODOO_WEBHOOK_TOKEN")); err != nil {
+		log.Error("Backfilling Odoo webhook: ", err)
+	}
+
 	// Prime config.Config.OnlinePaperUrl from the DB-backed setting now, rather than waiting
 	// for whichever request or job happens to call GetSettings() first - see the comment on
 	// OnlinePaperUrl in config.go.

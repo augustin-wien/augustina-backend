@@ -348,3 +348,29 @@ func TestSendPaymentToOdooDonationWithMultipleQuantities(t *testing.T) {
 	err := SendPaymentToOdoo(777, timestamp, items, vendor, 100)
 	require.NoError(t, err)
 }
+
+// TestSendPaymentToOdooHeaders checks that the optional database filter and the token reach Odoo
+func TestSendPaymentToOdooHeaders(t *testing.T) {
+	var dbFilter, auth string
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		dbFilter = r.Header.Get("X-Odoo-dbfilter")
+		auth = r.Header.Get("Authorization")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer mockServer.Close()
+
+	original := config.Config
+	defer func() { config.Config = original }()
+	config.Config.OdooWebhookURL = mockServer.URL
+	config.Config.OdooWebhookToken = "odoo-token"
+	config.Config.OdooDBFilter = "augustin_prod"
+
+	vendor := database.Vendor{ID: 1, LicenseID: null.StringFrom("x")}
+	require.NoError(t, SendPaymentToOdoo(1, time.Now(), nil, vendor, 0))
+	require.Equal(t, "augustin_prod", dbFilter)
+	require.Equal(t, "Bearer odoo-token", auth)
+
+	config.Config.OdooDBFilter = ""
+	require.NoError(t, SendPaymentToOdoo(2, time.Now(), nil, vendor, 0))
+	require.Empty(t, dbFilter)
+}

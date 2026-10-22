@@ -325,6 +325,26 @@ func (_u *VendorUpdate) SetNillableDebt(v *string) *VendorUpdate {
 	return _u
 }
 
+// SetLastidscan sets the "lastidscan" field.
+func (_u *VendorUpdate) SetLastidscan(v time.Time) *VendorUpdate {
+	_u.mutation.SetLastidscan(v)
+	return _u
+}
+
+// SetNillableLastidscan sets the "lastidscan" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableLastidscan(v *time.Time) *VendorUpdate {
+	if v != nil {
+		_u.SetLastidscan(*v)
+	}
+	return _u
+}
+
+// ClearLastidscan clears the value of the "lastidscan" field.
+func (_u *VendorUpdate) ClearLastidscan() *VendorUpdate {
+	_u.mutation.ClearLastidscan()
+	return _u
+}
+
 // AddLocationIDs adds the "locations" edge to the Location entity by IDs.
 func (_u *VendorUpdate) AddLocationIDs(ids ...int) *VendorUpdate {
 	_u.mutation.AddLocationIDs(ids...)
@@ -536,6 +556,12 @@ func (_u *VendorUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Debt(); ok {
 		_spec.SetField(vendor.FieldDebt, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Lastidscan(); ok {
+		_spec.SetField(vendor.FieldLastidscan, field.TypeTime, value)
+	}
+	if _u.mutation.LastidscanCleared() {
+		_spec.ClearField(vendor.FieldLastidscan, field.TypeTime)
 	}
 	if _u.mutation.LocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -986,6 +1012,26 @@ func (_u *VendorUpdateOne) SetNillableDebt(v *string) *VendorUpdateOne {
 	return _u
 }
 
+// SetLastidscan sets the "lastidscan" field.
+func (_u *VendorUpdateOne) SetLastidscan(v time.Time) *VendorUpdateOne {
+	_u.mutation.SetLastidscan(v)
+	return _u
+}
+
+// SetNillableLastidscan sets the "lastidscan" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableLastidscan(v *time.Time) *VendorUpdateOne {
+	if v != nil {
+		_u.SetLastidscan(*v)
+	}
+	return _u
+}
+
+// ClearLastidscan clears the value of the "lastidscan" field.
+func (_u *VendorUpdateOne) ClearLastidscan() *VendorUpdateOne {
+	_u.mutation.ClearLastidscan()
+	return _u
+}
+
 // AddLocationIDs adds the "locations" edge to the Location entity by IDs.
 func (_u *VendorUpdateOne) AddLocationIDs(ids ...int) *VendorUpdateOne {
 	_u.mutation.AddLocationIDs(ids...)
@@ -1227,6 +1273,12 @@ func (_u *VendorUpdateOne) sqlSave(ctx context.Context) (_node *Vendor, err erro
 	}
 	if value, ok := _u.mutation.Debt(); ok {
 		_spec.SetField(vendor.FieldDebt, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Lastidscan(); ok {
+		_spec.SetField(vendor.FieldLastidscan, field.TypeTime, value)
+	}
+	if _u.mutation.LastidscanCleared() {
+		_spec.ClearField(vendor.FieldLastidscan, field.TypeTime)
 	}
 	if _u.mutation.LocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -54,6 +54,8 @@ const (
 	FieldAccountproofurl = "accountproofurl"
 	// FieldDebt holds the string denoting the debt field in the database.
 	FieldDebt = "debt"
+	// FieldLastidscan holds the string denoting the lastidscan field in the database.
+	FieldLastidscan = "lastidscan"
 	// EdgeLocations holds the string denoting the locations edge name in mutations.
 	EdgeLocations = "locations"
 	// EdgeComments holds the string denoting the comments edge name in mutations.
@@ -109,6 +111,7 @@ var Columns = []string{
 	FieldBlockednote,
 	FieldAccountproofurl,
 	FieldDebt,
+	FieldLastidscan,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -261,6 +264,11 @@ func ByAccountproofurl(opts ...sql.OrderTermOption) OrderOption {
 // ByDebt orders the results by the debt field.
 func ByDebt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDebt, opts...).ToFunc()
+}
+
+// ByLastidscan orders the results by the lastidscan field.
+func ByLastidscan(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastidscan, opts...).ToFunc()
 }
 
 // ByLocationsCount orders the results by locations count.

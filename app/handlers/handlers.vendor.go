@@ -11,6 +11,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/ent"
+	"github.com/augustin-wien/augustina-backend/integrations"
 	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/go-chi/chi/v5"
@@ -631,6 +632,102 @@ func GetVendorByLicenseID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respond(w, err, vendor)
+}
+
+// ScanVendorIDCard godoc
+//
+//	 	@Summary 		Record a scan of the vendor's ID card
+//		@Description	Stores the current time as the vendor's last ID card scan and returns the vendor
+//		@Tags			Vendors
+//		@Produce		json
+//		@Success		200	{object}	database.Vendor
+//		@Failure		403
+//		@Failure		404
+//		@Security		KeycloakAuth
+//	    @Param          licenseID   path string  true  "License ID"
+//		@Router			/vendors/{licenseID}/id-scan/ [post]
+func ScanVendorIDCard(w http.ResponseWriter, r *http.Request) {
+	licenseID := chi.URLParam(r, "licenseID")
+
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	if !settings.IDScanEnabled {
+		utils.ErrorJSON(w, errors.New("ID card scanning is disabled"), http.StatusForbidden)
+		return
+	}
+
+	vendor, err := database.Db.RecordVendorIDScan(licenseID)
+	if errors.Is(err, database.ErrVendorNotFound) {
+		utils.ErrorJSON(w, err, http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Error("ScanVendorIDCard: ", err)
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	log.Info(r.Header.Get("X-Auth-User-Name") + " scanned the ID card of vendor " + licenseID)
+	respond(w, nil, vendor)
+}
+
+// OpenVendorNextcloudFolder godoc
+//
+//	 	@Summary 		Get the vendor's document folder in Nextcloud
+//		@Description	Creates the vendor's folder in Nextcloud if it does not exist yet and returns a link that opens it
+//		@Tags			Vendors
+//		@Produce		json
+//		@Success		200	{object}	VendorNextcloudFolder
+//		@Failure		403
+//		@Failure		404
+//		@Failure		502
+//		@Failure		503
+//		@Security		KeycloakAuth
+//	    @Param          licenseID   path string  true  "License ID"
+//		@Router			/vendors/{licenseID}/nextcloud-folder/ [post]
+func OpenVendorNextcloudFolder(w http.ResponseWriter, r *http.Request) {
+	licenseID := chi.URLParam(r, "licenseID")
+
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	if !settings.NextcloudEnabled {
+		utils.ErrorJSON(w, errors.New("the Nextcloud integration is disabled"), http.StatusForbidden)
+		return
+	}
+	nextcloud := integrations.NextcloudFromSettings(settings)
+	if !nextcloud.Configured() {
+		utils.ErrorJSON(w, errors.New("the Nextcloud connection is not set up"), http.StatusServiceUnavailable)
+		return
+	}
+
+	vendor, err := database.Db.GetVendorByLicenseID(licenseID)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			utils.ErrorJSON(w, database.ErrVendorNotFound, http.StatusNotFound)
+			return
+		}
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// The folder is named after the stored license ID, not the one from the request URL
+	folderURL, err := nextcloud.EnsureVendorFolder(vendor.LicenseID.String)
+	if err != nil {
+		log.Error("OpenVendorNextcloudFolder: ", err)
+		utils.ErrorJSON(w, errors.New("could not open the folder in Nextcloud"), http.StatusBadGateway)
+		return
+	}
+	respond(w, nil, VendorNextcloudFolder{URL: folderURL})
+}
+
+// VendorNextcloudFolder is the response of OpenVendorNextcloudFolder
+type VendorNextcloudFolder struct {
+	URL string
 }
 
 // Online Map -----------------------------------------------------------------

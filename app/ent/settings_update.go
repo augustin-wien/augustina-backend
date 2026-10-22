@@ -616,6 +616,146 @@ func (_u *SettingsUpdate) SetNillableNewsletterEnabled(v *bool) *SettingsUpdate 
 	return _u
 }
 
+// SetIDScanEnabled sets the "IDScanEnabled" field.
+func (_u *SettingsUpdate) SetIDScanEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetIDScanEnabled(v)
+	return _u
+}
+
+// SetNillableIDScanEnabled sets the "IDScanEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableIDScanEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetIDScanEnabled(*v)
+	}
+	return _u
+}
+
+// SetNextcloudEnabled sets the "NextcloudEnabled" field.
+func (_u *SettingsUpdate) SetNextcloudEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetNextcloudEnabled(v)
+	return _u
+}
+
+// SetNillableNextcloudEnabled sets the "NextcloudEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableNextcloudEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetNextcloudEnabled(*v)
+	}
+	return _u
+}
+
+// SetNextcloudURL sets the "NextcloudURL" field.
+func (_u *SettingsUpdate) SetNextcloudURL(v string) *SettingsUpdate {
+	_u.mutation.SetNextcloudURL(v)
+	return _u
+}
+
+// SetNillableNextcloudURL sets the "NextcloudURL" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableNextcloudURL(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetNextcloudURL(*v)
+	}
+	return _u
+}
+
+// SetNextcloudPublicURL sets the "NextcloudPublicURL" field.
+func (_u *SettingsUpdate) SetNextcloudPublicURL(v string) *SettingsUpdate {
+	_u.mutation.SetNextcloudPublicURL(v)
+	return _u
+}
+
+// SetNillableNextcloudPublicURL sets the "NextcloudPublicURL" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableNextcloudPublicURL(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetNextcloudPublicURL(*v)
+	}
+	return _u
+}
+
+// SetNextcloudUsername sets the "NextcloudUsername" field.
+func (_u *SettingsUpdate) SetNextcloudUsername(v string) *SettingsUpdate {
+	_u.mutation.SetNextcloudUsername(v)
+	return _u
+}
+
+// SetNillableNextcloudUsername sets the "NextcloudUsername" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableNextcloudUsername(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetNextcloudUsername(*v)
+	}
+	return _u
+}
+
+// SetNextcloudAppPassword sets the "NextcloudAppPassword" field.
+func (_u *SettingsUpdate) SetNextcloudAppPassword(v string) *SettingsUpdate {
+	_u.mutation.SetNextcloudAppPassword(v)
+	return _u
+}
+
+// SetNillableNextcloudAppPassword sets the "NextcloudAppPassword" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableNextcloudAppPassword(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetNextcloudAppPassword(*v)
+	}
+	return _u
+}
+
+// SetNextcloudVendorRoot sets the "NextcloudVendorRoot" field.
+func (_u *SettingsUpdate) SetNextcloudVendorRoot(v string) *SettingsUpdate {
+	_u.mutation.SetNextcloudVendorRoot(v)
+	return _u
+}
+
+// SetNillableNextcloudVendorRoot sets the "NextcloudVendorRoot" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableNextcloudVendorRoot(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetNextcloudVendorRoot(*v)
+	}
+	return _u
+}
+
+// SetOdooWebhookURL sets the "OdooWebhookURL" field.
+func (_u *SettingsUpdate) SetOdooWebhookURL(v string) *SettingsUpdate {
+	_u.mutation.SetOdooWebhookURL(v)
+	return _u
+}
+
+// SetNillableOdooWebhookURL sets the "OdooWebhookURL" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableOdooWebhookURL(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetOdooWebhookURL(*v)
+	}
+	return _u
+}
+
+// SetOdooWebhookToken sets the "OdooWebhookToken" field.
+func (_u *SettingsUpdate) SetOdooWebhookToken(v string) *SettingsUpdate {
+	_u.mutation.SetOdooWebhookToken(v)
+	return _u
+}
+
+// SetNillableOdooWebhookToken sets the "OdooWebhookToken" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableOdooWebhookToken(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetOdooWebhookToken(*v)
+	}
+	return _u
+}
+
+// SetOdooDBFilter sets the "OdooDBFilter" field.
+func (_u *SettingsUpdate) SetOdooDBFilter(v string) *SettingsUpdate {
+	_u.mutation.SetOdooDBFilter(v)
+	return _u
+}
+
+// SetNillableOdooDBFilter sets the "OdooDBFilter" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableOdooDBFilter(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetOdooDBFilter(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -813,6 +953,36 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.NewsletterEnabled(); ok {
 		_spec.SetField(settings.FieldNewsletterEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IDScanEnabled(); ok {
+		_spec.SetField(settings.FieldIDScanEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NextcloudEnabled(); ok {
+		_spec.SetField(settings.FieldNextcloudEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NextcloudURL(); ok {
+		_spec.SetField(settings.FieldNextcloudURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NextcloudPublicURL(); ok {
+		_spec.SetField(settings.FieldNextcloudPublicURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NextcloudUsername(); ok {
+		_spec.SetField(settings.FieldNextcloudUsername, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NextcloudAppPassword(); ok {
+		_spec.SetField(settings.FieldNextcloudAppPassword, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NextcloudVendorRoot(); ok {
+		_spec.SetField(settings.FieldNextcloudVendorRoot, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.OdooWebhookURL(); ok {
+		_spec.SetField(settings.FieldOdooWebhookURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.OdooWebhookToken(); ok {
+		_spec.SetField(settings.FieldOdooWebhookToken, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.OdooDBFilter(); ok {
+		_spec.SetField(settings.FieldOdooDBFilter, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1451,6 +1621,146 @@ func (_u *SettingsUpdateOne) SetNillableNewsletterEnabled(v *bool) *SettingsUpda
 	return _u
 }
 
+// SetIDScanEnabled sets the "IDScanEnabled" field.
+func (_u *SettingsUpdateOne) SetIDScanEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetIDScanEnabled(v)
+	return _u
+}
+
+// SetNillableIDScanEnabled sets the "IDScanEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableIDScanEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetIDScanEnabled(*v)
+	}
+	return _u
+}
+
+// SetNextcloudEnabled sets the "NextcloudEnabled" field.
+func (_u *SettingsUpdateOne) SetNextcloudEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetNextcloudEnabled(v)
+	return _u
+}
+
+// SetNillableNextcloudEnabled sets the "NextcloudEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableNextcloudEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetNextcloudEnabled(*v)
+	}
+	return _u
+}
+
+// SetNextcloudURL sets the "NextcloudURL" field.
+func (_u *SettingsUpdateOne) SetNextcloudURL(v string) *SettingsUpdateOne {
+	_u.mutation.SetNextcloudURL(v)
+	return _u
+}
+
+// SetNillableNextcloudURL sets the "NextcloudURL" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableNextcloudURL(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetNextcloudURL(*v)
+	}
+	return _u
+}
+
+// SetNextcloudPublicURL sets the "NextcloudPublicURL" field.
+func (_u *SettingsUpdateOne) SetNextcloudPublicURL(v string) *SettingsUpdateOne {
+	_u.mutation.SetNextcloudPublicURL(v)
+	return _u
+}
+
+// SetNillableNextcloudPublicURL sets the "NextcloudPublicURL" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableNextcloudPublicURL(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetNextcloudPublicURL(*v)
+	}
+	return _u
+}
+
+// SetNextcloudUsername sets the "NextcloudUsername" field.
+func (_u *SettingsUpdateOne) SetNextcloudUsername(v string) *SettingsUpdateOne {
+	_u.mutation.SetNextcloudUsername(v)
+	return _u
+}
+
+// SetNillableNextcloudUsername sets the "NextcloudUsername" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableNextcloudUsername(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetNextcloudUsername(*v)
+	}
+	return _u
+}
+
+// SetNextcloudAppPassword sets the "NextcloudAppPassword" field.
+func (_u *SettingsUpdateOne) SetNextcloudAppPassword(v string) *SettingsUpdateOne {
+	_u.mutation.SetNextcloudAppPassword(v)
+	return _u
+}
+
+// SetNillableNextcloudAppPassword sets the "NextcloudAppPassword" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableNextcloudAppPassword(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetNextcloudAppPassword(*v)
+	}
+	return _u
+}
+
+// SetNextcloudVendorRoot sets the "NextcloudVendorRoot" field.
+func (_u *SettingsUpdateOne) SetNextcloudVendorRoot(v string) *SettingsUpdateOne {
+	_u.mutation.SetNextcloudVendorRoot(v)
+	return _u
+}
+
+// SetNillableNextcloudVendorRoot sets the "NextcloudVendorRoot" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableNextcloudVendorRoot(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetNextcloudVendorRoot(*v)
+	}
+	return _u
+}
+
+// SetOdooWebhookURL sets the "OdooWebhookURL" field.
+func (_u *SettingsUpdateOne) SetOdooWebhookURL(v string) *SettingsUpdateOne {
+	_u.mutation.SetOdooWebhookURL(v)
+	return _u
+}
+
+// SetNillableOdooWebhookURL sets the "OdooWebhookURL" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableOdooWebhookURL(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetOdooWebhookURL(*v)
+	}
+	return _u
+}
+
+// SetOdooWebhookToken sets the "OdooWebhookToken" field.
+func (_u *SettingsUpdateOne) SetOdooWebhookToken(v string) *SettingsUpdateOne {
+	_u.mutation.SetOdooWebhookToken(v)
+	return _u
+}
+
+// SetNillableOdooWebhookToken sets the "OdooWebhookToken" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableOdooWebhookToken(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetOdooWebhookToken(*v)
+	}
+	return _u
+}
+
+// SetOdooDBFilter sets the "OdooDBFilter" field.
+func (_u *SettingsUpdateOne) SetOdooDBFilter(v string) *SettingsUpdateOne {
+	_u.mutation.SetOdooDBFilter(v)
+	return _u
+}
+
+// SetNillableOdooDBFilter sets the "OdooDBFilter" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableOdooDBFilter(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetOdooDBFilter(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -1678,6 +1988,36 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.NewsletterEnabled(); ok {
 		_spec.SetField(settings.FieldNewsletterEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IDScanEnabled(); ok {
+		_spec.SetField(settings.FieldIDScanEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NextcloudEnabled(); ok {
+		_spec.SetField(settings.FieldNextcloudEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NextcloudURL(); ok {
+		_spec.SetField(settings.FieldNextcloudURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NextcloudPublicURL(); ok {
+		_spec.SetField(settings.FieldNextcloudPublicURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NextcloudUsername(); ok {
+		_spec.SetField(settings.FieldNextcloudUsername, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NextcloudAppPassword(); ok {
+		_spec.SetField(settings.FieldNextcloudAppPassword, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NextcloudVendorRoot(); ok {
+		_spec.SetField(settings.FieldNextcloudVendorRoot, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.OdooWebhookURL(); ok {
+		_spec.SetField(settings.FieldOdooWebhookURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.OdooWebhookToken(); ok {
+		_spec.SetField(settings.FieldOdooWebhookToken, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.OdooDBFilter(); ok {
+		_spec.SetField(settings.FieldOdooDBFilter, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

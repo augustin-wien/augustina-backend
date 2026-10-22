@@ -1,0 +1,2 @@
+ALTER TABLE locations
+    ADD COLUMN IF NOT EXISTS market_number TEXT NOT NULL DEFAULT '';

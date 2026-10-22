@@ -101,3 +101,29 @@ func TestHealthAndFlourEndpointsNotBlockedByUserAgent(t *testing.T) {
 		t.Fatalf("expected /api/flour/vendors/license/test/ to return 401 (auth required), got %d", rr.Code)
 	}
 }
+
+// TestOdooRoutesFollowSettings checks that the Odoo API disappears while the integration is off
+// and comes back without rebuilding the router once a webhook URL is set.
+func TestOdooRoutesFollowSettings(t *testing.T) {
+	origOdoo := config.Config.OdooWebhookURL
+	t.Cleanup(func() { config.Config.OdooWebhookURL = origOdoo })
+
+	router := GetRouter()
+	request := func(path string) int {
+		rr := httptest.NewRecorder()
+		router.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, path, nil))
+		return rr.Code
+	}
+
+	for _, prefix := range []string{"/api/odoo", "/api/flour"} {
+		path := prefix + "/vendors/license/demo/"
+		config.Config.OdooWebhookURL = ""
+		if code := request(path); code != http.StatusNotFound {
+			t.Fatalf("expected 404 for %s while Odoo is off, got %d", path, code)
+		}
+		config.Config.OdooWebhookURL = "http://localhost:8081/odoo"
+		if code := request(path); code != http.StatusUnauthorized {
+			t.Fatalf("expected 401 for %s once Odoo is on, got %d", path, code)
+		}
+	}
+}

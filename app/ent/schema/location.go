@@ -25,6 +25,9 @@ func (Location) Fields() []ent.Field {
 		field.String("zip"),
 		field.String("telephone").
 			Default(""),
+		// Number the market (e.g. the supermarket chain) uses for this branch
+		field.String("market_number").
+			Default(""),
 		field.JSON("working_time", &WorkingTime{}),
 	}
 }

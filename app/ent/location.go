@@ -31,6 +31,8 @@ type Location struct {
 	Zip string `json:"zip,omitempty"`
 	// Telephone holds the value of the "telephone" field.
 	Telephone string `json:"telephone,omitempty"`
+	// MarketNumber holds the value of the "market_number" field.
+	MarketNumber string `json:"market_number,omitempty"`
 	// WorkingTime holds the value of the "working_time" field.
 	WorkingTime *schema.WorkingTime `json:"working_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -71,7 +73,7 @@ func (*Location) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case location.FieldID:
 			values[i] = new(sql.NullInt64)
-		case location.FieldName, location.FieldAddress, location.FieldZip, location.FieldTelephone:
+		case location.FieldName, location.FieldAddress, location.FieldZip, location.FieldTelephone, location.FieldMarketNumber:
 			values[i] = new(sql.NullString)
 		case location.ForeignKeys[0]: // vendor_locations
 			values[i] = new(sql.NullInt64)
@@ -131,6 +133,12 @@ func (_m *Location) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field telephone", values[i])
 			} else if value.Valid {
 				_m.Telephone = value.String
+			}
+		case location.FieldMarketNumber:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field market_number", values[i])
+			} else if value.Valid {
+				_m.MarketNumber = value.String
 			}
 		case location.FieldWorkingTime:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -205,6 +213,9 @@ func (_m *Location) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("telephone=")
 	builder.WriteString(_m.Telephone)
+	builder.WriteString(", ")
+	builder.WriteString("market_number=")
+	builder.WriteString(_m.MarketNumber)
 	builder.WriteString(", ")
 	builder.WriteString("working_time=")
 	builder.WriteString(fmt.Sprintf("%v", _m.WorkingTime))

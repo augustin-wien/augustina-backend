@@ -148,6 +148,43 @@ func (Settings) Fields() []ent.Field {
 		field.Bool("NewsletterEnabled").
 			StorageKey("newsletterenabled").
 			Default(false),
+		// Lets the backoffice look up vendors by scanning their ID card
+		field.Bool("IDScanEnabled").
+			StorageKey("idscanenabled").
+			Default(false),
+		// Shows a button in the backoffice that opens the vendor's document folder in Nextcloud
+		field.Bool("NextcloudEnabled").
+			StorageKey("nextcloudenabled").
+			Default(false),
+		// Where the backend reaches Nextcloud, e.g. https://cloud.example.org
+		field.String("NextcloudURL").
+			StorageKey("nextcloudurl").
+			Default(""),
+		// The address the browser opens; empty means the same as NextcloudURL
+		field.String("NextcloudPublicURL").
+			StorageKey("nextcloudpublicurl").
+			Default(""),
+		field.String("NextcloudUsername").
+			StorageKey("nextcloudusername").
+			Default(""),
+		field.String("NextcloudAppPassword").
+			StorageKey("nextcloudapppassword").
+			Default(""),
+		// Existing folder of NextcloudUsername (usually a team folder) that holds one folder per vendor
+		field.String("NextcloudVendorRoot").
+			StorageKey("nextcloudvendorroot").
+			Default("Verkaufende"),
+		// Every verified order is sent here; empty disables the Odoo integration
+		field.String("OdooWebhookURL").
+			StorageKey("odoowebhookurl").
+			Default(""),
+		field.String("OdooWebhookToken").
+			StorageKey("odoowebhooktoken").
+			Default(""),
+		// Sent as X-Odoo-dbfilter header when set, so Odoo picks the right database
+		field.String("OdooDBFilter").
+			StorageKey("odoodbfilter").
+			Default(""),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`
