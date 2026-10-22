@@ -14,6 +14,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/ent"
+	"github.com/augustin-wien/augustina-backend/integrations"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/augustin-wien/augustina-backend/wordpress"
 	"github.com/mitchellh/mapstructure"
@@ -26,6 +27,35 @@ type KeycloakSettings struct {
 type ExtendedSettings struct {
 	Settings *ent.Settings
 	Keycloak KeycloakSettings
+	// SecretsSet tells which of the secretSettings have a value, since the values are never sent
+	SecretsSet map[string]bool `json:",omitempty"`
+}
+
+// secretSettings can be overwritten in the backoffice but are never sent back to it. An empty
+// value on update keeps the stored one.
+var secretSettings = []string{"WordPressInviteAPIKey", "NextcloudAppPassword", "OdooWebhookToken"}
+
+func isSecretSetting(key string) bool {
+	for _, k := range secretSettings {
+		if k == key {
+			return true
+		}
+	}
+	return false
+}
+
+// withoutSecrets returns a copy of the settings with the secrets blanked and which of them are set
+func withoutSecrets(s *ent.Settings) (*ent.Settings, map[string]bool) {
+	c := *s
+	set := map[string]bool{
+		"WordPressInviteAPIKey": c.WordPressInviteAPIKey != "",
+		"NextcloudAppPassword":  c.NextcloudAppPassword != "",
+		"OdooWebhookToken":      c.OdooWebhookToken != "",
+	}
+	c.WordPressInviteAPIKey = ""
+	c.NextcloudAppPassword = ""
+	c.OdooWebhookToken = ""
+	return &c, set
 }
 
 // PublicSettings is the subset of the settings the shop is allowed to see.
@@ -72,7 +102,11 @@ type PublicSettings struct {
 	MatomoTrackCart            bool
 	FeedbackEnabled            bool
 	NewsletterEnabled          bool
-	Edges                      ent.SettingsEdges
+	IDScanEnabled              bool
+	NextcloudEnabled           bool
+	// NextcloudConfigured reports whether the connection is filled in, without giving it away
+	NextcloudConfigured bool
+	Edges               ent.SettingsEdges
 }
 
 type ExtendedPublicSettings struct {
@@ -118,6 +152,9 @@ func toPublicSettings(s *ent.Settings) PublicSettings {
 		MatomoTrackCart:            s.MatomoTrackCart,
 		FeedbackEnabled:            s.FeedbackEnabled,
 		NewsletterEnabled:          s.NewsletterEnabled,
+		IDScanEnabled:              s.IDScanEnabled,
+		NextcloudEnabled:           s.NextcloudEnabled,
+		NextcloudConfigured:        integrations.NextcloudFromSettings(s).Configured(),
 		Edges:                      s.Edges,
 	}
 }
@@ -172,9 +209,11 @@ func getSettingsAdmin(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	safe, secretsSet := withoutSecrets(settings)
 	exSettings := ExtendedSettings{
-		Settings: settings,
-		Keycloak: keycloakSettings(),
+		Settings:   safe,
+		Keycloak:   keycloakSettings(),
+		SecretsSet: secretsSet,
 	}
 	err = utils.WriteJSON(w, http.StatusOK, &exSettings)
 	if err != nil {
@@ -289,6 +328,9 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	fields := mForm.Value               // Values are stored in []string
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
+		if isSecretSetting(key) && value[0] == "" {
+			continue
+		}
 		if key == "MaxOrderAmount" {
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
@@ -373,7 +415,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("DonationTrackingEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "AGBRequired" || key == "DonationPageEnabled" || key == "MatomoTrackCart" || key == "FeedbackEnabled" || key == "NewsletterEnabled" {
+		} else if key == "AGBRequired" || key == "DonationPageEnabled" || key == "MatomoTrackCart" || key == "FeedbackEnabled" || key == "NewsletterEnabled" || key == "IDScanEnabled" || key == "NextcloudEnabled" {
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error(key + " is not a boolean")
@@ -588,5 +630,65 @@ func testWordPressInvite(w http.ResponseWriter, r *http.Request) {
 	}
 	if err = utils.WriteJSON(w, http.StatusOK, res); err != nil {
 		log.Error("testWordPressInvite: ", err)
+	}
+}
+
+// NextcloudTestRequest holds the Nextcloud settings to test, so admins can check them before
+// saving. An empty value falls back to the saved setting.
+type NextcloudTestRequest struct {
+	NextcloudURL         string
+	NextcloudUsername    string
+	NextcloudAppPassword string
+	NextcloudVendorRoot  string
+}
+
+// NextcloudTestResponse tells whether the backend can create vendor folders
+type NextcloudTestResponse struct {
+	Success bool
+	Message string
+}
+
+// testNextcloud godoc
+//
+//	@Summary 		Test the Nextcloud connection
+//	@Description	Logs in to Nextcloud and checks that vendor folders can be created in the configured folder
+//	@Tags			Settings
+//	@Accept			json
+//	@Produce		json
+//	@Param			data body NextcloudTestRequest true "Nextcloud settings to test"
+//	@Success		200 {object} NextcloudTestResponse
+//	@Security		KeycloakAuth
+//	@Router			/settings/nextcloud/test/ [post]
+func testNextcloud(w http.ResponseWriter, r *http.Request) {
+	var req NextcloudTestRequest
+	if err := utils.ReadJSON(w, r, &req); err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	if req.NextcloudURL != "" {
+		settings.NextcloudURL = req.NextcloudURL
+	}
+	if req.NextcloudUsername != "" {
+		settings.NextcloudUsername = req.NextcloudUsername
+	}
+	if req.NextcloudAppPassword != "" {
+		settings.NextcloudAppPassword = req.NextcloudAppPassword
+	}
+	if req.NextcloudVendorRoot != "" {
+		settings.NextcloudVendorRoot = req.NextcloudVendorRoot
+	}
+
+	res := NextcloudTestResponse{Success: true, Message: "Verbindung funktioniert, Ordner können angelegt werden"}
+	if err := integrations.NextcloudFromSettings(settings).Test(); err != nil {
+		log.Info("testNextcloud: ", err)
+		res = NextcloudTestResponse{Message: err.Error()}
+	}
+	if err = utils.WriteJSON(w, http.StatusOK, res); err != nil {
+		log.Error("testNextcloud: ", err)
 	}
 }

@@ -253,6 +253,56 @@ func NewsletterEnabled(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldNewsletterEnabled, v))
 }
 
+// IDScanEnabled applies equality check predicate on the "IDScanEnabled" field. It's identical to IDScanEnabledEQ.
+func IDScanEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldIDScanEnabled, v))
+}
+
+// NextcloudEnabled applies equality check predicate on the "NextcloudEnabled" field. It's identical to NextcloudEnabledEQ.
+func NextcloudEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudEnabled, v))
+}
+
+// NextcloudURL applies equality check predicate on the "NextcloudURL" field. It's identical to NextcloudURLEQ.
+func NextcloudURL(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudURL, v))
+}
+
+// NextcloudPublicURL applies equality check predicate on the "NextcloudPublicURL" field. It's identical to NextcloudPublicURLEQ.
+func NextcloudPublicURL(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudUsername applies equality check predicate on the "NextcloudUsername" field. It's identical to NextcloudUsernameEQ.
+func NextcloudUsername(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudUsername, v))
+}
+
+// NextcloudAppPassword applies equality check predicate on the "NextcloudAppPassword" field. It's identical to NextcloudAppPasswordEQ.
+func NextcloudAppPassword(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudVendorRoot applies equality check predicate on the "NextcloudVendorRoot" field. It's identical to NextcloudVendorRootEQ.
+func NextcloudVendorRoot(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudVendorRoot, v))
+}
+
+// OdooWebhookURL applies equality check predicate on the "OdooWebhookURL" field. It's identical to OdooWebhookURLEQ.
+func OdooWebhookURL(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookToken applies equality check predicate on the "OdooWebhookToken" field. It's identical to OdooWebhookTokenEQ.
+func OdooWebhookToken(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldOdooWebhookToken, v))
+}
+
+// OdooDBFilter applies equality check predicate on the "OdooDBFilter" field. It's identical to OdooDBFilterEQ.
+func OdooDBFilter(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldOdooDBFilter, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -1981,6 +2031,546 @@ func NewsletterEnabledEQ(v bool) predicate.Settings {
 // NewsletterEnabledNEQ applies the NEQ predicate on the "NewsletterEnabled" field.
 func NewsletterEnabledNEQ(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldNEQ(FieldNewsletterEnabled, v))
+}
+
+// IDScanEnabledEQ applies the EQ predicate on the "IDScanEnabled" field.
+func IDScanEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldIDScanEnabled, v))
+}
+
+// IDScanEnabledNEQ applies the NEQ predicate on the "IDScanEnabled" field.
+func IDScanEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldIDScanEnabled, v))
+}
+
+// NextcloudEnabledEQ applies the EQ predicate on the "NextcloudEnabled" field.
+func NextcloudEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudEnabled, v))
+}
+
+// NextcloudEnabledNEQ applies the NEQ predicate on the "NextcloudEnabled" field.
+func NextcloudEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldNextcloudEnabled, v))
+}
+
+// NextcloudURLEQ applies the EQ predicate on the "NextcloudURL" field.
+func NextcloudURLEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudURL, v))
+}
+
+// NextcloudURLNEQ applies the NEQ predicate on the "NextcloudURL" field.
+func NextcloudURLNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldNextcloudURL, v))
+}
+
+// NextcloudURLIn applies the In predicate on the "NextcloudURL" field.
+func NextcloudURLIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldNextcloudURL, vs...))
+}
+
+// NextcloudURLNotIn applies the NotIn predicate on the "NextcloudURL" field.
+func NextcloudURLNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldNextcloudURL, vs...))
+}
+
+// NextcloudURLGT applies the GT predicate on the "NextcloudURL" field.
+func NextcloudURLGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldNextcloudURL, v))
+}
+
+// NextcloudURLGTE applies the GTE predicate on the "NextcloudURL" field.
+func NextcloudURLGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldNextcloudURL, v))
+}
+
+// NextcloudURLLT applies the LT predicate on the "NextcloudURL" field.
+func NextcloudURLLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldNextcloudURL, v))
+}
+
+// NextcloudURLLTE applies the LTE predicate on the "NextcloudURL" field.
+func NextcloudURLLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldNextcloudURL, v))
+}
+
+// NextcloudURLContains applies the Contains predicate on the "NextcloudURL" field.
+func NextcloudURLContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldNextcloudURL, v))
+}
+
+// NextcloudURLHasPrefix applies the HasPrefix predicate on the "NextcloudURL" field.
+func NextcloudURLHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldNextcloudURL, v))
+}
+
+// NextcloudURLHasSuffix applies the HasSuffix predicate on the "NextcloudURL" field.
+func NextcloudURLHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldNextcloudURL, v))
+}
+
+// NextcloudURLEqualFold applies the EqualFold predicate on the "NextcloudURL" field.
+func NextcloudURLEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldNextcloudURL, v))
+}
+
+// NextcloudURLContainsFold applies the ContainsFold predicate on the "NextcloudURL" field.
+func NextcloudURLContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldNextcloudURL, v))
+}
+
+// NextcloudPublicURLEQ applies the EQ predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLNEQ applies the NEQ predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLIn applies the In predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldNextcloudPublicURL, vs...))
+}
+
+// NextcloudPublicURLNotIn applies the NotIn predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldNextcloudPublicURL, vs...))
+}
+
+// NextcloudPublicURLGT applies the GT predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLGTE applies the GTE predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLLT applies the LT predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLLTE applies the LTE predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLContains applies the Contains predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLHasPrefix applies the HasPrefix predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLHasSuffix applies the HasSuffix predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLEqualFold applies the EqualFold predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudPublicURLContainsFold applies the ContainsFold predicate on the "NextcloudPublicURL" field.
+func NextcloudPublicURLContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldNextcloudPublicURL, v))
+}
+
+// NextcloudUsernameEQ applies the EQ predicate on the "NextcloudUsername" field.
+func NextcloudUsernameEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameNEQ applies the NEQ predicate on the "NextcloudUsername" field.
+func NextcloudUsernameNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameIn applies the In predicate on the "NextcloudUsername" field.
+func NextcloudUsernameIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldNextcloudUsername, vs...))
+}
+
+// NextcloudUsernameNotIn applies the NotIn predicate on the "NextcloudUsername" field.
+func NextcloudUsernameNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldNextcloudUsername, vs...))
+}
+
+// NextcloudUsernameGT applies the GT predicate on the "NextcloudUsername" field.
+func NextcloudUsernameGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameGTE applies the GTE predicate on the "NextcloudUsername" field.
+func NextcloudUsernameGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameLT applies the LT predicate on the "NextcloudUsername" field.
+func NextcloudUsernameLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameLTE applies the LTE predicate on the "NextcloudUsername" field.
+func NextcloudUsernameLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameContains applies the Contains predicate on the "NextcloudUsername" field.
+func NextcloudUsernameContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameHasPrefix applies the HasPrefix predicate on the "NextcloudUsername" field.
+func NextcloudUsernameHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameHasSuffix applies the HasSuffix predicate on the "NextcloudUsername" field.
+func NextcloudUsernameHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameEqualFold applies the EqualFold predicate on the "NextcloudUsername" field.
+func NextcloudUsernameEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldNextcloudUsername, v))
+}
+
+// NextcloudUsernameContainsFold applies the ContainsFold predicate on the "NextcloudUsername" field.
+func NextcloudUsernameContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldNextcloudUsername, v))
+}
+
+// NextcloudAppPasswordEQ applies the EQ predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordNEQ applies the NEQ predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordIn applies the In predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldNextcloudAppPassword, vs...))
+}
+
+// NextcloudAppPasswordNotIn applies the NotIn predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldNextcloudAppPassword, vs...))
+}
+
+// NextcloudAppPasswordGT applies the GT predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordGTE applies the GTE predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordLT applies the LT predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordLTE applies the LTE predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordContains applies the Contains predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordHasPrefix applies the HasPrefix predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordHasSuffix applies the HasSuffix predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordEqualFold applies the EqualFold predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudAppPasswordContainsFold applies the ContainsFold predicate on the "NextcloudAppPassword" field.
+func NextcloudAppPasswordContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldNextcloudAppPassword, v))
+}
+
+// NextcloudVendorRootEQ applies the EQ predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootNEQ applies the NEQ predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootIn applies the In predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldNextcloudVendorRoot, vs...))
+}
+
+// NextcloudVendorRootNotIn applies the NotIn predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldNextcloudVendorRoot, vs...))
+}
+
+// NextcloudVendorRootGT applies the GT predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootGTE applies the GTE predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootLT applies the LT predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootLTE applies the LTE predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootContains applies the Contains predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootHasPrefix applies the HasPrefix predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootHasSuffix applies the HasSuffix predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootEqualFold applies the EqualFold predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldNextcloudVendorRoot, v))
+}
+
+// NextcloudVendorRootContainsFold applies the ContainsFold predicate on the "NextcloudVendorRoot" field.
+func NextcloudVendorRootContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldNextcloudVendorRoot, v))
+}
+
+// OdooWebhookURLEQ applies the EQ predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLNEQ applies the NEQ predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLIn applies the In predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldOdooWebhookURL, vs...))
+}
+
+// OdooWebhookURLNotIn applies the NotIn predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldOdooWebhookURL, vs...))
+}
+
+// OdooWebhookURLGT applies the GT predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLGTE applies the GTE predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLLT applies the LT predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLLTE applies the LTE predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLContains applies the Contains predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLHasPrefix applies the HasPrefix predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLHasSuffix applies the HasSuffix predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLEqualFold applies the EqualFold predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookURLContainsFold applies the ContainsFold predicate on the "OdooWebhookURL" field.
+func OdooWebhookURLContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldOdooWebhookURL, v))
+}
+
+// OdooWebhookTokenEQ applies the EQ predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenNEQ applies the NEQ predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenIn applies the In predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldOdooWebhookToken, vs...))
+}
+
+// OdooWebhookTokenNotIn applies the NotIn predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldOdooWebhookToken, vs...))
+}
+
+// OdooWebhookTokenGT applies the GT predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenGTE applies the GTE predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenLT applies the LT predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenLTE applies the LTE predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenContains applies the Contains predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenHasPrefix applies the HasPrefix predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenHasSuffix applies the HasSuffix predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenEqualFold applies the EqualFold predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldOdooWebhookToken, v))
+}
+
+// OdooWebhookTokenContainsFold applies the ContainsFold predicate on the "OdooWebhookToken" field.
+func OdooWebhookTokenContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldOdooWebhookToken, v))
+}
+
+// OdooDBFilterEQ applies the EQ predicate on the "OdooDBFilter" field.
+func OdooDBFilterEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterNEQ applies the NEQ predicate on the "OdooDBFilter" field.
+func OdooDBFilterNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterIn applies the In predicate on the "OdooDBFilter" field.
+func OdooDBFilterIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldOdooDBFilter, vs...))
+}
+
+// OdooDBFilterNotIn applies the NotIn predicate on the "OdooDBFilter" field.
+func OdooDBFilterNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldOdooDBFilter, vs...))
+}
+
+// OdooDBFilterGT applies the GT predicate on the "OdooDBFilter" field.
+func OdooDBFilterGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterGTE applies the GTE predicate on the "OdooDBFilter" field.
+func OdooDBFilterGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterLT applies the LT predicate on the "OdooDBFilter" field.
+func OdooDBFilterLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterLTE applies the LTE predicate on the "OdooDBFilter" field.
+func OdooDBFilterLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterContains applies the Contains predicate on the "OdooDBFilter" field.
+func OdooDBFilterContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterHasPrefix applies the HasPrefix predicate on the "OdooDBFilter" field.
+func OdooDBFilterHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterHasSuffix applies the HasSuffix predicate on the "OdooDBFilter" field.
+func OdooDBFilterHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterEqualFold applies the EqualFold predicate on the "OdooDBFilter" field.
+func OdooDBFilterEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldOdooDBFilter, v))
+}
+
+// OdooDBFilterContainsFold applies the ContainsFold predicate on the "OdooDBFilter" field.
+func OdooDBFilterContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldOdooDBFilter, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

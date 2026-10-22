@@ -97,6 +97,26 @@ type Settings struct {
 	FeedbackEmail string `json:"FeedbackEmail"`
 	// NewsletterEnabled holds the value of the "NewsletterEnabled" field.
 	NewsletterEnabled bool `json:"NewsletterEnabled"`
+	// IDScanEnabled holds the value of the "IDScanEnabled" field.
+	IDScanEnabled bool `json:"IDScanEnabled"`
+	// NextcloudEnabled holds the value of the "NextcloudEnabled" field.
+	NextcloudEnabled bool `json:"NextcloudEnabled"`
+	// NextcloudURL holds the value of the "NextcloudURL" field.
+	NextcloudURL string `json:"NextcloudURL"`
+	// NextcloudPublicURL holds the value of the "NextcloudPublicURL" field.
+	NextcloudPublicURL string `json:"NextcloudPublicURL"`
+	// NextcloudUsername holds the value of the "NextcloudUsername" field.
+	NextcloudUsername string `json:"NextcloudUsername"`
+	// NextcloudAppPassword holds the value of the "NextcloudAppPassword" field.
+	NextcloudAppPassword string `json:"NextcloudAppPassword"`
+	// NextcloudVendorRoot holds the value of the "NextcloudVendorRoot" field.
+	NextcloudVendorRoot string `json:"NextcloudVendorRoot"`
+	// OdooWebhookURL holds the value of the "OdooWebhookURL" field.
+	OdooWebhookURL string `json:"OdooWebhookURL"`
+	// OdooWebhookToken holds the value of the "OdooWebhookToken" field.
+	OdooWebhookToken string `json:"OdooWebhookToken"`
+	// OdooDBFilter holds the value of the "OdooDBFilter" field.
+	OdooDBFilter string `json:"OdooDBFilter"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -129,13 +149,13 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled, settings.FieldNewsletterEnabled:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled, settings.FieldNewsletterEnabled, settings.FieldIDScanEnabled, settings.FieldNextcloudEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
 		case settings.FieldID, settings.FieldMaxOrderAmount, settings.FieldWordPressInviteTTL:
 			values[i] = new(sql.NullInt64)
-		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId, settings.FieldOnlinePaperUrl, settings.FieldMailSenderName, settings.FieldFeedbackEmail:
+		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId, settings.FieldOnlinePaperUrl, settings.FieldMailSenderName, settings.FieldFeedbackEmail, settings.FieldNextcloudURL, settings.FieldNextcloudPublicURL, settings.FieldNextcloudUsername, settings.FieldNextcloudAppPassword, settings.FieldNextcloudVendorRoot, settings.FieldOdooWebhookURL, settings.FieldOdooWebhookToken, settings.FieldOdooDBFilter:
 			values[i] = new(sql.NullString)
 		case settings.ForeignKeys[0]: // mainitem
 			values[i] = new(sql.NullInt64)
@@ -400,6 +420,66 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.NewsletterEnabled = value.Bool
 			}
+		case settings.FieldIDScanEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field IDScanEnabled", values[i])
+			} else if value.Valid {
+				_m.IDScanEnabled = value.Bool
+			}
+		case settings.FieldNextcloudEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field NextcloudEnabled", values[i])
+			} else if value.Valid {
+				_m.NextcloudEnabled = value.Bool
+			}
+		case settings.FieldNextcloudURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field NextcloudURL", values[i])
+			} else if value.Valid {
+				_m.NextcloudURL = value.String
+			}
+		case settings.FieldNextcloudPublicURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field NextcloudPublicURL", values[i])
+			} else if value.Valid {
+				_m.NextcloudPublicURL = value.String
+			}
+		case settings.FieldNextcloudUsername:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field NextcloudUsername", values[i])
+			} else if value.Valid {
+				_m.NextcloudUsername = value.String
+			}
+		case settings.FieldNextcloudAppPassword:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field NextcloudAppPassword", values[i])
+			} else if value.Valid {
+				_m.NextcloudAppPassword = value.String
+			}
+		case settings.FieldNextcloudVendorRoot:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field NextcloudVendorRoot", values[i])
+			} else if value.Valid {
+				_m.NextcloudVendorRoot = value.String
+			}
+		case settings.FieldOdooWebhookURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field OdooWebhookURL", values[i])
+			} else if value.Valid {
+				_m.OdooWebhookURL = value.String
+			}
+		case settings.FieldOdooWebhookToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field OdooWebhookToken", values[i])
+			} else if value.Valid {
+				_m.OdooWebhookToken = value.String
+			}
+		case settings.FieldOdooDBFilter:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field OdooDBFilter", values[i])
+			} else if value.Valid {
+				_m.OdooDBFilter = value.String
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -567,6 +647,36 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("NewsletterEnabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.NewsletterEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("IDScanEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IDScanEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("NextcloudEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.NextcloudEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("NextcloudURL=")
+	builder.WriteString(_m.NextcloudURL)
+	builder.WriteString(", ")
+	builder.WriteString("NextcloudPublicURL=")
+	builder.WriteString(_m.NextcloudPublicURL)
+	builder.WriteString(", ")
+	builder.WriteString("NextcloudUsername=")
+	builder.WriteString(_m.NextcloudUsername)
+	builder.WriteString(", ")
+	builder.WriteString("NextcloudAppPassword=")
+	builder.WriteString(_m.NextcloudAppPassword)
+	builder.WriteString(", ")
+	builder.WriteString("NextcloudVendorRoot=")
+	builder.WriteString(_m.NextcloudVendorRoot)
+	builder.WriteString(", ")
+	builder.WriteString("OdooWebhookURL=")
+	builder.WriteString(_m.OdooWebhookURL)
+	builder.WriteString(", ")
+	builder.WriteString("OdooWebhookToken=")
+	builder.WriteString(_m.OdooWebhookToken)
+	builder.WriteString(", ")
+	builder.WriteString("OdooDBFilter=")
+	builder.WriteString(_m.OdooDBFilter)
 	builder.WriteByte(')')
 	return builder.String()
 }

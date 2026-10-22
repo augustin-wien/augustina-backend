@@ -83,6 +83,11 @@ func Telephone(v string) predicate.Location {
 	return predicate.Location(sql.FieldEQ(FieldTelephone, v))
 }
 
+// MarketNumber applies equality check predicate on the "market_number" field. It's identical to MarketNumberEQ.
+func MarketNumber(v string) predicate.Location {
+	return predicate.Location(sql.FieldEQ(FieldMarketNumber, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Location {
 	return predicate.Location(sql.FieldEQ(FieldName, v))
@@ -421,6 +426,71 @@ func TelephoneEqualFold(v string) predicate.Location {
 // TelephoneContainsFold applies the ContainsFold predicate on the "telephone" field.
 func TelephoneContainsFold(v string) predicate.Location {
 	return predicate.Location(sql.FieldContainsFold(FieldTelephone, v))
+}
+
+// MarketNumberEQ applies the EQ predicate on the "market_number" field.
+func MarketNumberEQ(v string) predicate.Location {
+	return predicate.Location(sql.FieldEQ(FieldMarketNumber, v))
+}
+
+// MarketNumberNEQ applies the NEQ predicate on the "market_number" field.
+func MarketNumberNEQ(v string) predicate.Location {
+	return predicate.Location(sql.FieldNEQ(FieldMarketNumber, v))
+}
+
+// MarketNumberIn applies the In predicate on the "market_number" field.
+func MarketNumberIn(vs ...string) predicate.Location {
+	return predicate.Location(sql.FieldIn(FieldMarketNumber, vs...))
+}
+
+// MarketNumberNotIn applies the NotIn predicate on the "market_number" field.
+func MarketNumberNotIn(vs ...string) predicate.Location {
+	return predicate.Location(sql.FieldNotIn(FieldMarketNumber, vs...))
+}
+
+// MarketNumberGT applies the GT predicate on the "market_number" field.
+func MarketNumberGT(v string) predicate.Location {
+	return predicate.Location(sql.FieldGT(FieldMarketNumber, v))
+}
+
+// MarketNumberGTE applies the GTE predicate on the "market_number" field.
+func MarketNumberGTE(v string) predicate.Location {
+	return predicate.Location(sql.FieldGTE(FieldMarketNumber, v))
+}
+
+// MarketNumberLT applies the LT predicate on the "market_number" field.
+func MarketNumberLT(v string) predicate.Location {
+	return predicate.Location(sql.FieldLT(FieldMarketNumber, v))
+}
+
+// MarketNumberLTE applies the LTE predicate on the "market_number" field.
+func MarketNumberLTE(v string) predicate.Location {
+	return predicate.Location(sql.FieldLTE(FieldMarketNumber, v))
+}
+
+// MarketNumberContains applies the Contains predicate on the "market_number" field.
+func MarketNumberContains(v string) predicate.Location {
+	return predicate.Location(sql.FieldContains(FieldMarketNumber, v))
+}
+
+// MarketNumberHasPrefix applies the HasPrefix predicate on the "market_number" field.
+func MarketNumberHasPrefix(v string) predicate.Location {
+	return predicate.Location(sql.FieldHasPrefix(FieldMarketNumber, v))
+}
+
+// MarketNumberHasSuffix applies the HasSuffix predicate on the "market_number" field.
+func MarketNumberHasSuffix(v string) predicate.Location {
+	return predicate.Location(sql.FieldHasSuffix(FieldMarketNumber, v))
+}
+
+// MarketNumberEqualFold applies the EqualFold predicate on the "market_number" field.
+func MarketNumberEqualFold(v string) predicate.Location {
+	return predicate.Location(sql.FieldEqualFold(FieldMarketNumber, v))
+}
+
+// MarketNumberContainsFold applies the ContainsFold predicate on the "market_number" field.
+func MarketNumberContainsFold(v string) predicate.Location {
+	return predicate.Location(sql.FieldContainsFold(FieldMarketNumber, v))
 }
 
 // HasVendor applies the HasEdge predicate on the "vendor" edge.

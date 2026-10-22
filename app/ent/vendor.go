@@ -59,6 +59,8 @@ type Vendor struct {
 	Accountproofurl string `json:"accountproofurl,omitempty"`
 	// Debt holds the value of the "debt" field.
 	Debt string `json:"debt,omitempty"`
+	// Lastidscan holds the value of the "lastidscan" field.
+	Lastidscan *time.Time `json:"lastidscan,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VendorQuery when eager-loading is set.
 	Edges        VendorEdges `json:"edges"`
@@ -116,7 +118,7 @@ func (*Vendor) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case vendor.FieldKeycloakid, vendor.FieldUrlid, vendor.FieldLicenseid, vendor.FieldFirstname, vendor.FieldLastname, vendor.FieldEmail, vendor.FieldLanguage, vendor.FieldTelephone, vendor.FieldRegistrationdate, vendor.FieldVendorsince, vendor.FieldBlockednote, vendor.FieldAccountproofurl, vendor.FieldDebt:
 			values[i] = new(sql.NullString)
-		case vendor.FieldLastpayout:
+		case vendor.FieldLastpayout, vendor.FieldLastidscan:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -265,6 +267,13 @@ func (_m *Vendor) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Debt = value.String
 			}
+		case vendor.FieldLastidscan:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field lastidscan", values[i])
+			} else if value.Valid {
+				_m.Lastidscan = new(time.Time)
+				*_m.Lastidscan = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -378,6 +387,11 @@ func (_m *Vendor) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("debt=")
 	builder.WriteString(_m.Debt)
+	builder.WriteString(", ")
+	if v := _m.Lastidscan; v != nil {
+		builder.WriteString("lastidscan=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

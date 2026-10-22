@@ -249,6 +249,56 @@ services:
         condition: service_healthy
     restart: "no"
 
+  # Nextcloud for the vendor documents. Login goes through the Keycloak realm; only users with the
+  # admin or backoffice role get in. The hooks set up user_oidc, the team folder and the service
+  # account. Admin login without Keycloak: /login?direct=1
+  # Backoffice > Settings > Modules > Nextcloud: URL http://nextcloud, browser URL
+  # http://localhost:8093, user augustin-backend, password Test123!augustin-backend
+  nextcloud:
+    image: nextcloud:31-apache
+    container_name: augustin-nextcloud
+    ports:
+      - "8093:80"
+    environment:
+      SQLITE_DATABASE: nextcloud
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD:-Test123!nextcloud}
+      NEXTCLOUD_TRUSTED_DOMAINS: localhost:8093 nextcloud
+      OVERWRITECLIURL: http://localhost:8093
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      NEXTCLOUD_OIDC_CLIENT_SECRET: ${NEXTCLOUD_OIDC_CLIENT_SECRET:-nextcloud-dev-secret}
+      NEXTCLOUD_SERVICE_USER: augustin-backend
+      NEXTCLOUD_SERVICE_PASSWORD: Test123!augustin-backend
+      NEXTCLOUD_VENDOR_ROOT: Verkaufende
+      NEXTCLOUD_DEVELOPMENT: "true"
+    volumes:
+      - nextcloud_data:/var/www/html
+      - ./docker/nextcloud/hooks/before-starting:/docker-entrypoint-hooks.d/before-starting:ro
+    depends_on:
+      keycloak-nextcloud-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # Creates the nextcloud client in the Keycloak realm, then exits.
+  keycloak-nextcloud-init:
+    image: quay.io/keycloak/keycloak:26.8.1
+    container_name: keycloak-nextcloud-init
+    entrypoint: ["/scripts/keycloak-client.sh"]
+    volumes:
+      - ./docker/nextcloud:/scripts:ro
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      NEXTCLOUD_PUBLIC_URL: http://localhost:8093
+      NEXTCLOUD_OIDC_CLIENT_SECRET: ${NEXTCLOUD_OIDC_CLIENT_SECRET:-nextcloud-dev-secret}
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    restart: "no"
+
 volumes:
   dbdata:
   wp_data:
@@ -257,3 +307,4 @@ volumes:
   webhook-logs:
   matomo_data:
   matomo_db_data:
+  nextcloud_data:

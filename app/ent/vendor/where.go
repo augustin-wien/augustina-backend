@@ -160,6 +160,11 @@ func Debt(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldDebt, v))
 }
 
+// Lastidscan applies equality check predicate on the "lastidscan" field. It's identical to LastidscanEQ.
+func Lastidscan(v time.Time) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldLastidscan, v))
+}
+
 // KeycloakidEQ applies the EQ predicate on the "keycloakid" field.
 func KeycloakidEQ(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldKeycloakid, v))
@@ -1113,6 +1118,56 @@ func DebtEqualFold(v string) predicate.Vendor {
 // DebtContainsFold applies the ContainsFold predicate on the "debt" field.
 func DebtContainsFold(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldContainsFold(FieldDebt, v))
+}
+
+// LastidscanEQ applies the EQ predicate on the "lastidscan" field.
+func LastidscanEQ(v time.Time) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldLastidscan, v))
+}
+
+// LastidscanNEQ applies the NEQ predicate on the "lastidscan" field.
+func LastidscanNEQ(v time.Time) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldLastidscan, v))
+}
+
+// LastidscanIn applies the In predicate on the "lastidscan" field.
+func LastidscanIn(vs ...time.Time) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldLastidscan, vs...))
+}
+
+// LastidscanNotIn applies the NotIn predicate on the "lastidscan" field.
+func LastidscanNotIn(vs ...time.Time) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldLastidscan, vs...))
+}
+
+// LastidscanGT applies the GT predicate on the "lastidscan" field.
+func LastidscanGT(v time.Time) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldLastidscan, v))
+}
+
+// LastidscanGTE applies the GTE predicate on the "lastidscan" field.
+func LastidscanGTE(v time.Time) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldLastidscan, v))
+}
+
+// LastidscanLT applies the LT predicate on the "lastidscan" field.
+func LastidscanLT(v time.Time) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldLastidscan, v))
+}
+
+// LastidscanLTE applies the LTE predicate on the "lastidscan" field.
+func LastidscanLTE(v time.Time) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldLastidscan, v))
+}
+
+// LastidscanIsNil applies the IsNil predicate on the "lastidscan" field.
+func LastidscanIsNil() predicate.Vendor {
+	return predicate.Vendor(sql.FieldIsNull(FieldLastidscan))
+}
+
+// LastidscanNotNil applies the NotNil predicate on the "lastidscan" field.
+func LastidscanNotNil() predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotNull(FieldLastidscan))
 }
 
 // HasLocations applies the HasEdge predicate on the "locations" edge.

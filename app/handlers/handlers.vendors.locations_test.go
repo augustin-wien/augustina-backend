@@ -26,11 +26,12 @@ func TestVendorLocationsCRUD(t *testing.T) {
 
 	// CREATE: Create a location for the vendor with structured working time
 	locationBody := map[string]any{
-		"name":      "Test Location",
-		"address":   "Test Street 1",
-		"longitude": 16.3,
-		"latitude":  48.2,
-		"zip":       "1000",
+		"name":          "Test Location",
+		"address":       "Test Street 1",
+		"longitude":     16.3,
+		"latitude":      48.2,
+		"zip":           "1000",
+		"market_number": "BILLA 1234",
 		"working_time": map[string]any{
 			"mode": "everyday",
 			"everyday": []map[string]any{{
@@ -58,6 +59,7 @@ func TestVendorLocationsCRUD(t *testing.T) {
 	require.Equal(t, float64(16.3), location["longitude"], "Longitude should match")
 	require.Equal(t, float64(48.2), location["latitude"], "Latitude should match")
 	require.Equal(t, "1000", location["zip"], "Zip should match")
+	require.Equal(t, "BILLA 1234", location["market_number"], "Market number should match")
 
 	// Check working_time structure was preserved
 	workingTime, ok := location["working_time"].(map[string]any)
@@ -70,12 +72,13 @@ func TestVendorLocationsCRUD(t *testing.T) {
 
 	// UPDATE: Modify the location with new details
 	updatedLocationBody := map[string]any{
-		"id":        int(locationID),
-		"name":      "Updated Location",
-		"address":   "Test Street 2",
-		"longitude": 16.4,
-		"latitude":  48.3,
-		"zip":       "2000",
+		"id":            int(locationID),
+		"name":          "Updated Location",
+		"address":       "Test Street 2",
+		"longitude":     16.4,
+		"latitude":      48.3,
+		"zip":           "2000",
+		"market_number": "SPAR 77",
 		"working_time": map[string]any{
 			"mode": "by_day",
 			"week_days": map[string]any{
@@ -122,6 +125,7 @@ func TestVendorLocationsCRUD(t *testing.T) {
 	updatedLoc := updatedLocations[0]
 	require.Equal(t, "Updated Location", updatedLoc["name"], "Location name should be updated")
 	require.Equal(t, "Test Street 2", updatedLoc["address"], "Location address should be updated")
+	require.Equal(t, "SPAR 77", updatedLoc["market_number"], "Market number should be updated")
 	require.Equal(t, float64(16.4), updatedLoc["longitude"], "Longitude should be updated")
 	require.Equal(t, float64(48.3), updatedLoc["latitude"], "Latitude should be updated")
 	require.Equal(t, "2000", updatedLoc["zip"], "Zip should be updated")

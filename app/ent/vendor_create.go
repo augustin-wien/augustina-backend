@@ -245,6 +245,20 @@ func (_c *VendorCreate) SetDebt(v string) *VendorCreate {
 	return _c
 }
 
+// SetLastidscan sets the "lastidscan" field.
+func (_c *VendorCreate) SetLastidscan(v time.Time) *VendorCreate {
+	_c.mutation.SetLastidscan(v)
+	return _c
+}
+
+// SetNillableLastidscan sets the "lastidscan" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableLastidscan(v *time.Time) *VendorCreate {
+	if v != nil {
+		_c.SetLastidscan(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *VendorCreate) SetID(v int) *VendorCreate {
 	_c.mutation.SetID(v)
@@ -566,6 +580,10 @@ func (_c *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Debt(); ok {
 		_spec.SetField(vendor.FieldDebt, field.TypeString, value)
 		_node.Debt = value
+	}
+	if value, ok := _c.mutation.Lastidscan(); ok {
+		_spec.SetField(vendor.FieldLastidscan, field.TypeTime, value)
+		_node.Lastidscan = &value
 	}
 	if nodes := _c.mutation.LocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

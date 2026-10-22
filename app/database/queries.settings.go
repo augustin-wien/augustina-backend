@@ -44,6 +44,9 @@ func (db *Database) GetSettings() (*ent.Settings, error) {
 	// they already use, so mirror the DB value into it here on every read.
 	config.Config.OnlinePaperUrl = s.OnlinePaperUrl
 	config.Config.MailSenderName = s.MailSenderName
+	config.Config.OdooWebhookURL = s.OdooWebhookURL
+	config.Config.OdooWebhookToken = s.OdooWebhookToken
+	config.Config.OdooDBFilter = s.OdooDBFilter
 	return s, err
 }
 
@@ -66,6 +69,28 @@ func (db *Database) BackfillOnlinePaperUrl(legacyValue string) error {
 	}
 	if n > 0 {
 		log.Info("BackfillOnlinePaperUrl: copied ONLINE_PAPER_URL into settings: ", legacyValue)
+	}
+	return nil
+}
+
+// BackfillOdooWebhook copies the legacy ODOO_WEBHOOK_URL / ODOO_WEBHOOK_TOKEN env values into
+// the settings while the Odoo URL there is still empty, so tenants that configured Odoo through
+// the environment keep sending orders after the upgrade. It never overrides the backoffice.
+func (db *Database) BackfillOdooWebhook(legacyURL, legacyToken string) error {
+	if legacyURL == "" {
+		return nil
+	}
+	n, err := db.EntClient.Settings.Update().
+		Where(entsettings.OdooWebhookURL("")).
+		SetOdooWebhookURL(legacyURL).
+		SetOdooWebhookToken(legacyToken).
+		Save(context.Background())
+	if err != nil {
+		log.Error("BackfillOdooWebhook: ", err)
+		return err
+	}
+	if n > 0 {
+		log.Info("BackfillOdooWebhook: copied ODOO_WEBHOOK_URL into settings: ", legacyURL)
 	}
 	return nil
 }
@@ -129,7 +154,17 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetMatomoTrackCart(settings.MatomoTrackCart).
 		SetFeedbackEnabled(settings.FeedbackEnabled).
 		SetFeedbackEmail(settings.FeedbackEmail).
-		SetNewsletterEnabled(settings.NewsletterEnabled)
+		SetNewsletterEnabled(settings.NewsletterEnabled).
+		SetIDScanEnabled(settings.IDScanEnabled).
+		SetNextcloudEnabled(settings.NextcloudEnabled).
+		SetNextcloudURL(settings.NextcloudURL).
+		SetNextcloudPublicURL(settings.NextcloudPublicURL).
+		SetNextcloudUsername(settings.NextcloudUsername).
+		SetNextcloudAppPassword(settings.NextcloudAppPassword).
+		SetNextcloudVendorRoot(settings.NextcloudVendorRoot).
+		SetOdooWebhookURL(settings.OdooWebhookURL).
+		SetOdooWebhookToken(settings.OdooWebhookToken).
+		SetOdooDBFilter(settings.OdooDBFilter)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {
@@ -150,6 +185,9 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 	// the next GetSettings() call elsewhere - see the comment there for why it's mirrored.
 	config.Config.OnlinePaperUrl = settings.OnlinePaperUrl
 	config.Config.MailSenderName = settings.MailSenderName
+	config.Config.OdooWebhookURL = settings.OdooWebhookURL
+	config.Config.OdooWebhookToken = settings.OdooWebhookToken
+	config.Config.OdooDBFilter = settings.OdooDBFilter
 	return nil
 }
 

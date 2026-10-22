@@ -7078,6 +7078,7 @@ type LocationMutation struct {
 	addlatitude   *float64
 	zip           *string
 	telephone     *string
+	market_number *string
 	working_time  **schema.WorkingTime
 	clearedFields map[string]struct{}
 	vendor        *int
@@ -7447,6 +7448,42 @@ func (m *LocationMutation) ResetTelephone() {
 	m.telephone = nil
 }
 
+// SetMarketNumber sets the "market_number" field.
+func (m *LocationMutation) SetMarketNumber(s string) {
+	m.market_number = &s
+}
+
+// MarketNumber returns the value of the "market_number" field in the mutation.
+func (m *LocationMutation) MarketNumber() (r string, exists bool) {
+	v := m.market_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMarketNumber returns the old "market_number" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldMarketNumber(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMarketNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMarketNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMarketNumber: %w", err)
+	}
+	return oldValue.MarketNumber, nil
+}
+
+// ResetMarketNumber resets all changes to the "market_number" field.
+func (m *LocationMutation) ResetMarketNumber() {
+	m.market_number = nil
+}
+
 // SetWorkingTime sets the "working_time" field.
 func (m *LocationMutation) SetWorkingTime(st *schema.WorkingTime) {
 	m.working_time = &st
@@ -7556,7 +7593,7 @@ func (m *LocationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LocationMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, location.FieldName)
 	}
@@ -7574,6 +7611,9 @@ func (m *LocationMutation) Fields() []string {
 	}
 	if m.telephone != nil {
 		fields = append(fields, location.FieldTelephone)
+	}
+	if m.market_number != nil {
+		fields = append(fields, location.FieldMarketNumber)
 	}
 	if m.working_time != nil {
 		fields = append(fields, location.FieldWorkingTime)
@@ -7598,6 +7638,8 @@ func (m *LocationMutation) Field(name string) (ent.Value, bool) {
 		return m.Zip()
 	case location.FieldTelephone:
 		return m.Telephone()
+	case location.FieldMarketNumber:
+		return m.MarketNumber()
 	case location.FieldWorkingTime:
 		return m.WorkingTime()
 	}
@@ -7621,6 +7663,8 @@ func (m *LocationMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldZip(ctx)
 	case location.FieldTelephone:
 		return m.OldTelephone(ctx)
+	case location.FieldMarketNumber:
+		return m.OldMarketNumber(ctx)
 	case location.FieldWorkingTime:
 		return m.OldWorkingTime(ctx)
 	}
@@ -7673,6 +7717,13 @@ func (m *LocationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTelephone(v)
+		return nil
+	case location.FieldMarketNumber:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMarketNumber(v)
 		return nil
 	case location.FieldWorkingTime:
 		v, ok := value.(*schema.WorkingTime)
@@ -7774,6 +7825,9 @@ func (m *LocationMutation) ResetField(name string) error {
 		return nil
 	case location.FieldTelephone:
 		m.ResetTelephone()
+		return nil
+	case location.FieldMarketNumber:
+		m.ResetMarketNumber()
 		return nil
 	case location.FieldWorkingTime:
 		m.ResetWorkingTime()
@@ -13540,6 +13594,16 @@ type SettingsMutation struct {
 	_FeedbackEnabled            *bool
 	_FeedbackEmail              *string
 	_NewsletterEnabled          *bool
+	_IDScanEnabled              *bool
+	_NextcloudEnabled           *bool
+	_NextcloudURL               *string
+	_NextcloudPublicURL         *string
+	_NextcloudUsername          *string
+	_NextcloudAppPassword       *string
+	_NextcloudVendorRoot        *string
+	_OdooWebhookURL             *string
+	_OdooWebhookToken           *string
+	_OdooDBFilter               *string
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -15172,6 +15236,366 @@ func (m *SettingsMutation) ResetNewsletterEnabled() {
 	m._NewsletterEnabled = nil
 }
 
+// SetIDScanEnabled sets the "IDScanEnabled" field.
+func (m *SettingsMutation) SetIDScanEnabled(b bool) {
+	m._IDScanEnabled = &b
+}
+
+// IDScanEnabled returns the value of the "IDScanEnabled" field in the mutation.
+func (m *SettingsMutation) IDScanEnabled() (r bool, exists bool) {
+	v := m._IDScanEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIDScanEnabled returns the old "IDScanEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldIDScanEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIDScanEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIDScanEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIDScanEnabled: %w", err)
+	}
+	return oldValue.IDScanEnabled, nil
+}
+
+// ResetIDScanEnabled resets all changes to the "IDScanEnabled" field.
+func (m *SettingsMutation) ResetIDScanEnabled() {
+	m._IDScanEnabled = nil
+}
+
+// SetNextcloudEnabled sets the "NextcloudEnabled" field.
+func (m *SettingsMutation) SetNextcloudEnabled(b bool) {
+	m._NextcloudEnabled = &b
+}
+
+// NextcloudEnabled returns the value of the "NextcloudEnabled" field in the mutation.
+func (m *SettingsMutation) NextcloudEnabled() (r bool, exists bool) {
+	v := m._NextcloudEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextcloudEnabled returns the old "NextcloudEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldNextcloudEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextcloudEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextcloudEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextcloudEnabled: %w", err)
+	}
+	return oldValue.NextcloudEnabled, nil
+}
+
+// ResetNextcloudEnabled resets all changes to the "NextcloudEnabled" field.
+func (m *SettingsMutation) ResetNextcloudEnabled() {
+	m._NextcloudEnabled = nil
+}
+
+// SetNextcloudURL sets the "NextcloudURL" field.
+func (m *SettingsMutation) SetNextcloudURL(s string) {
+	m._NextcloudURL = &s
+}
+
+// NextcloudURL returns the value of the "NextcloudURL" field in the mutation.
+func (m *SettingsMutation) NextcloudURL() (r string, exists bool) {
+	v := m._NextcloudURL
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextcloudURL returns the old "NextcloudURL" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldNextcloudURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextcloudURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextcloudURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextcloudURL: %w", err)
+	}
+	return oldValue.NextcloudURL, nil
+}
+
+// ResetNextcloudURL resets all changes to the "NextcloudURL" field.
+func (m *SettingsMutation) ResetNextcloudURL() {
+	m._NextcloudURL = nil
+}
+
+// SetNextcloudPublicURL sets the "NextcloudPublicURL" field.
+func (m *SettingsMutation) SetNextcloudPublicURL(s string) {
+	m._NextcloudPublicURL = &s
+}
+
+// NextcloudPublicURL returns the value of the "NextcloudPublicURL" field in the mutation.
+func (m *SettingsMutation) NextcloudPublicURL() (r string, exists bool) {
+	v := m._NextcloudPublicURL
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextcloudPublicURL returns the old "NextcloudPublicURL" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldNextcloudPublicURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextcloudPublicURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextcloudPublicURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextcloudPublicURL: %w", err)
+	}
+	return oldValue.NextcloudPublicURL, nil
+}
+
+// ResetNextcloudPublicURL resets all changes to the "NextcloudPublicURL" field.
+func (m *SettingsMutation) ResetNextcloudPublicURL() {
+	m._NextcloudPublicURL = nil
+}
+
+// SetNextcloudUsername sets the "NextcloudUsername" field.
+func (m *SettingsMutation) SetNextcloudUsername(s string) {
+	m._NextcloudUsername = &s
+}
+
+// NextcloudUsername returns the value of the "NextcloudUsername" field in the mutation.
+func (m *SettingsMutation) NextcloudUsername() (r string, exists bool) {
+	v := m._NextcloudUsername
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextcloudUsername returns the old "NextcloudUsername" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldNextcloudUsername(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextcloudUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextcloudUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextcloudUsername: %w", err)
+	}
+	return oldValue.NextcloudUsername, nil
+}
+
+// ResetNextcloudUsername resets all changes to the "NextcloudUsername" field.
+func (m *SettingsMutation) ResetNextcloudUsername() {
+	m._NextcloudUsername = nil
+}
+
+// SetNextcloudAppPassword sets the "NextcloudAppPassword" field.
+func (m *SettingsMutation) SetNextcloudAppPassword(s string) {
+	m._NextcloudAppPassword = &s
+}
+
+// NextcloudAppPassword returns the value of the "NextcloudAppPassword" field in the mutation.
+func (m *SettingsMutation) NextcloudAppPassword() (r string, exists bool) {
+	v := m._NextcloudAppPassword
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextcloudAppPassword returns the old "NextcloudAppPassword" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldNextcloudAppPassword(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextcloudAppPassword is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextcloudAppPassword requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextcloudAppPassword: %w", err)
+	}
+	return oldValue.NextcloudAppPassword, nil
+}
+
+// ResetNextcloudAppPassword resets all changes to the "NextcloudAppPassword" field.
+func (m *SettingsMutation) ResetNextcloudAppPassword() {
+	m._NextcloudAppPassword = nil
+}
+
+// SetNextcloudVendorRoot sets the "NextcloudVendorRoot" field.
+func (m *SettingsMutation) SetNextcloudVendorRoot(s string) {
+	m._NextcloudVendorRoot = &s
+}
+
+// NextcloudVendorRoot returns the value of the "NextcloudVendorRoot" field in the mutation.
+func (m *SettingsMutation) NextcloudVendorRoot() (r string, exists bool) {
+	v := m._NextcloudVendorRoot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextcloudVendorRoot returns the old "NextcloudVendorRoot" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldNextcloudVendorRoot(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextcloudVendorRoot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextcloudVendorRoot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextcloudVendorRoot: %w", err)
+	}
+	return oldValue.NextcloudVendorRoot, nil
+}
+
+// ResetNextcloudVendorRoot resets all changes to the "NextcloudVendorRoot" field.
+func (m *SettingsMutation) ResetNextcloudVendorRoot() {
+	m._NextcloudVendorRoot = nil
+}
+
+// SetOdooWebhookURL sets the "OdooWebhookURL" field.
+func (m *SettingsMutation) SetOdooWebhookURL(s string) {
+	m._OdooWebhookURL = &s
+}
+
+// OdooWebhookURL returns the value of the "OdooWebhookURL" field in the mutation.
+func (m *SettingsMutation) OdooWebhookURL() (r string, exists bool) {
+	v := m._OdooWebhookURL
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOdooWebhookURL returns the old "OdooWebhookURL" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldOdooWebhookURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOdooWebhookURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOdooWebhookURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOdooWebhookURL: %w", err)
+	}
+	return oldValue.OdooWebhookURL, nil
+}
+
+// ResetOdooWebhookURL resets all changes to the "OdooWebhookURL" field.
+func (m *SettingsMutation) ResetOdooWebhookURL() {
+	m._OdooWebhookURL = nil
+}
+
+// SetOdooWebhookToken sets the "OdooWebhookToken" field.
+func (m *SettingsMutation) SetOdooWebhookToken(s string) {
+	m._OdooWebhookToken = &s
+}
+
+// OdooWebhookToken returns the value of the "OdooWebhookToken" field in the mutation.
+func (m *SettingsMutation) OdooWebhookToken() (r string, exists bool) {
+	v := m._OdooWebhookToken
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOdooWebhookToken returns the old "OdooWebhookToken" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldOdooWebhookToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOdooWebhookToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOdooWebhookToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOdooWebhookToken: %w", err)
+	}
+	return oldValue.OdooWebhookToken, nil
+}
+
+// ResetOdooWebhookToken resets all changes to the "OdooWebhookToken" field.
+func (m *SettingsMutation) ResetOdooWebhookToken() {
+	m._OdooWebhookToken = nil
+}
+
+// SetOdooDBFilter sets the "OdooDBFilter" field.
+func (m *SettingsMutation) SetOdooDBFilter(s string) {
+	m._OdooDBFilter = &s
+}
+
+// OdooDBFilter returns the value of the "OdooDBFilter" field in the mutation.
+func (m *SettingsMutation) OdooDBFilter() (r string, exists bool) {
+	v := m._OdooDBFilter
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOdooDBFilter returns the old "OdooDBFilter" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldOdooDBFilter(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOdooDBFilter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOdooDBFilter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOdooDBFilter: %w", err)
+	}
+	return oldValue.OdooDBFilter, nil
+}
+
+// ResetOdooDBFilter resets all changes to the "OdooDBFilter" field.
+func (m *SettingsMutation) ResetOdooDBFilter() {
+	m._OdooDBFilter = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -15245,7 +15669,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 40)
+	fields := make([]string, 0, 50)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -15366,6 +15790,36 @@ func (m *SettingsMutation) Fields() []string {
 	if m._NewsletterEnabled != nil {
 		fields = append(fields, settings.FieldNewsletterEnabled)
 	}
+	if m._IDScanEnabled != nil {
+		fields = append(fields, settings.FieldIDScanEnabled)
+	}
+	if m._NextcloudEnabled != nil {
+		fields = append(fields, settings.FieldNextcloudEnabled)
+	}
+	if m._NextcloudURL != nil {
+		fields = append(fields, settings.FieldNextcloudURL)
+	}
+	if m._NextcloudPublicURL != nil {
+		fields = append(fields, settings.FieldNextcloudPublicURL)
+	}
+	if m._NextcloudUsername != nil {
+		fields = append(fields, settings.FieldNextcloudUsername)
+	}
+	if m._NextcloudAppPassword != nil {
+		fields = append(fields, settings.FieldNextcloudAppPassword)
+	}
+	if m._NextcloudVendorRoot != nil {
+		fields = append(fields, settings.FieldNextcloudVendorRoot)
+	}
+	if m._OdooWebhookURL != nil {
+		fields = append(fields, settings.FieldOdooWebhookURL)
+	}
+	if m._OdooWebhookToken != nil {
+		fields = append(fields, settings.FieldOdooWebhookToken)
+	}
+	if m._OdooDBFilter != nil {
+		fields = append(fields, settings.FieldOdooDBFilter)
+	}
 	return fields
 }
 
@@ -15454,6 +15908,26 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.FeedbackEmail()
 	case settings.FieldNewsletterEnabled:
 		return m.NewsletterEnabled()
+	case settings.FieldIDScanEnabled:
+		return m.IDScanEnabled()
+	case settings.FieldNextcloudEnabled:
+		return m.NextcloudEnabled()
+	case settings.FieldNextcloudURL:
+		return m.NextcloudURL()
+	case settings.FieldNextcloudPublicURL:
+		return m.NextcloudPublicURL()
+	case settings.FieldNextcloudUsername:
+		return m.NextcloudUsername()
+	case settings.FieldNextcloudAppPassword:
+		return m.NextcloudAppPassword()
+	case settings.FieldNextcloudVendorRoot:
+		return m.NextcloudVendorRoot()
+	case settings.FieldOdooWebhookURL:
+		return m.OdooWebhookURL()
+	case settings.FieldOdooWebhookToken:
+		return m.OdooWebhookToken()
+	case settings.FieldOdooDBFilter:
+		return m.OdooDBFilter()
 	}
 	return nil, false
 }
@@ -15543,6 +16017,26 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldFeedbackEmail(ctx)
 	case settings.FieldNewsletterEnabled:
 		return m.OldNewsletterEnabled(ctx)
+	case settings.FieldIDScanEnabled:
+		return m.OldIDScanEnabled(ctx)
+	case settings.FieldNextcloudEnabled:
+		return m.OldNextcloudEnabled(ctx)
+	case settings.FieldNextcloudURL:
+		return m.OldNextcloudURL(ctx)
+	case settings.FieldNextcloudPublicURL:
+		return m.OldNextcloudPublicURL(ctx)
+	case settings.FieldNextcloudUsername:
+		return m.OldNextcloudUsername(ctx)
+	case settings.FieldNextcloudAppPassword:
+		return m.OldNextcloudAppPassword(ctx)
+	case settings.FieldNextcloudVendorRoot:
+		return m.OldNextcloudVendorRoot(ctx)
+	case settings.FieldOdooWebhookURL:
+		return m.OldOdooWebhookURL(ctx)
+	case settings.FieldOdooWebhookToken:
+		return m.OldOdooWebhookToken(ctx)
+	case settings.FieldOdooDBFilter:
+		return m.OldOdooDBFilter(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -15832,6 +16326,76 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNewsletterEnabled(v)
 		return nil
+	case settings.FieldIDScanEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIDScanEnabled(v)
+		return nil
+	case settings.FieldNextcloudEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextcloudEnabled(v)
+		return nil
+	case settings.FieldNextcloudURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextcloudURL(v)
+		return nil
+	case settings.FieldNextcloudPublicURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextcloudPublicURL(v)
+		return nil
+	case settings.FieldNextcloudUsername:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextcloudUsername(v)
+		return nil
+	case settings.FieldNextcloudAppPassword:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextcloudAppPassword(v)
+		return nil
+	case settings.FieldNextcloudVendorRoot:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextcloudVendorRoot(v)
+		return nil
+	case settings.FieldOdooWebhookURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOdooWebhookURL(v)
+		return nil
+	case settings.FieldOdooWebhookToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOdooWebhookToken(v)
+		return nil
+	case settings.FieldOdooDBFilter:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOdooDBFilter(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -16052,6 +16616,36 @@ func (m *SettingsMutation) ResetField(name string) error {
 	case settings.FieldNewsletterEnabled:
 		m.ResetNewsletterEnabled()
 		return nil
+	case settings.FieldIDScanEnabled:
+		m.ResetIDScanEnabled()
+		return nil
+	case settings.FieldNextcloudEnabled:
+		m.ResetNextcloudEnabled()
+		return nil
+	case settings.FieldNextcloudURL:
+		m.ResetNextcloudURL()
+		return nil
+	case settings.FieldNextcloudPublicURL:
+		m.ResetNextcloudPublicURL()
+		return nil
+	case settings.FieldNextcloudUsername:
+		m.ResetNextcloudUsername()
+		return nil
+	case settings.FieldNextcloudAppPassword:
+		m.ResetNextcloudAppPassword()
+		return nil
+	case settings.FieldNextcloudVendorRoot:
+		m.ResetNextcloudVendorRoot()
+		return nil
+	case settings.FieldOdooWebhookURL:
+		m.ResetOdooWebhookURL()
+		return nil
+	case settings.FieldOdooWebhookToken:
+		m.ResetOdooWebhookToken()
+		return nil
+	case settings.FieldOdooDBFilter:
+		m.ResetOdooDBFilter()
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -16157,6 +16751,7 @@ type VendorMutation struct {
 	blockednote      *string
 	accountproofurl  *string
 	debt             *string
+	lastidscan       *time.Time
 	clearedFields    map[string]struct{}
 	locations        map[int]struct{}
 	removedlocations map[int]struct{}
@@ -17032,6 +17627,55 @@ func (m *VendorMutation) ResetDebt() {
 	m.debt = nil
 }
 
+// SetLastidscan sets the "lastidscan" field.
+func (m *VendorMutation) SetLastidscan(t time.Time) {
+	m.lastidscan = &t
+}
+
+// Lastidscan returns the value of the "lastidscan" field in the mutation.
+func (m *VendorMutation) Lastidscan() (r time.Time, exists bool) {
+	v := m.lastidscan
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastidscan returns the old "lastidscan" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldLastidscan(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastidscan is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastidscan requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastidscan: %w", err)
+	}
+	return oldValue.Lastidscan, nil
+}
+
+// ClearLastidscan clears the value of the "lastidscan" field.
+func (m *VendorMutation) ClearLastidscan() {
+	m.lastidscan = nil
+	m.clearedFields[vendor.FieldLastidscan] = struct{}{}
+}
+
+// LastidscanCleared returns if the "lastidscan" field was cleared in this mutation.
+func (m *VendorMutation) LastidscanCleared() bool {
+	_, ok := m.clearedFields[vendor.FieldLastidscan]
+	return ok
+}
+
+// ResetLastidscan resets all changes to the "lastidscan" field.
+func (m *VendorMutation) ResetLastidscan() {
+	m.lastidscan = nil
+	delete(m.clearedFields, vendor.FieldLastidscan)
+}
+
 // AddLocationIDs adds the "locations" edge to the Location entity by ids.
 func (m *VendorMutation) AddLocationIDs(ids ...int) {
 	if m.locations == nil {
@@ -17228,7 +17872,7 @@ func (m *VendorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VendorMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 22)
 	if m.keycloakid != nil {
 		fields = append(fields, vendor.FieldKeycloakid)
 	}
@@ -17292,6 +17936,9 @@ func (m *VendorMutation) Fields() []string {
 	if m.debt != nil {
 		fields = append(fields, vendor.FieldDebt)
 	}
+	if m.lastidscan != nil {
+		fields = append(fields, vendor.FieldLastidscan)
+	}
 	return fields
 }
 
@@ -17342,6 +17989,8 @@ func (m *VendorMutation) Field(name string) (ent.Value, bool) {
 		return m.Accountproofurl()
 	case vendor.FieldDebt:
 		return m.Debt()
+	case vendor.FieldLastidscan:
+		return m.Lastidscan()
 	}
 	return nil, false
 }
@@ -17393,6 +18042,8 @@ func (m *VendorMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldAccountproofurl(ctx)
 	case vendor.FieldDebt:
 		return m.OldDebt(ctx)
+	case vendor.FieldLastidscan:
+		return m.OldLastidscan(ctx)
 	}
 	return nil, fmt.Errorf("unknown Vendor field %s", name)
 }
@@ -17549,6 +18200,13 @@ func (m *VendorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDebt(v)
 		return nil
+	case vendor.FieldLastidscan:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastidscan(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Vendor field %s", name)
 }
@@ -17578,7 +18236,11 @@ func (m *VendorMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *VendorMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(vendor.FieldLastidscan) {
+		fields = append(fields, vendor.FieldLastidscan)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -17591,6 +18253,11 @@ func (m *VendorMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *VendorMutation) ClearField(name string) error {
+	switch name {
+	case vendor.FieldLastidscan:
+		m.ClearLastidscan()
+		return nil
+	}
 	return fmt.Errorf("unknown Vendor nullable field %s", name)
 }
 
@@ -17660,6 +18327,9 @@ func (m *VendorMutation) ResetField(name string) error {
 		return nil
 	case vendor.FieldDebt:
 		m.ResetDebt()
+		return nil
+	case vendor.FieldLastidscan:
+		m.ResetLastidscan()
 		return nil
 	}
 	return fmt.Errorf("unknown Vendor field %s", name)

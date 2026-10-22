@@ -20,6 +20,9 @@ import (
 // doesn't page anyone.
 var ErrLicenseIDTaken = errors.New("license ID is already in use by another vendor")
 
+// ErrVendorNotFound is returned when no vendor has the given license ID
+var ErrVendorNotFound = errors.New("no vendor with this license ID")
+
 // GetVendorByLicenseID returns the vendor with the given licenseID
 func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err error) {
 	// Get vendor data
@@ -45,6 +48,22 @@ func (db *Database) GetVendorByLicenseID(licenseID string) (vendor Vendor, err e
 
 	return vendor, nil
 
+}
+
+// RecordVendorIDScan stores now as the time the vendor's ID card was last
+// scanned and returns the vendor
+func (db *Database) RecordVendorIDScan(licenseID string) (vendor Vendor, err error) {
+	n, err := db.EntClient.Vendor.Update().
+		Where(entvendor.Licenseid(licenseID), entvendor.Isdeleted(false)).
+		SetLastidscan(time.Now()).
+		Save(context.Background())
+	if err != nil {
+		return vendor, fmt.Errorf("RecordVendorIDScan: %w", err)
+	}
+	if n == 0 {
+		return vendor, fmt.Errorf("RecordVendorIDScan: %w", ErrVendorNotFound)
+	}
+	return db.GetVendorByLicenseID(licenseID)
 }
 
 // ListVendors returns all active vendors, i.e. neither disabled nor deleted
@@ -393,6 +412,7 @@ func (db *Database) VendorEntIntoVendor(v ent.Vendor) (vendor Vendor) {
 		HasSmartphone:    v.Hassmartphone,
 		HasBankAccount:   v.Hasbankaccount,
 		Debt:             v.Debt,
+		LastIDScan:       null.TimeFromPtr(v.Lastidscan),
 	}
 	return vendor
 }

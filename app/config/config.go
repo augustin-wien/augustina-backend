@@ -54,8 +54,11 @@ type config struct {
 	SentryDSN              string
 	FlourWebhookURL        string
 	FlourWebhookToken      string
-	OdooWebhookURL         string
-	OdooWebhookToken       string
+	// OdooWebhookURL and OdooWebhookToken are admin-editable and mirrored from the settings
+	// like OnlinePaperUrl; ODOO_WEBHOOK_* only seed them once at boot (BackfillOdooWebhook).
+	OdooWebhookURL   string
+	OdooWebhookToken string
+	OdooDBFilter     string
 	// OrderReconcileIntervalMinutes controls how often the background job checks orders that
 	// are still unverified against VivaWallet directly, to catch the case where VivaWallet's
 	// webhook never arrived even though the customer paid. 0 disables the job.
@@ -113,8 +116,6 @@ func InitConfig() error {
 		SentryDSN:                         getEnv("SENTRY_DSN", ""),
 		FlourWebhookURL:                   getEnv("FLOUR_WEBHOOK_URL", ""),
 		FlourWebhookToken:                 getEnv("FLOUR_WEBHOOK_TOKEN", ""),
-		OdooWebhookURL:                    getEnv("ODOO_WEBHOOK_URL", ""),
-		OdooWebhookToken:                  getEnv("ODOO_WEBHOOK_TOKEN", ""),
 		OrderReconcileIntervalMinutes:     getEnvInt("ORDER_RECONCILE_INTERVAL_MINUTES", 15),
 		TrustedProxies:                    getEnvStringSlice("TRUSTED_PROXIES", ""),
 		DEBUG_payments:                    (getEnv("DEBUG_payments", "false") == "true"),

@@ -139,6 +139,33 @@ func TestBackfillOnlinePaperUrl(t *testing.T) {
 	require.Equal(t, "https://legacy.example.test", settings.OnlinePaperUrl)
 }
 
+func TestBackfillOdooWebhook(t *testing.T) {
+	settings, err := Db.GetSettings()
+	require.NoError(t, err)
+	originalURL, originalToken := settings.OdooWebhookURL, settings.OdooWebhookToken
+	defer func() {
+		settings.OdooWebhookURL, settings.OdooWebhookToken = originalURL, originalToken
+		require.NoError(t, Db.UpdateSettings(settings))
+	}()
+
+	settings.OdooWebhookURL, settings.OdooWebhookToken = "", ""
+	require.NoError(t, Db.UpdateSettings(settings))
+	require.NoError(t, Db.BackfillOdooWebhook("https://odoo.example.test/hook", "legacy-token"))
+	settings, err = Db.GetSettings()
+	require.NoError(t, err)
+	require.Equal(t, "https://odoo.example.test/hook", settings.OdooWebhookURL)
+	require.Equal(t, "legacy-token", settings.OdooWebhookToken)
+	require.Equal(t, "https://odoo.example.test/hook", config.Config.OdooWebhookURL)
+	require.Equal(t, "legacy-token", config.Config.OdooWebhookToken)
+
+	// A value set by an admin is never overridden
+	require.NoError(t, Db.BackfillOdooWebhook("https://other.example.test", "other"))
+	settings, err = Db.GetSettings()
+	require.NoError(t, err)
+	require.Equal(t, "https://odoo.example.test/hook", settings.OdooWebhookURL)
+	require.Equal(t, "legacy-token", settings.OdooWebhookToken)
+}
+
 func TestAccounts(t *testing.T) {
 	// Get account by type (default accounts should exist)
 	account, err := Db.GetAccountByType("Cash")

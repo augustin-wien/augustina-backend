@@ -92,6 +92,26 @@ const (
 	FieldFeedbackEmail = "feedbackemail"
 	// FieldNewsletterEnabled holds the string denoting the newsletterenabled field in the database.
 	FieldNewsletterEnabled = "newsletterenabled"
+	// FieldIDScanEnabled holds the string denoting the idscanenabled field in the database.
+	FieldIDScanEnabled = "idscanenabled"
+	// FieldNextcloudEnabled holds the string denoting the nextcloudenabled field in the database.
+	FieldNextcloudEnabled = "nextcloudenabled"
+	// FieldNextcloudURL holds the string denoting the nextcloudurl field in the database.
+	FieldNextcloudURL = "nextcloudurl"
+	// FieldNextcloudPublicURL holds the string denoting the nextcloudpublicurl field in the database.
+	FieldNextcloudPublicURL = "nextcloudpublicurl"
+	// FieldNextcloudUsername holds the string denoting the nextcloudusername field in the database.
+	FieldNextcloudUsername = "nextcloudusername"
+	// FieldNextcloudAppPassword holds the string denoting the nextcloudapppassword field in the database.
+	FieldNextcloudAppPassword = "nextcloudapppassword"
+	// FieldNextcloudVendorRoot holds the string denoting the nextcloudvendorroot field in the database.
+	FieldNextcloudVendorRoot = "nextcloudvendorroot"
+	// FieldOdooWebhookURL holds the string denoting the odoowebhookurl field in the database.
+	FieldOdooWebhookURL = "odoowebhookurl"
+	// FieldOdooWebhookToken holds the string denoting the odoowebhooktoken field in the database.
+	FieldOdooWebhookToken = "odoowebhooktoken"
+	// FieldOdooDBFilter holds the string denoting the odoodbfilter field in the database.
+	FieldOdooDBFilter = "odoodbfilter"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -148,6 +168,16 @@ var Columns = []string{
 	FieldFeedbackEnabled,
 	FieldFeedbackEmail,
 	FieldNewsletterEnabled,
+	FieldIDScanEnabled,
+	FieldNextcloudEnabled,
+	FieldNextcloudURL,
+	FieldNextcloudPublicURL,
+	FieldNextcloudUsername,
+	FieldNextcloudAppPassword,
+	FieldNextcloudVendorRoot,
+	FieldOdooWebhookURL,
+	FieldOdooWebhookToken,
+	FieldOdooDBFilter,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -252,6 +282,26 @@ var (
 	DefaultFeedbackEmail string
 	// DefaultNewsletterEnabled holds the default value on creation for the "NewsletterEnabled" field.
 	DefaultNewsletterEnabled bool
+	// DefaultIDScanEnabled holds the default value on creation for the "IDScanEnabled" field.
+	DefaultIDScanEnabled bool
+	// DefaultNextcloudEnabled holds the default value on creation for the "NextcloudEnabled" field.
+	DefaultNextcloudEnabled bool
+	// DefaultNextcloudURL holds the default value on creation for the "NextcloudURL" field.
+	DefaultNextcloudURL string
+	// DefaultNextcloudPublicURL holds the default value on creation for the "NextcloudPublicURL" field.
+	DefaultNextcloudPublicURL string
+	// DefaultNextcloudUsername holds the default value on creation for the "NextcloudUsername" field.
+	DefaultNextcloudUsername string
+	// DefaultNextcloudAppPassword holds the default value on creation for the "NextcloudAppPassword" field.
+	DefaultNextcloudAppPassword string
+	// DefaultNextcloudVendorRoot holds the default value on creation for the "NextcloudVendorRoot" field.
+	DefaultNextcloudVendorRoot string
+	// DefaultOdooWebhookURL holds the default value on creation for the "OdooWebhookURL" field.
+	DefaultOdooWebhookURL string
+	// DefaultOdooWebhookToken holds the default value on creation for the "OdooWebhookToken" field.
+	DefaultOdooWebhookToken string
+	// DefaultOdooDBFilter holds the default value on creation for the "OdooDBFilter" field.
+	DefaultOdooDBFilter string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -462,6 +512,56 @@ func ByFeedbackEmail(opts ...sql.OrderTermOption) OrderOption {
 // ByNewsletterEnabled orders the results by the NewsletterEnabled field.
 func ByNewsletterEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNewsletterEnabled, opts...).ToFunc()
+}
+
+// ByIDScanEnabled orders the results by the IDScanEnabled field.
+func ByIDScanEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIDScanEnabled, opts...).ToFunc()
+}
+
+// ByNextcloudEnabled orders the results by the NextcloudEnabled field.
+func ByNextcloudEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNextcloudEnabled, opts...).ToFunc()
+}
+
+// ByNextcloudURL orders the results by the NextcloudURL field.
+func ByNextcloudURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNextcloudURL, opts...).ToFunc()
+}
+
+// ByNextcloudPublicURL orders the results by the NextcloudPublicURL field.
+func ByNextcloudPublicURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNextcloudPublicURL, opts...).ToFunc()
+}
+
+// ByNextcloudUsername orders the results by the NextcloudUsername field.
+func ByNextcloudUsername(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNextcloudUsername, opts...).ToFunc()
+}
+
+// ByNextcloudAppPassword orders the results by the NextcloudAppPassword field.
+func ByNextcloudAppPassword(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNextcloudAppPassword, opts...).ToFunc()
+}
+
+// ByNextcloudVendorRoot orders the results by the NextcloudVendorRoot field.
+func ByNextcloudVendorRoot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNextcloudVendorRoot, opts...).ToFunc()
+}
+
+// ByOdooWebhookURL orders the results by the OdooWebhookURL field.
+func ByOdooWebhookURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOdooWebhookURL, opts...).ToFunc()
+}
+
+// ByOdooWebhookToken orders the results by the OdooWebhookToken field.
+func ByOdooWebhookToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOdooWebhookToken, opts...).ToFunc()
+}
+
+// ByOdooDBFilter orders the results by the OdooDBFilter field.
+func ByOdooDBFilter(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOdooDBFilter, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

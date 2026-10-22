@@ -81,6 +81,20 @@ func (_c *LocationCreate) SetNillableTelephone(v *string) *LocationCreate {
 	return _c
 }
 
+// SetMarketNumber sets the "market_number" field.
+func (_c *LocationCreate) SetMarketNumber(v string) *LocationCreate {
+	_c.mutation.SetMarketNumber(v)
+	return _c
+}
+
+// SetNillableMarketNumber sets the "market_number" field if the given value is not nil.
+func (_c *LocationCreate) SetNillableMarketNumber(v *string) *LocationCreate {
+	if v != nil {
+		_c.SetMarketNumber(*v)
+	}
+	return _c
+}
+
 // SetWorkingTime sets the "working_time" field.
 func (_c *LocationCreate) SetWorkingTime(v *schema.WorkingTime) *LocationCreate {
 	_c.mutation.SetWorkingTime(v)
@@ -159,6 +173,10 @@ func (_c *LocationCreate) defaults() {
 		v := location.DefaultTelephone
 		_c.mutation.SetTelephone(v)
 	}
+	if _, ok := _c.mutation.MarketNumber(); !ok {
+		v := location.DefaultMarketNumber
+		_c.mutation.SetMarketNumber(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -180,6 +198,9 @@ func (_c *LocationCreate) check() error {
 	}
 	if _, ok := _c.mutation.Telephone(); !ok {
 		return &ValidationError{Name: "telephone", err: errors.New(`ent: missing required field "Location.telephone"`)}
+	}
+	if _, ok := _c.mutation.MarketNumber(); !ok {
+		return &ValidationError{Name: "market_number", err: errors.New(`ent: missing required field "Location.market_number"`)}
 	}
 	if _, ok := _c.mutation.WorkingTime(); !ok {
 		return &ValidationError{Name: "working_time", err: errors.New(`ent: missing required field "Location.working_time"`)}
@@ -244,6 +265,10 @@ func (_c *LocationCreate) createSpec() (*Location, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Telephone(); ok {
 		_spec.SetField(location.FieldTelephone, field.TypeString, value)
 		_node.Telephone = value
+	}
+	if value, ok := _c.mutation.MarketNumber(); ok {
+		_spec.SetField(location.FieldMarketNumber, field.TypeString, value)
+		_node.MarketNumber = value
 	}
 	if value, ok := _c.mutation.WorkingTime(); ok {
 		_spec.SetField(location.FieldWorkingTime, field.TypeJSON, value)

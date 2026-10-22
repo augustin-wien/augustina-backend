@@ -226,6 +226,10 @@ func init() {
 	locationDescTelephone := locationFields[6].Descriptor()
 	// location.DefaultTelephone holds the default value on creation for the telephone field.
 	location.DefaultTelephone = locationDescTelephone.Default.(string)
+	// locationDescMarketNumber is the schema descriptor for market_number field.
+	locationDescMarketNumber := locationFields[7].Descriptor()
+	// location.DefaultMarketNumber holds the default value on creation for the market_number field.
+	location.DefaultMarketNumber = locationDescMarketNumber.Default.(string)
 	// locationDescID is the schema descriptor for id field.
 	locationDescID := locationFields[0].Descriptor()
 	// location.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -438,6 +442,46 @@ func init() {
 	settingsDescNewsletterEnabled := settingsFields[40].Descriptor()
 	// settings.DefaultNewsletterEnabled holds the default value on creation for the NewsletterEnabled field.
 	settings.DefaultNewsletterEnabled = settingsDescNewsletterEnabled.Default.(bool)
+	// settingsDescIDScanEnabled is the schema descriptor for IDScanEnabled field.
+	settingsDescIDScanEnabled := settingsFields[41].Descriptor()
+	// settings.DefaultIDScanEnabled holds the default value on creation for the IDScanEnabled field.
+	settings.DefaultIDScanEnabled = settingsDescIDScanEnabled.Default.(bool)
+	// settingsDescNextcloudEnabled is the schema descriptor for NextcloudEnabled field.
+	settingsDescNextcloudEnabled := settingsFields[42].Descriptor()
+	// settings.DefaultNextcloudEnabled holds the default value on creation for the NextcloudEnabled field.
+	settings.DefaultNextcloudEnabled = settingsDescNextcloudEnabled.Default.(bool)
+	// settingsDescNextcloudURL is the schema descriptor for NextcloudURL field.
+	settingsDescNextcloudURL := settingsFields[43].Descriptor()
+	// settings.DefaultNextcloudURL holds the default value on creation for the NextcloudURL field.
+	settings.DefaultNextcloudURL = settingsDescNextcloudURL.Default.(string)
+	// settingsDescNextcloudPublicURL is the schema descriptor for NextcloudPublicURL field.
+	settingsDescNextcloudPublicURL := settingsFields[44].Descriptor()
+	// settings.DefaultNextcloudPublicURL holds the default value on creation for the NextcloudPublicURL field.
+	settings.DefaultNextcloudPublicURL = settingsDescNextcloudPublicURL.Default.(string)
+	// settingsDescNextcloudUsername is the schema descriptor for NextcloudUsername field.
+	settingsDescNextcloudUsername := settingsFields[45].Descriptor()
+	// settings.DefaultNextcloudUsername holds the default value on creation for the NextcloudUsername field.
+	settings.DefaultNextcloudUsername = settingsDescNextcloudUsername.Default.(string)
+	// settingsDescNextcloudAppPassword is the schema descriptor for NextcloudAppPassword field.
+	settingsDescNextcloudAppPassword := settingsFields[46].Descriptor()
+	// settings.DefaultNextcloudAppPassword holds the default value on creation for the NextcloudAppPassword field.
+	settings.DefaultNextcloudAppPassword = settingsDescNextcloudAppPassword.Default.(string)
+	// settingsDescNextcloudVendorRoot is the schema descriptor for NextcloudVendorRoot field.
+	settingsDescNextcloudVendorRoot := settingsFields[47].Descriptor()
+	// settings.DefaultNextcloudVendorRoot holds the default value on creation for the NextcloudVendorRoot field.
+	settings.DefaultNextcloudVendorRoot = settingsDescNextcloudVendorRoot.Default.(string)
+	// settingsDescOdooWebhookURL is the schema descriptor for OdooWebhookURL field.
+	settingsDescOdooWebhookURL := settingsFields[48].Descriptor()
+	// settings.DefaultOdooWebhookURL holds the default value on creation for the OdooWebhookURL field.
+	settings.DefaultOdooWebhookURL = settingsDescOdooWebhookURL.Default.(string)
+	// settingsDescOdooWebhookToken is the schema descriptor for OdooWebhookToken field.
+	settingsDescOdooWebhookToken := settingsFields[49].Descriptor()
+	// settings.DefaultOdooWebhookToken holds the default value on creation for the OdooWebhookToken field.
+	settings.DefaultOdooWebhookToken = settingsDescOdooWebhookToken.Default.(string)
+	// settingsDescOdooDBFilter is the schema descriptor for OdooDBFilter field.
+	settingsDescOdooDBFilter := settingsFields[50].Descriptor()
+	// settings.DefaultOdooDBFilter holds the default value on creation for the OdooDBFilter field.
+	settings.DefaultOdooDBFilter = settingsDescOdooDBFilter.Default.(string)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

@@ -23,7 +23,7 @@ func (db *Database) GetLocationsByVendorID(vendorID int) (locations []*ent.Locat
 
 // CreateLocation creates a new location for a given vendor.
 func (db *Database) CreateLocation(vendorID int, location ent.Location) (err error) {
-	_, err = db.EntClient.Location.Create().SetVendorID(vendorID).SetName(location.Name).SetAddress(location.Address).SetLongitude(location.Longitude).SetLatitude(location.Latitude).SetZip(location.Zip).SetTelephone(location.Telephone).SetWorkingTime(location.WorkingTime).Save(context.Background())
+	_, err = db.EntClient.Location.Create().SetVendorID(vendorID).SetName(location.Name).SetAddress(location.Address).SetLongitude(location.Longitude).SetLatitude(location.Latitude).SetZip(location.Zip).SetTelephone(location.Telephone).SetMarketNumber(location.MarketNumber).SetWorkingTime(location.WorkingTime).Save(context.Background())
 	if err != nil {
 		log.Error("CreateLocation", err)
 	}
@@ -33,7 +33,7 @@ func (db *Database) CreateLocation(vendorID int, location ent.Location) (err err
 // UpdateLocation updates a location belonging to the given vendor. Returns an
 // ent.NotFoundError if the location does not exist or belongs to another vendor.
 func (db *Database) UpdateLocation(vendorID int, location ent.Location) (err error) {
-	_, err = db.EntClient.Location.UpdateOneID(location.ID).Where(entlocation.HasVendorWith(entvendor.ID(vendorID))).SetName(location.Name).SetAddress(location.Address).SetLongitude(location.Longitude).SetLatitude(location.Latitude).SetZip(location.Zip).SetTelephone(location.Telephone).SetWorkingTime(location.WorkingTime).Save(context.Background())
+	_, err = db.EntClient.Location.UpdateOneID(location.ID).Where(entlocation.HasVendorWith(entvendor.ID(vendorID))).SetName(location.Name).SetAddress(location.Address).SetLongitude(location.Longitude).SetLatitude(location.Latitude).SetZip(location.Zip).SetTelephone(location.Telephone).SetMarketNumber(location.MarketNumber).SetWorkingTime(location.WorkingTime).Save(context.Background())
 	if err != nil && !ent.IsNotFound(err) {
 		log.Error("UpdateLocation", err)
 	}
@@ -104,6 +104,7 @@ type LocationOverview struct {
 	Address          string              `json:"address"`
 	Zip              string              `json:"zip"`
 	Telephone        string              `json:"telephone"`
+	MarketNumber     string              `json:"market_number"`
 	Longitude        float64             `json:"longitude"`
 	Latitude         float64             `json:"latitude"`
 	WorkingTime      *schema.WorkingTime `json:"working_time"`
@@ -135,14 +136,15 @@ func (db *Database) ListLocationsWithVendor() (locations []LocationOverview, err
 	locations = make([]LocationOverview, 0, len(ents))
 	for _, l := range ents {
 		overview := LocationOverview{
-			ID:          l.ID,
-			Name:        l.Name,
-			Address:     l.Address,
-			Zip:         l.Zip,
-			Telephone:   l.Telephone,
-			Longitude:   l.Longitude,
-			Latitude:    l.Latitude,
-			WorkingTime: l.WorkingTime,
+			ID:           l.ID,
+			Name:         l.Name,
+			Address:      l.Address,
+			Zip:          l.Zip,
+			Telephone:    l.Telephone,
+			MarketNumber: l.MarketNumber,
+			Longitude:    l.Longitude,
+			Latitude:     l.Latitude,
+			WorkingTime:  l.WorkingTime,
 		}
 		if v := l.Edges.Vendor; v != nil {
 			overview.VendorID = &v.ID
@@ -179,6 +181,7 @@ func (db *Database) CreateStandaloneLocation(vendorID *int, location ent.Locatio
 		SetLatitude(location.Latitude).
 		SetZip(location.Zip).
 		SetTelephone(location.Telephone).
+		SetMarketNumber(location.MarketNumber).
 		SetWorkingTime(location.WorkingTime).
 		Save(context.Background())
 	if err != nil {
@@ -199,6 +202,7 @@ func (db *Database) UpdateLocationByID(vendorID *int, location ent.Location) (er
 		SetLatitude(location.Latitude).
 		SetZip(location.Zip).
 		SetTelephone(location.Telephone).
+		SetMarketNumber(location.MarketNumber).
 		SetWorkingTime(location.WorkingTime)
 	if vendorID != nil {
 		update = update.SetVendorID(*vendorID)
