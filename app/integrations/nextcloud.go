@@ -60,7 +60,7 @@ func (nc Nextcloud) EnsureVendorFolder(licenseID string) (string, error) {
 		return "", fmt.Errorf("nextcloud: creating %s: %w", strings.Join(segments, "/"), err)
 	}
 	_, _ = io.Copy(io.Discard, resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusCreated, http.StatusMethodNotAllowed:
 	case http.StatusConflict:
@@ -76,34 +76,35 @@ func (nc Nextcloud) EnsureVendorFolder(licenseID string) (string, error) {
 	return nc.publicURL() + "/index.php/f/" + url.PathEscape(props.FileID), nil
 }
 
-// Test checks the login and that the vendor root exists and new folders can be created in it
-func (nc Nextcloud) Test() error {
+// Test checks the login and that the vendor root exists and new folders can be created in it.
+// The message is meant for the backoffice.
+func (nc Nextcloud) Test() (ok bool, message string) {
 	switch {
 	case nc.URL == "":
-		return errors.New("Keine Nextcloud-URL eingetragen")
+		return false, "Keine Nextcloud-URL eingetragen"
 	case nc.Username == "" || nc.AppPassword == "":
-		return errors.New("Benutzername oder App-Passwort fehlt")
+		return false, "Benutzername oder App-Passwort fehlt"
 	case nc.VendorRoot == "":
-		return errors.New("Kein Ordner eingetragen")
+		return false, "Kein Ordner eingetragen"
 	}
 	props, err := nc.folderProps(strings.Split(nc.VendorRoot, "/"))
 	var statusErr *nextcloudStatusError
 	if errors.As(err, &statusErr) {
 		switch statusErr.Status {
 		case http.StatusUnauthorized:
-			return errors.New("Anmeldung fehlgeschlagen: Benutzername oder App-Passwort ist falsch")
+			return false, "Anmeldung fehlgeschlagen: Benutzername oder App-Passwort ist falsch"
 		case http.StatusNotFound:
-			return fmt.Errorf("Der Ordner „%s“ existiert für %s nicht", nc.VendorRoot, nc.Username)
+			return false, fmt.Sprintf("Der Ordner „%s“ existiert für %s nicht", nc.VendorRoot, nc.Username)
 		}
 	}
 	if err != nil {
-		return err
+		return false, err.Error()
 	}
 	// Nextcloud lists what the user may do with the folder; C means creating files and folders
 	if !strings.Contains(props.Permissions, "C") {
-		return fmt.Errorf("%s darf im Ordner „%s“ keine Ordner anlegen", nc.Username, nc.VendorRoot)
+		return false, fmt.Sprintf("%s darf im Ordner „%s“ keine Ordner anlegen", nc.Username, nc.VendorRoot)
 	}
-	return nil
+	return true, "Verbindung funktioniert, Ordner können angelegt werden"
 }
 
 func (nc Nextcloud) publicURL() string {
@@ -122,6 +123,10 @@ func (nc Nextcloud) davURL(segments []string) string {
 }
 
 func (nc Nextcloud) request(method string, segments []string, body io.Reader, header map[string]string) (*http.Response, error) {
+	base, err := url.Parse(nc.URL)
+	if err != nil || (base.Scheme != "http" && base.Scheme != "https") || base.Host == "" || base.User != nil {
+		return nil, fmt.Errorf("invalid Nextcloud URL %q", nc.URL)
+	}
 	req, err := http.NewRequest(method, nc.davURL(segments), body)
 	if err != nil {
 		return nil, err
@@ -170,7 +175,7 @@ func (nc Nextcloud) folderProps(segments []string) (davProps, error) {
 	if err != nil {
 		return davProps{}, fmt.Errorf("nextcloud: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusMultiStatus {
 		return davProps{}, &nextcloudStatusError{Status: resp.StatusCode}
 	}

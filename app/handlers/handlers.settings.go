@@ -683,10 +683,10 @@ func testNextcloud(w http.ResponseWriter, r *http.Request) {
 		settings.NextcloudVendorRoot = req.NextcloudVendorRoot
 	}
 
-	res := NextcloudTestResponse{Success: true, Message: "Verbindung funktioniert, Ordner können angelegt werden"}
-	if err := integrations.NextcloudFromSettings(settings).Test(); err != nil {
-		log.Info("testNextcloud: ", err)
-		res = NextcloudTestResponse{Message: err.Error()}
+	var res NextcloudTestResponse
+	res.Success, res.Message = integrations.NextcloudFromSettings(settings).Test()
+	if !res.Success {
+		log.Info("testNextcloud: ", res.Message)
 	}
 	if err = utils.WriteJSON(w, http.StatusOK, res); err != nil {
 		log.Error("testNextcloud: ", err)

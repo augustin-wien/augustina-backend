@@ -109,18 +109,21 @@ func TestOdooRoutesFollowSettings(t *testing.T) {
 	t.Cleanup(func() { config.Config.OdooWebhookURL = origOdoo })
 
 	router := GetRouter()
-	request := func() int {
+	request := func(path string) int {
 		rr := httptest.NewRecorder()
-		router.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/api/flour/vendors/license/demo/", nil))
+		router.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, path, nil))
 		return rr.Code
 	}
 
-	config.Config.OdooWebhookURL = ""
-	if code := request(); code != http.StatusNotFound {
-		t.Fatalf("expected 404 while Odoo is off, got %d", code)
-	}
-	config.Config.OdooWebhookURL = "http://localhost:8081/odoo"
-	if code := request(); code != http.StatusUnauthorized {
-		t.Fatalf("expected 401 once Odoo is on, got %d", code)
+	for _, prefix := range []string{"/api/odoo", "/api/flour"} {
+		path := prefix + "/vendors/license/demo/"
+		config.Config.OdooWebhookURL = ""
+		if code := request(path); code != http.StatusNotFound {
+			t.Fatalf("expected 404 for %s while Odoo is off, got %d", path, code)
+		}
+		config.Config.OdooWebhookURL = "http://localhost:8081/odoo"
+		if code := request(path); code != http.StatusUnauthorized {
+			t.Fatalf("expected 401 for %s once Odoo is on, got %d", path, code)
+		}
 	}
 }

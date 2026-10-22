@@ -106,20 +106,32 @@ func TestNextcloudEnsureVendorFolderRejectsPaths(t *testing.T) {
 
 func TestNextcloudTest(t *testing.T) {
 	f, nc := newFakeNextcloud(t)
-	require.NoError(t, nc.Test())
+	ok, msg := nc.Test()
+	require.True(t, ok, msg)
+
+	check := func(nc Nextcloud, want string) {
+		t.Helper()
+		ok, msg := nc.Test()
+		require.False(t, ok)
+		require.Contains(t, msg, want)
+	}
 
 	wrong := nc
 	wrong.AppPassword = "wrong"
-	require.ErrorContains(t, wrong.Test(), "Anmeldung fehlgeschlagen")
+	check(wrong, "Anmeldung fehlgeschlagen")
 
 	missing := nc
 	missing.VendorRoot = "Missing"
-	require.ErrorContains(t, missing.Test(), "existiert")
+	check(missing, "existiert")
+
+	notHTTP := nc
+	notHTTP.URL = "file:///etc"
+	check(notHTTP, "invalid Nextcloud URL")
 
 	f.permissions = "RGDNV"
-	require.ErrorContains(t, nc.Test(), "keine Ordner anlegen")
+	check(nc, "keine Ordner anlegen")
 
-	require.ErrorContains(t, Nextcloud{}.Test(), "URL")
+	check(Nextcloud{}, "URL")
 }
 
 func TestNextcloudConfigured(t *testing.T) {
