@@ -436,7 +436,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Submit order to vivawallet (disabled in tests)
-	var OrderCode string = "0"
+	OrderCode := "0"
 	if database.Db.IsProduction || config.Config.DEBUG_payments {
 
 		if config.Config.DEBUG_payments {
@@ -1403,9 +1403,9 @@ func downloadPDF(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
+			_ = tx.Rollback()
+		} else if commitErr := tx.Commit(); commitErr != nil {
+			log.Error("DownloadPDF: failed to commit download count ", commitErr)
 		}
 	}()
 

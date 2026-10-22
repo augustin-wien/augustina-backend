@@ -49,7 +49,7 @@ func sendJSONToOdooWebhook(orderID int, payload interface{}) error {
 		if err != nil {
 			log.Errorw("sendJSONToOdooWebhook: Request failed", "order_id", orderID, "error", err)
 		} else {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 
 			if resp.StatusCode == http.StatusOK || resp.StatusCode == 201 {
 				log.Info("sendJSONToOdooWebhook: Successfully sent Odoo JSON payload")

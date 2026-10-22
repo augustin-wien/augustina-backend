@@ -232,7 +232,7 @@ func UpdateLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// The URL is authoritative for which location is updated
-	req.Location.ID = locationID
+	req.ID = locationID
 	err = database.Db.UpdateLocationByID(req.VendorID, req.Location)
 	if ent.IsNotFound(err) {
 		utils.ErrorJSON(w, err, http.StatusNotFound)
