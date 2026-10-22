@@ -331,35 +331,36 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		if isSecretSetting(key) && value[0] == "" {
 			continue
 		}
-		if key == "MaxOrderAmount" {
+		switch key {
+		case "MaxOrderAmount":
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("MaxOrderAmount is not an integer")
 				utils.ErrorJSON(w, errors.New("MaxOrderAmount is not an integer"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "OrgaCoversTransactionCosts" {
+		case "OrgaCoversTransactionCosts":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("OrgaCoversTransactionCosts is not a boolean")
 				utils.ErrorJSON(w, errors.New("OrgaCoversTransactionCosts is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "WebshopIsClosed" {
+		case "WebshopIsClosed":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("WebShopIsClosed is not a boolean")
 				utils.ErrorJSON(w, errors.New("WebShopIsClosed is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "QRCodeEnableLogo" {
+		case "QRCodeEnableLogo":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("QRCodeEnableLogo is not a boolean")
 				utils.ErrorJSON(w, errors.New("QRCodeEnableLogo is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "MainItem" {
+		case "MainItem":
 			value, err := strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("MainItem is not an integer")
@@ -367,69 +368,69 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			fieldsClean[key] = int(value)
-		} else if key == "MapCenterLat" || key == "MapCenterLong" {
+		case "MapCenterLat", "MapCenterLong":
 			if s, err := strconv.ParseFloat(value[0], 64); err == nil {
 				fieldsClean[key] = (s)
 			} else {
 				fieldsClean[key] = 0.1
 			}
-		} else if key == "UseVendorLicenseIdInShop" {
+		case "UseVendorLicenseIdInShop":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("UseVendorLicenseIdInShop is not a boolean")
 				utils.ErrorJSON(w, errors.New("UseVendorLicenseIdInShop is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "UseTipInsteadOfDonation" {
+		case "UseTipInsteadOfDonation":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("UseTipInsteadOfDonation is not a boolean")
 				utils.ErrorJSON(w, errors.New("UseTipInsteadOfDonation is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "ShopLanding" {
+		case "ShopLanding":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("ShopLanding is not a boolean")
 				utils.ErrorJSON(w, errors.New("ShopLanding is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "AbonementEnabled" {
+		case "AbonementEnabled":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("AbonementEnabled is not a boolean")
 				utils.ErrorJSON(w, errors.New("AbonementEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "POSEnabled" {
+		case "POSEnabled":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("POSEnabled is not a boolean")
 				utils.ErrorJSON(w, errors.New("POSEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "DonationTrackingEnabled" {
+		case "DonationTrackingEnabled":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("DonationTrackingEnabled is not a boolean")
 				utils.ErrorJSON(w, errors.New("DonationTrackingEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "AGBRequired" || key == "DonationPageEnabled" || key == "MatomoTrackCart" || key == "FeedbackEnabled" || key == "NewsletterEnabled" || key == "IDScanEnabled" || key == "NextcloudEnabled" {
+		case "AGBRequired", "DonationPageEnabled", "MatomoTrackCart", "FeedbackEnabled", "NewsletterEnabled", "IDScanEnabled", "NextcloudEnabled":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error(key + " is not a boolean")
 				utils.ErrorJSON(w, errors.New(key+" is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		} else if key == "WordPressInviteTTL" {
+		case "WordPressInviteTTL":
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("WordPressInviteTTL is not an integer")
 				utils.ErrorJSON(w, errors.New("WordPressInviteTTL is not an integer"), http.StatusBadRequest)
 				return
 			}
-		} else {
+		default:
 			fieldsClean[key] = value[0]
 		}
 	}
@@ -633,15 +634,6 @@ func testWordPressInvite(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// NextcloudTestRequest holds the Nextcloud settings to test, so admins can check them before
-// saving. An empty value falls back to the saved setting.
-type NextcloudTestRequest struct {
-	NextcloudURL         string
-	NextcloudUsername    string
-	NextcloudAppPassword string
-	NextcloudVendorRoot  string
-}
-
 // NextcloudTestResponse tells whether the backend can create vendor folders
 type NextcloudTestResponse struct {
 	Success bool
@@ -651,36 +643,19 @@ type NextcloudTestResponse struct {
 // testNextcloud godoc
 //
 //	@Summary 		Test the Nextcloud connection
-//	@Description	Logs in to Nextcloud and checks that vendor folders can be created in the configured folder
+//	@Description	Logs in to Nextcloud with the saved settings and checks that vendor folders can be created in the configured folder
 //	@Tags			Settings
-//	@Accept			json
 //	@Produce		json
-//	@Param			data body NextcloudTestRequest true "Nextcloud settings to test"
 //	@Success		200 {object} NextcloudTestResponse
 //	@Security		KeycloakAuth
 //	@Router			/settings/nextcloud/test/ [post]
 func testNextcloud(w http.ResponseWriter, r *http.Request) {
-	var req NextcloudTestRequest
-	if err := utils.ReadJSON(w, r, &req); err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
+	// Only the saved settings are tested: a server address taken from the request would let the
+	// endpoint send requests to any host.
 	settings, err := database.Db.GetSettings()
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
-	}
-	if req.NextcloudURL != "" {
-		settings.NextcloudURL = req.NextcloudURL
-	}
-	if req.NextcloudUsername != "" {
-		settings.NextcloudUsername = req.NextcloudUsername
-	}
-	if req.NextcloudAppPassword != "" {
-		settings.NextcloudAppPassword = req.NextcloudAppPassword
-	}
-	if req.NextcloudVendorRoot != "" {
-		settings.NextcloudVendorRoot = req.NextcloudVendorRoot
 	}
 
 	var res NextcloudTestResponse

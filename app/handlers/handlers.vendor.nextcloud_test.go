@@ -67,6 +67,15 @@ func TestOpenVendorNextcloudFolder(t *testing.T) {
 	require.Equal(t, "https://cloud.example.org/index.php/f/42", folder.URL)
 	require.Equal(t, []string{"/remote.php/dav/files/augustin/Vendors/Cloud%201/"}, created)
 
+	// The connection test uses the saved settings and ignores any address in the request
+	before := len(created)
+	res = utils.TestRequestWithAuth(t, r, "POST", "/api/settings/nextcloud/test/",
+		map[string]string{"NextcloudURL": "http://169.254.169.254"}, 200, adminUserToken)
+	var test NextcloudTestResponse
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &test))
+	require.Contains(t, test.Message, "augustin darf im Ordner „Vendors“ keine Ordner anlegen")
+	require.Len(t, created, before)
+
 	utils.TestRequestWithAuth(t, r, "POST", "/api/vendors/unknown/nextcloud-folder/", nil, 404, adminUserToken)
 	utils.TestRequest(t, r, "POST", "/api/vendors/Cloud%201/nextcloud-folder/", nil, 401)
 }

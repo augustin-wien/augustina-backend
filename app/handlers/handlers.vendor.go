@@ -705,7 +705,8 @@ func OpenVendorNextcloudFolder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := database.Db.GetVendorByLicenseID(licenseID); err != nil {
+	vendor, err := database.Db.GetVendorByLicenseID(licenseID)
+	if err != nil {
 		if ent.IsNotFound(err) {
 			utils.ErrorJSON(w, database.ErrVendorNotFound, http.StatusNotFound)
 			return
@@ -714,7 +715,8 @@ func OpenVendorNextcloudFolder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	folderURL, err := nextcloud.EnsureVendorFolder(licenseID)
+	// The folder is named after the stored license ID, not the one from the request URL
+	folderURL, err := nextcloud.EnsureVendorFolder(vendor.LicenseID.String)
 	if err != nil {
 		log.Error("OpenVendorNextcloudFolder: ", err)
 		utils.ErrorJSON(w, errors.New("could not open the folder in Nextcloud"), http.StatusBadGateway)
