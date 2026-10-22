@@ -251,7 +251,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	if err != nil {
 		return // No file passed, which is ok
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Sanitize the client-supplied filename to prevent path traversal
 	base, ext, err := sanitizeUploadFilename(header.Filename)
@@ -316,7 +316,7 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err err
 	if err != nil {
 		return pdfId, nil // No file passed, which is ok
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Sanitize the client-supplied filename to prevent path traversal
 	base, ext, err := sanitizeUploadFilename(header.Filename)
@@ -370,38 +370,39 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err err
 func updateItemNormal(fields map[string][]string) (item database.Item, err error) {
 	fieldsClean := make(map[string]any) // Values are stored in string
 	for key, value := range fields {
-		if key == "Price" {
+		switch key {
+		case "Price":
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse Price failed ", err)
 				return
 			}
-		} else if key == "IsLicenseItem" {
+		case "IsLicenseItem":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse IfLicenseItem failed ", err)
 				return
 			}
-		} else if key == "IsPDFItem" {
+		case "IsPDFItem":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse IsPDFItem failed ", err)
 				return
 			}
-		} else if key == "Archived" {
+		case "Archived":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse Archived failed ", err)
 				return
 			}
 
-		} else if key == "Disabled" {
+		case "Disabled":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse Disabled failed ", err)
 				return
 			}
-		} else if key == "LicenseItem" {
+		case "LicenseItem":
 			licensitem, err := strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse LicenseItem failed ", err)
@@ -409,31 +410,31 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 			}
 			fieldsClean[key] = null.IntFrom(int64(licensitem))
 
-		} else if key == "ID" {
+		case "ID":
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse ID failed ", err)
 				return
 			}
-		} else if key == "ItemColor" {
+		case "ItemColor":
 			fieldsClean[key] = null.StringFrom(value[0])
-		} else if key == "ItemTextColor" {
+		case "ItemTextColor":
 			fieldsClean[key] = null.StringFrom(value[0])
-		} else if key == "PDF" {
+		case "PDF":
 			pdf, err := strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse PDF failed ", err)
 				return item, err
 			}
 			fieldsClean[key] = null.IntFrom(int64(pdf))
-		} else if key == "LicenseGroup" {
+		case "LicenseGroup":
 			fieldsClean[key] = null.StringFrom(value[0])
-		} else if key == "ItemOrder" {
+		case "ItemOrder":
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {
 				log.Error("updateItemNormal: Parse ItemOrder failed ", err)
 			}
-		} else {
+		default:
 			fieldsClean[key] = value[0]
 		}
 	}

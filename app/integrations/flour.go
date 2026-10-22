@@ -63,7 +63,7 @@ func sendJSONToFlourWebhook(payload interface{}) error {
 		if err != nil {
 			log.Errorf("sendJSONToFlourWebhook: Request failed: %v\n", err)
 		} else {
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 
 			// Check for 200 OK status
 			if resp.StatusCode == http.StatusOK || resp.StatusCode == 201 {

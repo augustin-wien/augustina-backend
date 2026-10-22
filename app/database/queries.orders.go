@@ -490,7 +490,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		log.Error("VerifyOrderAndCreatePayments: Opening DBPool failed", err)
 		return err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Read current verified state before updating so we can detect a transition
 	alreadyVerified, err := tx.Order.Query().
@@ -771,7 +771,7 @@ func (db *Database) CreatePayedOrderEntries(orderID int, entries []OrderEntry) (
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Create entries & associated payments
 	for _, entry := range entries {

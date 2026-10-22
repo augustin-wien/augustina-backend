@@ -215,7 +215,7 @@ func (db *Database) renewOrderPDFDownload(orderID int, item Item) (pdfDownload P
 	if err != nil {
 		return pdfDownload, err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	pdfDownload, err = db.GetPDFDownloadByOrderIdAndItemTx(tx, orderID, item.ID)
 	if ent.IsNotFound(err) {

@@ -329,7 +329,7 @@ func createPaymentTx(tx *ent.Tx, payment Payment) (paymentID int, err error) {
 
 	// POS sale records are bookkeeping-only; they must not touch account balances
 	// because the actual money flow is captured by the balance-chain and cash payments.
-	if !(payment.IsPOS && payment.IsSale) {
+	if !payment.IsPOS || !payment.IsSale {
 		err = updateAccountBalanceTx(tx, payment.Sender, -payment.Amount)
 		if err != nil {
 			log.Error("createPaymentTx: update sender ", err)
@@ -375,7 +375,7 @@ func (db *Database) CreatePayments(payments []Payment) (err error) {
 		log.Error("CreatePayments: ", err)
 		return err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Insert payments within the transaction
 	for _, payment := range payments {
@@ -397,7 +397,7 @@ func (db *Database) CreatePaymentPayout(vendor Vendor, vendorAccountID int, auth
 		log.Error("CreatePaymentPayout: ", err)
 		return
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Get cash account
 	cashAccount, err := db.GetAccountByType("Cash")

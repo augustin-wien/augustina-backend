@@ -239,7 +239,7 @@ func updateSettingsImg(w http.ResponseWriter, r *http.Request, fileType Imagetyp
 		err = nil
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Debugging
 	name := strings.Split(header.Filename, ".")

@@ -252,17 +252,17 @@ func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 	} else {
 		fromHeader = from
 	}
-	b.WriteString(fmt.Sprintf("From: %s\r\n", fromHeader))
-	b.WriteString(fmt.Sprintf("To: %s\r\n", toHeader))
-	b.WriteString(fmt.Sprintf("Subject: %s\r\n", encodedSubject))
-	b.WriteString(fmt.Sprintf("Date: %s\r\n", dateHeader))
-	b.WriteString(fmt.Sprintf("Message-ID: %s\r\n", msgID))
+	fmt.Fprintf(&b, "From: %s\r\n", fromHeader)
+	fmt.Fprintf(&b, "To: %s\r\n", toHeader)
+	fmt.Fprintf(&b, "Subject: %s\r\n", encodedSubject)
+	fmt.Fprintf(&b, "Date: %s\r\n", dateHeader)
+	fmt.Fprintf(&b, "Message-ID: %s\r\n", msgID)
 	b.WriteString("MIME-Version: 1.0\r\n")
-	b.WriteString(fmt.Sprintf("Content-Type: multipart/alternative; boundary=\"%s\"\r\n", boundary))
+	fmt.Fprintf(&b, "Content-Type: multipart/alternative; boundary=\"%s\"\r\n", boundary)
 	b.WriteString("\r\n")
 
 	// plain part
-	b.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+	fmt.Fprintf(&b, "--%s\r\n", boundary)
 	b.WriteString("Content-Type: text/plain; charset=\"UTF-8\"\r\n")
 	b.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
 	b.WriteString("\r\n")
@@ -276,7 +276,7 @@ func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 	b.WriteString("\r\n")
 
 	// html part
-	b.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+	fmt.Fprintf(&b, "--%s\r\n", boundary)
 	b.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
 	b.WriteString("Content-Transfer-Encoding: quoted-printable\r\n")
 	b.WriteString("\r\n")
@@ -290,7 +290,7 @@ func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 	b.WriteString("\r\n")
 
 	// end
-	b.WriteString(fmt.Sprintf("--%s--\r\n", boundary))
+	fmt.Fprintf(&b, "--%s--\r\n", boundary)
 
 	return b.Bytes(), boundary, nil
 }
@@ -320,7 +320,7 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 			log.Error("SendEmail: dial error", err)
 			return false, err
 		}
-		defer c.Close()
+		defer func() { _ = c.Close() }()
 
 		// Upgrade to TLS if supported
 		if ok, _ := c.Extension("STARTTLS"); ok {
@@ -416,7 +416,7 @@ func (r *EmailRequest) SendEmail() (bool, error) {
 		log.Error("SendEmail: create smtp client failed", err)
 		return false, err
 	}
-	defer c.Close()
+	defer func() { _ = c.Close() }()
 
 	// Auth — skip entirely when no credentials are configured (e.g. Mailpit)
 	if config.Config.SMTPUsername != "" {
