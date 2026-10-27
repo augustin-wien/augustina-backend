@@ -27,6 +27,7 @@ type FeedbackInput struct {
 	RequestID     string
 	VendorID      string
 	Page          string
+	Email         string
 }
 
 func (f *FeedbackInput) normalize() error {
@@ -37,7 +38,7 @@ func (f *FeedbackInput) normalize() error {
 	if utf8.RuneCountInString(f.Message) > feedbackMaxMessageLength {
 		return fmt.Errorf("message is longer than %d characters", feedbackMaxMessageLength)
 	}
-	for _, v := range []*string{&f.TransactionID, &f.RequestID, &f.VendorID, &f.Page} {
+	for _, v := range []*string{&f.TransactionID, &f.RequestID, &f.VendorID, &f.Page, &f.Email} {
 		*v = strings.TrimSpace(*v)
 		if utf8.RuneCountInString(*v) > feedbackMaxIDLength {
 			return errors.New("field is too long")
@@ -59,6 +60,7 @@ func feedbackMailBody(f FeedbackInput, requestID string) string {
 		row("Seite", f.Page) +
 		row("Verkäufer*innen-ID", f.VendorID) +
 		row("Transaktions-ID", f.TransactionID) +
+		row("E-Mail", f.Email) +
 		row("Request-ID", f.RequestID) +
 		row("Request-ID (Feedback)", requestID) +
 		row("Shop", config.Config.FrontendURL) +
