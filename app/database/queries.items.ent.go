@@ -597,6 +597,38 @@ func (db *Database) DeleteItem(id int) (err error) {
 	return
 }
 
+// ErrLicenseItemInUse is returned when a license item is still linked to an
+// item that has not been deleted.
+var ErrLicenseItemInUse = errors.New("license item is still linked to an item")
+
+// DeleteItemChecked deletes an item like DeleteItem, but refuses to delete a
+// license item that is still linked to an existing item. With deleteLicense
+// the license item linked to the deleted item is deleted as well.
+func (db *Database) DeleteItemChecked(id int, deleteLicense bool) error {
+	ctx := context.Background()
+	e, err := db.EntClient.Item.Query().Where(entitem.IDEQ(id)).WithLicenseItem().Only(ctx)
+	if err != nil {
+		log.Error("DeleteItemChecked (ent): ", err)
+		return err
+	}
+	inUse, err := db.EntClient.Item.Query().
+		Where(entitem.HasLicenseItemWith(entitem.IDEQ(id)), entitem.ArchivedEQ(false)).
+		Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if inUse {
+		return ErrLicenseItemInUse
+	}
+	if err = db.DeleteItem(id); err != nil {
+		return err
+	}
+	if deleteLicense && e.Edges.LicenseItem != nil {
+		return db.DeleteItem(e.Edges.LicenseItem.ID)
+	}
+	return nil
+}
+
 // ListArchivedItems returns all archived (deleted) items, newest first.
 func (db *Database) ListArchivedItems() ([]Item, error) {
 	out := []Item{}

@@ -852,6 +852,8 @@ func resolveIssueImageURL(r *http.Request, imagePath string) string {
 //			@Success		200
 //			@Security		KeycloakAuth
 //	     	@Param          id   path int  true  "Item ID"
+//	     	@Param          deleteLicense   query bool  false  "Also delete the linked license item"
+//			@Failure		409
 //			@Router			/items/{id}/ [delete]
 func DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ItemID, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -860,7 +862,12 @@ func DeleteItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.Db.DeleteItem(ItemID)
+	deleteLicense := r.URL.Query().Get("deleteLicense") == "true"
+	err = database.Db.DeleteItemChecked(ItemID, deleteLicense)
+	if errors.Is(err, database.ErrLicenseItemInUse) {
+		utils.ErrorJSON(w, err, http.StatusConflict)
+		return
+	}
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
