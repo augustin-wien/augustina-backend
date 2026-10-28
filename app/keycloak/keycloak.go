@@ -627,6 +627,24 @@ func (k *Keycloak) GetUserByEmail(email string) (*gocloak.User, error) {
 	return users[0], err
 }
 
+// findUserBySearch looks the user up with Keycloak's fuzzy search and keeps only
+// the one whose email or username equals value. It finds users the exact
+// username/email lookups miss.
+func (k *Keycloak) findUserBySearch(value string) (*gocloak.User, error) {
+	k.checkAdminToken()
+	value = utils.ToLower(value)
+	users, err := k.Client.GetUsers(k.Context, k.adminAccessToken(), k.Realm, gocloak.GetUsersParams{Search: &value})
+	if err != nil {
+		return nil, err
+	}
+	for _, u := range users {
+		if (u.Email != nil && utils.ToLower(*u.Email) == value) || (u.Username != nil && utils.ToLower(*u.Username) == value) {
+			return u, nil
+		}
+	}
+	return nil, gocloak.APIError{Code: 404, Message: "Keycloak findUserBySearch: User does not exist " + value}
+}
+
 // personNameProhibited mirrors Keycloak's default person-name-prohibited-characters
 // validator, which rejects firstName/lastName containing any of these runes.
 const personNameProhibited = "<>&\"$%!#?§;*~/\\|^=[]{}()\v"
@@ -689,6 +707,12 @@ func (k *Keycloak) GetOrCreateVendor(email string, sendWelcomeMail bool) (userID
 		// User does not exist
 		user, err := k.CreateUser(email, email, "", email, "")
 		if err != nil {
+			var apiErr *gocloak.APIError
+			if errors.As(err, &apiErr) && apiErr.Code == http.StatusConflict {
+				if existing, searchErr := k.findUserBySearch(email); searchErr == nil && existing.ID != nil {
+					return *existing.ID, nil
+				}
+			}
 			log.Errorf("GetOrCreateVendor: Error creating keycloak user %s", email)
 			return "", err
 		}
