@@ -135,6 +135,22 @@ func TestReconcile_NeverInvalidatesAnOrderVivaWalletConfirmsWasPaid(t *testing.T
 	require.Contains(t, orderIDs(orders), id, "it must stay visible for a human to resolve")
 }
 
+func TestReconcile_AlertsPaidOrderOnlyAfterAlertDelay(t *testing.T) {
+	require.NoError(t, database.Db.InitEmptyTestDb())
+	t.Cleanup(func() { forgetResolvedAlerts(nil) })
+	mockVivaWallet(t, "F", false)
+
+	recent := createUnverifiedOrder(t, "paid-recent-tx-id", 10*time.Minute)
+	old := createUnverifiedOrder(t, "paid-old-tx-id", 30*time.Minute)
+
+	reconcileUnverifiedOrders()
+
+	alertedMu.Lock()
+	defer alertedMu.Unlock()
+	require.NotContains(t, lastAlerted, recent, "the webhook may still be on its way")
+	require.Contains(t, lastAlerted, old)
+}
+
 func TestReconcile_InvalidatesOldOrderVivaWalletConfirmsFailed(t *testing.T) {
 	require.NoError(t, database.Db.InitEmptyTestDb())
 	mockVivaWallet(t, "E", false)

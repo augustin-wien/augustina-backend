@@ -260,13 +260,14 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	requestData.CustomerEmail.String = strings.TrimSpace(requestData.CustomerEmail.String)
 	order.CustomerEmail = requestData.CustomerEmail
 
 	// Security checks for entries
 	for _, entry := range requestData.Entries {
 
-		// 1. Check: Quantity has to be > 0 for any item except donation
-		if entry.Quantity <= 0 && entry.Item != 2 {
+		// 1. Check: Quantity has to be > 0 for any item except donation, which may be 0
+		if entry.Quantity < 0 || (entry.Quantity == 0 && entry.Item != 2) {
 			utils.ErrorJSON(w, errors.New("nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
 			return
 		}
@@ -430,6 +431,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+	if order.GetTotal() <= 0 {
+		utils.ErrorJSON(w, errors.New("order amount has to be greater than 0"), http.StatusBadRequest)
+		return
+	}
 	// ignore MaxOrderAmount if its 0
 	if settings.MaxOrderAmount != 0 && order.GetTotal() >= settings.MaxOrderAmount {
 		utils.ErrorJSON(w, errors.New("order amount is too high"), http.StatusBadRequest)
@@ -451,7 +456,7 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			}
 			OrderCode, err = paymentprovider.CreatePaymentOrder(accessToken, order, requestData.VendorLicenseID)
 			if err != nil {
-				log.Errorf("Creating payment order failed for %+v with order id %+v failed", requestData.VendorLicenseID, order.ID, err)
+				log.Errorf("Creating payment order failed for %+v: %v", requestData.VendorLicenseID, err)
 				utils.ErrorJSON(w, err, http.StatusBadRequest)
 				return
 			}

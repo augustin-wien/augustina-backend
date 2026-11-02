@@ -27,6 +27,11 @@ const paymentTimeout = 5 * time.Minute
 // showing it.
 const invalidateTimeout = 20 * time.Minute
 
+// alertDelay is how old a paid-but-unverified order has to be before it is alerted. VivaWallet
+// can deliver its webhook several minutes after the payment, and an alert for an order that
+// verifies itself on the next run is noise.
+const alertDelay = 20 * time.Minute
+
 // realertInterval is how often the same paid-but-unverified order is alerted again. Without
 // it every reconcile run re-alerts every such order until a human resolves it, burying new
 // cases under repeats of old ones.
@@ -93,7 +98,7 @@ func reconcileUnverifiedOrders() {
 			// arrived or was lost. This is the one case a log-based alert can never catch
 			// on its own, since no error was ever logged for it before now. Never
 			// invalidated, however old it gets - a human has to resolve this one.
-			if shouldAlert(order.ID, time.Now()) {
+			if time.Since(order.Timestamp) >= alertDelay && shouldAlert(order.ID, time.Now()) {
 				log.Errorw(
 					"reconcileUnverifiedOrders: order paid at VivaWallet but not verified locally",
 					"order_id", order.ID,

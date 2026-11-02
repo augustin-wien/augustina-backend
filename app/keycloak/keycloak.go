@@ -93,16 +93,35 @@ func InitializeOauthServer() (err error) {
 
 // newGoCloakClient returns a gocloak client that retries an admin API request once
 // with a new token when Keycloak rejects the cached one, which can happen before
-// the token expires, e.g. after a Keycloak restart
+// the token expires, e.g. after a Keycloak restart. Requests that do not reach
+// Keycloak at all, or hit it while it is unavailable, are retried with backoff.
 func (k *Keycloak) newGoCloakClient() *gocloak.GoCloak {
 	client := gocloak.NewClient(k.hostname)
 	restyClient := client.RestyClient()
-	restyClient.SetRetryCount(1)
+	restyClient.SetRetryCount(3)
+	restyClient.SetRetryWaitTime(500 * time.Millisecond)
+	restyClient.SetRetryMaxWaitTime(2 * time.Second)
 	restyClient.AddRetryCondition(func(resp *resty.Response, _ error) bool {
 		return resp != nil && resp.StatusCode() == http.StatusUnauthorized &&
 			resp.Request.Attempt == 1 && strings.Contains(resp.Request.URL, "/admin/realms/")
 	})
+	restyClient.AddRetryCondition(func(resp *resty.Response, err error) bool {
+		if resp == nil {
+			return false
+		}
+		if err != nil {
+			return true
+		}
+		switch resp.StatusCode() {
+		case http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+			return true
+		}
+		return false
+	})
 	restyClient.AddRetryHook(func(resp *resty.Response, _ error) {
+		if resp == nil || resp.StatusCode() != http.StatusUnauthorized {
+			return
+		}
 		token, err := k.renewRejectedToken(resp.Request.Token)
 		if err != nil {
 			log.Error("Error logging in Keycloak client after the token was rejected ", err)
