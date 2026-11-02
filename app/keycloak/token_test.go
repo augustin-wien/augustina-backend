@@ -16,11 +16,15 @@ import (
 )
 
 // fakeKeycloak issues numbered service account tokens and answers admin API
-// requests with 401 for the tokens in rejected
+// requests with 401 for the tokens in rejected. The next unavailable admin API
+// requests get a 503, the next dropped ones have their connection closed.
 type fakeKeycloak struct {
-	logins     atomic.Int32
-	failLogins atomic.Bool
-	rejected   []string
+	logins        atomic.Int32
+	failLogins    atomic.Bool
+	rejected      []string
+	unavailable   atomic.Int32
+	dropped       atomic.Int32
+	adminRequests atomic.Int32
 }
 
 func newFakeKeycloak(t *testing.T, rejected ...string) (*Keycloak, *fakeKeycloak) {
@@ -37,6 +41,16 @@ func newFakeKeycloak(t *testing.T, rejected ...string) (*Keycloak, *fakeKeycloak
 			n := fake.logins.Add(1)
 			_ = json.NewEncoder(w).Encode(map[string]any{"access_token": fmt.Sprintf("token-%d", n), "expires_in": 300})
 		case strings.Contains(r.URL.Path, "/admin/realms/"):
+			fake.adminRequests.Add(1)
+			if fake.dropped.Add(-1) >= 0 {
+				conn, _, _ := w.(http.Hijacker).Hijack()
+				_ = conn.Close()
+				return
+			}
+			if fake.unavailable.Add(-1) >= 0 {
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
 			if slices.Contains(fake.rejected, strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")) {
 				w.WriteHeader(http.StatusUnauthorized)
 				_, _ = w.Write([]byte(`{"error":"HTTP 401 Unauthorized"}`))
@@ -101,4 +115,25 @@ func TestFailedLoginKeepsAdminToken(t *testing.T) {
 	k.checkAdminToken()
 	require.NotNil(t, k.clientToken)
 	require.Equal(t, "token-1", k.clientToken.AccessToken)
+}
+
+func TestUnavailableKeycloakIsRetried(t *testing.T) {
+	k, fake := newFakeKeycloak(t)
+	fake.dropped.Store(1)
+	fake.unavailable.Store(2)
+
+	user, err := k.GetUserByID("user-1")
+	require.NoError(t, err)
+	require.Equal(t, "user-1", *user.ID)
+	require.EqualValues(t, 4, fake.adminRequests.Load())
+	require.EqualValues(t, 1, fake.logins.Load())
+}
+
+func TestUnavailableKeycloakIsRetriedOnlyThreeTimes(t *testing.T) {
+	k, fake := newFakeKeycloak(t)
+	fake.unavailable.Store(10)
+
+	_, err := k.GetUserByID("user-1")
+	require.ErrorContains(t, err, "503")
+	require.EqualValues(t, 4, fake.adminRequests.Load())
 }
