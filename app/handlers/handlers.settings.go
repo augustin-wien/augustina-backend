@@ -58,6 +58,29 @@ func withoutSecrets(s *ent.Settings) (*ent.Settings, map[string]bool) {
 	return &c, set
 }
 
+// secretMovedWithoutReentry returns the name of a stored secret whose URL is changed without the
+// secret being entered again. Since the backoffice can't read the secrets, pointing an integration
+// at another server must not hand the stored secret over to that server either.
+func secretMovedWithoutReentry(previous, updated *ent.Settings, entered map[string]any) string {
+	destinations := []struct {
+		secret         string
+		stored         bool
+		oldURL, newURL string
+	}{
+		{"WordPressInviteAPIKey", previous.WordPressInviteAPIKey != "", previous.WordPressInviteURL, updated.WordPressInviteURL},
+		{"NextcloudAppPassword", previous.NextcloudAppPassword != "", previous.NextcloudURL, updated.NextcloudURL},
+		{"OdooWebhookToken", previous.OdooWebhookToken != "", previous.OdooWebhookURL, updated.OdooWebhookURL},
+	}
+	for _, d := range destinations {
+		oldURL := strings.TrimSuffix(strings.TrimSpace(d.oldURL), "/")
+		newURL := strings.TrimSuffix(strings.TrimSpace(d.newURL), "/")
+		if _, reentered := entered[d.secret]; d.stored && !reentered && newURL != "" && newURL != oldURL {
+			return d.secret
+		}
+	}
+	return ""
+}
+
 // PublicSettings is the subset of the settings the shop is allowed to see.
 //
 // The shop needs these before anyone logs in, so /api/settings/ is unauthenticated — which means
@@ -435,10 +458,15 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	previous := *settings
 	err = mapstructure.Decode(fieldsClean, &settings)
 	if err != nil {
 		log.Error("updateSettings: ", err)
 		utils.ErrorJSON(w, errors.New("invalid form"), http.StatusBadRequest)
+		return
+	}
+	if secret := secretMovedWithoutReentry(&previous, settings, fieldsClean); secret != "" {
+		utils.ErrorJSON(w, errors.New(secret+" has to be entered again when its URL changes"), http.StatusBadRequest)
 		return
 	}
 	if _, ok := fieldsClean["VendorEmailPostfix"]; ok {
@@ -604,7 +632,8 @@ func testWordPressInvite(w http.ResponseWriter, r *http.Request) {
 	if req.WordPressInviteURL == "" {
 		req.WordPressInviteURL = settings.WordPressInviteURL
 	}
-	if req.WordPressInviteAPIKey == "" {
+	// The saved key only ever goes to the saved URL, a new URL has to be tested with its key
+	if req.WordPressInviteAPIKey == "" && req.WordPressInviteURL == settings.WordPressInviteURL {
 		req.WordPressInviteAPIKey = settings.WordPressInviteAPIKey
 	}
 
