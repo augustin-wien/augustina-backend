@@ -571,6 +571,10 @@ type VerifyPaymentOrderResponse struct {
 	InviteURL        string
 }
 
+// errTransactionNotForOrder is returned when the transaction passed to VerifyPaymentOrder was
+// made for a different order than the one it names
+var errTransactionNotForOrder = errors.New("transaction does not belong to this order")
+
 // paymentsResponse is the payload returned by ListPaymentsForPayout
 type paymentsResponse struct {
 	Payments []database.Payment `json:"payments"`
@@ -611,27 +615,40 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Infof("VerifyPaymentOrder: Verifying order with OrderCode %s and TransactionID %s", OrderCode, TransactionID)
 
-	// Save transaction ID
-	err = database.Db.SetOrderTransactionID(order.ID, TransactionID)
-	if err != nil {
-		log.Error("VerifyPaymentOrder: SetOrderTransactionID: ", err)
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
 	if database.Db.IsProduction && !config.Config.Development && !config.Config.DEBUG_payments {
 		// Verify transaction
-		_, err := paymentprovider.VerifyTransactionID(TransactionID, true)
+		verification, err := paymentprovider.VerifyTransactionID(TransactionID, true)
+		if err != nil && !errors.Is(err, paymentprovider.ErrOrderNotVerifiedYet) {
+			// The customer is shown a payment failure page for this, paid or not
+			log.Errorw("VerifyPaymentOrder: could not verify transaction, customer sees a failure page",
+				"order_id", order.ID, "order_code", OrderCode, "transaction_id", TransactionID, "error", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		// Otherwise any paid transaction would open every order whose code is known
+		if verification.OrderCode.String() != order.OrderCode.String {
+			log.Warnw("VerifyPaymentOrder: transaction belongs to another order",
+				"order_id", order.ID, "order_code", OrderCode, "transaction_id", TransactionID,
+				"viva_order_code", verification.OrderCode.String())
+			utils.ErrorJSON(w, errTransactionNotForOrder, http.StatusBadRequest)
+			return
+		}
 		if err != nil {
-			if errors.Is(err, paymentprovider.ErrOrderNotVerifiedYet) {
-				// Expected while the webhook is still on its way; the frontend polls
-				log.Infow("VerifyPaymentOrder: paid at VivaWallet, waiting for webhook to verify order",
-					"order_id", order.ID, "order_code", OrderCode, "transaction_id", TransactionID)
-			} else {
-				// The customer is shown a payment failure page for this, paid or not
-				log.Errorw("VerifyPaymentOrder: could not verify transaction, customer sees a failure page",
-					"order_id", order.ID, "order_code", OrderCode, "transaction_id", TransactionID, "error", err)
+			// Expected while the webhook is still on its way; the frontend polls. The transaction
+			// id is kept so the order can still be verified if the webhook never arrives.
+			if setErr := database.Db.SetOrderTransactionID(order.ID, TransactionID); setErr != nil {
+				log.Error("VerifyPaymentOrder: SetOrderTransactionID: ", setErr)
 			}
+			log.Infow("VerifyPaymentOrder: paid at VivaWallet, waiting for webhook to verify order",
+				"order_id", order.ID, "order_code", OrderCode, "transaction_id", TransactionID)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+	} else {
+		// Save transaction ID
+		err = database.Db.SetOrderTransactionID(order.ID, TransactionID)
+		if err != nil {
+			log.Error("VerifyPaymentOrder: SetOrderTransactionID: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
@@ -644,6 +661,7 @@ func VerifyPaymentOrder(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error("VerifyPaymentOrder: VerifyOrderAndCreatePayments: ", err)
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
 		}
 	}
 

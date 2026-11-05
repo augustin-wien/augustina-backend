@@ -901,3 +901,73 @@ func TestVivaWalletWebhookSuccess_SendsToFlourWebhook(t *testing.T) {
 	}
 	// If log file doesn't exist, test will still pass but user should verify webhook receiver is running
 }
+
+// Anyone can post to the webhook, so before VivaWallet confirms a transaction its id must not
+// replace a transaction id that is already stored for the order
+func TestVivaWalletWebhookSuccess_UnconfirmedTransactionKeepsStoredOne(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	require.NoError(t, database.Db.InitEmptyTestDb())
+
+	vendorLicenseID := "testwebhookkeepstx"
+	createTestVendor(t, vendorLicenseID)
+	vendor, err := database.Db.GetVendorByLicenseID(vendorLicenseID)
+	require.NoError(t, err)
+
+	orderCodeStr := "3344556677889900"
+	orderCodeInt, _ := strconv.ParseInt(orderCodeStr, 10, 64)
+	_, err = database.Db.CreateOrder(database.Order{
+		OrderCode:     null.StringFrom(orderCodeStr),
+		TransactionID: "confirmed-tx",
+		Vendor:        vendor.ID,
+	})
+	require.NoError(t, err)
+
+	// VivaWallet does not know the posted transaction
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/connect/token" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"access_token": "fake_token", "expires_in": 3600, "token_type": "Bearer", "scope": "api"}`))
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer mockServer.Close()
+
+	originalAPIURL := config.Config.VivaWalletAPIURL
+	originalAccountsURL := config.Config.VivaWalletAccountsURL
+	originalClientID := config.Config.VivaWalletSmartCheckoutClientID
+	originalClientKey := config.Config.VivaWalletSmartCheckoutClientKey
+	defer func() {
+		config.Config.VivaWalletAPIURL = originalAPIURL
+		config.Config.VivaWalletAccountsURL = originalAccountsURL
+		config.Config.VivaWalletSmartCheckoutClientID = originalClientID
+		config.Config.VivaWalletSmartCheckoutClientKey = originalClientKey
+	}()
+	config.Config.VivaWalletAPIURL = mockServer.URL
+	config.Config.VivaWalletAccountsURL = mockServer.URL
+	config.Config.VivaWalletSmartCheckoutClientID = "dummy"
+	config.Config.VivaWalletSmartCheckoutClientKey = "dummy"
+
+	payloadBytes, err := json.Marshal(paymentprovider.TransactionSuccessRequest{
+		EventData: paymentprovider.EventData{
+			OrderCode:     paymentprovider.VivaOrderCode(orderCodeInt),
+			TransactionID: "forged-tx",
+			Amount:        6.00,
+			StatusID:      "F",
+		},
+	})
+	require.NoError(t, err)
+	req := httptest.NewRequest("POST", "/webhooks/vivawallet/success/", bytes.NewReader(payloadBytes))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	VivaWalletWebhookSuccess(rec, req)
+
+	require.Equal(t, http.StatusInternalServerError, rec.Code)
+	order, err := database.Db.GetOrderByOrderCode(orderCodeStr)
+	require.NoError(t, err)
+	require.False(t, order.Verified)
+	require.Equal(t, "confirmed-tx", order.TransactionID)
+}
