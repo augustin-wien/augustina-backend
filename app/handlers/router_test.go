@@ -1,12 +1,17 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/middlewares"
+	"github.com/stretchr/testify/require"
 )
 
 // TestSecurityHeaders ensures basic security headers are set by the router middleware.
@@ -232,5 +237,54 @@ func TestLegitimateAdminRouteNotBlocked(t *testing.T) {
 
 	if probeRec.Code != http.StatusForbidden {
 		t.Fatalf("expected scanner probe to be blocked, got %d", probeRec.Code)
+	}
+}
+
+// /api/orders/ runs without AuthMiddleware, so X-Auth-* headers there can only come from the
+// client and must not select the buyer account
+func TestCreatePaymentOrder_IgnoresForgedAuthHeaders(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	require.NoError(t, database.Db.InitEmptyTestDb())
+
+	originalDebugPayments := config.Config.DEBUG_payments
+	originalDevelopment := config.Config.Development
+	originalSmartCheckoutURL := config.Config.VivaWalletSmartCheckoutURL
+	defer func() {
+		config.Config.DEBUG_payments = originalDebugPayments
+		config.Config.Development = originalDevelopment
+		config.Config.VivaWalletSmartCheckoutURL = originalSmartCheckoutURL
+	}()
+	config.Config.DEBUG_payments = false
+	config.Config.Development = false
+	config.Config.VivaWalletSmartCheckoutURL = "https://checkout.example.org/?ref="
+
+	vendorLicenseID := "testforgedauthheaders"
+	createTestVendor(t, vendorLicenseID)
+	itemID, err := strconv.Atoi(CreateTestItem(t, "Forged Header Item", 300, "", ""))
+	require.NoError(t, err)
+
+	body, err := json.Marshal(createOrderRequest{
+		Entries:         []createOrderRequestEntry{{Item: itemID, Quantity: 1}},
+		VendorLicenseID: vendorLicenseID,
+	})
+	require.NoError(t, err)
+	req := httptest.NewRequest(http.MethodPost, "/api/orders/", bytes.NewReader(body))
+	// account.user_id is a UUID column
+	req.Header.Set("X-Auth-User-Name", "0b6b6d3e-6a49-4a7c-9a55-3f1f5c3b9e11")
+	req.Header.Set("X-Auth-User-Validated", "true")
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+
+	anonAccountID, err := database.Db.GetAccountTypeID("UserAnon")
+	require.NoError(t, err)
+	order, err := database.Db.GetOrderByOrderCode("0")
+	require.NoError(t, err)
+	for _, entry := range order.Entries {
+		if entry.IsSale {
+			require.Equal(t, anonAccountID, entry.Sender, "the order must be placed by the anonymous buyer")
+		}
 	}
 }

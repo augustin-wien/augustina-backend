@@ -26,6 +26,15 @@ func clearIncomingAuthHeaders(r *http.Request) {
 	r.Header.Set("X-Auth-User-Validated", "false")
 }
 
+// StripAuthHeaders removes client-supplied X-Auth-* headers from every request, so that
+// handlers on routes without AuthMiddleware never see a forged identity either.
+func StripAuthHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		clearIncomingAuthHeaders(r)
+		next.ServeHTTP(w, r)
+	})
+}
+
 // AuthMiddleware is a middleware to check if the request is authorized
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -62,6 +71,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		r.Header.Set("X-Auth-User", *userinfo.Sub)
 		r.Header.Set("X-Auth-User-Name", *userinfo.PreferredUsername)
 		r.Header.Set("X-Auth-User-Email", *userinfo.Email)
+		if userinfo.EmailVerified != nil && *userinfo.EmailVerified {
+			r.Header.Set("X-Auth-User-Email-Verified", "true")
+		}
 		r.Header.Set("X-Auth-User-Validated", "true")
 
 		// set user roles headers
