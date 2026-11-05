@@ -267,6 +267,9 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 	if k.Client == nil {
 		return fmt.Errorf("AssignGroup: keycloak client not initialized")
 	}
+	if userID == "" {
+		return fmt.Errorf("AssignGroup: userID is empty")
+	}
 	if groupName == "" {
 		return fmt.Errorf("AssignGroup: groupName is empty")
 	}
@@ -287,6 +290,9 @@ func (k *Keycloak) AssignGroup(userID string, groupName string) error {
 func (k *Keycloak) AssignDigitalLicenseGroup(userID string, licenseGroup string) error {
 	if k.Client == nil {
 		return fmt.Errorf("AssignDigitalLicenseGroup: keycloak client not initialized")
+	}
+	if userID == "" {
+		return fmt.Errorf("AssignDigitalLicenseGroup: userID is empty")
 	}
 	k.checkAdminToken()
 	licenseGroupPath := "/" + k.CustomerGroup + "/" + k.NewspaperGroup + "/" + licenseGroup
@@ -764,10 +770,19 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, newUser bool, e
 	k.checkAdminToken()
 	user, err := k.GetUser(email)
 	if err != nil {
+		user, err = k.GetUserByEmail(email)
+	}
+	if err != nil || user.ID == nil {
 		log.Info("GetOrCreateUser: User does not exist we create one ", email, err)
 		// User does not exist
 		user, err := k.CreateUser(email, email, "", email, "")
 		if err != nil {
+			var apiErr *gocloak.APIError
+			if errors.As(err, &apiErr) && apiErr.Code == http.StatusConflict {
+				if existing, searchErr := k.findUserBySearch(email); searchErr == nil && existing.ID != nil {
+					return *existing.ID, false, nil
+				}
+			}
 			log.Errorf("GetOrCreateUser: Error creating keycloak user %s", email)
 			return "", false, err
 		}

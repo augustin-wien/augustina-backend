@@ -562,7 +562,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					}
 
 					// Assign to top-level customer group once per customer
-					if gotCustomer && !customerAssigned {
+					if customerID != "" && !customerAssigned {
 						err = keycloak.KeycloakClient.AssignGroup(customerID, "customer")
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to assign customer to group: ", orderID, err)
@@ -573,9 +573,11 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 					// Assign to license subgroup once per unique license group
 					lg := item.LicenseGroup.String
 					if gotCustomer && lg != "" && !processedLicenseGroups[lg] {
-						err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(customerID, lg)
-						if err != nil {
-							log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", orderID, err)
+						if customerID != "" {
+							err = keycloak.KeycloakClient.AssignDigitalLicenseGroup(customerID, lg)
+							if err != nil {
+								log.Error("VerifyOrderAndCreatePayments: failed to assign customer to license group: ", orderID, err)
+							}
 						}
 						if dbCustomer != nil {
 							_, err = db.AddLicenseGroupToCustomer(dbCustomer.ID, lg)
@@ -625,8 +627,10 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						} else if found && currentIssue.LicenseGroup.Valid && currentIssue.LicenseGroup.String != "" {
 							issueLg := currentIssue.LicenseGroup.String
 							if !processedLicenseGroups[issueLg] {
-								if assignErr := keycloak.KeycloakClient.AssignDigitalLicenseGroup(customerID, issueLg); assignErr != nil {
-									log.Error("VerifyOrderAndCreatePayments: failed to assign online_issue license group: ", orderID, assignErr)
+								if customerID != "" {
+									if assignErr := keycloak.KeycloakClient.AssignDigitalLicenseGroup(customerID, issueLg); assignErr != nil {
+										log.Error("VerifyOrderAndCreatePayments: failed to assign online_issue license group: ", orderID, assignErr)
+									}
 								}
 								if _, addErr := db.AddLicenseGroupToCustomer(dbCustomer.ID, issueLg); addErr != nil {
 									log.Error("VerifyOrderAndCreatePayments: failed to add online_issue license group to customer: ", orderID, addErr)
