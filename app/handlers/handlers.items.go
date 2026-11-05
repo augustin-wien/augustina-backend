@@ -168,7 +168,10 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Handle image field
-	path, _ := updateItemImage(w, r)
+	path, err := updateItemImage(w, r)
+	if err != nil {
+		return
+	}
 	if path != "" {
 		item.Image = path
 	}
@@ -245,11 +248,17 @@ func sanitizeUploadFilename(filename string) (base, ext string, err error) {
 	return base, ext, nil
 }
 
+// allowedImageExtensions are the file types accepted as item images. Uploads are served from
+// /img/ with a content type taken from the extension, so e.g. .html or .svg would run scripts.
+var allowedImageExtensions = map[string]bool{"png": true, "jpg": true, "jpeg": true, "gif": true, "webp": true}
+
+// updateItemImage saves the uploaded item image and returns its path. On error it has
+// already written the error response.
 func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err error) {
 	// Get file from image field
 	file, header, err := r.FormFile("Image")
 	if err != nil {
-		return // No file passed, which is ok
+		return "", nil // No file passed, which is ok
 	}
 	defer func() { _ = file.Close() }()
 
@@ -258,6 +267,11 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	if err != nil {
 		log.Error("updateItemImage: image name is wrong")
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
+		return
+	}
+	if !allowedImageExtensions[strings.ToLower(ext)] {
+		err = errors.New("image must be a png, jpg, gif or webp file")
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -291,6 +305,7 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0644)
 	if err != nil {
 		log.Error("updateItemImage: failed to write file", err)
+		utils.ErrorJSON(w, errors.New("failed to save image"), http.StatusInternalServerError)
 	}
 	return
 }
@@ -324,6 +339,10 @@ func handleItemPDF(w http.ResponseWriter, r *http.Request) (pdfId int64, err err
 		log.Error("handleItemPDF: pdf name is wrong")
 		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
 		return
+	}
+	// downloadPDF serves the file with a content type taken from the extension
+	if !strings.EqualFold(ext, "pdf") {
+		return pdfId, errors.New("file must be a pdf")
 	}
 
 	buf := bytes.NewBuffer(nil)
@@ -565,7 +584,10 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		item.Type = existingItem.Type
 	}
 
-	path, _ := updateItemImage(w, r)
+	path, err := updateItemImage(w, r)
+	if err != nil {
+		return
+	}
 	if path != "" {
 		log.Info("UpdateItem: Path is empty", path)
 		item.Image = path
