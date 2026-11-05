@@ -980,6 +980,11 @@ func ListMyPayments(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("Unauthorized"), http.StatusUnauthorized)
 		return
 	}
+	// Orders are found by email, which users can change in their Keycloak account
+	if r.Header.Get("X-Auth-User-Email-Verified") != "true" {
+		utils.ErrorJSON(w, errors.New("email address is not verified"), http.StatusForbidden)
+		return
+	}
 
 	payments, err := database.Db.ListPaymentsForCustomer(customerEmail)
 	if err != nil {
