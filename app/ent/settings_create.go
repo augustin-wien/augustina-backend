@@ -720,6 +720,20 @@ func (_c *SettingsCreate) SetNillableOdooDBFilter(v *string) *SettingsCreate {
 	return _c
 }
 
+// SetAccountingReportEmail sets the "AccountingReportEmail" field.
+func (_c *SettingsCreate) SetAccountingReportEmail(v string) *SettingsCreate {
+	_c.mutation.SetAccountingReportEmail(v)
+	return _c
+}
+
+// SetNillableAccountingReportEmail sets the "AccountingReportEmail" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableAccountingReportEmail(v *string) *SettingsCreate {
+	if v != nil {
+		_c.SetAccountingReportEmail(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
 	_c.mutation.SetID(v)
@@ -980,6 +994,10 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultOdooDBFilter
 		_c.mutation.SetOdooDBFilter(v)
 	}
+	if _, ok := _c.mutation.AccountingReportEmail(); !ok {
+		v := settings.DefaultAccountingReportEmail
+		_c.mutation.SetAccountingReportEmail(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -1133,6 +1151,9 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.OdooDBFilter(); !ok {
 		return &ValidationError{Name: "OdooDBFilter", err: errors.New(`ent: missing required field "Settings.OdooDBFilter"`)}
+	}
+	if _, ok := _c.mutation.AccountingReportEmail(); !ok {
+		return &ValidationError{Name: "AccountingReportEmail", err: errors.New(`ent: missing required field "Settings.AccountingReportEmail"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -1370,6 +1391,10 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OdooDBFilter(); ok {
 		_spec.SetField(settings.FieldOdooDBFilter, field.TypeString, value)
 		_node.OdooDBFilter = value
+	}
+	if value, ok := _c.mutation.AccountingReportEmail(); ok {
+		_spec.SetField(settings.FieldAccountingReportEmail, field.TypeString, value)
+		_node.AccountingReportEmail = value
 	}
 	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

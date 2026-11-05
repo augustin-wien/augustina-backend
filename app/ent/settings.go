@@ -117,6 +117,8 @@ type Settings struct {
 	OdooWebhookToken string `json:"OdooWebhookToken"`
 	// OdooDBFilter holds the value of the "OdooDBFilter" field.
 	OdooDBFilter string `json:"OdooDBFilter"`
+	// AccountingReportEmail holds the value of the "AccountingReportEmail" field.
+	AccountingReportEmail string `json:"AccountingReportEmail"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -155,7 +157,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case settings.FieldID, settings.FieldMaxOrderAmount, settings.FieldWordPressInviteTTL:
 			values[i] = new(sql.NullInt64)
-		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId, settings.FieldOnlinePaperUrl, settings.FieldMailSenderName, settings.FieldFeedbackEmail, settings.FieldNextcloudURL, settings.FieldNextcloudPublicURL, settings.FieldNextcloudUsername, settings.FieldNextcloudAppPassword, settings.FieldNextcloudVendorRoot, settings.FieldOdooWebhookURL, settings.FieldOdooWebhookToken, settings.FieldOdooDBFilter:
+		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId, settings.FieldOnlinePaperUrl, settings.FieldMailSenderName, settings.FieldFeedbackEmail, settings.FieldNextcloudURL, settings.FieldNextcloudPublicURL, settings.FieldNextcloudUsername, settings.FieldNextcloudAppPassword, settings.FieldNextcloudVendorRoot, settings.FieldOdooWebhookURL, settings.FieldOdooWebhookToken, settings.FieldOdooDBFilter, settings.FieldAccountingReportEmail:
 			values[i] = new(sql.NullString)
 		case settings.ForeignKeys[0]: // mainitem
 			values[i] = new(sql.NullInt64)
@@ -480,6 +482,12 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.OdooDBFilter = value.String
 			}
+		case settings.FieldAccountingReportEmail:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field AccountingReportEmail", values[i])
+			} else if value.Valid {
+				_m.AccountingReportEmail = value.String
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -677,6 +685,9 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("OdooDBFilter=")
 	builder.WriteString(_m.OdooDBFilter)
+	builder.WriteString(", ")
+	builder.WriteString("AccountingReportEmail=")
+	builder.WriteString(_m.AccountingReportEmail)
 	builder.WriteByte(')')
 	return builder.String()
 }

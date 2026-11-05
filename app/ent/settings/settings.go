@@ -112,6 +112,8 @@ const (
 	FieldOdooWebhookToken = "odoowebhooktoken"
 	// FieldOdooDBFilter holds the string denoting the odoodbfilter field in the database.
 	FieldOdooDBFilter = "odoodbfilter"
+	// FieldAccountingReportEmail holds the string denoting the accountingreportemail field in the database.
+	FieldAccountingReportEmail = "accountingreportemail"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -178,6 +180,7 @@ var Columns = []string{
 	FieldOdooWebhookURL,
 	FieldOdooWebhookToken,
 	FieldOdooDBFilter,
+	FieldAccountingReportEmail,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -302,6 +305,8 @@ var (
 	DefaultOdooWebhookToken string
 	// DefaultOdooDBFilter holds the default value on creation for the "OdooDBFilter" field.
 	DefaultOdooDBFilter string
+	// DefaultAccountingReportEmail holds the default value on creation for the "AccountingReportEmail" field.
+	DefaultAccountingReportEmail string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -562,6 +567,11 @@ func ByOdooWebhookToken(opts ...sql.OrderTermOption) OrderOption {
 // ByOdooDBFilter orders the results by the OdooDBFilter field.
 func ByOdooDBFilter(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOdooDBFilter, opts...).ToFunc()
+}
+
+// ByAccountingReportEmail orders the results by the AccountingReportEmail field.
+func ByAccountingReportEmail(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccountingReportEmail, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

@@ -303,6 +303,11 @@ func OdooDBFilter(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldOdooDBFilter, v))
 }
 
+// AccountingReportEmail applies equality check predicate on the "AccountingReportEmail" field. It's identical to AccountingReportEmailEQ.
+func AccountingReportEmail(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAccountingReportEmail, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -2571,6 +2576,71 @@ func OdooDBFilterEqualFold(v string) predicate.Settings {
 // OdooDBFilterContainsFold applies the ContainsFold predicate on the "OdooDBFilter" field.
 func OdooDBFilterContainsFold(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldContainsFold(FieldOdooDBFilter, v))
+}
+
+// AccountingReportEmailEQ applies the EQ predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailNEQ applies the NEQ predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailNEQ(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailIn applies the In predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldAccountingReportEmail, vs...))
+}
+
+// AccountingReportEmailNotIn applies the NotIn predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailNotIn(vs ...string) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldAccountingReportEmail, vs...))
+}
+
+// AccountingReportEmailGT applies the GT predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailGT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailGTE applies the GTE predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailGTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailLT applies the LT predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailLT(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailLTE applies the LTE predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailLTE(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailContains applies the Contains predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailContains(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContains(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailHasPrefix applies the HasPrefix predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailHasPrefix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasPrefix(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailHasSuffix applies the HasSuffix predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailHasSuffix(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldHasSuffix(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailEqualFold applies the EqualFold predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailEqualFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldEqualFold(FieldAccountingReportEmail, v))
+}
+
+// AccountingReportEmailContainsFold applies the ContainsFold predicate on the "AccountingReportEmail" field.
+func AccountingReportEmailContainsFold(v string) predicate.Settings {
+	return predicate.Settings(sql.FieldContainsFold(FieldAccountingReportEmail, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

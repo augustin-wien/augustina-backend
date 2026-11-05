@@ -1,6 +1,8 @@
 package mailer
 
 import (
+	"bytes"
+	"encoding/base64"
 	"os"
 	"path/filepath"
 	"strings"
@@ -85,4 +87,27 @@ func TestBuildMessage_SenderName(t *testing.T) {
 
 	config.Config.MailSenderName = "Straßenzeitung"
 	require.Equal(t, "From: "+encodeRFC2047("Straßenzeitung")+" <sender@example.com>", fromHeader())
+}
+
+func TestBuildMessage_Attachments(t *testing.T) {
+	r, err := NewRequest([]string{"to@example.com"}, "Bericht", "<p>Anbei</p>")
+	require.NoError(t, err)
+
+	msg, _, err := r.BuildMessage()
+	require.NoError(t, err)
+	require.NotContains(t, string(msg), "multipart/mixed")
+
+	data := bytes.Repeat([]byte("x"), 100)
+	require.NoError(t, r.AddAttachment("bericht.csv", "text/csv; charset=utf-8", data))
+	require.Error(t, r.AddAttachment("evil\r\n.csv", "text/csv", data))
+
+	msg, boundary, err := r.BuildMessage()
+	require.NoError(t, err)
+	m := string(msg)
+	require.Contains(t, m, `Content-Type: multipart/mixed; boundary="Mixed`+boundary+`"`)
+	require.Contains(t, m, `Content-Type: multipart/alternative; boundary="`+boundary+`"`)
+	require.Contains(t, m, `Content-Disposition: attachment; filename="bericht.csv"`)
+	encoded := base64.StdEncoding.EncodeToString(data)
+	require.Contains(t, m, encoded[:76]+"\r\n"+encoded[76:]+"\r\n")
+	require.True(t, strings.HasSuffix(m, "--Mixed"+boundary+"--\r\n"))
 }

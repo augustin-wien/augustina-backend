@@ -104,6 +104,7 @@ func main() {
 	mailer.Init()
 
 	jobs.StartOrderReconciliation()
+	jobs.StartMonthlyAccountingReport()
 
 	// Initialize server with graceful shutdown
 	srv := &http.Server{

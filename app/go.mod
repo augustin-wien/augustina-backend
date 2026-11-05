@@ -22,6 +22,7 @@ require (
 	entgo.io/ent v0.14.6
 	github.com/getsentry/sentry-go v0.46.2
 	github.com/go-chi/httprate v0.15.0
+	github.com/go-pdf/fpdf v0.9.0
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.12.3

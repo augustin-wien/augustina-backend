@@ -185,6 +185,10 @@ func (Settings) Fields() []ent.Field {
 		field.String("OdooDBFilter").
 			StorageKey("odoodbfilter").
 			Default(""),
+		// Recipients of the monthly accounting report, comma separated; empty disables the mail. Not public.
+		field.String("AccountingReportEmail").
+			StorageKey("accountingreportemail").
+			Default(""),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

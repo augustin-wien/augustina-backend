@@ -18,7 +18,9 @@ type DBSettings struct {
 	ID int `json:"id,omitempty"`
 	// IsInitialized holds the value of the "is_initialized" field.
 	IsInitialized bool `json:"is_initialized,omitempty"`
-	selectValues  sql.SelectValues
+	// AccountingReportSentMonth holds the value of the "accounting_report_sent_month" field.
+	AccountingReportSentMonth string `json:"accounting_report_sent_month,omitempty"`
+	selectValues              sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -30,6 +32,8 @@ func (*DBSettings) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case dbsettings.FieldID:
 			values[i] = new(sql.NullInt64)
+		case dbsettings.FieldAccountingReportSentMonth:
+			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -56,6 +60,12 @@ func (_m *DBSettings) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_initialized", values[i])
 			} else if value.Valid {
 				_m.IsInitialized = value.Bool
+			}
+		case dbsettings.FieldAccountingReportSentMonth:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field accounting_report_sent_month", values[i])
+			} else if value.Valid {
+				_m.AccountingReportSentMonth = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -95,6 +105,9 @@ func (_m *DBSettings) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("is_initialized=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsInitialized))
+	builder.WriteString(", ")
+	builder.WriteString("accounting_report_sent_month=")
+	builder.WriteString(_m.AccountingReportSentMonth)
 	builder.WriteByte(')')
 	return builder.String()
 }

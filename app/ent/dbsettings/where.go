@@ -57,6 +57,11 @@ func IsInitialized(v bool) predicate.DBSettings {
 	return predicate.DBSettings(sql.FieldEQ(FieldIsInitialized, v))
 }
 
+// AccountingReportSentMonth applies equality check predicate on the "accounting_report_sent_month" field. It's identical to AccountingReportSentMonthEQ.
+func AccountingReportSentMonth(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldEQ(FieldAccountingReportSentMonth, v))
+}
+
 // IsInitializedEQ applies the EQ predicate on the "is_initialized" field.
 func IsInitializedEQ(v bool) predicate.DBSettings {
 	return predicate.DBSettings(sql.FieldEQ(FieldIsInitialized, v))
@@ -65,6 +70,71 @@ func IsInitializedEQ(v bool) predicate.DBSettings {
 // IsInitializedNEQ applies the NEQ predicate on the "is_initialized" field.
 func IsInitializedNEQ(v bool) predicate.DBSettings {
 	return predicate.DBSettings(sql.FieldNEQ(FieldIsInitialized, v))
+}
+
+// AccountingReportSentMonthEQ applies the EQ predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthEQ(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldEQ(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthNEQ applies the NEQ predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthNEQ(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldNEQ(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthIn applies the In predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthIn(vs ...string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldIn(FieldAccountingReportSentMonth, vs...))
+}
+
+// AccountingReportSentMonthNotIn applies the NotIn predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthNotIn(vs ...string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldNotIn(FieldAccountingReportSentMonth, vs...))
+}
+
+// AccountingReportSentMonthGT applies the GT predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthGT(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldGT(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthGTE applies the GTE predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthGTE(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldGTE(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthLT applies the LT predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthLT(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldLT(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthLTE applies the LTE predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthLTE(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldLTE(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthContains applies the Contains predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthContains(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldContains(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthHasPrefix applies the HasPrefix predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthHasPrefix(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldHasPrefix(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthHasSuffix applies the HasSuffix predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthHasSuffix(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldHasSuffix(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthEqualFold applies the EqualFold predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthEqualFold(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldEqualFold(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportSentMonthContainsFold applies the ContainsFold predicate on the "accounting_report_sent_month" field.
+func AccountingReportSentMonthContainsFold(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldContainsFold(FieldAccountingReportSentMonth, v))
 }
 
 // And groups predicates with the AND operator between them.

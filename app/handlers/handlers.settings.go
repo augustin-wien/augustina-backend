@@ -15,6 +15,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/integrations"
+	"github.com/augustin-wien/augustina-backend/reports"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/augustin-wien/augustina-backend/wordpress"
 	"github.com/mitchellh/mapstructure"
@@ -459,6 +460,12 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	recipients, err := reports.ParseRecipients(settings.AccountingReportEmail)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("accounting report email is invalid"), http.StatusBadRequest)
+		return
+	}
+	settings.AccountingReportEmail = strings.Join(recipients, ", ")
 	log.Debug("updateSettings: settings are ", settings)
 	// Update main item only when explicitly provided by the form.
 	// If not provided, leave MainItem nil so UpdateSettings won't try

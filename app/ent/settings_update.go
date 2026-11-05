@@ -756,6 +756,20 @@ func (_u *SettingsUpdate) SetNillableOdooDBFilter(v *string) *SettingsUpdate {
 	return _u
 }
 
+// SetAccountingReportEmail sets the "AccountingReportEmail" field.
+func (_u *SettingsUpdate) SetAccountingReportEmail(v string) *SettingsUpdate {
+	_u.mutation.SetAccountingReportEmail(v)
+	return _u
+}
+
+// SetNillableAccountingReportEmail sets the "AccountingReportEmail" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableAccountingReportEmail(v *string) *SettingsUpdate {
+	if v != nil {
+		_u.SetAccountingReportEmail(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -983,6 +997,9 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.OdooDBFilter(); ok {
 		_spec.SetField(settings.FieldOdooDBFilter, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AccountingReportEmail(); ok {
+		_spec.SetField(settings.FieldAccountingReportEmail, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1761,6 +1778,20 @@ func (_u *SettingsUpdateOne) SetNillableOdooDBFilter(v *string) *SettingsUpdateO
 	return _u
 }
 
+// SetAccountingReportEmail sets the "AccountingReportEmail" field.
+func (_u *SettingsUpdateOne) SetAccountingReportEmail(v string) *SettingsUpdateOne {
+	_u.mutation.SetAccountingReportEmail(v)
+	return _u
+}
+
+// SetNillableAccountingReportEmail sets the "AccountingReportEmail" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableAccountingReportEmail(v *string) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetAccountingReportEmail(*v)
+	}
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -2018,6 +2049,9 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.OdooDBFilter(); ok {
 		_spec.SetField(settings.FieldOdooDBFilter, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AccountingReportEmail(); ok {
+		_spec.SetField(settings.FieldAccountingReportEmail, field.TypeString, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

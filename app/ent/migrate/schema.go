@@ -143,6 +143,7 @@ var (
 	DbSettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "is_initialized", Type: field.TypeBool},
+		{Name: "accounting_report_sent_month", Type: field.TypeString, Default: ""},
 	}
 	// DbSettingsTable holds the schema information for the "db_settings" table.
 	DbSettingsTable = &schema.Table{
@@ -438,6 +439,7 @@ var (
 		{Name: "odoowebhookurl", Type: field.TypeString, Default: ""},
 		{Name: "odoowebhooktoken", Type: field.TypeString, Default: ""},
 		{Name: "odoodbfilter", Type: field.TypeString, Default: ""},
+		{Name: "accountingreportemail", Type: field.TypeString, Default: ""},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -448,7 +450,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[51]},
+				Columns:    []*schema.Column{SettingsColumns[52]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

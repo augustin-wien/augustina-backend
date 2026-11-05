@@ -164,7 +164,8 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetNextcloudVendorRoot(settings.NextcloudVendorRoot).
 		SetOdooWebhookURL(settings.OdooWebhookURL).
 		SetOdooWebhookToken(settings.OdooWebhookToken).
-		SetOdooDBFilter(settings.OdooDBFilter)
+		SetOdooDBFilter(settings.OdooDBFilter).
+		SetAccountingReportEmail(settings.AccountingReportEmail)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {
@@ -230,4 +231,25 @@ func (db *Database) GetDBSettings() (s DBSettings, err error) {
 	s.ID = res.ID
 	s.IsInitialized = res.IsInitialized
 	return s, nil
+}
+
+// GetAccountingReportSentMonth returns the month (YYYY-MM) of the last accounting report mail
+func (db *Database) GetAccountingReportSentMonth() (string, error) {
+	res, err := db.EntClient.DBSettings.Query().Where(entdbsettings.ID(1)).Only(context.Background())
+	if err != nil {
+		log.Error("GetAccountingReportSentMonth: ", err)
+		return "", err
+	}
+	return res.AccountingReportSentMonth, nil
+}
+
+// SetAccountingReportSentMonth stores the month (YYYY-MM) of the last accounting report mail
+func (db *Database) SetAccountingReportSentMonth(month string) error {
+	err := db.EntClient.DBSettings.UpdateOneID(1).
+		SetAccountingReportSentMonth(month).
+		Exec(context.Background())
+	if err != nil {
+		log.Error("SetAccountingReportSentMonth: ", err)
+	}
+	return err
 }
