@@ -119,3 +119,56 @@ func TestSettingsSecretsAreWriteOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "new-token", stored.OdooWebhookToken)
 }
+
+// The secrets can't be read by the backoffice, so they must not reach another server either:
+// changing the URL an integration sends its secret to requires entering the secret again
+func TestSettingsSecretsStayWithTheirURL(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	require.NoError(t, database.Db.InitEmptyTestDb())
+
+	var requests int
+	other := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer other.Close()
+
+	putSettingsFields(t, map[string]string{
+		"WordPressInviteURL":    "https://wordpress.example.org/wp-json/invite",
+		"WordPressInviteAPIKey": "wp-secret",
+		"NextcloudURL":          "https://cloud.example.org",
+		"NextcloudAppPassword":  "nc-secret",
+		"OdooWebhookURL":        "https://odoo.example.org/webhook",
+		"OdooWebhookToken":      "odoo-secret",
+	}, 200)
+
+	// The connection test only uses the saved key with the saved URL
+	res := utils.TestRequestWithAuth(t, r, "POST", "/api/settings/wordpress-invite/test/",
+		WordPressInviteTestRequest{WordPressInviteURL: other.URL}, 200, adminUserToken)
+	var test WordPressInviteTestResponse
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &test))
+	require.False(t, test.Success)
+	require.Zero(t, requests, "the saved key must not be sent to another URL")
+
+	for _, fields := range []map[string]string{
+		{"WordPressInviteURL": other.URL, "WordPressInviteAPIKey": ""},
+		{"NextcloudURL": other.URL, "NextcloudAppPassword": ""},
+		{"OdooWebhookURL": other.URL},
+	} {
+		putSettingsFields(t, fields, 400)
+	}
+	stored, err := database.Db.GetSettings()
+	require.NoError(t, err)
+	require.Equal(t, "https://wordpress.example.org/wp-json/invite", stored.WordPressInviteURL)
+	require.Equal(t, "https://cloud.example.org", stored.NextcloudURL)
+	require.Equal(t, "https://odoo.example.org/webhook", stored.OdooWebhookURL)
+
+	// Saving the form unchanged, entering the secret with the new URL and switching an integration
+	// off all keep working
+	putSettingsFields(t, map[string]string{"NextcloudURL": "https://cloud.example.org/", "NextcloudAppPassword": ""}, 200)
+	putSettingsFields(t, map[string]string{"OdooWebhookURL": other.URL, "OdooWebhookToken": "new-token"}, 200)
+	putSettingsFields(t, map[string]string{"WordPressInviteURL": "", "WordPressInviteAPIKey": ""}, 200)
+	putSettingsFields(t, map[string]string{"OdooWebhookURL": ""}, 200)
+}
