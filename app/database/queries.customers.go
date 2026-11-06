@@ -7,6 +7,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/ent"
 	entcustomer "github.com/augustin-wien/augustina-backend/ent/customer"
+	entorder "github.com/augustin-wien/augustina-backend/ent/order"
 )
 
 // Customer represents a customer in the system
@@ -21,6 +22,9 @@ type Customer struct {
 	NewsletterAt  *time.Time `json:"newsletter_at,omitempty"`
 	CreatedAt     *time.Time `json:"created_at,omitempty"`
 	UpdatedAt     *time.Time `json:"updated_at,omitempty"`
+	// Set by ListCustomers only: verified orders under the customer's email
+	PurchaseCount  int        `json:"purchase_count,omitempty"`
+	LastPurchaseAt *time.Time `json:"last_purchase_at,omitempty"`
 }
 
 func licenseGroupsFromString(s string) []string {
@@ -115,25 +119,80 @@ func (db *Database) ListCustomers() ([]*Customer, error) {
 		return nil, err
 	}
 
+	stats, err := db.purchaseStatsByEmail(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	result := make([]*Customer, len(customers))
 	for i, c := range customers {
 		customer := db.CustomerEntIntoCustomer(c)
+		if st, ok := stats[strings.ToLower(customer.Email)]; ok {
+			customer.PurchaseCount = st.count
+			customer.LastPurchaseAt = &st.last
+		}
 		result[i] = &customer
 	}
 
 	return result, nil
 }
 
-// UpdateCustomer updates a customer in the database
+type purchaseStats struct {
+	count int
+	last  time.Time
+}
+
+// purchaseStatsByEmail counts the verified orders per lowercased customer email
+func (db *Database) purchaseStatsByEmail(ctx context.Context) (map[string]purchaseStats, error) {
+	rows, err := db.DB.QueryContext(ctx, `
+		SELECT lower(customeremail), count(*), max(coalesce(verified_at, "timestamp"))
+		FROM paymentorder
+		WHERE verified AND customeremail IS NOT NULL AND customeremail <> ''
+		GROUP BY lower(customeremail)`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	stats := make(map[string]purchaseStats)
+	for rows.Next() {
+		var email string
+		var st purchaseStats
+		if err := rows.Scan(&email, &st.count, &st.last); err != nil {
+			return nil, err
+		}
+		stats[email] = st
+	}
+	return stats, rows.Err()
+}
+
+// UpdateCustomer updates a customer in the database. A changed email moves the
+// customer's orders along, so their purchases and mails follow the corrected address.
 func (db *Database) UpdateCustomer(customer *Customer) (*Customer, error) {
 	ctx := context.Background()
 
-	current, err := db.EntClient.Customer.Get(ctx, customer.ID)
+	tx, err := db.EntClient.Tx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	current, err := tx.Customer.Get(ctx, customer.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	update := db.EntClient.Customer.UpdateOneID(customer.ID).
+	if current.Email != "" && customer.Email != "" && !strings.EqualFold(current.Email, customer.Email) {
+		err = tx.Order.Update().
+			Where(entorder.CustomerEmailEqualFold(current.Email)).
+			SetCustomerEmail(customer.Email).
+			Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	update := tx.Customer.UpdateOneID(customer.ID).
 		SetKeycloakid(customer.KeycloakID).
 		SetEmail(customer.Email).
 		SetFirstname(customer.FirstName).
@@ -148,13 +207,23 @@ func (db *Database) UpdateCustomer(customer *Customer) (*Customer, error) {
 	}
 
 	entCustomer, err := update.Save(ctx)
-
 	if err != nil {
+		return nil, err
+	}
+	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 
 	result := db.CustomerEntIntoCustomer(entCustomer)
 	return &result, nil
+}
+
+// SetCustomerKeycloakID links the customer to their Keycloak user
+func (db *Database) SetCustomerKeycloakID(id int, keycloakID string) error {
+	return db.EntClient.Customer.UpdateOneID(id).
+		SetKeycloakid(keycloakID).
+		SetUpdatedAt(time.Now()).
+		Exec(context.Background())
 }
 
 // DeleteCustomer deletes a customer from the database
