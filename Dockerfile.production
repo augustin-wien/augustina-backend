@@ -3,32 +3,36 @@ FROM golang:alpine AS build
 
 WORKDIR /go/src/augustin
 
-# Copy all the Code and stuff to compile everything
-COPY ./app .
-
-# Downloads all the dependencies in advance (could be left out, but it's more clear this way)
-RUN go mod download
 RUN go install github.com/jackc/tern/v2@latest
 
+# Downloads all the dependencies in advance, so they stay cached while the code changes
+COPY ./app/go.mod ./app/go.sum ./
+RUN go mod download
+
+COPY ./app .
+
 # Builds the application as a staticly linked one, to allow it to run on alpine
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o app .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o app .
 
-RUN which tern
-
-# Moving the binary to the 'final Image' to make it smaller
-FROM alpine:latest as release
+# The final image only gets the binary and the files the app reads at runtime,
+# no source code, tests or local files
+FROM alpine:latest AS release
 
 WORKDIR /app
 # Add packages
 RUN apk -U upgrade \
     && apk add --no-cache dumb-init ca-certificates
 COPY --from=build /go/bin/tern /tern
+COPY --from=build /go/src/augustin/app /app/app
 
-COPY --from=build /go/src/augustin/ .
+COPY ./app/migrations/ /app/migrations/
+COPY ./app/templates/ /app/templates/
+COPY ./app/public/ /app/public/
+COPY ./app/img/demo_* /app/img/
+RUN mkdir -p /app/pdf
+
 COPY ./docker/entrypoint.sh /
-RUN chmod +x /app/app
-
-
+RUN chmod +x /app/app /entrypoint.sh
 
 # Exposes port 3000 because our program listens on that port
 EXPOSE 3000
