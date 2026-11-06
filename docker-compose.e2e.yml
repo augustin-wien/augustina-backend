@@ -1,0 +1,148 @@
+# End-to-end tests against the production images: backend, frontend and Keycloak
+# with throwaway databases and the test realm, plus Cypress running the e2e specs
+# of the frontend. Nothing is published on the host.
+#
+# Needed variables:
+#   BACKEND_IMAGE, FRONTEND_IMAGE, KEYCLOAK_IMAGE  images to test
+#   FRONTEND_DIR      checkout of augustin-frontend with the cypress folder
+#   CYPRESS_VERSION   cypress version from the frontend's yarn.lock
+#   E2E_UID, E2E_GID  owner of the files Cypress writes into FRONTEND_DIR
+#
+#   docker volume create augustin-e2e-yarn-cache
+#   docker compose -f docker-compose.e2e.yml -p augustin-e2e up \
+#     --attach cypress --abort-on-container-exit --exit-code-from cypress
+#   docker compose -f docker-compose.e2e.yml -p augustin-e2e down -v
+
+x-db: &db
+  image: postgres:16
+  environment:
+    POSTGRES_USER: augustin
+    POSTGRES_PASSWORD: augustin
+    POSTGRES_DB: augustin
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U augustin -d augustin"]
+    interval: 2s
+    timeout: 5s
+    retries: 30
+
+services:
+  db: *db
+
+  keycloak-db: *db
+
+  keycloak:
+    image: ${KEYCLOAK_IMAGE}
+    command: ["--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/augustin
+      KC_DB_USERNAME: augustin
+      KC_DB_PASSWORD: augustin
+      # The specs log in on http://keycloak:8080
+      KC_HOSTNAME: http://keycloak:8080
+      KC_HTTP_ENABLED: "true"
+    volumes:
+      - ./docker/keycloak/import:/opt/keycloak/data/import:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          grep -q '"UP"' <&3
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit
+
+  backend:
+    image: ${BACKEND_IMAGE}
+    environment:
+      DB_USER: augustin
+      DB_PASS: augustin
+      DB_NAME: augustin
+      DB_HOST: db
+      DB_PORT: "5432"
+      DEVELOPMENT: "false"
+      CREATE_DEMO_DATA: "true"
+      FRONTEND_URL: http://localhost
+      BACKEND_HOST: http://backend:3000/
+      KEYCLOAK_HOST: http://keycloak:8080/
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: augustin
+      KEYCLOAK_CLIENT_ID: GoClient
+      # Secret of GoClient in the test realm (docker/keycloak/import)
+      KEYCLOAK_CLIENT_SECRET: 9OGqiDdguQHhPQ90MgPV7hEKFEE5A5jB
+      KEYCLOAK_VENDOR_GROUP: vendor
+      KEYCLOAK_CUSTOMER_GROUP: customer
+      KEYCLOAK_BACKOFFICE_GROUP: backoffice
+      SMTP_SERVER: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SENDER_ADDRESS: e2e@example.com
+      SMTP_SENDER_NAME: Augustin E2E
+      SMTP_SSL: "false"
+      ALLOW_INSECURE_SMTP: "true"
+      # Viva Wallet demo account, as in .env.example
+      VIVA_WALLET_SOURCE_CODE: "9474"
+      VIVA_WALLET_SMART_CHECKOUT_CLIENT_ID: e76rpevturffktne7n18v0oxyj3m6s532r1q4y4k4xx13.apps.vivapayments.com
+      VIVA_WALLET_SMART_CHECKOUT_CLIENT_KEY: qh08FkU0dF8vMwH76jGAuBmWib9WsP
+      VIVA_WALLET_VERIFICATION_KEY: 94FA5D3BA6DBC79DC56E6BC7E2F8A3F25A566EAE
+      VIVA_WALLET_API_URL: https://demo-api.vivapayments.com
+      VIVA_WALLET_ACCOUNTS_URL: https://demo-accounts.vivapayments.com
+      VIVA_WALLET_SMART_CHECKOUT_URL: https://demo.vivapayments.com/web/checkout?ref=
+      VIVA_WALLET_TRANSACTION_TYPE_ID_PAYPAL: "48"
+    healthcheck:
+      # HTTP clients like wget are blocked by the backend's user agent filter
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 3000"]
+      interval: 3s
+      timeout: 5s
+      retries: 60
+    depends_on:
+      db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    environment:
+      VITE_API_URL: http://backend:3000/
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  cypress:
+    image: cypress/included:${CYPRESS_VERSION}
+    # Shares the frontend's network, so the app runs on http://localhost: keycloak-js
+    # needs a secure context, which plain http only is on localhost.
+    network_mode: service:frontend
+    working_dir: /e2e
+    entrypoint: ["sh", "-c"]
+    command:
+      - >-
+        yarn install --frozen-lockfile --ignore-scripts --non-interactive --silent &&
+        cypress run --e2e --config baseUrl=http://localhost;
+        status=$$?;
+        chown -R ${E2E_UID}:${E2E_GID} /e2e;
+        exit $$status
+    environment:
+      CYPRESS_INSTALL_BINARY: "0"
+      # The specs expect the German UI, which the frontend picks from the browser language
+      LANG: de_AT.UTF-8
+      LANGUAGE: de_AT:de
+    volumes:
+      - ${FRONTEND_DIR}:/e2e
+      - yarn-cache:/usr/local/share/.cache/yarn
+    depends_on:
+      frontend:
+        condition: service_started
+
+volumes:
+  yarn-cache:
+    name: augustin-e2e-yarn-cache
+    external: true
