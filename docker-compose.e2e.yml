@@ -70,7 +70,7 @@ services:
       DB_PORT: "5432"
       DEVELOPMENT: "false"
       CREATE_DEMO_DATA: "true"
-      FRONTEND_URL: http://localhost
+      FRONTEND_URL: http://app.localhost
       BACKEND_HOST: http://backend:3000/
       KEYCLOAK_HOST: http://keycloak:8080/
       KEYCLOAK_URL: http://keycloak:8080
@@ -110,6 +110,11 @@ services:
 
   frontend:
     image: ${FRONTEND_IMAGE}
+    # Cypress shares this network namespace and opens the app as app.localhost: a
+    # secure context like localhost (keycloak-js needs one), but without hitting
+    # nginx's default server for "localhost", which has no SPA fallback.
+    extra_hosts:
+      - app.localhost:127.0.0.1
     environment:
       VITE_API_URL: http://backend:3000/
     depends_on:
@@ -118,15 +123,13 @@ services:
 
   cypress:
     image: cypress/included:${CYPRESS_VERSION}
-    # Shares the frontend's network, so the app runs on http://localhost: keycloak-js
-    # needs a secure context, which plain http only is on localhost.
     network_mode: service:frontend
     working_dir: /e2e
     entrypoint: ["sh", "-c"]
     command:
       - >-
         yarn install --frozen-lockfile --ignore-scripts --non-interactive --silent &&
-        cypress run --e2e --config baseUrl=http://localhost;
+        cypress run --e2e --config baseUrl=http://app.localhost;
         status=$$?;
         chown -R ${E2E_UID}:${E2E_GID} /e2e;
         exit $$status
