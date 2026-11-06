@@ -18,6 +18,9 @@ func (DBSettings) Fields() []ent.Field {
 		field.Int("id").
 			Positive(),
 		field.Bool("is_initialized"),
+		// Month (YYYY-MM) of the last accounting report mail, so a restart does not send it twice
+		field.String("accounting_report_sent_month").
+			Default(""),
 	}
 }
 

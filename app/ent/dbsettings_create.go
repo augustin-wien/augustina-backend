@@ -25,6 +25,20 @@ func (_c *DBSettingsCreate) SetIsInitialized(v bool) *DBSettingsCreate {
 	return _c
 }
 
+// SetAccountingReportSentMonth sets the "accounting_report_sent_month" field.
+func (_c *DBSettingsCreate) SetAccountingReportSentMonth(v string) *DBSettingsCreate {
+	_c.mutation.SetAccountingReportSentMonth(v)
+	return _c
+}
+
+// SetNillableAccountingReportSentMonth sets the "accounting_report_sent_month" field if the given value is not nil.
+func (_c *DBSettingsCreate) SetNillableAccountingReportSentMonth(v *string) *DBSettingsCreate {
+	if v != nil {
+		_c.SetAccountingReportSentMonth(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *DBSettingsCreate) SetID(v int) *DBSettingsCreate {
 	_c.mutation.SetID(v)
@@ -38,6 +52,7 @@ func (_c *DBSettingsCreate) Mutation() *DBSettingsMutation {
 
 // Save creates the DBSettings in the database.
 func (_c *DBSettingsCreate) Save(ctx context.Context) (*DBSettings, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -63,10 +78,21 @@ func (_c *DBSettingsCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *DBSettingsCreate) defaults() {
+	if _, ok := _c.mutation.AccountingReportSentMonth(); !ok {
+		v := dbsettings.DefaultAccountingReportSentMonth
+		_c.mutation.SetAccountingReportSentMonth(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *DBSettingsCreate) check() error {
 	if _, ok := _c.mutation.IsInitialized(); !ok {
 		return &ValidationError{Name: "is_initialized", err: errors.New(`ent: missing required field "DBSettings.is_initialized"`)}
+	}
+	if _, ok := _c.mutation.AccountingReportSentMonth(); !ok {
+		return &ValidationError{Name: "accounting_report_sent_month", err: errors.New(`ent: missing required field "DBSettings.accounting_report_sent_month"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := dbsettings.IDValidator(v); err != nil {
@@ -109,6 +135,10 @@ func (_c *DBSettingsCreate) createSpec() (*DBSettings, *sqlgraph.CreateSpec) {
 		_spec.SetField(dbsettings.FieldIsInitialized, field.TypeBool, value)
 		_node.IsInitialized = value
 	}
+	if value, ok := _c.mutation.AccountingReportSentMonth(); ok {
+		_spec.SetField(dbsettings.FieldAccountingReportSentMonth, field.TypeString, value)
+		_node.AccountingReportSentMonth = value
+	}
 	return _node, _spec
 }
 
@@ -130,6 +160,7 @@ func (_c *DBSettingsCreateBulk) Save(ctx context.Context) ([]*DBSettings, error)
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*DBSettingsMutation)
 				if !ok {

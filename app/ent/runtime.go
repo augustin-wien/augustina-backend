@@ -112,6 +112,10 @@ func init() {
 	customer.IDValidator = customerDescID.Validators[0].(func(int) error)
 	dbsettingsFields := schema.DBSettings{}.Fields()
 	_ = dbsettingsFields
+	// dbsettingsDescAccountingReportSentMonth is the schema descriptor for accounting_report_sent_month field.
+	dbsettingsDescAccountingReportSentMonth := dbsettingsFields[2].Descriptor()
+	// dbsettings.DefaultAccountingReportSentMonth holds the default value on creation for the accounting_report_sent_month field.
+	dbsettings.DefaultAccountingReportSentMonth = dbsettingsDescAccountingReportSentMonth.Default.(string)
 	// dbsettingsDescID is the schema descriptor for id field.
 	dbsettingsDescID := dbsettingsFields[0].Descriptor()
 	// dbsettings.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -482,6 +486,10 @@ func init() {
 	settingsDescOdooDBFilter := settingsFields[50].Descriptor()
 	// settings.DefaultOdooDBFilter holds the default value on creation for the OdooDBFilter field.
 	settings.DefaultOdooDBFilter = settingsDescOdooDBFilter.Default.(string)
+	// settingsDescAccountingReportEmail is the schema descriptor for AccountingReportEmail field.
+	settingsDescAccountingReportEmail := settingsFields[51].Descriptor()
+	// settings.DefaultAccountingReportEmail holds the default value on creation for the AccountingReportEmail field.
+	settings.DefaultAccountingReportEmail = settingsDescAccountingReportEmail.Default.(string)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.

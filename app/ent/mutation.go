@@ -4586,14 +4586,15 @@ func (m *CustomerMutation) ResetEdge(name string) error {
 // DBSettingsMutation represents an operation that mutates the DBSettings nodes in the graph.
 type DBSettingsMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	is_initialized *bool
-	clearedFields  map[string]struct{}
-	done           bool
-	oldValue       func(context.Context) (*DBSettings, error)
-	predicates     []predicate.DBSettings
+	op                           Op
+	typ                          string
+	id                           *int
+	is_initialized               *bool
+	accounting_report_sent_month *string
+	clearedFields                map[string]struct{}
+	done                         bool
+	oldValue                     func(context.Context) (*DBSettings, error)
+	predicates                   []predicate.DBSettings
 }
 
 var _ ent.Mutation = (*DBSettingsMutation)(nil)
@@ -4736,6 +4737,42 @@ func (m *DBSettingsMutation) ResetIsInitialized() {
 	m.is_initialized = nil
 }
 
+// SetAccountingReportSentMonth sets the "accounting_report_sent_month" field.
+func (m *DBSettingsMutation) SetAccountingReportSentMonth(s string) {
+	m.accounting_report_sent_month = &s
+}
+
+// AccountingReportSentMonth returns the value of the "accounting_report_sent_month" field in the mutation.
+func (m *DBSettingsMutation) AccountingReportSentMonth() (r string, exists bool) {
+	v := m.accounting_report_sent_month
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccountingReportSentMonth returns the old "accounting_report_sent_month" field's value of the DBSettings entity.
+// If the DBSettings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DBSettingsMutation) OldAccountingReportSentMonth(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccountingReportSentMonth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccountingReportSentMonth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccountingReportSentMonth: %w", err)
+	}
+	return oldValue.AccountingReportSentMonth, nil
+}
+
+// ResetAccountingReportSentMonth resets all changes to the "accounting_report_sent_month" field.
+func (m *DBSettingsMutation) ResetAccountingReportSentMonth() {
+	m.accounting_report_sent_month = nil
+}
+
 // Where appends a list predicates to the DBSettingsMutation builder.
 func (m *DBSettingsMutation) Where(ps ...predicate.DBSettings) {
 	m.predicates = append(m.predicates, ps...)
@@ -4770,9 +4807,12 @@ func (m *DBSettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DBSettingsMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
 	if m.is_initialized != nil {
 		fields = append(fields, dbsettings.FieldIsInitialized)
+	}
+	if m.accounting_report_sent_month != nil {
+		fields = append(fields, dbsettings.FieldAccountingReportSentMonth)
 	}
 	return fields
 }
@@ -4784,6 +4824,8 @@ func (m *DBSettingsMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case dbsettings.FieldIsInitialized:
 		return m.IsInitialized()
+	case dbsettings.FieldAccountingReportSentMonth:
+		return m.AccountingReportSentMonth()
 	}
 	return nil, false
 }
@@ -4795,6 +4837,8 @@ func (m *DBSettingsMutation) OldField(ctx context.Context, name string) (ent.Val
 	switch name {
 	case dbsettings.FieldIsInitialized:
 		return m.OldIsInitialized(ctx)
+	case dbsettings.FieldAccountingReportSentMonth:
+		return m.OldAccountingReportSentMonth(ctx)
 	}
 	return nil, fmt.Errorf("unknown DBSettings field %s", name)
 }
@@ -4810,6 +4854,13 @@ func (m *DBSettingsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsInitialized(v)
+		return nil
+	case dbsettings.FieldAccountingReportSentMonth:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccountingReportSentMonth(v)
 		return nil
 	}
 	return fmt.Errorf("unknown DBSettings field %s", name)
@@ -4862,6 +4913,9 @@ func (m *DBSettingsMutation) ResetField(name string) error {
 	switch name {
 	case dbsettings.FieldIsInitialized:
 		m.ResetIsInitialized()
+		return nil
+	case dbsettings.FieldAccountingReportSentMonth:
+		m.ResetAccountingReportSentMonth()
 		return nil
 	}
 	return fmt.Errorf("unknown DBSettings field %s", name)
@@ -13604,6 +13658,7 @@ type SettingsMutation struct {
 	_OdooWebhookURL             *string
 	_OdooWebhookToken           *string
 	_OdooDBFilter               *string
+	_AccountingReportEmail      *string
 	clearedFields               map[string]struct{}
 	_MainItem                   *int
 	cleared_MainItem            bool
@@ -15596,6 +15651,42 @@ func (m *SettingsMutation) ResetOdooDBFilter() {
 	m._OdooDBFilter = nil
 }
 
+// SetAccountingReportEmail sets the "AccountingReportEmail" field.
+func (m *SettingsMutation) SetAccountingReportEmail(s string) {
+	m._AccountingReportEmail = &s
+}
+
+// AccountingReportEmail returns the value of the "AccountingReportEmail" field in the mutation.
+func (m *SettingsMutation) AccountingReportEmail() (r string, exists bool) {
+	v := m._AccountingReportEmail
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccountingReportEmail returns the old "AccountingReportEmail" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldAccountingReportEmail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccountingReportEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccountingReportEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccountingReportEmail: %w", err)
+	}
+	return oldValue.AccountingReportEmail, nil
+}
+
+// ResetAccountingReportEmail resets all changes to the "AccountingReportEmail" field.
+func (m *SettingsMutation) ResetAccountingReportEmail() {
+	m._AccountingReportEmail = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -15669,7 +15760,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 50)
+	fields := make([]string, 0, 51)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -15820,6 +15911,9 @@ func (m *SettingsMutation) Fields() []string {
 	if m._OdooDBFilter != nil {
 		fields = append(fields, settings.FieldOdooDBFilter)
 	}
+	if m._AccountingReportEmail != nil {
+		fields = append(fields, settings.FieldAccountingReportEmail)
+	}
 	return fields
 }
 
@@ -15928,6 +16022,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.OdooWebhookToken()
 	case settings.FieldOdooDBFilter:
 		return m.OdooDBFilter()
+	case settings.FieldAccountingReportEmail:
+		return m.AccountingReportEmail()
 	}
 	return nil, false
 }
@@ -16037,6 +16133,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldOdooWebhookToken(ctx)
 	case settings.FieldOdooDBFilter:
 		return m.OldOdooDBFilter(ctx)
+	case settings.FieldAccountingReportEmail:
+		return m.OldAccountingReportEmail(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -16396,6 +16494,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetOdooDBFilter(v)
 		return nil
+	case settings.FieldAccountingReportEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccountingReportEmail(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -16645,6 +16750,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldOdooDBFilter:
 		m.ResetOdooDBFilter()
+		return nil
+	case settings.FieldAccountingReportEmail:
+		m.ResetAccountingReportEmail()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)

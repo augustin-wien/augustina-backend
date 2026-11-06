@@ -274,6 +274,16 @@ func GetRouter() (r *chi.Mux) {
 			})
 		})
 
+		// Monthly accounting report
+		r.Route("/api/reports/monthly/{month}", func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/", GetMonthlyReport)
+			r.Get("/csv/", GetMonthlyReportCSV)
+			r.Get("/pdf/", GetMonthlyReportPDF)
+			r.Post("/send/", SendMonthlyReport)
+		})
+
 		// Payment orders
 		r.Route("/api/orders", func(r chi.Router) {
 			r.Post("/", CreatePaymentOrder)

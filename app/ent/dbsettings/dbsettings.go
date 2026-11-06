@@ -13,6 +13,8 @@ const (
 	FieldID = "id"
 	// FieldIsInitialized holds the string denoting the is_initialized field in the database.
 	FieldIsInitialized = "is_initialized"
+	// FieldAccountingReportSentMonth holds the string denoting the accounting_report_sent_month field in the database.
+	FieldAccountingReportSentMonth = "accounting_report_sent_month"
 	// Table holds the table name of the dbsettings in the database.
 	Table = "db_settings"
 )
@@ -21,6 +23,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldIsInitialized,
+	FieldAccountingReportSentMonth,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -34,6 +37,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultAccountingReportSentMonth holds the default value on creation for the "accounting_report_sent_month" field.
+	DefaultAccountingReportSentMonth string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -49,4 +54,9 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByIsInitialized orders the results by the is_initialized field.
 func ByIsInitialized(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsInitialized, opts...).ToFunc()
+}
+
+// ByAccountingReportSentMonth orders the results by the accounting_report_sent_month field.
+func ByAccountingReportSentMonth(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccountingReportSentMonth, opts...).ToFunc()
 }

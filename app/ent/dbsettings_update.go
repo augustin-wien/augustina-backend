@@ -41,6 +41,20 @@ func (_u *DBSettingsUpdate) SetNillableIsInitialized(v *bool) *DBSettingsUpdate 
 	return _u
 }
 
+// SetAccountingReportSentMonth sets the "accounting_report_sent_month" field.
+func (_u *DBSettingsUpdate) SetAccountingReportSentMonth(v string) *DBSettingsUpdate {
+	_u.mutation.SetAccountingReportSentMonth(v)
+	return _u
+}
+
+// SetNillableAccountingReportSentMonth sets the "accounting_report_sent_month" field if the given value is not nil.
+func (_u *DBSettingsUpdate) SetNillableAccountingReportSentMonth(v *string) *DBSettingsUpdate {
+	if v != nil {
+		_u.SetAccountingReportSentMonth(*v)
+	}
+	return _u
+}
+
 // Mutation returns the DBSettingsMutation object of the builder.
 func (_u *DBSettingsUpdate) Mutation() *DBSettingsMutation {
 	return _u.mutation
@@ -85,6 +99,9 @@ func (_u *DBSettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.IsInitialized(); ok {
 		_spec.SetField(dbsettings.FieldIsInitialized, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.AccountingReportSentMonth(); ok {
+		_spec.SetField(dbsettings.FieldAccountingReportSentMonth, field.TypeString, value)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{dbsettings.Label}
@@ -115,6 +132,20 @@ func (_u *DBSettingsUpdateOne) SetIsInitialized(v bool) *DBSettingsUpdateOne {
 func (_u *DBSettingsUpdateOne) SetNillableIsInitialized(v *bool) *DBSettingsUpdateOne {
 	if v != nil {
 		_u.SetIsInitialized(*v)
+	}
+	return _u
+}
+
+// SetAccountingReportSentMonth sets the "accounting_report_sent_month" field.
+func (_u *DBSettingsUpdateOne) SetAccountingReportSentMonth(v string) *DBSettingsUpdateOne {
+	_u.mutation.SetAccountingReportSentMonth(v)
+	return _u
+}
+
+// SetNillableAccountingReportSentMonth sets the "accounting_report_sent_month" field if the given value is not nil.
+func (_u *DBSettingsUpdateOne) SetNillableAccountingReportSentMonth(v *string) *DBSettingsUpdateOne {
+	if v != nil {
+		_u.SetAccountingReportSentMonth(*v)
 	}
 	return _u
 }
@@ -192,6 +223,9 @@ func (_u *DBSettingsUpdateOne) sqlSave(ctx context.Context) (_node *DBSettings, 
 	}
 	if value, ok := _u.mutation.IsInitialized(); ok {
 		_spec.SetField(dbsettings.FieldIsInitialized, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AccountingReportSentMonth(); ok {
+		_spec.SetField(dbsettings.FieldAccountingReportSentMonth, field.TypeString, value)
 	}
 	_node = &DBSettings{config: _u.config}
 	_spec.Assign = _node.assignValues

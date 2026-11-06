@@ -121,9 +121,31 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 
 // Request struct
 type EmailRequest struct {
-	to      []string
-	subject string
-	body    string
+	to          []string
+	subject     string
+	body        string
+	attachments []Attachment
+}
+
+// Attachment is a file sent along with an email
+type Attachment struct {
+	Filename    string
+	ContentType string
+	Data        []byte
+}
+
+// AddAttachment attaches a file to the email
+func (r *EmailRequest) AddAttachment(filename, contentType string, data []byte) error {
+	if strings.ContainsAny(filename, "\r\n\"") || strings.ContainsAny(contentType, "\r\n") {
+		return errors.New("attachment name or type contains invalid characters")
+	}
+	r.attachments = append(r.attachments, Attachment{Filename: filename, ContentType: contentType, Data: data})
+	return nil
+}
+
+// Attachments returns the files attached to the email
+func (r *EmailRequest) Attachments() []Attachment {
+	return r.attachments
 }
 
 func NewRequestFromTemplate(to []string, subject, templateFileName string, data interface{}) (*EmailRequest, error) {
@@ -258,6 +280,12 @@ func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 	fmt.Fprintf(&b, "Date: %s\r\n", dateHeader)
 	fmt.Fprintf(&b, "Message-ID: %s\r\n", msgID)
 	b.WriteString("MIME-Version: 1.0\r\n")
+	mixedBoundary := "Mixed" + boundary
+	if len(r.attachments) > 0 {
+		fmt.Fprintf(&b, "Content-Type: multipart/mixed; boundary=\"%s\"\r\n", mixedBoundary)
+		b.WriteString("\r\n")
+		fmt.Fprintf(&b, "--%s\r\n", mixedBoundary)
+	}
 	fmt.Fprintf(&b, "Content-Type: multipart/alternative; boundary=\"%s\"\r\n", boundary)
 	b.WriteString("\r\n")
 
@@ -291,6 +319,23 @@ func (r *EmailRequest) BuildMessage() ([]byte, string, error) {
 
 	// end
 	fmt.Fprintf(&b, "--%s--\r\n", boundary)
+
+	if len(r.attachments) > 0 {
+		for _, a := range r.attachments {
+			fmt.Fprintf(&b, "--%s\r\n", mixedBoundary)
+			fmt.Fprintf(&b, "Content-Type: %s; name=\"%s\"\r\n", a.ContentType, a.Filename)
+			b.WriteString("Content-Transfer-Encoding: base64\r\n")
+			fmt.Fprintf(&b, "Content-Disposition: attachment; filename=\"%s\"\r\n", a.Filename)
+			b.WriteString("\r\n")
+			encoded := base64.StdEncoding.EncodeToString(a.Data)
+			for len(encoded) > 76 {
+				b.WriteString(encoded[:76] + "\r\n")
+				encoded = encoded[76:]
+			}
+			b.WriteString(encoded + "\r\n")
+		}
+		fmt.Fprintf(&b, "--%s--\r\n", mixedBoundary)
+	}
 
 	return b.Bytes(), boundary, nil
 }
