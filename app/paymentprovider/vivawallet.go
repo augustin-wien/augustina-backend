@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -43,6 +44,16 @@ var ErrTransactionNotSuccessful = errors.New("transaction status is not successf
 // not verified the order yet. The frontend polls /orders/verify/ while it waits, so on its
 // own this is expected and not worth an alert - the reconcile job alerts if it persists.
 var ErrOrderNotVerifiedYet = errors.New("order has not been verified in database but needs to be for frontend call")
+
+// ErrInvalidTransactionID means the transaction id can not be a VivaWallet transaction id. It goes
+// into the path of an authenticated VivaWallet API request, so it must not be able to change it.
+var ErrInvalidTransactionID = errors.New("invalid transaction id")
+
+// transactionIDPattern matches VivaWallet transaction ids, which are UUIDs
+var transactionIDPattern = regexp.MustCompile(`^[A-Za-z0-9-]{1,64}$`)
+
+// placeholderTransactionIDPrefix marks the transaction id CreateOrder stores until the real one is known
+const placeholderTransactionIDPrefix = "manual-"
 
 // AuthenticateToVivaWallet authenticates to VivaWallet and returns an access token
 func AuthenticateToVivaWallet() (string, error) {
@@ -274,6 +285,11 @@ func isForeignTransaction(data EventData) bool {
 	return data.SourceCode != config.Config.VivaWalletSourceCode
 }
 
+// isPlaceholderTransactionID reports whether an order is still without its real transaction id
+func isPlaceholderTransactionID(transactionID string) bool {
+	return transactionID == "" || strings.HasPrefix(transactionID, placeholderTransactionIDPrefix)
+}
+
 // toCents converts a VivaWallet amount in euros to cents
 func toCents(amount float64) int {
 	return int(math.Round(amount * 100))
@@ -354,10 +370,21 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		return nil
 	}
 
-	err = database.Db.SetOrderTransactionID(order.ID, data.TransactionID)
-	if err != nil {
-		logWebhookNotVerified("set_transaction_id_failed", order.ID, data, err)
-		return err
+	if !transactionIDPattern.MatchString(data.TransactionID) {
+		logWebhookNotVerified("invalid_transaction_id", order.ID, data, ErrInvalidTransactionID)
+		return ErrInvalidTransactionID
+	}
+
+	// Anyone can post to this webhook, so until VivaWallet confirms the transaction its id may
+	// only replace the placeholder, not a transaction id that is already stored
+	storedTransactionID := order.TransactionID
+	if isPlaceholderTransactionID(storedTransactionID) {
+		err = database.Db.SetOrderTransactionID(order.ID, data.TransactionID)
+		if err != nil {
+			logWebhookNotVerified("set_transaction_id_failed", order.ID, data, err)
+			return err
+		}
+		storedTransactionID = data.TransactionID
 	}
 
 	// Set everything up for the request
@@ -402,6 +429,14 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		err = errors.New("HandlePaymentSuccessfulResponse: order code mismatch")
 		logWebhookNotVerified("order_code_mismatch", order.ID, data, err, "viva_order_code", transactionVerificationResponse.OrderCode.String())
 		return err
+	}
+
+	if storedTransactionID != data.TransactionID {
+		err = database.Db.SetOrderTransactionID(order.ID, data.TransactionID)
+		if err != nil {
+			logWebhookNotVerified("set_transaction_id_failed", order.ID, data, err)
+			return err
+		}
 	}
 
 	if transactionVerificationResponse.Amount != data.Amount {
@@ -544,6 +579,9 @@ func CreatePaypalTransactionCosts(paymentSuccessful TransactionSuccessRequest, o
 
 // VerifyTransactionID verifies that the transactionID belongs to VivaWallet and returns the transaction details
 func VerifyTransactionID(transactionID string, checkDBStatus bool) (transactionVerificationResponse TransactionVerificationResponse, err error) {
+	if !transactionIDPattern.MatchString(transactionID) {
+		return transactionVerificationResponse, ErrInvalidTransactionID
+	}
 
 	// Create a new request URL using http
 	apiURL := config.Config.VivaWalletAPIURL
