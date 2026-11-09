@@ -107,6 +107,8 @@ type Order struct {
 	OdooSyncError     null.String
 	InvalidatedAt     null.Time
 	Newsletter        bool
+	PaymentEventID    null.Int
+	PaymentFailedAt   null.Time
 }
 
 // OrderEntry is a struct that is used for the order_entry table

@@ -43,6 +43,10 @@ type Order struct {
 	InvalidatedAt *time.Time `json:"invalidated_at,omitempty"`
 	// Newsletter holds the value of the "newsletter" field.
 	Newsletter bool `json:"newsletter,omitempty"`
+	// PaymentEventID holds the value of the "payment_event_id" field.
+	PaymentEventID *int `json:"payment_event_id,omitempty"`
+	// PaymentFailedAt holds the value of the "payment_failed_at" field.
+	PaymentFailedAt *time.Time `json:"payment_failed_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderQuery when eager-loading is set.
 	Edges        OrderEdges `json:"edges"`
@@ -85,11 +89,11 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case order.FieldVerified, order.FieldNewsletter:
 			values[i] = new(sql.NullBool)
-		case order.FieldID, order.FieldTransactionTypeID, order.FieldVendorID:
+		case order.FieldID, order.FieldTransactionTypeID, order.FieldVendorID, order.FieldPaymentEventID:
 			values[i] = new(sql.NullInt64)
 		case order.FieldOrderCode, order.FieldTransactionID, order.FieldUserID, order.FieldCustomerEmail, order.FieldOdooSyncError:
 			values[i] = new(sql.NullString)
-		case order.FieldVerifiedAt, order.FieldTimestamp, order.FieldOdooSyncedAt, order.FieldInvalidatedAt:
+		case order.FieldVerifiedAt, order.FieldTimestamp, order.FieldOdooSyncedAt, order.FieldInvalidatedAt, order.FieldPaymentFailedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -197,6 +201,20 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Newsletter = value.Bool
 			}
+		case order.FieldPaymentEventID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field payment_event_id", values[i])
+			} else if value.Valid {
+				_m.PaymentEventID = new(int)
+				*_m.PaymentEventID = int(value.Int64)
+			}
+		case order.FieldPaymentFailedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field payment_failed_at", values[i])
+			} else if value.Valid {
+				_m.PaymentFailedAt = new(time.Time)
+				*_m.PaymentFailedAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -295,6 +313,16 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("newsletter=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Newsletter))
+	builder.WriteString(", ")
+	if v := _m.PaymentEventID; v != nil {
+		builder.WriteString("payment_event_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.PaymentFailedAt; v != nil {
+		builder.WriteString("payment_failed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

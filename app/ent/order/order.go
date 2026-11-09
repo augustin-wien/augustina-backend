@@ -38,6 +38,10 @@ const (
 	FieldInvalidatedAt = "invalidated_at"
 	// FieldNewsletter holds the string denoting the newsletter field in the database.
 	FieldNewsletter = "newsletter"
+	// FieldPaymentEventID holds the string denoting the payment_event_id field in the database.
+	FieldPaymentEventID = "payment_event_id"
+	// FieldPaymentFailedAt holds the string denoting the payment_failed_at field in the database.
+	FieldPaymentFailedAt = "payment_failed_at"
 	// EdgeEntries holds the string denoting the entries edge name in mutations.
 	EdgeEntries = "entries"
 	// EdgePayments holds the string denoting the payments edge name in mutations.
@@ -76,6 +80,8 @@ var Columns = []string{
 	FieldOdooSyncError,
 	FieldInvalidatedAt,
 	FieldNewsletter,
+	FieldPaymentEventID,
+	FieldPaymentFailedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -166,6 +172,16 @@ func ByInvalidatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByNewsletter orders the results by the newsletter field.
 func ByNewsletter(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNewsletter, opts...).ToFunc()
+}
+
+// ByPaymentEventID orders the results by the payment_event_id field.
+func ByPaymentEventID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaymentEventID, opts...).ToFunc()
+}
+
+// ByPaymentFailedAt orders the results by the payment_failed_at field.
+func ByPaymentFailedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaymentFailedAt, opts...).ToFunc()
 }
 
 // ByEntriesCount orders the results by entries count.

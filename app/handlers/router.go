@@ -289,6 +289,7 @@ func GetRouter() (r *chi.Mux) {
 		r.Route("/api/orders", func(r chi.Router) {
 			r.Post("/", CreatePaymentOrder)
 			r.Get("/verify/", VerifyPaymentOrder)
+			r.Post("/failure/", ReportPaymentFailure)
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.AuthMiddleware)
 				r.Use(middlewares.AdminAuthMiddleware)

@@ -378,6 +378,21 @@ func (db *Database) SetOrderTransactionID(orderID int, transactionID string) (er
 	return
 }
 
+// SetOrderPaymentFailure records the EventId of a failed payment attempt on an unverified order.
+// It returns false when there is no unverified order with this order code.
+func (db *Database) SetOrderPaymentFailure(orderCode string, eventID int) (updated bool, err error) {
+	n, err := db.EntClient.Order.Update().
+		Where(order.OrderCode(orderCode), order.Verified(false)).
+		SetPaymentEventID(eventID).
+		SetPaymentFailedAt(time.Now().UTC()).
+		Save(context.Background())
+	if err != nil {
+		log.Error("SetOrderPaymentFailure: ", err)
+		return false, err
+	}
+	return n > 0, nil
+}
+
 // SetOdooSyncSuccess records that an order's Odoo webhook was delivered successfully,
 // clearing any previously recorded failure.
 func (db *Database) SetOdooSyncSuccess(orderID int) (err error) {
@@ -844,6 +859,12 @@ func convertOrder(e *ent.Order) Order {
 	}
 	if e.InvalidatedAt != nil {
 		o.InvalidatedAt = null.TimeFrom(*e.InvalidatedAt)
+	}
+	if e.PaymentEventID != nil {
+		o.PaymentEventID = null.IntFrom(int64(*e.PaymentEventID))
+	}
+	if e.PaymentFailedAt != nil {
+		o.PaymentFailedAt = null.TimeFrom(*e.PaymentFailedAt)
 	}
 	for _, entry := range e.Edges.Entries {
 		o.Entries = append(o.Entries, convertOrderEntry(entry))

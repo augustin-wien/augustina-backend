@@ -55,6 +55,13 @@ func (Order) Fields() []ent.Field {
 		// customer record once the order is verified.
 		field.Bool("newsletter").
 			Default(false),
+		// EventId VivaWallet appended to the failure redirect of the last failed payment attempt
+		field.Int("payment_event_id").
+			Optional().
+			Nillable(),
+		field.Time("payment_failed_at").
+			Optional().
+			Nillable(),
 	}
 }
 
