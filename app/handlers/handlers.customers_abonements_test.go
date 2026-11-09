@@ -650,9 +650,19 @@ func TestListMyPaymentsHandler(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// Users can change their email in Keycloak, so an unverified one must not show its orders
 	req := httptest.NewRequest(http.MethodGet, "/api/customers/me/payments/", nil)
 	req.Header.Set("X-Auth-User-Email", customerEmail)
 	rr := httptest.NewRecorder()
+
+	ListMyPayments(rr, req)
+
+	require.Equal(t, http.StatusForbidden, rr.Code)
+
+	req = httptest.NewRequest(http.MethodGet, "/api/customers/me/payments/", nil)
+	req.Header.Set("X-Auth-User-Email", customerEmail)
+	req.Header.Set("X-Auth-User-Email-Verified", "true")
+	rr = httptest.NewRecorder()
 
 	ListMyPayments(rr, req)
 

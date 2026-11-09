@@ -169,3 +169,28 @@ func TestCustomerAuthMiddlewareRejectsForgedCustomerAfterClear(t *testing.T) {
 	require.False(t, called, "forged customer role/group must not grant customer access")
 	require.Equal(t, http.StatusForbidden, res.Code)
 }
+
+// StripAuthHeaders runs for every route, including the public ones and OPTIONS requests, which
+// AuthMiddleware lets through without clearing anything
+func TestStripAuthHeadersRemovesForgedHeadersBeforeTheHandler(t *testing.T) {
+	var seen http.Header
+	handler := StripAuthHeaders(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen = r.Header.Clone()
+	}))
+
+	for _, method := range []string{http.MethodPost, http.MethodOptions} {
+		req := httptest.NewRequest(method, "/api/orders/", nil)
+		req.Header.Set("X-Auth-User-Name", "forged-user")
+		req.Header.Set("X-Auth-User-Email-Verified", "true")
+		req.Header.Set("X-Auth-Roles-admin", "admin")
+		req.Header.Set("Authorization", "Bearer token")
+
+		handler.ServeHTTP(httptest.NewRecorder(), req)
+
+		require.Empty(t, seen.Get("X-Auth-User-Name"), method)
+		require.Empty(t, seen.Get("X-Auth-User-Email-Verified"), method)
+		require.Empty(t, seen.Get("X-Auth-Roles-admin"), method)
+		require.Equal(t, "false", seen.Get("X-Auth-User-Validated"), method)
+		require.Equal(t, "Bearer token", seen.Get("Authorization"), method)
+	}
+}

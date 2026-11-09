@@ -56,6 +56,7 @@ func GetRouter() (r *chi.Mux) {
 	// Add request IDs and structured request logging middleware
 	r.Use(middleware.RequestID)
 	r.Use(middlewares.RequestLogger)
+	r.Use(middlewares.StripAuthHeaders)
 
 	// Check that FRONTEND_URL is configured
 	frontendURL := config.Config.FrontendURL
