@@ -575,6 +575,12 @@ type VerifyPaymentOrderResponse struct {
 // made for a different order than the one it names
 var errTransactionNotForOrder = errors.New("transaction does not belong to this order")
 
+// errNoVivaTransactionID is returned when an order still has no VivaWallet transaction id
+var errNoVivaTransactionID = errors.New("order has no VivaWallet transaction id, add the transaction id first")
+
+// placeholderTransactionIDPrefix marks the transaction id an order gets when it is created
+const placeholderTransactionIDPrefix = "manual-"
+
 // paymentsResponse is the payload returned by ListPaymentsForPayout
 type paymentsResponse struct {
 	Payments []database.Payment `json:"payments"`
@@ -781,22 +787,30 @@ func AdminVerifyPaymentOrderByCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	transactionTypeID := 0 // Default to 0 (unknown/manual)
-
-	// If transaction ID is present, try to verify with VivaWallet to get correct TransactionTypeID
-	if order.TransactionID != "" {
-		// Verify transaction
-		verificationResponse, err := paymentprovider.VerifyTransactionID(order.TransactionID, false)
-		if err == nil {
-			transactionTypeID = verificationResponse.TransactionTypeID
-		} else {
-			log.Warn("AdminVerifyPaymentOrderByCode: Could not verify transaction with VivaWallet, proceeding with default type: ", err)
-		}
-	} else {
-		log.Warn("AdminVerifyPaymentOrderByCode: No TransactionID present")
-		utils.ErrorJSON(w, errors.New("no TransactionID present"), http.StatusBadRequest)
-
+	if order.TransactionID == "" || strings.HasPrefix(order.TransactionID, placeholderTransactionIDPrefix) {
+		log.Warnw("AdminVerifyPaymentOrderByCode: order has no VivaWallet transaction id",
+			"order_id", order.ID, "order_code", orderCode, "transaction_id", order.TransactionID)
+		utils.ErrorJSON(w, errNoVivaTransactionID, http.StatusBadRequest)
 		return
+	}
+
+	transactionTypeID := 0
+	if database.Db.IsProduction && !config.Config.Development && !config.Config.DEBUG_payments {
+		verification, err := paymentprovider.VerifyTransactionID(order.TransactionID, false)
+		if err != nil {
+			log.Warnw("AdminVerifyPaymentOrderByCode: VivaWallet did not confirm the transaction",
+				"order_id", order.ID, "order_code", orderCode, "transaction_id", order.TransactionID, "error", err)
+			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
+		}
+		if verification.OrderCode.String() != order.OrderCode.String {
+			log.Warnw("AdminVerifyPaymentOrderByCode: transaction belongs to another order",
+				"order_id", order.ID, "order_code", orderCode, "transaction_id", order.TransactionID,
+				"viva_order_code", verification.OrderCode.String())
+			utils.ErrorJSON(w, errTransactionNotForOrder, http.StatusBadRequest)
+			return
+		}
+		transactionTypeID = verification.TransactionTypeID
 	}
 
 	err = database.Db.VerifyOrderAndCreatePayments(order.ID, transactionTypeID)
