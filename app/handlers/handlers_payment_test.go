@@ -320,3 +320,63 @@ func TestVerifyPaymentOrder_KeepsConfirmedTransactionWhileWebhookIsPending(t *te
 	require.False(t, order.Verified)
 	require.Equal(t, "pending-tx", order.TransactionID)
 }
+
+// createAdminVerifyTestOrder creates an unverified order and returns its id
+func createAdminVerifyTestOrder(t *testing.T, licenseID, orderCode string) int {
+	t.Helper()
+
+	createTestVendor(t, licenseID)
+	vendor, err := database.Db.GetVendorByLicenseID(licenseID)
+	require.NoError(t, err)
+
+	orderID, err := database.Db.CreateOrder(database.Order{
+		OrderCode: null.StringFrom(orderCode),
+		Vendor:    vendor.ID,
+		Timestamp: time.Now(),
+	})
+	require.NoError(t, err)
+	return orderID
+}
+
+func TestAdminVerifyPaymentOrderByCode(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	tests := []struct {
+		name          string
+		transactionID string
+		vivaOrderCode string
+		status        int
+		verified      bool
+	}{
+		{name: "placeholder transaction id", transactionID: "", status: http.StatusBadRequest},
+		{name: "transaction unknown at VivaWallet", transactionID: "unknown-transaction", status: http.StatusBadRequest},
+		{name: "transaction of another order", transactionID: "viva-transaction-1", vivaOrderCode: "1111111111", status: http.StatusBadRequest},
+		{name: "confirmed transaction", transactionID: "viva-transaction-1", status: http.StatusOK, verified: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.NoError(t, database.Db.InitEmptyTestDb())
+
+			orderCode := "5555555555"
+			orderID := createAdminVerifyTestOrder(t, "testadminverify", orderCode)
+			if tt.transactionID != "" {
+				require.NoError(t, database.Db.SetOrderTransactionID(orderID, tt.transactionID))
+			}
+
+			vivaOrderCode := tt.vivaOrderCode
+			if vivaOrderCode == "" {
+				vivaOrderCode = orderCode
+			}
+			mockVivaWalletTransaction(t, "viva-transaction-1", vivaOrderCode)
+
+			url := "/api/orders/unverified/code/" + orderCode + "/verify/"
+			utils.TestRequestWithAuth(t, r, "GET", url, nil, tt.status, adminUserToken)
+
+			order, err := database.Db.GetOrderByOrderCode(orderCode)
+			require.NoError(t, err)
+			require.Equal(t, tt.verified, order.Verified)
+		})
+	}
+}
