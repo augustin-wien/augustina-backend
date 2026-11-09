@@ -152,7 +152,7 @@ func (db *Database) purchaseStatsByEmail(ctx context.Context) (map[string]purcha
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	stats := make(map[string]purchaseStats)
 	for rows.Next() {
