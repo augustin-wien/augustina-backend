@@ -202,6 +202,11 @@ func (r *EmailRequest) Subject() string {
 	return r.subject
 }
 
+// To returns the email recipients
+func (r *EmailRequest) To() []string {
+	return r.to
+}
+
 // Body returns the email body (HTML)
 func (r *EmailRequest) Body() string {
 	return r.body

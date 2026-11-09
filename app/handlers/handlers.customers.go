@@ -132,11 +132,23 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 
 	// Keep the Keycloak login in step with a changed email, before the DB so
 	// both don't drift apart when Keycloak refuses (e.g. address already taken)
-	if oldCustomer.KeycloakID != "" && utils.ToLower(customer.Email) != utils.ToLower(oldCustomer.Email) {
-		if err := keycloak.KeycloakClient.UpdateUserById(oldCustomer.KeycloakID, customer.Email, customer.FirstName, customer.LastName, customer.Email); err != nil {
-			log.Error("UpdateCustomer: failed to update email in Keycloak: ", err)
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
+	if utils.ToLower(customer.Email) != utils.ToLower(oldCustomer.Email) {
+		keycloakID := oldCustomer.KeycloakID
+		// Customers whose record predates their login aren't linked yet
+		if keycloakID == "" && oldCustomer.Email != "" {
+			if user, err := keycloak.KeycloakClient.GetUserByEmail(oldCustomer.Email); err == nil && user.ID != nil {
+				keycloakID = *user.ID
+				if customer.KeycloakID == "" {
+					customer.KeycloakID = keycloakID
+				}
+			}
+		}
+		if keycloakID != "" {
+			if err := keycloak.KeycloakClient.UpdateUserById(keycloakID, customer.Email, customer.FirstName, customer.LastName, customer.Email); err != nil {
+				log.Error("UpdateCustomer: failed to update email in Keycloak: ", err)
+				utils.ErrorJSON(w, err, http.StatusBadRequest)
+				return
+			}
 		}
 	}
 
@@ -193,7 +205,7 @@ func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 //	@Security		KeycloakAuth
 //	@Router			/customers/{id}/password-reset-email/ [post]
 func SendCustomerPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
-	sendCustomerActionEmail(w, r, "password reset", keycloak.KeycloakClient.SendPasswordResetEmail)
+	sendCustomerActionEmail(w, r, "password reset", keycloak.KeycloakClient.SendPasswordResetEmailToUser)
 }
 
 // SendCustomerVerifyEmail godoc
@@ -206,10 +218,12 @@ func SendCustomerPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
 //	@Security		KeycloakAuth
 //	@Router			/customers/{id}/verify-email/ [post]
 func SendCustomerVerifyEmail(w http.ResponseWriter, r *http.Request) {
-	sendCustomerActionEmail(w, r, "verification", keycloak.KeycloakClient.SendVerifyEmail)
+	sendCustomerActionEmail(w, r, "verification", keycloak.KeycloakClient.SendVerifyEmailToUser)
 }
 
-func sendCustomerActionEmail(w http.ResponseWriter, r *http.Request, kind string, send func(email string) error) {
+// sendCustomerActionEmail sends the customer a Keycloak action mail, creating
+// their login first if they don't have one yet
+func sendCustomerActionEmail(w http.ResponseWriter, r *http.Request, kind string, send func(userID string) error) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -226,5 +240,36 @@ func sendCustomerActionEmail(w http.ResponseWriter, r *http.Request, kind string
 		utils.ErrorJSON(w, errors.New("the online paper URL is not configured in the settings"), http.StatusServiceUnavailable)
 		return
 	}
-	sendActionEmail(w, r, kind, "customer", id, customer.Email, send)
+	sendActionEmail(w, r, kind, "customer", id, customer.Email, func(string) error {
+		userID, err := ensureCustomerKeycloakUser(customer)
+		if err != nil {
+			return err
+		}
+		return send(userID)
+	})
+}
+
+// ensureCustomerKeycloakUser returns the customer's Keycloak user ID, creating
+// the user if needed. A newly linked user gets the customer's groups and its
+// ID is stored on the customer.
+func ensureCustomerKeycloakUser(customer *database.Customer) (string, error) {
+	userID, created, err := keycloak.KeycloakClient.GetOrCreateCustomerUser(customer.KeycloakID, customer.Email, customer.FirstName, customer.LastName)
+	if err != nil {
+		return "", err
+	}
+	if userID == customer.KeycloakID {
+		return userID, nil
+	}
+	if created {
+		if err := keycloak.KeycloakClient.AssignGroup(userID, "customer"); err != nil {
+			log.Error("ensureCustomerKeycloakUser: failed to assign customer group: ", customer.ID, err)
+		}
+	}
+	if err := keycloak.KeycloakClient.SyncLicenseGroupsDiffToKeycloak(userID, nil, customer.LicenseGroups); err != nil {
+		log.Error("ensureCustomerKeycloakUser: failed to sync license groups: ", customer.ID, err)
+	}
+	if err := database.Db.SetCustomerKeycloakID(customer.ID, userID); err != nil {
+		log.Error("ensureCustomerKeycloakUser: failed to store keycloak id: ", customer.ID, err)
+	}
+	return userID, nil
 }

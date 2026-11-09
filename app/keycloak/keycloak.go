@@ -800,6 +800,52 @@ func (k *Keycloak) GetOrCreateUser(email string) (userID string, newUser bool, e
 	return *user.ID, false, nil
 }
 
+// GetOrCreateCustomerUser returns the customer's Keycloak user: the one with
+// keycloakID, else the one owning email, else a new one without a password.
+// created reports whether the user was created.
+func (k *Keycloak) GetOrCreateCustomerUser(keycloakID, email, firstName, lastName string) (userID string, created bool, err error) {
+	if k.Client == nil {
+		return "", false, fmt.Errorf("GetOrCreateCustomerUser: keycloak client not initialized")
+	}
+	if keycloakID != "" {
+		if user, err := k.GetUserByID(keycloakID); err == nil && user.ID != nil {
+			return *user.ID, false, nil
+		}
+	}
+	if email == "" {
+		return "", false, fmt.Errorf("GetOrCreateCustomerUser: email is empty")
+	}
+	email = utils.ToLower(email)
+	if user, err := k.GetUserByEmail(email); err == nil && user.ID != nil {
+		return *user.ID, false, nil
+	}
+	if user, err := k.GetUser(email); err == nil && user.ID != nil {
+		return *user.ID, false, nil
+	}
+	userID, err = k.CreateUser(email, firstName, lastName, email, "")
+	if err != nil {
+		var apiErr *gocloak.APIError
+		if errors.As(err, &apiErr) && apiErr.Code == http.StatusConflict {
+			if existing, searchErr := k.findUserBySearch(email); searchErr == nil && existing.ID != nil {
+				return *existing.ID, false, nil
+			}
+		}
+		return "", false, err
+	}
+	log.Info("GetOrCreateCustomerUser: created user ", userID)
+	return userID, true, nil
+}
+
+// SendPasswordResetEmailToUser sends the customer with the given Keycloak ID a password reset email
+func (k *Keycloak) SendPasswordResetEmailToUser(userID string) error {
+	return k.executeActionsEmail(userID, userID, config.Config.OnlinePaperUrl, "UPDATE_PASSWORD")
+}
+
+// SendVerifyEmailToUser sends the customer with the given Keycloak ID a mail to confirm their email address
+func (k *Keycloak) SendVerifyEmailToUser(userID string) error {
+	return k.executeActionsEmail(userID, userID, config.Config.OnlinePaperUrl, "VERIFY_EMAIL")
+}
+
 // SendPasswordResetEmail function sends a password reset email to the user
 func (k *Keycloak) SendPasswordResetEmail(email string) error {
 	return k.sendPasswordResetEmail(email, config.Config.OnlinePaperUrl)
@@ -833,31 +879,33 @@ func (k *Keycloak) sendActionsEmail(email, redirectURI, action string) error {
 		log.Error("SendPasswordResetEmail: Error getting user by email ", err)
 		return err
 	}
+	return k.executeActionsEmail(*user.ID, email, redirectURI, action)
+}
+
+// executeActionsEmail lets Keycloak mail the user with userID a link to perform
+// action; recipient names the user in the logs
+func (k *Keycloak) executeActionsEmail(userID, recipient, redirectURI, action string) error {
+	k.checkAdminToken()
 	// If no SMTP sender is configured in the app config, skip attempting
 	// to trigger Keycloak to send emails. This avoids noisy errors during
 	// tests and in environments where Keycloak SMTP isn't set up.
 	if config.Config.SMTPSenderAddress == "" {
-		log.Infof("SendPasswordResetEmail: skipping email for %s because SMTPSenderAddress is not configured", email)
+		log.Infof("SendPasswordResetEmail: skipping email for %s because SMTPSenderAddress is not configured", recipient)
 		return nil
 	}
-	// Keycloak rejects an empty (or otherwise unregistered) redirect URI with an opaque
-	// "invalid redirect uri" 400 - for the customer path, redirectURI comes from the
-	// admin-editable OnlinePaperUrl setting, which defaults to empty until someone fills it
-	// in. Skip with a specific, actionable log instead of letting that surface as an
-	// unexplained Keycloak API error days later.
 	// Keycloak rejects an empty (or otherwise unregistered) redirect URI with an opaque
 	// "invalid redirect uri" 400 - for the customer path, redirectURI comes from the
 	// admin-editable OnlinePaperUrl setting, which defaults to empty until someone fills it
 	// in. Skip with a specific, actionable log instead of letting that surface as an
 	// unexplained Keycloak API error days later.
 	if redirectURI == "" {
-		log.Errorf("SendPasswordResetEmail: skipping email for %s because the redirect URI is empty - set OnlinePaperUrl in the admin settings", email)
+		log.Errorf("SendPasswordResetEmail: skipping email for %s because the redirect URI is empty - set OnlinePaperUrl in the admin settings", recipient)
 		return nil
 	}
 
-	log.Info("SendPasswordResetEmail: Keycloak: execute "+action+" email for ", email)
-	err = k.Client.ExecuteActionsEmail(k.Context, k.adminAccessToken(), k.Realm, gocloak.ExecuteActionsEmail{
-		UserID: user.ID,
+	log.Info("SendPasswordResetEmail: Keycloak: execute "+action+" email for ", recipient)
+	err := k.Client.ExecuteActionsEmail(k.Context, k.adminAccessToken(), k.Realm, gocloak.ExecuteActionsEmail{
+		UserID: &userID,
 		// The mail is often only read hours later, e.g. after the welcome mail for a
 		// new vendor or abo customer, so 10 minutes were far too short. Whole days
 		// only: Keycloak's formatter writes "1 Tage" for a single day
