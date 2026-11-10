@@ -1,0 +1,49 @@
+{
+  "roles": {
+    "realm": [
+      {
+        "name": "odoo",
+        "description": "Access to the Augustin backend Odoo API (/api/odoo)",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "odoo",
+      "name": "Odoo",
+      "description": "Service account Odoo uses to call the Augustin backend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "frontchannelLogout": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [],
+      "webOrigins": [],
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false",
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": ["openid", "web-origins", "acr", "profile", "roles", "email"],
+      "optionalClientScopes": ["offline_access"]
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-odoo",
+      "enabled": true,
+      "email": "odoo@demo.augustina.cc",
+      "emailVerified": true,
+      "serviceAccountClientId": "odoo",
+      "realmRoles": ["odoo"]
+    }
+  ]
+}

@@ -52,3 +52,6 @@ docker/keycloak/themes/*
 # Local changelog written by `make push`
 CHANGELOG.local.md
 .last-push
+
+# Go module and build cache of the dev container
+/.cache/

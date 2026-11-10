@@ -21,6 +21,8 @@ services:
     volumes:
       - ./app:/app
       - ./email_templates:/app/templates
+      - ./.cache/go-mod:/go/pkg/mod
+      - ./.cache/go-build:/root/.cache/go-build
     command: >
         sh -c 'tern migrate --migrations ./migrations --config ./migrations/tern.conf &&
         tern migrate --migrations ./migrations --config ./migrations/tern_test.conf &&
