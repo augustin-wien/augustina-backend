@@ -120,6 +120,16 @@ func Newsletter(v bool) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldNewsletter, v))
 }
 
+// PaymentEventID applies equality check predicate on the "payment_event_id" field. It's identical to PaymentEventIDEQ.
+func PaymentEventID(v int) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldPaymentEventID, v))
+}
+
+// PaymentFailedAt applies equality check predicate on the "payment_failed_at" field. It's identical to PaymentFailedAtEQ.
+func PaymentFailedAt(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldPaymentFailedAt, v))
+}
+
 // OrderCodeEQ applies the EQ predicate on the "order_code" field.
 func OrderCodeEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrderCode, v))
@@ -773,6 +783,106 @@ func NewsletterEQ(v bool) predicate.Order {
 // NewsletterNEQ applies the NEQ predicate on the "newsletter" field.
 func NewsletterNEQ(v bool) predicate.Order {
 	return predicate.Order(sql.FieldNEQ(FieldNewsletter, v))
+}
+
+// PaymentEventIDEQ applies the EQ predicate on the "payment_event_id" field.
+func PaymentEventIDEQ(v int) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldPaymentEventID, v))
+}
+
+// PaymentEventIDNEQ applies the NEQ predicate on the "payment_event_id" field.
+func PaymentEventIDNEQ(v int) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldPaymentEventID, v))
+}
+
+// PaymentEventIDIn applies the In predicate on the "payment_event_id" field.
+func PaymentEventIDIn(vs ...int) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldPaymentEventID, vs...))
+}
+
+// PaymentEventIDNotIn applies the NotIn predicate on the "payment_event_id" field.
+func PaymentEventIDNotIn(vs ...int) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldPaymentEventID, vs...))
+}
+
+// PaymentEventIDGT applies the GT predicate on the "payment_event_id" field.
+func PaymentEventIDGT(v int) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldPaymentEventID, v))
+}
+
+// PaymentEventIDGTE applies the GTE predicate on the "payment_event_id" field.
+func PaymentEventIDGTE(v int) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldPaymentEventID, v))
+}
+
+// PaymentEventIDLT applies the LT predicate on the "payment_event_id" field.
+func PaymentEventIDLT(v int) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldPaymentEventID, v))
+}
+
+// PaymentEventIDLTE applies the LTE predicate on the "payment_event_id" field.
+func PaymentEventIDLTE(v int) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldPaymentEventID, v))
+}
+
+// PaymentEventIDIsNil applies the IsNil predicate on the "payment_event_id" field.
+func PaymentEventIDIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldPaymentEventID))
+}
+
+// PaymentEventIDNotNil applies the NotNil predicate on the "payment_event_id" field.
+func PaymentEventIDNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldPaymentEventID))
+}
+
+// PaymentFailedAtEQ applies the EQ predicate on the "payment_failed_at" field.
+func PaymentFailedAtEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldPaymentFailedAt, v))
+}
+
+// PaymentFailedAtNEQ applies the NEQ predicate on the "payment_failed_at" field.
+func PaymentFailedAtNEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldPaymentFailedAt, v))
+}
+
+// PaymentFailedAtIn applies the In predicate on the "payment_failed_at" field.
+func PaymentFailedAtIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldPaymentFailedAt, vs...))
+}
+
+// PaymentFailedAtNotIn applies the NotIn predicate on the "payment_failed_at" field.
+func PaymentFailedAtNotIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldPaymentFailedAt, vs...))
+}
+
+// PaymentFailedAtGT applies the GT predicate on the "payment_failed_at" field.
+func PaymentFailedAtGT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldPaymentFailedAt, v))
+}
+
+// PaymentFailedAtGTE applies the GTE predicate on the "payment_failed_at" field.
+func PaymentFailedAtGTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldPaymentFailedAt, v))
+}
+
+// PaymentFailedAtLT applies the LT predicate on the "payment_failed_at" field.
+func PaymentFailedAtLT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldPaymentFailedAt, v))
+}
+
+// PaymentFailedAtLTE applies the LTE predicate on the "payment_failed_at" field.
+func PaymentFailedAtLTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldPaymentFailedAt, v))
+}
+
+// PaymentFailedAtIsNil applies the IsNil predicate on the "payment_failed_at" field.
+func PaymentFailedAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldPaymentFailedAt))
+}
+
+// PaymentFailedAtNotNil applies the NotNil predicate on the "payment_failed_at" field.
+func PaymentFailedAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldPaymentFailedAt))
 }
 
 // HasEntries applies the HasEdge predicate on the "entries" edge.

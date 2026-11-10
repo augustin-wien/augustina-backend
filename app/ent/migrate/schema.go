@@ -269,6 +269,8 @@ var (
 		{Name: "odoo_sync_error", Type: field.TypeString, Nullable: true},
 		{Name: "invalidated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "newsletter", Type: field.TypeBool, Default: false},
+		{Name: "payment_event_id", Type: field.TypeInt, Nullable: true},
+		{Name: "payment_failed_at", Type: field.TypeTime, Nullable: true},
 	}
 	// PaymentorderTable holds the schema information for the "paymentorder" table.
 	PaymentorderTable = &schema.Table{

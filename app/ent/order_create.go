@@ -164,6 +164,34 @@ func (_c *OrderCreate) SetNillableNewsletter(v *bool) *OrderCreate {
 	return _c
 }
 
+// SetPaymentEventID sets the "payment_event_id" field.
+func (_c *OrderCreate) SetPaymentEventID(v int) *OrderCreate {
+	_c.mutation.SetPaymentEventID(v)
+	return _c
+}
+
+// SetNillablePaymentEventID sets the "payment_event_id" field if the given value is not nil.
+func (_c *OrderCreate) SetNillablePaymentEventID(v *int) *OrderCreate {
+	if v != nil {
+		_c.SetPaymentEventID(*v)
+	}
+	return _c
+}
+
+// SetPaymentFailedAt sets the "payment_failed_at" field.
+func (_c *OrderCreate) SetPaymentFailedAt(v time.Time) *OrderCreate {
+	_c.mutation.SetPaymentFailedAt(v)
+	return _c
+}
+
+// SetNillablePaymentFailedAt sets the "payment_failed_at" field if the given value is not nil.
+func (_c *OrderCreate) SetNillablePaymentFailedAt(v *time.Time) *OrderCreate {
+	if v != nil {
+		_c.SetPaymentFailedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrderCreate) SetID(v int) *OrderCreate {
 	_c.mutation.SetID(v)
@@ -349,6 +377,14 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Newsletter(); ok {
 		_spec.SetField(order.FieldNewsletter, field.TypeBool, value)
 		_node.Newsletter = value
+	}
+	if value, ok := _c.mutation.PaymentEventID(); ok {
+		_spec.SetField(order.FieldPaymentEventID, field.TypeInt, value)
+		_node.PaymentEventID = &value
+	}
+	if value, ok := _c.mutation.PaymentFailedAt(); ok {
+		_spec.SetField(order.FieldPaymentFailedAt, field.TypeTime, value)
+		_node.PaymentFailedAt = &value
 	}
 	if nodes := _c.mutation.EntriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

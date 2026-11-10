@@ -8533,6 +8533,9 @@ type OrderMutation struct {
 	odoo_sync_error        *string
 	invalidated_at         *time.Time
 	newsletter             *bool
+	payment_event_id       *int
+	addpayment_event_id    *int
+	payment_failed_at      *time.Time
 	clearedFields          map[string]struct{}
 	entries                map[int]struct{}
 	removedentries         map[int]struct{}
@@ -9248,6 +9251,125 @@ func (m *OrderMutation) ResetNewsletter() {
 	m.newsletter = nil
 }
 
+// SetPaymentEventID sets the "payment_event_id" field.
+func (m *OrderMutation) SetPaymentEventID(i int) {
+	m.payment_event_id = &i
+	m.addpayment_event_id = nil
+}
+
+// PaymentEventID returns the value of the "payment_event_id" field in the mutation.
+func (m *OrderMutation) PaymentEventID() (r int, exists bool) {
+	v := m.payment_event_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPaymentEventID returns the old "payment_event_id" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldPaymentEventID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPaymentEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPaymentEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPaymentEventID: %w", err)
+	}
+	return oldValue.PaymentEventID, nil
+}
+
+// AddPaymentEventID adds i to the "payment_event_id" field.
+func (m *OrderMutation) AddPaymentEventID(i int) {
+	if m.addpayment_event_id != nil {
+		*m.addpayment_event_id += i
+	} else {
+		m.addpayment_event_id = &i
+	}
+}
+
+// AddedPaymentEventID returns the value that was added to the "payment_event_id" field in this mutation.
+func (m *OrderMutation) AddedPaymentEventID() (r int, exists bool) {
+	v := m.addpayment_event_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPaymentEventID clears the value of the "payment_event_id" field.
+func (m *OrderMutation) ClearPaymentEventID() {
+	m.payment_event_id = nil
+	m.addpayment_event_id = nil
+	m.clearedFields[order.FieldPaymentEventID] = struct{}{}
+}
+
+// PaymentEventIDCleared returns if the "payment_event_id" field was cleared in this mutation.
+func (m *OrderMutation) PaymentEventIDCleared() bool {
+	_, ok := m.clearedFields[order.FieldPaymentEventID]
+	return ok
+}
+
+// ResetPaymentEventID resets all changes to the "payment_event_id" field.
+func (m *OrderMutation) ResetPaymentEventID() {
+	m.payment_event_id = nil
+	m.addpayment_event_id = nil
+	delete(m.clearedFields, order.FieldPaymentEventID)
+}
+
+// SetPaymentFailedAt sets the "payment_failed_at" field.
+func (m *OrderMutation) SetPaymentFailedAt(t time.Time) {
+	m.payment_failed_at = &t
+}
+
+// PaymentFailedAt returns the value of the "payment_failed_at" field in the mutation.
+func (m *OrderMutation) PaymentFailedAt() (r time.Time, exists bool) {
+	v := m.payment_failed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPaymentFailedAt returns the old "payment_failed_at" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldPaymentFailedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPaymentFailedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPaymentFailedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPaymentFailedAt: %w", err)
+	}
+	return oldValue.PaymentFailedAt, nil
+}
+
+// ClearPaymentFailedAt clears the value of the "payment_failed_at" field.
+func (m *OrderMutation) ClearPaymentFailedAt() {
+	m.payment_failed_at = nil
+	m.clearedFields[order.FieldPaymentFailedAt] = struct{}{}
+}
+
+// PaymentFailedAtCleared returns if the "payment_failed_at" field was cleared in this mutation.
+func (m *OrderMutation) PaymentFailedAtCleared() bool {
+	_, ok := m.clearedFields[order.FieldPaymentFailedAt]
+	return ok
+}
+
+// ResetPaymentFailedAt resets all changes to the "payment_failed_at" field.
+func (m *OrderMutation) ResetPaymentFailedAt() {
+	m.payment_failed_at = nil
+	delete(m.clearedFields, order.FieldPaymentFailedAt)
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by ids.
 func (m *OrderMutation) AddEntryIDs(ids ...int) {
 	if m.entries == nil {
@@ -9390,7 +9512,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 15)
 	if m.order_code != nil {
 		fields = append(fields, order.FieldOrderCode)
 	}
@@ -9430,6 +9552,12 @@ func (m *OrderMutation) Fields() []string {
 	if m.newsletter != nil {
 		fields = append(fields, order.FieldNewsletter)
 	}
+	if m.payment_event_id != nil {
+		fields = append(fields, order.FieldPaymentEventID)
+	}
+	if m.payment_failed_at != nil {
+		fields = append(fields, order.FieldPaymentFailedAt)
+	}
 	return fields
 }
 
@@ -9464,6 +9592,10 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.InvalidatedAt()
 	case order.FieldNewsletter:
 		return m.Newsletter()
+	case order.FieldPaymentEventID:
+		return m.PaymentEventID()
+	case order.FieldPaymentFailedAt:
+		return m.PaymentFailedAt()
 	}
 	return nil, false
 }
@@ -9499,6 +9631,10 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldInvalidatedAt(ctx)
 	case order.FieldNewsletter:
 		return m.OldNewsletter(ctx)
+	case order.FieldPaymentEventID:
+		return m.OldPaymentEventID(ctx)
+	case order.FieldPaymentFailedAt:
+		return m.OldPaymentFailedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Order field %s", name)
 }
@@ -9599,6 +9735,20 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNewsletter(v)
 		return nil
+	case order.FieldPaymentEventID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPaymentEventID(v)
+		return nil
+	case order.FieldPaymentFailedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPaymentFailedAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)
 }
@@ -9613,6 +9763,9 @@ func (m *OrderMutation) AddedFields() []string {
 	if m.addvendor_id != nil {
 		fields = append(fields, order.FieldVendorID)
 	}
+	if m.addpayment_event_id != nil {
+		fields = append(fields, order.FieldPaymentEventID)
+	}
 	return fields
 }
 
@@ -9625,6 +9778,8 @@ func (m *OrderMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedTransactionTypeID()
 	case order.FieldVendorID:
 		return m.AddedVendorID()
+	case order.FieldPaymentEventID:
+		return m.AddedPaymentEventID()
 	}
 	return nil, false
 }
@@ -9647,6 +9802,13 @@ func (m *OrderMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddVendorID(v)
+		return nil
+	case order.FieldPaymentEventID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPaymentEventID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Order numeric field %s", name)
@@ -9676,6 +9838,12 @@ func (m *OrderMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(order.FieldInvalidatedAt) {
 		fields = append(fields, order.FieldInvalidatedAt)
+	}
+	if m.FieldCleared(order.FieldPaymentEventID) {
+		fields = append(fields, order.FieldPaymentEventID)
+	}
+	if m.FieldCleared(order.FieldPaymentFailedAt) {
+		fields = append(fields, order.FieldPaymentFailedAt)
 	}
 	return fields
 }
@@ -9711,6 +9879,12 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldInvalidatedAt:
 		m.ClearInvalidatedAt()
+		return nil
+	case order.FieldPaymentEventID:
+		m.ClearPaymentEventID()
+		return nil
+	case order.FieldPaymentFailedAt:
+		m.ClearPaymentFailedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Order nullable field %s", name)
@@ -9758,6 +9932,12 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldNewsletter:
 		m.ResetNewsletter()
+		return nil
+	case order.FieldPaymentEventID:
+		m.ResetPaymentEventID()
+		return nil
+	case order.FieldPaymentFailedAt:
+		m.ResetPaymentFailedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)

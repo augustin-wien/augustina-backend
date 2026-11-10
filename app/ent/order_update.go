@@ -268,6 +268,53 @@ func (_u *OrderUpdate) SetNillableNewsletter(v *bool) *OrderUpdate {
 	return _u
 }
 
+// SetPaymentEventID sets the "payment_event_id" field.
+func (_u *OrderUpdate) SetPaymentEventID(v int) *OrderUpdate {
+	_u.mutation.ResetPaymentEventID()
+	_u.mutation.SetPaymentEventID(v)
+	return _u
+}
+
+// SetNillablePaymentEventID sets the "payment_event_id" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillablePaymentEventID(v *int) *OrderUpdate {
+	if v != nil {
+		_u.SetPaymentEventID(*v)
+	}
+	return _u
+}
+
+// AddPaymentEventID adds value to the "payment_event_id" field.
+func (_u *OrderUpdate) AddPaymentEventID(v int) *OrderUpdate {
+	_u.mutation.AddPaymentEventID(v)
+	return _u
+}
+
+// ClearPaymentEventID clears the value of the "payment_event_id" field.
+func (_u *OrderUpdate) ClearPaymentEventID() *OrderUpdate {
+	_u.mutation.ClearPaymentEventID()
+	return _u
+}
+
+// SetPaymentFailedAt sets the "payment_failed_at" field.
+func (_u *OrderUpdate) SetPaymentFailedAt(v time.Time) *OrderUpdate {
+	_u.mutation.SetPaymentFailedAt(v)
+	return _u
+}
+
+// SetNillablePaymentFailedAt sets the "payment_failed_at" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillablePaymentFailedAt(v *time.Time) *OrderUpdate {
+	if v != nil {
+		_u.SetPaymentFailedAt(*v)
+	}
+	return _u
+}
+
+// ClearPaymentFailedAt clears the value of the "payment_failed_at" field.
+func (_u *OrderUpdate) ClearPaymentFailedAt() *OrderUpdate {
+	_u.mutation.ClearPaymentFailedAt()
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdate) AddEntryIDs(ids ...int) *OrderUpdate {
 	_u.mutation.AddEntryIDs(ids...)
@@ -446,6 +493,21 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Newsletter(); ok {
 		_spec.SetField(order.FieldNewsletter, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.PaymentEventID(); ok {
+		_spec.SetField(order.FieldPaymentEventID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPaymentEventID(); ok {
+		_spec.AddField(order.FieldPaymentEventID, field.TypeInt, value)
+	}
+	if _u.mutation.PaymentEventIDCleared() {
+		_spec.ClearField(order.FieldPaymentEventID, field.TypeInt)
+	}
+	if value, ok := _u.mutation.PaymentFailedAt(); ok {
+		_spec.SetField(order.FieldPaymentFailedAt, field.TypeTime, value)
+	}
+	if _u.mutation.PaymentFailedAtCleared() {
+		_spec.ClearField(order.FieldPaymentFailedAt, field.TypeTime)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -795,6 +857,53 @@ func (_u *OrderUpdateOne) SetNillableNewsletter(v *bool) *OrderUpdateOne {
 	return _u
 }
 
+// SetPaymentEventID sets the "payment_event_id" field.
+func (_u *OrderUpdateOne) SetPaymentEventID(v int) *OrderUpdateOne {
+	_u.mutation.ResetPaymentEventID()
+	_u.mutation.SetPaymentEventID(v)
+	return _u
+}
+
+// SetNillablePaymentEventID sets the "payment_event_id" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillablePaymentEventID(v *int) *OrderUpdateOne {
+	if v != nil {
+		_u.SetPaymentEventID(*v)
+	}
+	return _u
+}
+
+// AddPaymentEventID adds value to the "payment_event_id" field.
+func (_u *OrderUpdateOne) AddPaymentEventID(v int) *OrderUpdateOne {
+	_u.mutation.AddPaymentEventID(v)
+	return _u
+}
+
+// ClearPaymentEventID clears the value of the "payment_event_id" field.
+func (_u *OrderUpdateOne) ClearPaymentEventID() *OrderUpdateOne {
+	_u.mutation.ClearPaymentEventID()
+	return _u
+}
+
+// SetPaymentFailedAt sets the "payment_failed_at" field.
+func (_u *OrderUpdateOne) SetPaymentFailedAt(v time.Time) *OrderUpdateOne {
+	_u.mutation.SetPaymentFailedAt(v)
+	return _u
+}
+
+// SetNillablePaymentFailedAt sets the "payment_failed_at" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillablePaymentFailedAt(v *time.Time) *OrderUpdateOne {
+	if v != nil {
+		_u.SetPaymentFailedAt(*v)
+	}
+	return _u
+}
+
+// ClearPaymentFailedAt clears the value of the "payment_failed_at" field.
+func (_u *OrderUpdateOne) ClearPaymentFailedAt() *OrderUpdateOne {
+	_u.mutation.ClearPaymentFailedAt()
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdateOne) AddEntryIDs(ids ...int) *OrderUpdateOne {
 	_u.mutation.AddEntryIDs(ids...)
@@ -1003,6 +1112,21 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if value, ok := _u.mutation.Newsletter(); ok {
 		_spec.SetField(order.FieldNewsletter, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.PaymentEventID(); ok {
+		_spec.SetField(order.FieldPaymentEventID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPaymentEventID(); ok {
+		_spec.AddField(order.FieldPaymentEventID, field.TypeInt, value)
+	}
+	if _u.mutation.PaymentEventIDCleared() {
+		_spec.ClearField(order.FieldPaymentEventID, field.TypeInt)
+	}
+	if value, ok := _u.mutation.PaymentFailedAt(); ok {
+		_spec.SetField(order.FieldPaymentFailedAt, field.TypeTime, value)
+	}
+	if _u.mutation.PaymentFailedAtCleared() {
+		_spec.ClearField(order.FieldPaymentFailedAt, field.TypeTime)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{
