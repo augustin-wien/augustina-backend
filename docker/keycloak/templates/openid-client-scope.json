@@ -1,0 +1,9 @@
+{
+  "name": "openid",
+  "description": "Adds openid to the token scope so client_credentials tokens work with the userinfo endpoint",
+  "protocol": "openid-connect",
+  "attributes": {
+    "include.in.token.scope": "true",
+    "display.on.consent.screen": "false"
+  }
+}

@@ -50,7 +50,7 @@ update-docker-containers:
 	@echo "Updating docker containers..."
 	@docker pull alpine:latest
 	@docker pull golang:latest
-	@docker pull node:24
+	@docker pull node:26
 	@echo "Docker containers updated."
 
 test:

@@ -25,3 +25,4 @@ scripts/*
 webhook-logs/*
 __pycache__/*
 *.pyc
+.cache/
