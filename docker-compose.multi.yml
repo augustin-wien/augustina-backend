@@ -69,7 +69,7 @@ services:
     ports:
       - "3001:3000"
     healthcheck:
-      test: curl -f "$BACKEND_HOST/api/hello/" || exit 1
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3000/healthz"]
       interval: 60s   # check every minute
       timeout: 20s    # maximum time to wait for a response
       retries: 3      # number of retries before considering the container unhealthy
@@ -120,7 +120,7 @@ services:
     ports:
       - "3002:3000"
     healthcheck:
-      test: curl -f "$BACKEND_HOST/api/hello/" || exit 1
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3000/healthz"]
       interval: 60s   # check every minute
       timeout: 20s    # maximum time to wait for a response
       retries: 3      # number of retries before considering the container unhealthy
