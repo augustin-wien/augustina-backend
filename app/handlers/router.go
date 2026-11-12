@@ -416,7 +416,10 @@ func GetRouter() (r *chi.Mux) {
 
 		// Mount style.css file server and always serve the same file
 		fsCSS := http.FileServer(http.Dir("public"))
-		r.Handle("/public/*", http.StripPrefix("/public/", fsCSS))
+		r.Handle("/public/*", http.StripPrefix("/public/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "no-cache")
+			fsCSS.ServeHTTP(w, r)
+		})))
 
 	})
 

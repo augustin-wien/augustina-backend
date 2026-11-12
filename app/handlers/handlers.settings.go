@@ -591,9 +591,11 @@ func updateCSS(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("updateCSS: saving failed", err)
 		err = errors.New("failed to update css")
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
 	}
 	log.Info("updateCSS: success")
+	w.WriteHeader(http.StatusOK)
 }
 
 // WordPressInviteTestRequest holds the invite settings to test, so admins can
