@@ -139,6 +139,7 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetDigitalItemsUrl(settings.DigitalItemsUrl).
 		SetAbonementUrl(settings.AbonementUrl).
 		SetAbonementEnabled(settings.AbonementEnabled).
+		SetVoucherEnabled(settings.VoucherEnabled).
 		SetPOSEnabled(settings.POSEnabled).
 		SetWordPressInviteURL(settings.WordPressInviteURL).
 		SetWordPressInviteAPIKey(settings.WordPressInviteAPIKey).

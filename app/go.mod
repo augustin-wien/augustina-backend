@@ -20,6 +20,7 @@ require (
 
 require (
 	entgo.io/ent v0.14.6
+	github.com/boombuler/barcode v1.0.2
 	github.com/getsentry/sentry-go v0.46.2
 	github.com/go-chi/httprate v0.15.0
 	github.com/go-pdf/fpdf v0.9.0
@@ -62,6 +63,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
+	github.com/ruudk/golang-pdf417 v0.0.0-20201230142125-a7e3863a1245 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
 	github.com/zclconf/go-cty v1.18.1 // indirect
 	github.com/zclconf/go-cty-yaml v1.2.0 // indirect

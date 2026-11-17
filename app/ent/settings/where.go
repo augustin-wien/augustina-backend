@@ -173,6 +173,11 @@ func AbonementEnabled(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAbonementEnabled, v))
 }
 
+// VoucherEnabled applies equality check predicate on the "VoucherEnabled" field. It's identical to VoucherEnabledEQ.
+func VoucherEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldVoucherEnabled, v))
+}
+
 // POSEnabled applies equality check predicate on the "POSEnabled" field. It's identical to POSEnabledEQ.
 func POSEnabled(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldPOSEnabled, v))
@@ -1406,6 +1411,16 @@ func AbonementEnabledEQ(v bool) predicate.Settings {
 // AbonementEnabledNEQ applies the NEQ predicate on the "AbonementEnabled" field.
 func AbonementEnabledNEQ(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldNEQ(FieldAbonementEnabled, v))
+}
+
+// VoucherEnabledEQ applies the EQ predicate on the "VoucherEnabled" field.
+func VoucherEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldVoucherEnabled, v))
+}
+
+// VoucherEnabledNEQ applies the NEQ predicate on the "VoucherEnabled" field.
+func VoucherEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldVoucherEnabled, v))
 }
 
 // POSEnabledEQ applies the EQ predicate on the "POSEnabled" field.

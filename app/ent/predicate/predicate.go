@@ -9,6 +9,9 @@ import (
 // Abonement is the predicate function for abonement builders.
 type Abonement func(*sql.Selector)
 
+// AbonementVoucher is the predicate function for abonementvoucher builders.
+type AbonementVoucher func(*sql.Selector)
+
 // Account is the predicate function for account builders.
 type Account func(*sql.Selector)
 

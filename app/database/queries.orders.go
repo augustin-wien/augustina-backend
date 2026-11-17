@@ -252,7 +252,9 @@ func (db *Database) CreateOrder(o Order) (orderID int, err error) {
 		SetVerified(o.Verified).
 		SetTransactionTypeID(o.TransactionTypeID).
 		SetTimestamp(time.Now().UTC()).
-		SetNewsletter(o.Newsletter)
+		SetNewsletter(o.Newsletter).
+		SetGiftRecipientName(o.GiftRecipientName).
+		SetGiftMessage(o.GiftMessage)
 
 	if o.TransactionID != "" {
 		tCreate.SetTransactionID(o.TransactionID)
@@ -536,6 +538,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		return err
 	}
 
+	var voucherMails []voucherMail
 	if !alreadyVerified && o.CustomerEmail.Valid && o.CustomerEmail.String != "" {
 
 		// We may have multiple order entries for the same order. To avoid
@@ -555,6 +558,17 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 			item, err := db.GetItemTx(tx, entry.Item)
 			if err != nil {
 				log.Error("VerifyOrderAndCreatePayments: failed to get item: ", orderID, err)
+			}
+
+			// A voucher is a gift: the buyer gets a PDF, the abonement is only created on redemption
+			if item.Type == AbonementVoucherItemType {
+				vouchers, voucherErr := createVouchersForOrderEntryTx(tx, o, item, entry.Quantity)
+				if voucherErr != nil {
+					log.Error("VerifyOrderAndCreatePayments: failed to create vouchers: ", orderID, voucherErr)
+					return voucherErr
+				}
+				voucherMails = append(voucherMails, voucherMail{email: o.CustomerEmail.String, vouchers: vouchers})
+				continue
 			}
 
 			if isMailDeliveredItem(item) && !linkedItemIsPDF(tx.Item, item) {
@@ -774,7 +788,24 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		}
 	}
 
-	return tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	for _, vm := range voucherMails {
+		m, mailErr := db.BuildVoucherMail(vm.email, vm.vouchers)
+		if mailErr != nil {
+			log.Error("VerifyOrderAndCreatePayments: failed to build voucher mail: ", orderID, mailErr)
+			continue
+		}
+		SendVoucherMail(m)
+	}
+	return nil
+}
+
+// voucherMail is a voucher mail to send once the order is committed
+type voucherMail struct {
+	email    string
+	vouchers []AbonementVoucher
 }
 
 // CreatePayedOrderEntries creates entries with a payment for an order
@@ -837,6 +868,8 @@ func convertOrder(e *ent.Order) Order {
 		Timestamp:         e.Timestamp,
 		Vendor:            e.VendorID,
 		Newsletter:        e.Newsletter,
+		GiftRecipientName: e.GiftRecipientName,
+		GiftMessage:       e.GiftMessage,
 	}
 	if e.OrderCode != nil {
 		o.OrderCode = null.StringFrom(*e.OrderCode)

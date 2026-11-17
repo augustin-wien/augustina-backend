@@ -224,6 +224,27 @@ func (_u *ItemUpdate) SetNillableItemTextColor(v *string) *ItemUpdate {
 	return _u
 }
 
+// SetAboDurationMonths sets the "AboDurationMonths" field.
+func (_u *ItemUpdate) SetAboDurationMonths(v int) *ItemUpdate {
+	_u.mutation.ResetAboDurationMonths()
+	_u.mutation.SetAboDurationMonths(v)
+	return _u
+}
+
+// SetNillableAboDurationMonths sets the "AboDurationMonths" field if the given value is not nil.
+func (_u *ItemUpdate) SetNillableAboDurationMonths(v *int) *ItemUpdate {
+	if v != nil {
+		_u.SetAboDurationMonths(*v)
+	}
+	return _u
+}
+
+// AddAboDurationMonths adds value to the "AboDurationMonths" field.
+func (_u *ItemUpdate) AddAboDurationMonths(v int) *ItemUpdate {
+	_u.mutation.AddAboDurationMonths(v)
+	return _u
+}
+
 // SetLicenseItemID sets the "LicenseItem" edge to the Item entity by ID.
 func (_u *ItemUpdate) SetLicenseItemID(id int) *ItemUpdate {
 	_u.mutation.SetLicenseItemID(id)
@@ -382,6 +403,12 @@ func (_u *ItemUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ItemTextColor(); ok {
 		_spec.SetField(item.FieldItemTextColor, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AboDurationMonths(); ok {
+		_spec.SetField(item.FieldAboDurationMonths, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAboDurationMonths(); ok {
+		_spec.AddField(item.FieldAboDurationMonths, field.TypeInt, value)
 	}
 	if _u.mutation.LicenseItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -657,6 +684,27 @@ func (_u *ItemUpdateOne) SetNillableItemTextColor(v *string) *ItemUpdateOne {
 	return _u
 }
 
+// SetAboDurationMonths sets the "AboDurationMonths" field.
+func (_u *ItemUpdateOne) SetAboDurationMonths(v int) *ItemUpdateOne {
+	_u.mutation.ResetAboDurationMonths()
+	_u.mutation.SetAboDurationMonths(v)
+	return _u
+}
+
+// SetNillableAboDurationMonths sets the "AboDurationMonths" field if the given value is not nil.
+func (_u *ItemUpdateOne) SetNillableAboDurationMonths(v *int) *ItemUpdateOne {
+	if v != nil {
+		_u.SetAboDurationMonths(*v)
+	}
+	return _u
+}
+
+// AddAboDurationMonths adds value to the "AboDurationMonths" field.
+func (_u *ItemUpdateOne) AddAboDurationMonths(v int) *ItemUpdateOne {
+	_u.mutation.AddAboDurationMonths(v)
+	return _u
+}
+
 // SetLicenseItemID sets the "LicenseItem" edge to the Item entity by ID.
 func (_u *ItemUpdateOne) SetLicenseItemID(id int) *ItemUpdateOne {
 	_u.mutation.SetLicenseItemID(id)
@@ -845,6 +893,12 @@ func (_u *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) {
 	}
 	if value, ok := _u.mutation.ItemTextColor(); ok {
 		_spec.SetField(item.FieldItemTextColor, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AboDurationMonths(); ok {
+		_spec.SetField(item.FieldAboDurationMonths, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAboDurationMonths(); ok {
+		_spec.AddField(item.FieldAboDurationMonths, field.TypeInt, value)
 	}
 	if _u.mutation.LicenseItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/augustin-wien/augustina-backend/ent/abonement"
+	"github.com/augustin-wien/augustina-backend/ent/abonementvoucher"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/ent/campaign"
@@ -42,6 +43,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Abonement is the client for interacting with the Abonement builders.
 	Abonement *AbonementClient
+	// AbonementVoucher is the client for interacting with the AbonementVoucher builders.
+	AbonementVoucher *AbonementVoucherClient
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
 	// BlockedIP is the client for interacting with the BlockedIP builders.
@@ -88,6 +91,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Abonement = NewAbonementClient(c.config)
+	c.AbonementVoucher = NewAbonementVoucherClient(c.config)
 	c.Account = NewAccountClient(c.config)
 	c.BlockedIP = NewBlockedIPClient(c.config)
 	c.Campaign = NewCampaignClient(c.config)
@@ -195,26 +199,27 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		Abonement:       NewAbonementClient(cfg),
-		Account:         NewAccountClient(cfg),
-		BlockedIP:       NewBlockedIPClient(cfg),
-		Campaign:        NewCampaignClient(cfg),
-		Comment:         NewCommentClient(cfg),
-		Customer:        NewCustomerClient(cfg),
-		DBSettings:      NewDBSettingsClient(cfg),
-		ExternalPayment: NewExternalPaymentClient(cfg),
-		Item:            NewItemClient(cfg),
-		Location:        NewLocationClient(cfg),
-		MailTemplate:    NewMailTemplateClient(cfg),
-		Order:           NewOrderClient(cfg),
-		OrderEntry:      NewOrderEntryClient(cfg),
-		PDF:             NewPDFClient(cfg),
-		PDFDownload:     NewPDFDownloadClient(cfg),
-		Payment:         NewPaymentClient(cfg),
-		Settings:        NewSettingsClient(cfg),
-		Vendor:          NewVendorClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		Abonement:        NewAbonementClient(cfg),
+		AbonementVoucher: NewAbonementVoucherClient(cfg),
+		Account:          NewAccountClient(cfg),
+		BlockedIP:        NewBlockedIPClient(cfg),
+		Campaign:         NewCampaignClient(cfg),
+		Comment:          NewCommentClient(cfg),
+		Customer:         NewCustomerClient(cfg),
+		DBSettings:       NewDBSettingsClient(cfg),
+		ExternalPayment:  NewExternalPaymentClient(cfg),
+		Item:             NewItemClient(cfg),
+		Location:         NewLocationClient(cfg),
+		MailTemplate:     NewMailTemplateClient(cfg),
+		Order:            NewOrderClient(cfg),
+		OrderEntry:       NewOrderEntryClient(cfg),
+		PDF:              NewPDFClient(cfg),
+		PDFDownload:      NewPDFDownloadClient(cfg),
+		Payment:          NewPaymentClient(cfg),
+		Settings:         NewSettingsClient(cfg),
+		Vendor:           NewVendorClient(cfg),
 	}, nil
 }
 
@@ -232,26 +237,27 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		Abonement:       NewAbonementClient(cfg),
-		Account:         NewAccountClient(cfg),
-		BlockedIP:       NewBlockedIPClient(cfg),
-		Campaign:        NewCampaignClient(cfg),
-		Comment:         NewCommentClient(cfg),
-		Customer:        NewCustomerClient(cfg),
-		DBSettings:      NewDBSettingsClient(cfg),
-		ExternalPayment: NewExternalPaymentClient(cfg),
-		Item:            NewItemClient(cfg),
-		Location:        NewLocationClient(cfg),
-		MailTemplate:    NewMailTemplateClient(cfg),
-		Order:           NewOrderClient(cfg),
-		OrderEntry:      NewOrderEntryClient(cfg),
-		PDF:             NewPDFClient(cfg),
-		PDFDownload:     NewPDFDownloadClient(cfg),
-		Payment:         NewPaymentClient(cfg),
-		Settings:        NewSettingsClient(cfg),
-		Vendor:          NewVendorClient(cfg),
+		ctx:              ctx,
+		config:           cfg,
+		Abonement:        NewAbonementClient(cfg),
+		AbonementVoucher: NewAbonementVoucherClient(cfg),
+		Account:          NewAccountClient(cfg),
+		BlockedIP:        NewBlockedIPClient(cfg),
+		Campaign:         NewCampaignClient(cfg),
+		Comment:          NewCommentClient(cfg),
+		Customer:         NewCustomerClient(cfg),
+		DBSettings:       NewDBSettingsClient(cfg),
+		ExternalPayment:  NewExternalPaymentClient(cfg),
+		Item:             NewItemClient(cfg),
+		Location:         NewLocationClient(cfg),
+		MailTemplate:     NewMailTemplateClient(cfg),
+		Order:            NewOrderClient(cfg),
+		OrderEntry:       NewOrderEntryClient(cfg),
+		PDF:              NewPDFClient(cfg),
+		PDFDownload:      NewPDFDownloadClient(cfg),
+		Payment:          NewPaymentClient(cfg),
+		Settings:         NewSettingsClient(cfg),
+		Vendor:           NewVendorClient(cfg),
 	}, nil
 }
 
@@ -281,9 +287,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Abonement, c.Account, c.BlockedIP, c.Campaign, c.Comment, c.Customer,
-		c.DBSettings, c.ExternalPayment, c.Item, c.Location, c.MailTemplate, c.Order,
-		c.OrderEntry, c.PDF, c.PDFDownload, c.Payment, c.Settings, c.Vendor,
+		c.Abonement, c.AbonementVoucher, c.Account, c.BlockedIP, c.Campaign, c.Comment,
+		c.Customer, c.DBSettings, c.ExternalPayment, c.Item, c.Location,
+		c.MailTemplate, c.Order, c.OrderEntry, c.PDF, c.PDFDownload, c.Payment,
+		c.Settings, c.Vendor,
 	} {
 		n.Use(hooks...)
 	}
@@ -293,9 +300,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Abonement, c.Account, c.BlockedIP, c.Campaign, c.Comment, c.Customer,
-		c.DBSettings, c.ExternalPayment, c.Item, c.Location, c.MailTemplate, c.Order,
-		c.OrderEntry, c.PDF, c.PDFDownload, c.Payment, c.Settings, c.Vendor,
+		c.Abonement, c.AbonementVoucher, c.Account, c.BlockedIP, c.Campaign, c.Comment,
+		c.Customer, c.DBSettings, c.ExternalPayment, c.Item, c.Location,
+		c.MailTemplate, c.Order, c.OrderEntry, c.PDF, c.PDFDownload, c.Payment,
+		c.Settings, c.Vendor,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -306,6 +314,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AbonementMutation:
 		return c.Abonement.mutate(ctx, m)
+	case *AbonementVoucherMutation:
+		return c.AbonementVoucher.mutate(ctx, m)
 	case *AccountMutation:
 		return c.Account.mutate(ctx, m)
 	case *BlockedIPMutation:
@@ -507,6 +517,139 @@ func (c *AbonementClient) mutate(ctx context.Context, m *AbonementMutation) (Val
 		return (&AbonementDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Abonement mutation op: %q", m.Op())
+	}
+}
+
+// AbonementVoucherClient is a client for the AbonementVoucher schema.
+type AbonementVoucherClient struct {
+	config
+}
+
+// NewAbonementVoucherClient returns a client for the AbonementVoucher from the given config.
+func NewAbonementVoucherClient(c config) *AbonementVoucherClient {
+	return &AbonementVoucherClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `abonementvoucher.Hooks(f(g(h())))`.
+func (c *AbonementVoucherClient) Use(hooks ...Hook) {
+	c.hooks.AbonementVoucher = append(c.hooks.AbonementVoucher, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `abonementvoucher.Intercept(f(g(h())))`.
+func (c *AbonementVoucherClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AbonementVoucher = append(c.inters.AbonementVoucher, interceptors...)
+}
+
+// Create returns a builder for creating a AbonementVoucher entity.
+func (c *AbonementVoucherClient) Create() *AbonementVoucherCreate {
+	mutation := newAbonementVoucherMutation(c.config, OpCreate)
+	return &AbonementVoucherCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AbonementVoucher entities.
+func (c *AbonementVoucherClient) CreateBulk(builders ...*AbonementVoucherCreate) *AbonementVoucherCreateBulk {
+	return &AbonementVoucherCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AbonementVoucherClient) MapCreateBulk(slice any, setFunc func(*AbonementVoucherCreate, int)) *AbonementVoucherCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AbonementVoucherCreateBulk{err: fmt.Errorf("calling to AbonementVoucherClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AbonementVoucherCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AbonementVoucherCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AbonementVoucher.
+func (c *AbonementVoucherClient) Update() *AbonementVoucherUpdate {
+	mutation := newAbonementVoucherMutation(c.config, OpUpdate)
+	return &AbonementVoucherUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AbonementVoucherClient) UpdateOne(_m *AbonementVoucher) *AbonementVoucherUpdateOne {
+	mutation := newAbonementVoucherMutation(c.config, OpUpdateOne, withAbonementVoucher(_m))
+	return &AbonementVoucherUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AbonementVoucherClient) UpdateOneID(id int) *AbonementVoucherUpdateOne {
+	mutation := newAbonementVoucherMutation(c.config, OpUpdateOne, withAbonementVoucherID(id))
+	return &AbonementVoucherUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AbonementVoucher.
+func (c *AbonementVoucherClient) Delete() *AbonementVoucherDelete {
+	mutation := newAbonementVoucherMutation(c.config, OpDelete)
+	return &AbonementVoucherDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AbonementVoucherClient) DeleteOne(_m *AbonementVoucher) *AbonementVoucherDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AbonementVoucherClient) DeleteOneID(id int) *AbonementVoucherDeleteOne {
+	builder := c.Delete().Where(abonementvoucher.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AbonementVoucherDeleteOne{builder}
+}
+
+// Query returns a query builder for AbonementVoucher.
+func (c *AbonementVoucherClient) Query() *AbonementVoucherQuery {
+	return &AbonementVoucherQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAbonementVoucher},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AbonementVoucher entity by its id.
+func (c *AbonementVoucherClient) Get(ctx context.Context, id int) (*AbonementVoucher, error) {
+	return c.Query().Where(abonementvoucher.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AbonementVoucherClient) GetX(ctx context.Context, id int) *AbonementVoucher {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AbonementVoucherClient) Hooks() []Hook {
+	return c.hooks.AbonementVoucher
+}
+
+// Interceptors returns the client interceptors.
+func (c *AbonementVoucherClient) Interceptors() []Interceptor {
+	return c.inters.AbonementVoucher
+}
+
+func (c *AbonementVoucherClient) mutate(ctx context.Context, m *AbonementVoucherMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AbonementVoucherCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AbonementVoucherUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AbonementVoucherUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AbonementVoucherDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AbonementVoucher mutation op: %q", m.Op())
 	}
 }
 
@@ -3078,13 +3221,13 @@ func (c *VendorClient) mutate(ctx context.Context, m *VendorMutation) (Value, er
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings,
-		ExternalPayment, Item, Location, MailTemplate, Order, OrderEntry, PDF,
-		PDFDownload, Payment, Settings, Vendor []ent.Hook
+		Abonement, AbonementVoucher, Account, BlockedIP, Campaign, Comment, Customer,
+		DBSettings, ExternalPayment, Item, Location, MailTemplate, Order, OrderEntry,
+		PDF, PDFDownload, Payment, Settings, Vendor []ent.Hook
 	}
 	inters struct {
-		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings,
-		ExternalPayment, Item, Location, MailTemplate, Order, OrderEntry, PDF,
-		PDFDownload, Payment, Settings, Vendor []ent.Interceptor
+		Abonement, AbonementVoucher, Account, BlockedIP, Campaign, Comment, Customer,
+		DBSettings, ExternalPayment, Item, Location, MailTemplate, Order, OrderEntry,
+		PDF, PDFDownload, Payment, Settings, Vendor []ent.Interceptor
 	}
 )

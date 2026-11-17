@@ -40,6 +40,36 @@ var (
 			},
 		},
 	}
+	// AbonementVoucherColumns holds the columns for the "abonement_voucher" table.
+	AbonementVoucherColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "code", Type: field.TypeString, Unique: true},
+		{Name: "item_id", Type: field.TypeInt},
+		{Name: "order_id", Type: field.TypeInt, Nullable: true},
+		{Name: "buyer_email", Type: field.TypeString, Default: ""},
+		{Name: "recipient_name", Type: field.TypeString, Default: ""},
+		{Name: "message", Type: field.TypeString, Default: ""},
+		{Name: "duration_months", Type: field.TypeInt},
+		{Name: "status", Type: field.TypeString, Default: "active"},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "redeemed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "redeemed_email", Type: field.TypeString, Nullable: true},
+		{Name: "redeemed_customer_id", Type: field.TypeInt, Nullable: true},
+		{Name: "abonement_id", Type: field.TypeInt, Nullable: true},
+	}
+	// AbonementVoucherTable holds the schema information for the "abonement_voucher" table.
+	AbonementVoucherTable = &schema.Table{
+		Name:       "abonement_voucher",
+		Columns:    AbonementVoucherColumns,
+		PrimaryKey: []*schema.Column{AbonementVoucherColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "abonementvoucher_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{AbonementVoucherColumns[3]},
+			},
+		},
+	}
 	// AccountColumns holds the columns for the "account" table.
 	AccountColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -188,6 +218,7 @@ var (
 		{Name: "itemorder", Type: field.TypeInt, Default: 0},
 		{Name: "itemcolor", Type: field.TypeString, Default: "#FFFFFF"},
 		{Name: "itemtextcolor", Type: field.TypeString, Default: "#000000"},
+		{Name: "abo_duration_months", Type: field.TypeInt, Default: 12},
 		{Name: "licenseitem", Type: field.TypeInt, Unique: true, Nullable: true},
 		{Name: "pdf", Type: field.TypeInt, Nullable: true},
 	}
@@ -199,13 +230,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "item_item_LicenseItem",
-				Columns:    []*schema.Column{ItemColumns[14]},
+				Columns:    []*schema.Column{ItemColumns[15]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "item_pdf_PDF",
-				Columns:    []*schema.Column{ItemColumns[15]},
+				Columns:    []*schema.Column{ItemColumns[16]},
 				RefColumns: []*schema.Column{PdfColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -271,6 +302,8 @@ var (
 		{Name: "newsletter", Type: field.TypeBool, Default: false},
 		{Name: "payment_event_id", Type: field.TypeInt, Nullable: true},
 		{Name: "payment_failed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "gift_recipient_name", Type: field.TypeString, Default: ""},
+		{Name: "gift_message", Type: field.TypeString, Default: ""},
 	}
 	// PaymentorderTable holds the schema information for the "paymentorder" table.
 	PaymentorderTable = &schema.Table{
@@ -415,6 +448,7 @@ var (
 		{Name: "digitalitemsurl", Type: field.TypeString, Default: "https://augustina.cc/digital-items"},
 		{Name: "abonementurl", Type: field.TypeString, Default: ""},
 		{Name: "abonementenabled", Type: field.TypeBool, Default: false},
+		{Name: "voucherenabled", Type: field.TypeBool, Default: false},
 		{Name: "posenabled", Type: field.TypeBool, Default: true},
 		{Name: "wordpressinviteurl", Type: field.TypeString, Default: ""},
 		{Name: "wordpressinviteapikey", Type: field.TypeString, Default: ""},
@@ -452,7 +486,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[52]},
+				Columns:    []*schema.Column{SettingsColumns[53]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -493,6 +527,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AbonementTable,
+		AbonementVoucherTable,
 		AccountTable,
 		BlockedIpsTable,
 		CampaignsTable,
@@ -518,6 +553,9 @@ func init() {
 	AbonementTable.ForeignKeys[1].RefTable = CustomerTable
 	AbonementTable.Annotation = &entsql.Annotation{
 		Table: "abonement",
+	}
+	AbonementVoucherTable.Annotation = &entsql.Annotation{
+		Table: "abonement_voucher",
 	}
 	AccountTable.ForeignKeys[0].RefTable = VendorTable
 	AccountTable.Annotation = &entsql.Annotation{
