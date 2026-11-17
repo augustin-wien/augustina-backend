@@ -280,7 +280,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 
 	if err == nil {
 		if !existing.Archived {
-			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			err = ErrItemNameTaken
 			return 0, err
 		}
 		ub := db.EntClient.Item.UpdateOneID(existing.ID).
@@ -390,7 +390,7 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 	var licenseEnt *ent.Item
 	if err == nil {
 		if !existingLicense.IsLicenseItem {
-			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			err = ErrItemNameTaken
 			return 0, 0, err
 		}
 		var hasOwner bool
@@ -399,7 +399,7 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 			return 0, 0, err
 		}
 		if hasOwner {
-			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			err = ErrItemNameTaken
 			return 0, 0, err
 		}
 		licenseEnt, err = tx.Item.UpdateOneID(existingLicense.ID).
@@ -456,7 +456,7 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 	var mainEnt *ent.Item
 	if err == nil {
 		if !existingMain.Archived {
-			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			err = ErrItemNameTaken
 			return 0, 0, err
 		}
 		mub := tx.Item.UpdateOneID(existingMain.ID).
@@ -599,6 +599,9 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // ErrLicenseItemInUse is returned when a license item is still linked to an
 // item that has not been deleted.
+// ErrItemNameTaken is returned when an item with the same name already exists
+var ErrItemNameTaken = errors.New("Item with the same name already exists. Update it or delete it first")
+
 var ErrLicenseItemInUse = errors.New("license item is still linked to an item")
 
 // DeleteItemChecked deletes an item like DeleteItem, but refuses to delete a

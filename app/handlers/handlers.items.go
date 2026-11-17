@@ -207,7 +207,11 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 			id, _, err = database.Db.CreateAbonementItemWithLicense(item, licenseCost)
 		}
 		if err != nil {
-			log.Error("CreateItem: item with license creation failed", err)
+			if errors.Is(err, database.ErrItemNameTaken) {
+				log.Warn("CreateItem: item with license creation failed: ", err)
+			} else {
+				log.Error("CreateItem: item with license creation failed", err)
+			}
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
 			return
 		}
