@@ -87,7 +87,9 @@ type Item struct {
 	LicenseItem   null.Int // License has to be bought before item
 	PDF           null.Int
 	Price         int    // Price in cents
-	Type          string // Type of item: normal_item, license_item, issue, online_issue, donation, transaction_costs, abonement
+	Type          string // Type of item: normal_item, license_item, issue, online_issue, donation, transaction_costs, abonement, abonement_voucher
+	// AboDurationMonths is how long the abonement granted by an abonement_voucher runs
+	AboDurationMonths int
 }
 
 // Order is a struct that is used for the order table
@@ -109,6 +111,8 @@ type Order struct {
 	Newsletter        bool
 	PaymentEventID    null.Int
 	PaymentFailedAt   null.Time
+	GiftRecipientName string
+	GiftMessage       string
 }
 
 // OrderEntry is a struct that is used for the order_entry table

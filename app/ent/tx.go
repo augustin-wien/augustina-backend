@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Abonement is the client for interacting with the Abonement builders.
 	Abonement *AbonementClient
+	// AbonementVoucher is the client for interacting with the AbonementVoucher builders.
+	AbonementVoucher *AbonementVoucherClient
 	// Account is the client for interacting with the Account builders.
 	Account *AccountClient
 	// BlockedIP is the client for interacting with the BlockedIP builders.
@@ -180,6 +182,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Abonement = NewAbonementClient(tx.config)
+	tx.AbonementVoucher = NewAbonementVoucherClient(tx.config)
 	tx.Account = NewAccountClient(tx.config)
 	tx.BlockedIP = NewBlockedIPClient(tx.config)
 	tx.Campaign = NewCampaignClient(tx.config)

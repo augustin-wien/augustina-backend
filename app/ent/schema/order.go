@@ -62,6 +62,11 @@ func (Order) Fields() []ent.Field {
 		field.Time("payment_failed_at").
 			Optional().
 			Nillable(),
+		// Printed on the PDF of an abonement voucher bought with the order
+		field.String("gift_recipient_name").
+			Default(""),
+		field.String("gift_message").
+			Default(""),
 	}
 }
 

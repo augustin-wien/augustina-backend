@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/augustin-wien/augustina-backend/ent/abonement"
+	"github.com/augustin-wien/augustina-backend/ent/abonementvoucher"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/ent/campaign"
@@ -90,24 +91,25 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			abonement.Table:       abonement.ValidColumn,
-			account.Table:         account.ValidColumn,
-			blockedip.Table:       blockedip.ValidColumn,
-			campaign.Table:        campaign.ValidColumn,
-			comment.Table:         comment.ValidColumn,
-			customer.Table:        customer.ValidColumn,
-			dbsettings.Table:      dbsettings.ValidColumn,
-			externalpayment.Table: externalpayment.ValidColumn,
-			item.Table:            item.ValidColumn,
-			location.Table:        location.ValidColumn,
-			mailtemplate.Table:    mailtemplate.ValidColumn,
-			order.Table:           order.ValidColumn,
-			orderentry.Table:      orderentry.ValidColumn,
-			pdf.Table:             pdf.ValidColumn,
-			pdfdownload.Table:     pdfdownload.ValidColumn,
-			payment.Table:         payment.ValidColumn,
-			settings.Table:        settings.ValidColumn,
-			vendor.Table:          vendor.ValidColumn,
+			abonement.Table:        abonement.ValidColumn,
+			abonementvoucher.Table: abonementvoucher.ValidColumn,
+			account.Table:          account.ValidColumn,
+			blockedip.Table:        blockedip.ValidColumn,
+			campaign.Table:         campaign.ValidColumn,
+			comment.Table:          comment.ValidColumn,
+			customer.Table:         customer.ValidColumn,
+			dbsettings.Table:       dbsettings.ValidColumn,
+			externalpayment.Table:  externalpayment.ValidColumn,
+			item.Table:             item.ValidColumn,
+			location.Table:         location.ValidColumn,
+			mailtemplate.Table:     mailtemplate.ValidColumn,
+			order.Table:            order.ValidColumn,
+			orderentry.Table:       orderentry.ValidColumn,
+			pdf.Table:              pdf.ValidColumn,
+			pdfdownload.Table:      pdfdownload.ValidColumn,
+			payment.Table:          payment.ValidColumn,
+			settings.Table:         settings.ValidColumn,
+			vendor.Table:           vendor.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

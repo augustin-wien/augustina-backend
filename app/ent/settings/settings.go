@@ -60,6 +60,8 @@ const (
 	FieldAbonementUrl = "abonementurl"
 	// FieldAbonementEnabled holds the string denoting the abonementenabled field in the database.
 	FieldAbonementEnabled = "abonementenabled"
+	// FieldVoucherEnabled holds the string denoting the voucherenabled field in the database.
+	FieldVoucherEnabled = "voucherenabled"
 	// FieldPOSEnabled holds the string denoting the posenabled field in the database.
 	FieldPOSEnabled = "posenabled"
 	// FieldWordPressInviteURL holds the string denoting the wordpressinviteurl field in the database.
@@ -154,6 +156,7 @@ var Columns = []string{
 	FieldDigitalItemsUrl,
 	FieldAbonementUrl,
 	FieldAbonementEnabled,
+	FieldVoucherEnabled,
 	FieldPOSEnabled,
 	FieldWordPressInviteURL,
 	FieldWordPressInviteAPIKey,
@@ -253,6 +256,8 @@ var (
 	DefaultAbonementUrl string
 	// DefaultAbonementEnabled holds the default value on creation for the "AbonementEnabled" field.
 	DefaultAbonementEnabled bool
+	// DefaultVoucherEnabled holds the default value on creation for the "VoucherEnabled" field.
+	DefaultVoucherEnabled bool
 	// DefaultPOSEnabled holds the default value on creation for the "POSEnabled" field.
 	DefaultPOSEnabled bool
 	// DefaultWordPressInviteURL holds the default value on creation for the "WordPressInviteURL" field.
@@ -437,6 +442,11 @@ func ByAbonementUrl(opts ...sql.OrderTermOption) OrderOption {
 // ByAbonementEnabled orders the results by the AbonementEnabled field.
 func ByAbonementEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAbonementEnabled, opts...).ToFunc()
+}
+
+// ByVoucherEnabled orders the results by the VoucherEnabled field.
+func ByVoucherEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVoucherEnabled, opts...).ToFunc()
 }
 
 // ByPOSEnabled orders the results by the POSEnabled field.

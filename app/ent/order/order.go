@@ -42,6 +42,10 @@ const (
 	FieldPaymentEventID = "payment_event_id"
 	// FieldPaymentFailedAt holds the string denoting the payment_failed_at field in the database.
 	FieldPaymentFailedAt = "payment_failed_at"
+	// FieldGiftRecipientName holds the string denoting the gift_recipient_name field in the database.
+	FieldGiftRecipientName = "gift_recipient_name"
+	// FieldGiftMessage holds the string denoting the gift_message field in the database.
+	FieldGiftMessage = "gift_message"
 	// EdgeEntries holds the string denoting the entries edge name in mutations.
 	EdgeEntries = "entries"
 	// EdgePayments holds the string denoting the payments edge name in mutations.
@@ -82,6 +86,8 @@ var Columns = []string{
 	FieldNewsletter,
 	FieldPaymentEventID,
 	FieldPaymentFailedAt,
+	FieldGiftRecipientName,
+	FieldGiftMessage,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -97,6 +103,10 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultNewsletter holds the default value on creation for the "newsletter" field.
 	DefaultNewsletter bool
+	// DefaultGiftRecipientName holds the default value on creation for the "gift_recipient_name" field.
+	DefaultGiftRecipientName string
+	// DefaultGiftMessage holds the default value on creation for the "gift_message" field.
+	DefaultGiftMessage string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -182,6 +192,16 @@ func ByPaymentEventID(opts ...sql.OrderTermOption) OrderOption {
 // ByPaymentFailedAt orders the results by the payment_failed_at field.
 func ByPaymentFailedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPaymentFailedAt, opts...).ToFunc()
+}
+
+// ByGiftRecipientName orders the results by the gift_recipient_name field.
+func ByGiftRecipientName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGiftRecipientName, opts...).ToFunc()
+}
+
+// ByGiftMessage orders the results by the gift_message field.
+func ByGiftMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGiftMessage, opts...).ToFunc()
 }
 
 // ByEntriesCount orders the results by entries count.

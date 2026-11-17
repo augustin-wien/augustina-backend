@@ -85,6 +85,10 @@ func (Settings) Fields() []ent.Field {
 		field.Bool("AbonementEnabled").
 			StorageKey("abonementenabled").
 			Default(false),
+		// Sells abonement vouchers in the shop; only takes effect with AbonementEnabled
+		field.Bool("VoucherEnabled").
+			StorageKey("voucherenabled").
+			Default(false),
 		field.Bool("POSEnabled").
 			StorageKey("posenabled").
 			Default(true),

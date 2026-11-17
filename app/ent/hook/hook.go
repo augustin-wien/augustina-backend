@@ -21,6 +21,18 @@ func (f AbonementFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AbonementMutation", m)
 }
 
+// The AbonementVoucherFunc type is an adapter to allow the use of ordinary
+// function as AbonementVoucher mutator.
+type AbonementVoucherFunc func(context.Context, *ent.AbonementVoucherMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AbonementVoucherFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AbonementVoucherMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AbonementVoucherMutation", m)
+}
+
 // The AccountFunc type is an adapter to allow the use of ordinary
 // function as Account mutator.
 type AccountFunc func(context.Context, *ent.AccountMutation) (ent.Value, error)

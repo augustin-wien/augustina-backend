@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/ent/abonement"
+	"github.com/augustin-wien/augustina-backend/ent/abonementvoucher"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/ent/campaign"
@@ -38,6 +39,32 @@ func init() {
 	abonementDescID := abonementFields[0].Descriptor()
 	// abonement.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	abonement.IDValidator = abonementDescID.Validators[0].(func(int) error)
+	abonementvoucherFields := schema.AbonementVoucher{}.Fields()
+	_ = abonementvoucherFields
+	// abonementvoucherDescCode is the schema descriptor for code field.
+	abonementvoucherDescCode := abonementvoucherFields[1].Descriptor()
+	// abonementvoucher.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	abonementvoucher.CodeValidator = abonementvoucherDescCode.Validators[0].(func(string) error)
+	// abonementvoucherDescBuyerEmail is the schema descriptor for buyer_email field.
+	abonementvoucherDescBuyerEmail := abonementvoucherFields[4].Descriptor()
+	// abonementvoucher.DefaultBuyerEmail holds the default value on creation for the buyer_email field.
+	abonementvoucher.DefaultBuyerEmail = abonementvoucherDescBuyerEmail.Default.(string)
+	// abonementvoucherDescRecipientName is the schema descriptor for recipient_name field.
+	abonementvoucherDescRecipientName := abonementvoucherFields[5].Descriptor()
+	// abonementvoucher.DefaultRecipientName holds the default value on creation for the recipient_name field.
+	abonementvoucher.DefaultRecipientName = abonementvoucherDescRecipientName.Default.(string)
+	// abonementvoucherDescMessage is the schema descriptor for message field.
+	abonementvoucherDescMessage := abonementvoucherFields[6].Descriptor()
+	// abonementvoucher.DefaultMessage holds the default value on creation for the message field.
+	abonementvoucher.DefaultMessage = abonementvoucherDescMessage.Default.(string)
+	// abonementvoucherDescStatus is the schema descriptor for status field.
+	abonementvoucherDescStatus := abonementvoucherFields[8].Descriptor()
+	// abonementvoucher.DefaultStatus holds the default value on creation for the status field.
+	abonementvoucher.DefaultStatus = abonementvoucherDescStatus.Default.(string)
+	// abonementvoucherDescID is the schema descriptor for id field.
+	abonementvoucherDescID := abonementvoucherFields[0].Descriptor()
+	// abonementvoucher.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	abonementvoucher.IDValidator = abonementvoucherDescID.Validators[0].(func(int) error)
 	accountFields := schema.Account{}.Fields()
 	_ = accountFields
 	// accountDescBalance is the schema descriptor for balance field.
@@ -212,6 +239,10 @@ func init() {
 	itemDescItemTextColor := itemFields[13].Descriptor()
 	// item.DefaultItemTextColor holds the default value on creation for the ItemTextColor field.
 	item.DefaultItemTextColor = itemDescItemTextColor.Default.(string)
+	// itemDescAboDurationMonths is the schema descriptor for AboDurationMonths field.
+	itemDescAboDurationMonths := itemFields[14].Descriptor()
+	// item.DefaultAboDurationMonths holds the default value on creation for the AboDurationMonths field.
+	item.DefaultAboDurationMonths = itemDescAboDurationMonths.Default.(int)
 	// itemDescID is the schema descriptor for id field.
 	itemDescID := itemFields[0].Descriptor()
 	// item.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -244,6 +275,14 @@ func init() {
 	orderDescNewsletter := orderFields[13].Descriptor()
 	// order.DefaultNewsletter holds the default value on creation for the newsletter field.
 	order.DefaultNewsletter = orderDescNewsletter.Default.(bool)
+	// orderDescGiftRecipientName is the schema descriptor for gift_recipient_name field.
+	orderDescGiftRecipientName := orderFields[16].Descriptor()
+	// order.DefaultGiftRecipientName holds the default value on creation for the gift_recipient_name field.
+	order.DefaultGiftRecipientName = orderDescGiftRecipientName.Default.(string)
+	// orderDescGiftMessage is the schema descriptor for gift_message field.
+	orderDescGiftMessage := orderFields[17].Descriptor()
+	// order.DefaultGiftMessage holds the default value on creation for the gift_message field.
+	order.DefaultGiftMessage = orderDescGiftMessage.Default.(string)
 	// orderDescID is the schema descriptor for id field.
 	orderDescID := orderFields[0].Descriptor()
 	// order.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -382,112 +421,116 @@ func init() {
 	settingsDescAbonementEnabled := settingsFields[24].Descriptor()
 	// settings.DefaultAbonementEnabled holds the default value on creation for the AbonementEnabled field.
 	settings.DefaultAbonementEnabled = settingsDescAbonementEnabled.Default.(bool)
+	// settingsDescVoucherEnabled is the schema descriptor for VoucherEnabled field.
+	settingsDescVoucherEnabled := settingsFields[25].Descriptor()
+	// settings.DefaultVoucherEnabled holds the default value on creation for the VoucherEnabled field.
+	settings.DefaultVoucherEnabled = settingsDescVoucherEnabled.Default.(bool)
 	// settingsDescPOSEnabled is the schema descriptor for POSEnabled field.
-	settingsDescPOSEnabled := settingsFields[25].Descriptor()
+	settingsDescPOSEnabled := settingsFields[26].Descriptor()
 	// settings.DefaultPOSEnabled holds the default value on creation for the POSEnabled field.
 	settings.DefaultPOSEnabled = settingsDescPOSEnabled.Default.(bool)
 	// settingsDescWordPressInviteURL is the schema descriptor for WordPressInviteURL field.
-	settingsDescWordPressInviteURL := settingsFields[26].Descriptor()
+	settingsDescWordPressInviteURL := settingsFields[27].Descriptor()
 	// settings.DefaultWordPressInviteURL holds the default value on creation for the WordPressInviteURL field.
 	settings.DefaultWordPressInviteURL = settingsDescWordPressInviteURL.Default.(string)
 	// settingsDescWordPressInviteAPIKey is the schema descriptor for WordPressInviteAPIKey field.
-	settingsDescWordPressInviteAPIKey := settingsFields[27].Descriptor()
+	settingsDescWordPressInviteAPIKey := settingsFields[28].Descriptor()
 	// settings.DefaultWordPressInviteAPIKey holds the default value on creation for the WordPressInviteAPIKey field.
 	settings.DefaultWordPressInviteAPIKey = settingsDescWordPressInviteAPIKey.Default.(string)
 	// settingsDescWordPressInviteTTL is the schema descriptor for WordPressInviteTTL field.
-	settingsDescWordPressInviteTTL := settingsFields[28].Descriptor()
+	settingsDescWordPressInviteTTL := settingsFields[29].Descriptor()
 	// settings.DefaultWordPressInviteTTL holds the default value on creation for the WordPressInviteTTL field.
 	settings.DefaultWordPressInviteTTL = settingsDescWordPressInviteTTL.Default.(int)
 	// settingsDescPrivacyPolicyUrl is the schema descriptor for PrivacyPolicyUrl field.
-	settingsDescPrivacyPolicyUrl := settingsFields[29].Descriptor()
+	settingsDescPrivacyPolicyUrl := settingsFields[30].Descriptor()
 	// settings.DefaultPrivacyPolicyUrl holds the default value on creation for the PrivacyPolicyUrl field.
 	settings.DefaultPrivacyPolicyUrl = settingsDescPrivacyPolicyUrl.Default.(string)
 	// settingsDescMatomoUrl is the schema descriptor for MatomoUrl field.
-	settingsDescMatomoUrl := settingsFields[30].Descriptor()
+	settingsDescMatomoUrl := settingsFields[31].Descriptor()
 	// settings.DefaultMatomoUrl holds the default value on creation for the MatomoUrl field.
 	settings.DefaultMatomoUrl = settingsDescMatomoUrl.Default.(string)
 	// settingsDescMatomoSiteId is the schema descriptor for MatomoSiteId field.
-	settingsDescMatomoSiteId := settingsFields[31].Descriptor()
+	settingsDescMatomoSiteId := settingsFields[32].Descriptor()
 	// settings.DefaultMatomoSiteId holds the default value on creation for the MatomoSiteId field.
 	settings.DefaultMatomoSiteId = settingsDescMatomoSiteId.Default.(string)
 	// settingsDescOnlinePaperUrl is the schema descriptor for OnlinePaperUrl field.
-	settingsDescOnlinePaperUrl := settingsFields[32].Descriptor()
+	settingsDescOnlinePaperUrl := settingsFields[33].Descriptor()
 	// settings.DefaultOnlinePaperUrl holds the default value on creation for the OnlinePaperUrl field.
 	settings.DefaultOnlinePaperUrl = settingsDescOnlinePaperUrl.Default.(string)
 	// settingsDescMailSenderName is the schema descriptor for MailSenderName field.
-	settingsDescMailSenderName := settingsFields[33].Descriptor()
+	settingsDescMailSenderName := settingsFields[34].Descriptor()
 	// settings.DefaultMailSenderName holds the default value on creation for the MailSenderName field.
 	settings.DefaultMailSenderName = settingsDescMailSenderName.Default.(string)
 	// settingsDescDonationTrackingEnabled is the schema descriptor for DonationTrackingEnabled field.
-	settingsDescDonationTrackingEnabled := settingsFields[34].Descriptor()
+	settingsDescDonationTrackingEnabled := settingsFields[35].Descriptor()
 	// settings.DefaultDonationTrackingEnabled holds the default value on creation for the DonationTrackingEnabled field.
 	settings.DefaultDonationTrackingEnabled = settingsDescDonationTrackingEnabled.Default.(bool)
 	// settingsDescAGBRequired is the schema descriptor for AGBRequired field.
-	settingsDescAGBRequired := settingsFields[35].Descriptor()
+	settingsDescAGBRequired := settingsFields[36].Descriptor()
 	// settings.DefaultAGBRequired holds the default value on creation for the AGBRequired field.
 	settings.DefaultAGBRequired = settingsDescAGBRequired.Default.(bool)
 	// settingsDescDonationPageEnabled is the schema descriptor for DonationPageEnabled field.
-	settingsDescDonationPageEnabled := settingsFields[36].Descriptor()
+	settingsDescDonationPageEnabled := settingsFields[37].Descriptor()
 	// settings.DefaultDonationPageEnabled holds the default value on creation for the DonationPageEnabled field.
 	settings.DefaultDonationPageEnabled = settingsDescDonationPageEnabled.Default.(bool)
 	// settingsDescMatomoTrackCart is the schema descriptor for MatomoTrackCart field.
-	settingsDescMatomoTrackCart := settingsFields[37].Descriptor()
+	settingsDescMatomoTrackCart := settingsFields[38].Descriptor()
 	// settings.DefaultMatomoTrackCart holds the default value on creation for the MatomoTrackCart field.
 	settings.DefaultMatomoTrackCart = settingsDescMatomoTrackCart.Default.(bool)
 	// settingsDescFeedbackEnabled is the schema descriptor for FeedbackEnabled field.
-	settingsDescFeedbackEnabled := settingsFields[38].Descriptor()
+	settingsDescFeedbackEnabled := settingsFields[39].Descriptor()
 	// settings.DefaultFeedbackEnabled holds the default value on creation for the FeedbackEnabled field.
 	settings.DefaultFeedbackEnabled = settingsDescFeedbackEnabled.Default.(bool)
 	// settingsDescFeedbackEmail is the schema descriptor for FeedbackEmail field.
-	settingsDescFeedbackEmail := settingsFields[39].Descriptor()
+	settingsDescFeedbackEmail := settingsFields[40].Descriptor()
 	// settings.DefaultFeedbackEmail holds the default value on creation for the FeedbackEmail field.
 	settings.DefaultFeedbackEmail = settingsDescFeedbackEmail.Default.(string)
 	// settingsDescNewsletterEnabled is the schema descriptor for NewsletterEnabled field.
-	settingsDescNewsletterEnabled := settingsFields[40].Descriptor()
+	settingsDescNewsletterEnabled := settingsFields[41].Descriptor()
 	// settings.DefaultNewsletterEnabled holds the default value on creation for the NewsletterEnabled field.
 	settings.DefaultNewsletterEnabled = settingsDescNewsletterEnabled.Default.(bool)
 	// settingsDescIDScanEnabled is the schema descriptor for IDScanEnabled field.
-	settingsDescIDScanEnabled := settingsFields[41].Descriptor()
+	settingsDescIDScanEnabled := settingsFields[42].Descriptor()
 	// settings.DefaultIDScanEnabled holds the default value on creation for the IDScanEnabled field.
 	settings.DefaultIDScanEnabled = settingsDescIDScanEnabled.Default.(bool)
 	// settingsDescNextcloudEnabled is the schema descriptor for NextcloudEnabled field.
-	settingsDescNextcloudEnabled := settingsFields[42].Descriptor()
+	settingsDescNextcloudEnabled := settingsFields[43].Descriptor()
 	// settings.DefaultNextcloudEnabled holds the default value on creation for the NextcloudEnabled field.
 	settings.DefaultNextcloudEnabled = settingsDescNextcloudEnabled.Default.(bool)
 	// settingsDescNextcloudURL is the schema descriptor for NextcloudURL field.
-	settingsDescNextcloudURL := settingsFields[43].Descriptor()
+	settingsDescNextcloudURL := settingsFields[44].Descriptor()
 	// settings.DefaultNextcloudURL holds the default value on creation for the NextcloudURL field.
 	settings.DefaultNextcloudURL = settingsDescNextcloudURL.Default.(string)
 	// settingsDescNextcloudPublicURL is the schema descriptor for NextcloudPublicURL field.
-	settingsDescNextcloudPublicURL := settingsFields[44].Descriptor()
+	settingsDescNextcloudPublicURL := settingsFields[45].Descriptor()
 	// settings.DefaultNextcloudPublicURL holds the default value on creation for the NextcloudPublicURL field.
 	settings.DefaultNextcloudPublicURL = settingsDescNextcloudPublicURL.Default.(string)
 	// settingsDescNextcloudUsername is the schema descriptor for NextcloudUsername field.
-	settingsDescNextcloudUsername := settingsFields[45].Descriptor()
+	settingsDescNextcloudUsername := settingsFields[46].Descriptor()
 	// settings.DefaultNextcloudUsername holds the default value on creation for the NextcloudUsername field.
 	settings.DefaultNextcloudUsername = settingsDescNextcloudUsername.Default.(string)
 	// settingsDescNextcloudAppPassword is the schema descriptor for NextcloudAppPassword field.
-	settingsDescNextcloudAppPassword := settingsFields[46].Descriptor()
+	settingsDescNextcloudAppPassword := settingsFields[47].Descriptor()
 	// settings.DefaultNextcloudAppPassword holds the default value on creation for the NextcloudAppPassword field.
 	settings.DefaultNextcloudAppPassword = settingsDescNextcloudAppPassword.Default.(string)
 	// settingsDescNextcloudVendorRoot is the schema descriptor for NextcloudVendorRoot field.
-	settingsDescNextcloudVendorRoot := settingsFields[47].Descriptor()
+	settingsDescNextcloudVendorRoot := settingsFields[48].Descriptor()
 	// settings.DefaultNextcloudVendorRoot holds the default value on creation for the NextcloudVendorRoot field.
 	settings.DefaultNextcloudVendorRoot = settingsDescNextcloudVendorRoot.Default.(string)
 	// settingsDescOdooWebhookURL is the schema descriptor for OdooWebhookURL field.
-	settingsDescOdooWebhookURL := settingsFields[48].Descriptor()
+	settingsDescOdooWebhookURL := settingsFields[49].Descriptor()
 	// settings.DefaultOdooWebhookURL holds the default value on creation for the OdooWebhookURL field.
 	settings.DefaultOdooWebhookURL = settingsDescOdooWebhookURL.Default.(string)
 	// settingsDescOdooWebhookToken is the schema descriptor for OdooWebhookToken field.
-	settingsDescOdooWebhookToken := settingsFields[49].Descriptor()
+	settingsDescOdooWebhookToken := settingsFields[50].Descriptor()
 	// settings.DefaultOdooWebhookToken holds the default value on creation for the OdooWebhookToken field.
 	settings.DefaultOdooWebhookToken = settingsDescOdooWebhookToken.Default.(string)
 	// settingsDescOdooDBFilter is the schema descriptor for OdooDBFilter field.
-	settingsDescOdooDBFilter := settingsFields[50].Descriptor()
+	settingsDescOdooDBFilter := settingsFields[51].Descriptor()
 	// settings.DefaultOdooDBFilter holds the default value on creation for the OdooDBFilter field.
 	settings.DefaultOdooDBFilter = settingsDescOdooDBFilter.Default.(string)
 	// settingsDescAccountingReportEmail is the schema descriptor for AccountingReportEmail field.
-	settingsDescAccountingReportEmail := settingsFields[51].Descriptor()
+	settingsDescAccountingReportEmail := settingsFields[52].Descriptor()
 	// settings.DefaultAccountingReportEmail holds the default value on creation for the AccountingReportEmail field.
 	settings.DefaultAccountingReportEmail = settingsDescAccountingReportEmail.Default.(string)
 	// settingsDescID is the schema descriptor for id field.

@@ -47,6 +47,10 @@ type Order struct {
 	PaymentEventID *int `json:"payment_event_id,omitempty"`
 	// PaymentFailedAt holds the value of the "payment_failed_at" field.
 	PaymentFailedAt *time.Time `json:"payment_failed_at,omitempty"`
+	// GiftRecipientName holds the value of the "gift_recipient_name" field.
+	GiftRecipientName string `json:"gift_recipient_name,omitempty"`
+	// GiftMessage holds the value of the "gift_message" field.
+	GiftMessage string `json:"gift_message,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the OrderQuery when eager-loading is set.
 	Edges        OrderEdges `json:"edges"`
@@ -91,7 +95,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case order.FieldID, order.FieldTransactionTypeID, order.FieldVendorID, order.FieldPaymentEventID:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderCode, order.FieldTransactionID, order.FieldUserID, order.FieldCustomerEmail, order.FieldOdooSyncError:
+		case order.FieldOrderCode, order.FieldTransactionID, order.FieldUserID, order.FieldCustomerEmail, order.FieldOdooSyncError, order.FieldGiftRecipientName, order.FieldGiftMessage:
 			values[i] = new(sql.NullString)
 		case order.FieldVerifiedAt, order.FieldTimestamp, order.FieldOdooSyncedAt, order.FieldInvalidatedAt, order.FieldPaymentFailedAt:
 			values[i] = new(sql.NullTime)
@@ -215,6 +219,18 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				_m.PaymentFailedAt = new(time.Time)
 				*_m.PaymentFailedAt = value.Time
 			}
+		case order.FieldGiftRecipientName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field gift_recipient_name", values[i])
+			} else if value.Valid {
+				_m.GiftRecipientName = value.String
+			}
+		case order.FieldGiftMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field gift_message", values[i])
+			} else if value.Valid {
+				_m.GiftMessage = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -323,6 +339,12 @@ func (_m *Order) String() string {
 		builder.WriteString("payment_failed_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("gift_recipient_name=")
+	builder.WriteString(_m.GiftRecipientName)
+	builder.WriteString(", ")
+	builder.WriteString("gift_message=")
+	builder.WriteString(_m.GiftMessage)
 	builder.WriteByte(')')
 	return builder.String()
 }
