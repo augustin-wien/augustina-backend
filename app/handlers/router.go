@@ -412,11 +412,11 @@ func GetRouter() (r *chi.Mux) {
 
 		// Mount static file servers in img folder
 		r.Get("/img/thumbs/*", serveThumbnail)
-		fsImg := http.FileServer(http.Dir("img"))
+		fsImg := http.FileServer(noDirListingFS{http.Dir("img")})
 		r.Handle("/img/*", http.StripPrefix("/img/", fsImg))
 
 		// Mount style.css file server and always serve the same file
-		fsCSS := http.FileServer(http.Dir("public"))
+		fsCSS := http.FileServer(noDirListingFS{http.Dir("public")})
 		r.Handle("/public/*", http.StripPrefix("/public/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "no-cache")
 			fsCSS.ServeHTTP(w, r)
