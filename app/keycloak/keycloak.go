@@ -876,7 +876,12 @@ func (k *Keycloak) sendActionsEmail(email, redirectURI, action string) error {
 	email = utils.ToLower(email)
 	user, err := k.GetUserByEmail(email)
 	if err != nil {
-		log.Error("SendPasswordResetEmail: Error getting user by email ", err)
+		var apiErr gocloak.APIError
+		if errors.As(err, &apiErr) && apiErr.Code == http.StatusNotFound {
+			log.Warn("SendPasswordResetEmail: Error getting user by email ", err)
+		} else {
+			log.Error("SendPasswordResetEmail: Error getting user by email ", err)
+		}
 		return err
 	}
 	return k.executeActionsEmail(*user.ID, email, redirectURI, action)
