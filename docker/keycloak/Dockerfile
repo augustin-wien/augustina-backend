@@ -12,6 +12,8 @@ RUN /opt/keycloak/bin/kc.sh import --dir /opt/keycloak/data/import
 ENV ROOT_LOGLEVEL=ALL
 ENV KEYCLOAK_LOGLEVEL=DEBUG
 ENV KC_HEALTH_ENABLED=true
+# CVE-2026-114938 (Java4Shell): disable the vulnerable Base64 intrinsics until a patched JDK ships
+ENV JAVA_OPTS_APPEND="-XX:-UseBASE64Intrinsics"
 RUN /opt/keycloak/bin/kc.sh build
 
 # change these values to point to a running postgres instance
