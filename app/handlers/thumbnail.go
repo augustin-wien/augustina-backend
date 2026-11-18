@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/rand"
 	"errors"
 	"github.com/go-chi/chi/v5"
 	"image"
@@ -81,7 +82,11 @@ func scaleDown(src image.Image, width int) image.Image {
 // createThumbnail writes a thumbnail of the image data to img/thumbs/<name of imagePath>.
 // Only png and jpeg images get a thumbnail; other formats are skipped without error.
 func createThumbnail(data []byte, imagePath string) error {
-	ext := strings.ToLower(filepath.Ext(imagePath))
+	name := filepath.Base(imagePath)
+	if !validImageName(name) {
+		return errors.New("invalid image name")
+	}
+	ext := strings.ToLower(filepath.Ext(name))
 	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
 		return nil
 	}
@@ -108,22 +113,21 @@ func createThumbnail(data []byte, imagePath string) error {
 	if err != nil {
 		return err
 	}
-	dir, err := os.Getwd()
+	if err = os.MkdirAll(thumbnailDir, 0755); err != nil {
+		return err
+	}
+	root, err := os.OpenRoot(thumbnailDir)
 	if err != nil {
 		return err
 	}
-	name := filepath.Base(imagePath)
-	if name == "." || name == string(filepath.Separator) {
-		return errors.New("invalid image path")
-	}
-	if err = os.MkdirAll(filepath.Join(dir, thumbnailDir), 0755); err != nil {
-		return err
-	}
-	tmp, err := os.CreateTemp(filepath.Join(dir, thumbnailDir), ".tmp-*")
+	defer func() { _ = root.Close() }()
+
+	tmpName := ".tmp-" + rand.Text()
+	tmp, err := root.OpenFile(tmpName, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = os.Remove(tmp.Name()) }()
+	defer func() { _ = root.Remove(tmpName) }()
 	if _, err = tmp.Write(buf.Bytes()); err != nil {
 		_ = tmp.Close()
 		return err
@@ -131,32 +135,43 @@ func createThumbnail(data []byte, imagePath string) error {
 	if err = tmp.Close(); err != nil {
 		return err
 	}
-	if err = os.Chmod(tmp.Name(), 0644); err != nil {
-		return err
-	}
-	return os.Rename(tmp.Name(), filepath.Join(dir, thumbnailDir, name))
+	return root.Rename(tmpName, name)
+}
+
+// validImageName reports whether name is a plain image file name without any path
+// components, hidden-file prefix or non-image extension.
+func validImageName(name string) bool {
+	return name != "" && name == filepath.Base(name) && !strings.HasPrefix(name, ".") &&
+		!strings.ContainsAny(name, `/\`) &&
+		allowedImageExtensions[strings.TrimPrefix(strings.ToLower(filepath.Ext(name)), ".")]
 }
 
 // serveThumbnail serves img/thumbs/<name>. A missing thumbnail is created from the
 // original image on first request; if that is not possible the original is served.
+// All file access goes through an os.Root on img/, so no path can leave that folder.
 func serveThumbnail(w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "*")
-	if name == "" || name != filepath.Base(name) || strings.HasPrefix(name, ".") ||
-		!allowedImageExtensions[strings.TrimPrefix(strings.ToLower(filepath.Ext(name)), ".")] {
+	if !validImageName(name) {
 		http.NotFound(w, r)
 		return
 	}
-	thumbPath := filepath.Join(thumbnailDir, name)
-	origPath := filepath.Join("img", name)
-	if !isRegularFile(origPath) {
+	root, err := os.OpenRoot("img")
+	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	if !isRegularFile(thumbPath) {
+	defer func() { _ = root.Close() }()
+
+	thumbName := filepath.Base(thumbnailDir) + "/" + name
+	if !isRegularFile(root, name) {
+		http.NotFound(w, r)
+		return
+	}
+	if !isRegularFile(root, thumbName) {
 		select {
 		case thumbnailSlots <- struct{}{}:
-			if data, err := readFileLimited(origPath, maxThumbnailSourceBytes); err == nil {
-				if terr := createThumbnail(data, origPath); terr != nil {
+			if data, err := readFileLimited(root, name, maxThumbnailSourceBytes); err == nil {
+				if terr := createThumbnail(data, name); terr != nil {
 					log.Error("serveThumbnail: ", terr)
 				}
 			}
@@ -164,27 +179,43 @@ func serveThumbnail(w http.ResponseWriter, r *http.Request) {
 		default:
 		}
 	}
-	if isRegularFile(thumbPath) {
-		http.ServeFile(w, r, thumbPath)
+	if isRegularFile(root, thumbName) && serveRootFile(w, r, root, thumbName) {
 		return
 	}
-	http.ServeFile(w, r, origPath)
+	if !serveRootFile(w, r, root, name) {
+		http.NotFound(w, r)
+	}
 }
 
-// isRegularFile reports whether path is an existing regular file (no directory or symlink)
-func isRegularFile(path string) bool {
-	fi, err := os.Lstat(path)
+// serveRootFile serves a file from root and reports whether it could be opened
+func serveRootFile(w http.ResponseWriter, r *http.Request, root *os.Root, name string) bool {
+	f, err := root.Open(name)
+	if err != nil {
+		return false
+	}
+	defer func() { _ = f.Close() }()
+	fi, err := f.Stat()
+	if err != nil || !fi.Mode().IsRegular() {
+		return false
+	}
+	http.ServeContent(w, r, filepath.Base(name), fi.ModTime(), f)
+	return true
+}
+
+// isRegularFile reports whether name is an existing regular file in root (no directory or symlink)
+func isRegularFile(root *os.Root, name string) bool {
+	fi, err := root.Lstat(name)
 	return err == nil && fi.Mode().IsRegular()
 }
 
-// readFileLimited reads a file that must not be larger than limit bytes
-func readFileLimited(path string, limit int64) ([]byte, error) {
-	fi, err := os.Lstat(path)
+// readFileLimited reads a file from root that must not be larger than limit bytes
+func readFileLimited(root *os.Root, name string, limit int64) ([]byte, error) {
+	fi, err := root.Lstat(name)
 	if err != nil {
 		return nil, err
 	}
 	if fi.Size() > limit {
 		return nil, errors.New("file too large for thumbnail")
 	}
-	return os.ReadFile(path)
+	return root.ReadFile(name)
 }
