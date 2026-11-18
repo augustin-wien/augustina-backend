@@ -310,6 +310,10 @@ func updateItemImage(w http.ResponseWriter, r *http.Request) (path string, err e
 	if err != nil {
 		log.Error("updateItemImage: failed to write file", err)
 		utils.ErrorJSON(w, errors.New("failed to save image"), http.StatusInternalServerError)
+		return
+	}
+	if terr := createThumbnail(buf.Bytes(), path); terr != nil {
+		log.Error("updateItemImage: failed to create thumbnail: ", terr)
 	}
 	return
 }

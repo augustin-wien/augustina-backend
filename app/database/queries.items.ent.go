@@ -614,14 +614,20 @@ func (db *Database) DeleteItemChecked(id int, deleteLicense bool) error {
 		log.Error("DeleteItemChecked (ent): ", err)
 		return err
 	}
-	inUse, err := db.EntClient.Item.Query().
-		Where(entitem.HasLicenseItemWith(entitem.IDEQ(id)), entitem.ArchivedEQ(false)).
-		Exist(ctx)
-	if err != nil {
-		return err
-	}
-	if inUse {
-		return ErrLicenseItemInUse
+	if e.IsLicenseItem || e.Type == "license_item" {
+		inUse, err := db.EntClient.Item.Query().
+			Where(
+				entitem.HasLicenseItemWith(entitem.IDEQ(id)),
+				entitem.ArchivedEQ(false),
+				entitem.TypeNEQ("license_item"),
+			).
+			Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if inUse {
+			return ErrLicenseItemInUse
+		}
 	}
 	if err = db.DeleteItem(id); err != nil {
 		return err
