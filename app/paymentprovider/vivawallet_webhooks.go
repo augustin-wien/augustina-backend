@@ -1,0 +1,348 @@
+package paymentprovider
+
+import (
+	"errors"
+	"fmt"
+	"math"
+	"strings"
+
+	"github.com/augustin-wien/augustina-backend/ent"
+
+	"github.com/augustin-wien/augustina-backend/config"
+	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/integrations"
+
+	"time"
+)
+
+// HandlePaymentSuccessfulResponse handles the webhook response for a successful payment
+// isSimulatedTransaction reports whether a webhook may skip verification against the VivaWallet
+// API because it was produced by the local development simulation.
+//
+// The development check is what makes this safe, and it must not be dropped. The webhook endpoint
+// is unauthenticated by necessity, and anyone can create an order and read back its order code,
+// so without it an attacker could post a "dev-simulation-" transaction id and have an unpaid
+// order marked as paid: the simulated branch fills the verification response from the request
+// itself, which makes every subsequent comparison compare the payload against itself.
+func isSimulatedTransaction(transactionID string) bool {
+	return config.Config.Development && strings.HasPrefix(transactionID, "dev-simulation-")
+}
+
+// logWebhookNotVerified logs why a success webhook left its order unverified. It is the one
+// error log per failed delivery, carrying enough to find the order and the cause from the
+// alert alone: reason is a short stable slug to search and group by.
+func logWebhookNotVerified(reason string, orderID int, data EventData, err error, extra ...any) {
+	fields := []any{
+		"reason", reason,
+		"order_id", orderID,
+		"order_code", data.OrderCode.String(),
+		"transaction_id", data.TransactionID,
+		"status_id", data.StatusID,
+		"amount", data.Amount,
+		"source_code", data.SourceCode,
+		"source_name", data.SourceName,
+		"terminal_id", data.TerminalID,
+		"error", err,
+	}
+	log.Errorw("HandlePaymentSuccessfulResponse: order not verified", append(fields, extra...)...)
+}
+
+// isForeignTransaction reports whether a webhook belongs to a payment this backend did not
+// create. The VivaWallet account is shared with other sales channels, such as the donation
+// terminal, and VivaWallet sends their webhooks here as well. Every payment order created by
+// this backend carries the configured source code.
+func isForeignTransaction(data EventData) bool {
+	return data.SourceCode != config.Config.VivaWalletSourceCode
+}
+
+// isPlaceholderTransactionID reports whether an order is still without its real transaction id
+func isPlaceholderTransactionID(transactionID string) bool {
+	return transactionID == "" || strings.HasPrefix(transactionID, placeholderTransactionIDPrefix)
+}
+
+// toCents converts a VivaWallet amount in euros to cents
+func toCents(amount float64) int {
+	return int(math.Round(amount * 100))
+}
+
+// parseVivaTime parses a VivaWallet timestamp. It returns the zero time when the value is
+// missing or in an unknown format.
+func parseVivaTime(value string) time.Time {
+	if t, err := time.Parse(time.RFC3339, value); err == nil {
+		return t
+	}
+	if loc, err := time.LoadLocation("Europe/Vienna"); err == nil {
+		if t, err := time.ParseInLocation("2006-01-02T15:04:05.999999999", value, loc); err == nil {
+			return t
+		}
+	}
+	return time.Time{}
+}
+
+// recordExternalPayment stores a payment from another sales channel while donation tracking is
+// enabled, so the backoffice can list it
+func recordExternalPayment(p database.ExternalPaymentUpdate) error {
+	settings, err := database.Db.GetSettings()
+	if err != nil {
+		return err
+	}
+	if !settings.DonationTrackingEnabled {
+		return nil
+	}
+	return database.Db.RecordExternalPayment(p)
+}
+
+func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest) (err error) {
+	data := paymentSuccessful.EventData
+
+	// Get the order before verifying with VivaWallet, so the real transaction ID
+	// is stored even if verification fails. Otherwise the order keeps its
+	// "manual-" placeholder ID and can never be verified against VivaWallet later.
+	var order database.Order
+	// Retry getting order from database to avoid race conditions
+	for i := 0; i < 5; i++ {
+		order, err = database.Db.GetOrderByOrderCode(data.OrderCode.String())
+		if err == nil {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	if ent.IsNotFound(err) && isForeignTransaction(data) {
+		log.Infow("HandlePaymentSuccessfulResponse: ignoring transaction from another sales channel",
+			"order_code", data.OrderCode.String(),
+			"transaction_id", data.TransactionID,
+			"source_code", data.SourceCode,
+			"source_name", data.SourceName,
+			"terminal_id", data.TerminalID,
+			"amount", data.Amount,
+		)
+		return recordExternalPayment(database.ExternalPaymentUpdate{
+			TransactionID: data.TransactionID,
+			OrderCode:     data.OrderCode.String(),
+			Amount:        toCents(data.Amount),
+			StatusID:      data.StatusID,
+			SourceCode:    data.SourceCode,
+			SourceName:    data.SourceName,
+			TerminalID:    data.TerminalID,
+			MerchantTrns:  data.MerchantTrns,
+			PaidAt:        parseVivaTime(data.InsDate),
+		})
+	}
+	if err != nil {
+		logWebhookNotVerified("order_not_found", 0, data, err)
+		return err
+	}
+
+	// VivaWallet retries webhook deliveries, so a duplicate delivery for an
+	// already verified order is a no-op, not an error
+	if order.Verified {
+		log.Infow("HandlePaymentSuccessfulResponse: order already verified, skipping", "order_id", order.ID, "transaction_id", data.TransactionID)
+		return nil
+	}
+
+	if !transactionIDPattern.MatchString(data.TransactionID) {
+		logWebhookNotVerified("invalid_transaction_id", order.ID, data, ErrInvalidTransactionID)
+		return ErrInvalidTransactionID
+	}
+
+	// Anyone can post to this webhook, so until VivaWallet confirms the transaction its id may
+	// only replace the placeholder, not a transaction id that is already stored
+	storedTransactionID := order.TransactionID
+	if isPlaceholderTransactionID(storedTransactionID) {
+		err = database.Db.SetOrderTransactionID(order.ID, data.TransactionID)
+		if err != nil {
+			logWebhookNotVerified("set_transaction_id_failed", order.ID, data, err)
+			return err
+		}
+		storedTransactionID = data.TransactionID
+	}
+
+	// Set everything up for the request
+	var transactionVerificationResponse TransactionVerificationResponse
+
+	// Check if this is a development simulation webhook
+	isSimulation := isSimulatedTransaction(data.TransactionID)
+
+	// Skip VivaWallet verification for simulated webhooks in development mode
+	if !isSimulation {
+		// Retry verification to handle eventual consistency
+		for i := 0; i < 5; i++ {
+			transactionVerificationResponse, err = VerifyTransactionID(data.TransactionID, false)
+			if err != nil {
+				log.Warnw("HandlePaymentSuccessfulResponse: verifying transaction failed, retrying", "attempt", i+1, "order_id", order.ID, "transaction_id", data.TransactionID, "error", err)
+			} else {
+				// Check if OrderCode matches
+				if transactionVerificationResponse.OrderCode == data.OrderCode {
+					break // Match found, proceed
+				}
+				log.Warnw("HandlePaymentSuccessfulResponse: order code mismatch, retrying", "attempt", i+1, "order_id", order.ID, "viva_order_code", transactionVerificationResponse.OrderCode.String(), "webhook_order_code", data.OrderCode.String())
+			}
+			time.Sleep(500 * time.Millisecond)
+		}
+
+		if err != nil {
+			logWebhookNotVerified("viva_verification_failed", order.ID, data, err)
+			return err
+		}
+	} else {
+		// For simulated webhooks, use the webhook data directly
+		log.Info("HandlePaymentSuccessfulResponse: Skipping VivaWallet verification for simulated webhook")
+		transactionVerificationResponse.OrderCode = data.OrderCode
+		transactionVerificationResponse.Amount = data.Amount
+		transactionVerificationResponse.StatusID = data.StatusID
+		transactionVerificationResponse.TransactionTypeID = data.TransactionTypeID
+	}
+
+	// 1. Check: Verify that webhook request and API response match all three fields
+
+	if transactionVerificationResponse.OrderCode != data.OrderCode {
+		err = errors.New("HandlePaymentSuccessfulResponse: order code mismatch")
+		logWebhookNotVerified("order_code_mismatch", order.ID, data, err, "viva_order_code", transactionVerificationResponse.OrderCode.String())
+		return err
+	}
+
+	if storedTransactionID != data.TransactionID {
+		err = database.Db.SetOrderTransactionID(order.ID, data.TransactionID)
+		if err != nil {
+			logWebhookNotVerified("set_transaction_id_failed", order.ID, data, err)
+			return err
+		}
+	}
+
+	if transactionVerificationResponse.Amount != data.Amount {
+		transactionToFloat64 := fmt.Sprintf("%f", transactionVerificationResponse.Amount)
+		webhookToFloat64 := fmt.Sprintf("%f", data.Amount)
+		err = errors.New("HandlePaymentSuccessfulResponse: amount mismatch: " + transactionToFloat64 + " vs " + webhookToFloat64 + " with transaction id " + data.TransactionID)
+		logWebhookNotVerified("viva_amount_mismatch", order.ID, data, err, "viva_amount", transactionVerificationResponse.Amount)
+		return err
+	}
+
+	if transactionVerificationResponse.StatusID != data.StatusID {
+		err = errors.New("HandlePaymentSuccessfulResponse: status id mismatch")
+		logWebhookNotVerified("status_id_mismatch", order.ID, data, err, "viva_status_id", transactionVerificationResponse.StatusID)
+		return err
+	}
+
+	// 2. Check: Verify amount matches with the ones in the database, then verify the order
+	if reason, fields, err := finalizePaidOrder(order, data.Amount, data.TransactionTypeID); err != nil {
+		logWebhookNotVerified(reason, order.ID, data, err, fields...)
+		return err
+	}
+	log.Infow("HandlePaymentSuccessfulResponse: order verified", "order_id", order.ID, "order_code", data.OrderCode.String(), "transaction_id", data.TransactionID)
+
+	// Create transaction costs for Paypal
+	//err = CreatePaypalTransactionCosts(paymentSuccessful, order)
+
+	return
+}
+
+// ErrOrderCodeMismatch means VivaWallet reports a different order code for the transaction
+// than the order it is stored on
+var ErrOrderCodeMismatch = errors.New("order code mismatch")
+
+// ReconcilePaidOrder verifies an order whose payment VivaWallet confirmed (viva is the
+// answer of VerifyTransactionID for the order's transaction) but which was never verified
+// locally, e.g. because the webhook got lost. It runs the same checks as the webhook.
+// reason names the check that failed.
+func ReconcilePaidOrder(orderID int, viva TransactionVerificationResponse) (reason string, err error) {
+	order, err := database.Db.GetOrderByID(orderID)
+	if err != nil {
+		return "order_not_found", err
+	}
+	if order.Verified {
+		return "", nil
+	}
+	if viva.OrderCode.String() != order.OrderCode.String {
+		return "order_code_mismatch", ErrOrderCodeMismatch
+	}
+	reason, fields, err := finalizePaidOrder(order, viva.Amount, viva.TransactionTypeID)
+	if err != nil {
+		log.Warnw("ReconcilePaidOrder: order could not be verified", append([]interface{}{"order_id", orderID, "reason", reason, "error", err}, fields...)...)
+		return reason, err
+	}
+	log.Infow("ReconcilePaidOrder: order verified", "order_id", orderID, "order_code", order.OrderCode.String, "transaction_id", order.TransactionID)
+	return "", nil
+}
+
+// finalizePaidOrder checks that the order's entries add up to the amount VivaWallet
+// confirmed, then verifies the order, creates its payments and sends it to Odoo. On
+// failure reason names the failed check and fields carry details for the log.
+func finalizePaidOrder(order database.Order, paidAmount float64, transactionTypeID int) (reason string, fields []interface{}, err error) {
+	// Check for TransactionCostsName
+	if config.Config.TransactionCostsName == "" {
+		return "config_transaction_costs_name_missing", nil, errors.New("transaction costs name is not set")
+	}
+
+	// Transaction costs are not included in the sum
+	transactionCostItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
+	if err != nil {
+		return "transaction_costs_item_not_found", nil, err
+	}
+
+	// Sum up all prices of orderentries and compare with amount. entries records how each
+	// entry was counted, so a sum mismatch can be explained from the log line alone.
+	var sum float64
+	entries := make([]string, 0, len(order.Entries))
+	for _, entry := range order.Entries {
+		if entry.Item == transactionCostItem.ID {
+			entries = append(entries, fmt.Sprintf("item=%d price=%d qty=%d skipped=transaction_costs", entry.Item, entry.Price, entry.Quantity))
+			continue
+		}
+		// The item may have been disabled or archived since the order was created
+		item, err := database.Db.GetItemIncludingArchived(entry.Item)
+		if err != nil {
+			return "order_item_not_found", []interface{}{"item_id", entry.Item}, err
+		}
+
+		if item.IsLicenseItem {
+			entries = append(entries, fmt.Sprintf("item=%d price=%d qty=%d skipped=license_item", entry.Item, entry.Price, entry.Quantity))
+			continue // Skip license items
+		}
+
+		entries = append(entries, fmt.Sprintf("item=%d price=%d qty=%d", entry.Item, entry.Price, entry.Quantity))
+		sum += float64(entry.Price * entry.Quantity)
+	}
+	// Amount would mismatch without converting to float64
+	// Note: Bad consistency by VivaWallet representing amount in cents and int vs euro and float
+	sum = float64(sum) / 100
+
+	if sum != paidAmount {
+		err = errors.New("amount mismatch: " + fmt.Sprintf("%f", sum) + " vs " + fmt.Sprintf("%f", paidAmount) + " with transaction id " + order.TransactionID)
+		return "order_sum_mismatch", []interface{}{"order_sum", sum, "entries", entries}, err
+	}
+
+	// Since every check passed, now set verification status of order and create payments
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, transactionTypeID)
+	if err != nil {
+		return "verify_order_failed", nil, err
+	}
+
+	if config.Config.OdooWebhookURL != "" {
+		log.Info("Odoo Webhook set, sending webhook for order", order.ID)
+		go func(id int, timestamp time.Time, items []database.OrderEntry, vendorID int, totalSum int) {
+			vendor, err := database.Db.GetVendor(vendorID)
+			if err != nil {
+				log.Error("Odoo webhook: Getting vendor failed: ", err)
+				return
+			}
+			err = integrations.SendPaymentToOdoo(id, timestamp, items, vendor, totalSum)
+			if err != nil {
+				log.Errorw(fmt.Sprintf("Sending payment to Odoo failed for order %d: %v", id, err), "order_id", id, "error", err)
+				if dbErr := database.Db.SetOdooSyncFailure(id, err); dbErr != nil {
+					log.Errorw("Failed to record Odoo sync failure", "order_id", id, "error", dbErr)
+				}
+				return
+			}
+			if dbErr := database.Db.SetOdooSyncSuccess(id); dbErr != nil {
+				log.Errorw("Failed to record Odoo sync success", "order_id", id, "error", dbErr)
+			}
+		}(order.ID, order.Timestamp, order.Entries, order.Vendor, int(sum))
+	}
+	return "", nil, nil
+}
+
+// HandlePaymentFailureResponse handles the webhook response for a failed payment
+func HandlePaymentFailureResponse(paymentFailure TransactionSuccessRequest) (err error) {
+	// This webhook has no purpose yet, but could be used to handle failed payments
+	return
+}
