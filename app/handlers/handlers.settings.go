@@ -255,61 +255,52 @@ const (
 	ImagetypeQrCode  Imagetype = "QRCodeLogoImgUrl"
 )
 
-func updateSettingsImg(w http.ResponseWriter, r *http.Request, fileType Imagetype) (path string, err error) {
+func updateSettingsImg(r *http.Request, fileType Imagetype) (path string, err error) {
 
 	// Get file from image field
 	file, header, err := r.FormFile(string(fileType))
 	if err != nil {
 		// Do not return error, as not passing a file is ok
 		// Could be improved by differentiating between not passed and invalid file
-		err = nil
-		return
+		return "", nil
 	}
 	defer func() { _ = file.Close() }()
 
-	// Debugging
 	name := strings.Split(header.Filename, ".")
 	if len(name) < 2 {
-		log.Error("updateSettingsLogo: file name too short", err)
-		utils.ErrorJSON(w, errors.New("invalid filename"), http.StatusBadRequest)
-		return
+		return "", errors.New("invalid filename")
 	}
 	if name[len(name)-1] != "png" {
-		log.Error("updateSettingsLogo: wrong file ending: ", name[1])
-		utils.ErrorJSON(w, errors.New("file type must be png"), http.StatusBadRequest)
-		return
+		return "", errors.New("file type must be png")
 	}
 
 	buf := bytes.NewBuffer(nil)
 	if _, err = io.Copy(buf, file); err != nil {
 		log.Error("updateSettingsLogo: copying file failed", err)
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+		return "", err
 	}
 
 	// Save file with name "logo"
-	switch fType := fileType; fType {
-	case "Logo":
+	switch fileType {
+	case ImagetypeLogo:
 		path = "/img/logo.png"
-	case "Favicon":
+	case ImagetypeFavicon:
 		path = "/img/favicon.png"
-	case "QRCodeLogoImgUrl":
+	case ImagetypeQrCode:
 		path = "/img/qrcode.png"
 	}
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Error("updateSettingsLogo: couldn't get wd", err)
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
+		return "", err
 	}
 	// Save with owner rw, group/other read
-	err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0644)
-	if err != nil {
+	if err = os.WriteFile(dir+"/"+path, buf.Bytes(), 0644); err != nil {
 		log.Error("updateSettingsLogo: saving failed", err)
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return "", err
 	}
 	log.Info("updateSettingsLogo: saved file to ", dir+path)
-	return
+	return path, nil
 }
 
 var updateSettingsMutex sync.Mutex
@@ -510,7 +501,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 		log.Debug("updateSettings: MainItem not set; leaving unchanged")
 	}
 	// update the logo
-	logoPath, err := updateSettingsImg(w, r, ImagetypeLogo)
+	logoPath, err := updateSettingsImg(r, ImagetypeLogo)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -521,7 +512,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update the favicon
-	faviconPath, err := updateSettingsImg(w, r, ImagetypeFavicon)
+	faviconPath, err := updateSettingsImg(r, ImagetypeFavicon)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
@@ -532,7 +523,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update the qrcode logo
-	qrcodePath, err := updateSettingsImg(w, r, ImagetypeQrCode)
+	qrcodePath, err := updateSettingsImg(r, ImagetypeQrCode)
 	if err != nil {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
