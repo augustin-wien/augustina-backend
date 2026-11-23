@@ -632,6 +632,10 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	err = database.Db.UpdateItem(ItemID, item)
+	if errors.Is(err, database.ErrItemNameTaken) {
+		utils.ErrorJSON(w, err, http.StatusConflict)
+		return
+	}
 	if err != nil {
 		log.Error("UpdateItem: db update", err)
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
@@ -650,7 +654,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request) {
 // NotifyAbonementsOnlineIssue godoc
 //
 //	@Summary		Send an online issue to the abonnents
-//	@Description	Checks the issue in WordPress (when the WordPress invite is set up) and makes sure its Keycloak group exists, then grants the online issue's license group to every customer with an active abonement and mails them the issue. Granting and mailing happen in the background, the access first; the response contains the number of recipients.
+//	@Description	Checks the issue in WordPress (when the WordPress invite is set up) and makes sure its Keycloak group exists, then grants the online issue's license group to every customer with an active abonement and queues a mail with the issue for each of them. Abonnents who already got a mail task for this issue are skipped, so sending again only reaches new abonnents. Granting and queueing happen in the background, the access first; the response contains the number of new recipients.
 //	@Tags			Items
 //	@Produce		json
 //	@Param			id	path		int	true	"Item ID"
@@ -701,11 +705,23 @@ func NotifyAbonementsOnlineIssue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recipients, err := activeAbonementRecipients()
+	allRecipients, err := activeAbonementRecipients()
 	if err != nil {
 		log.Error("NotifyAbonementsOnlineIssue: ", err)
 		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
+	}
+	alreadyMailed, err := database.Db.MailRecipientsForItem(issue.ID, database.MailKindOnlineIssue)
+	if err != nil {
+		log.Error("NotifyAbonementsOnlineIssue: ", err)
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
+		return
+	}
+	recipients := make([]string, 0, len(allRecipients))
+	for _, r := range allRecipients {
+		if !alreadyMailed[strings.ToLower(r)] {
+			recipients = append(recipients, r)
+		}
 	}
 
 	// Granting access and sending one mail per recipient easily take longer than the request
@@ -719,12 +735,13 @@ func NotifyAbonementsOnlineIssue(w http.ResponseWriter, r *http.Request) {
 		sendOnlineIssueMails(issue, issueImageURL, recipients)
 	}()
 
-	respond(w, nil, NotifyAbonementsResponse{Recipients: len(recipients)})
+	respond(w, nil, NotifyAbonementsResponse{Recipients: len(recipients), AlreadyMailed: len(allRecipients) - len(recipients)})
 }
 
 // NotifyAbonementsResponse tells the backoffice how many abonnents get the mail
 type NotifyAbonementsResponse struct {
-	Recipients int `json:"recipients"`
+	Recipients    int `json:"recipients"`
+	AlreadyMailed int `json:"alreadyMailed"`
 }
 
 // activeAbonementRecipients returns the distinct mail addresses of all customers with an
@@ -755,7 +772,7 @@ func activeAbonementRecipients() ([]string, error) {
 	return recipients, nil
 }
 
-// sendOnlineIssueMails mails the online issue to each recipient
+// sendOnlineIssueMails queues a mail with the online issue for each recipient
 func sendOnlineIssueMails(issue database.Item, issueImageURL string, recipients []string) {
 	pdfID, pdfItemID, isPDF := resolveOnlineIssuePDF(issue)
 	failed := 0
@@ -793,12 +810,12 @@ func sendOnlineIssueMails(issue database.Item, issueImageURL string, recipients 
 			}
 		}
 
-		if _, sendErr := mailer.Send(mailReq); sendErr != nil {
-			log.Error("sendOnlineIssueMails: sending failed", sendErr)
+		if _, queueErr := database.Db.QueueMail(mailReq, database.MailMeta{Kind: database.MailKindOnlineIssue, ItemID: issue.ID}); queueErr != nil {
+			log.Error("sendOnlineIssueMails: queueing failed", queueErr)
 			failed++
 		}
 	}
-	log.Infof("sendOnlineIssueMails: online issue %d sent to %d of %d abonnents", issue.ID, len(recipients)-failed, len(recipients))
+	log.Infof("sendOnlineIssueMails: online issue %d queued for %d of %d abonnents", issue.ID, len(recipients)-failed, len(recipients))
 }
 
 // GetItemPDF godoc

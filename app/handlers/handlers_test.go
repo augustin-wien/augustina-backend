@@ -606,6 +606,39 @@ func TestNotifyAbonementsOnlineIssue(t *testing.T) {
 	require.Contains(t, mail.Body(), "<img")
 	require.Contains(t, mail.Body(), "https://frontend.test/img/new-issue.jpg")
 
+	// The delivery is stored for the issue
+	require.Eventually(t, func() bool {
+		res := utils.TestRequestWithAuth(t, r, "GET", notifyURL, nil, 200, adminUserToken)
+		var status database.MailDeliveryStatus
+		require.NoError(t, json.Unmarshal(res.Body.Bytes(), &status))
+		return status.Total == 1 && status.Counts[database.MailTaskSent] == 1 && status.LastSentAt.Valid
+	}, 5*time.Second, 50*time.Millisecond)
+
+	// Sending again skips abonnents who already got the issue
+	res = utils.TestRequestWithAuth(t, r, "POST", notifyURL, nil, 200, adminUserToken)
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &response))
+	require.Equal(t, 0, response.Recipients)
+	require.Equal(t, 1, response.AlreadyMailed)
+	time.Sleep(200 * time.Millisecond)
+	require.Equal(t, 1, mailCount())
+
+	// The mail is listed and can be sent again
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/mail-tasks/?kind=online_issue&item_id="+strconv.Itoa(onlineIssueID), nil, 200, adminUserToken)
+	var list database.MailTaskList
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &list))
+	require.Equal(t, 1, list.Total)
+	require.Equal(t, []string{"online.issue.customer@example.com"}, list.Tasks[0].Recipients)
+	taskURL := "/api/mail-tasks/" + strconv.Itoa(list.Tasks[0].ID) + "/"
+	res = utils.TestRequestWithAuth(t, r, "GET", taskURL, nil, 200, adminUserToken)
+	var task database.MailTask
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &task))
+	require.Contains(t, task.Body, "<img")
+	utils.TestRequestWithAuth(t, r, "POST", taskURL+"retry/", nil, 200, adminUserToken)
+	require.Eventually(t, func() bool { return mailCount() == 2 }, 5*time.Second, 50*time.Millisecond)
+	utils.TestRequestWithAuth(t, r, "GET", "/api/mail-tasks/?status=bogus", nil, 400, adminUserToken)
+	utils.TestRequestWithAuth(t, r, "GET", "/api/mail-tasks/999999/", nil, 404, adminUserToken)
+	utils.TestRequest(t, r, "GET", "/api/mail-tasks/", nil, 401)
+
 	// Only online issues can be sent
 	utils.TestRequestWithAuth(t, r, "POST", "/api/items/"+strconv.Itoa(items[0].ID)+"/notify-abonements/", nil, 400, adminUserToken)
 }

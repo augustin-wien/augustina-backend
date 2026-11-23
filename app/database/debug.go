@@ -3,11 +3,13 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect"
 	"github.com/augustin-wien/augustina-backend/utils"
+	"github.com/lib/pq"
 )
 
 type DebugDriver struct {
@@ -84,9 +86,19 @@ func (d *DebugTx) Rollback() error {
 func logQuery(ctx context.Context, op, query string, args any, duration time.Duration, err error) {
 	logger := utils.LoggerFromContext(ctx)
 	msg := fmt.Sprintf("driver.Query: query=%s args=%v", query, args)
-	if err != nil {
+	if isConstraintViolation(err) {
+		// Rejected input, e.g. a taken name; the caller decides whether that is an error
+		logger.Warnw(msg, "op", op, "duration", duration, "error", err)
+	} else if err != nil {
 		logger.Errorw(msg, "op", op, "duration", duration, "error", err)
 	} else {
 		logger.Debugw(msg, "op", op, "duration", duration)
 	}
+}
+
+// isConstraintViolation reports whether Postgres rejected a statement for violating a
+// constraint (SQLSTATE class 23), e.g. a unique name
+func isConstraintViolation(err error) bool {
+	var pqErr *pq.Error
+	return errors.As(err, &pqErr) && pqErr.Code.Class() == "23"
 }

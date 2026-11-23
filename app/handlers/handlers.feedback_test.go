@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"mime/multipart"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/mailer"
@@ -72,10 +74,21 @@ func TestSendFeedback(t *testing.T) {
 
 	origSend := mailer.Send
 	defer func() { mailer.Send = origSend }()
+	var sentMu sync.Mutex
 	var sent []*mailer.EmailRequest
 	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
+		sentMu.Lock()
+		defer sentMu.Unlock()
 		sent = append(sent, r)
 		return true, nil
+	}
+	// Mails are queued and sent in the background
+	waitForSent := func(n int) {
+		require.Eventually(t, func() bool {
+			sentMu.Lock()
+			defer sentMu.Unlock()
+			return len(sent) == n
+		}, 5*time.Second, 20*time.Millisecond)
 	}
 
 	feedback := FeedbackInput{
@@ -94,7 +107,7 @@ func TestSendFeedback(t *testing.T) {
 	utils.TestRequest(t, r, "POST", "/api/feedback/", FeedbackInput{Message: "   "}, 400)
 	utils.TestRequest(t, r, "POST", "/api/feedback/", feedback, 200)
 
-	require.Len(t, sent, 1)
+	waitForSent(1)
 	body := sent[0].Body()
 	require.Contains(t, body, "Hat &lt;b&gt;super&lt;/b&gt; geklappt")
 	require.Contains(t, body, "tx-123")

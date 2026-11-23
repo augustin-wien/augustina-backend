@@ -22,6 +22,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/externalpayment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/mailtask"
 	"github.com/augustin-wien/augustina-backend/ent/mailtemplate"
 	"github.com/augustin-wien/augustina-backend/ent/order"
 	"github.com/augustin-wien/augustina-backend/ent/orderentry"
@@ -100,6 +101,7 @@ func checkColumn(t, c string) error {
 			externalpayment.Table: externalpayment.ValidColumn,
 			item.Table:            item.ValidColumn,
 			location.Table:        location.ValidColumn,
+			mailtask.Table:        mailtask.ValidColumn,
 			mailtemplate.Table:    mailtemplate.ValidColumn,
 			order.Table:           order.ValidColumn,
 			orderentry.Table:      orderentry.ValidColumn,

@@ -751,7 +751,7 @@ const inviteMaxOrderAge = time.Hour
 // if it has one. PDF purchases only get a download link.
 func onlineAccessItem(order database.Order) (item database.Item, ok bool) {
 	for _, entry := range order.Entries {
-		item, err := database.Db.GetItemIncludingDisabled(entry.Item)
+		item, err := database.Db.GetItemIncludingArchived(entry.Item)
 		if err != nil {
 			continue
 		}

@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/augustin-wien/augustina-backend/database"
-	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/reports"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/go-chi/chi/v5"
@@ -110,7 +109,7 @@ func SendMonthlyReport(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	err := reports.SendMonthly(month, mailer.Send)
+	err := reports.SendMonthly(month, database.Db.QueueMailFunc(database.MailMeta{Kind: database.MailKindAccountingReport}))
 	if errors.Is(err, reports.ErrNoRecipients) {
 		utils.ErrorJSON(w, err, http.StatusBadRequest)
 		return

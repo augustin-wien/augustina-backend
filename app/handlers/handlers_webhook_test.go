@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -970,4 +971,97 @@ func TestVivaWalletWebhookSuccess_UnconfirmedTransactionKeepsStoredOne(t *testin
 	require.NoError(t, err)
 	require.False(t, order.Verified)
 	require.Equal(t, "confirmed-tx", order.TransactionID)
+}
+
+func TestVivaWalletWebhookSuccess_LicenseItemArchivedAfterOrder(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	require.NoError(t, database.Db.InitEmptyTestDb())
+
+	vendorLicenseID := "testwebhookarchivedlicense"
+	createTestVendor(t, vendorLicenseID)
+	vendor, err := database.Db.GetVendorByLicenseID(vendorLicenseID)
+	require.NoError(t, err)
+	buyerAccountID, err := database.Db.GetAccountTypeID("UserAnon")
+	require.NoError(t, err)
+	vendorAccount, err := database.Db.GetAccountByVendorID(vendor.ID)
+	require.NoError(t, err)
+
+	itemID, _ := strconv.Atoi(CreateTestItem(t, "Issue", 5000, "", ""))
+	licenseItemID, _ := strconv.Atoi(CreateTestItem(t, "Issue License", 2000, "", ""))
+	require.NoError(t, database.Db.EntClient.Item.UpdateOneID(licenseItemID).SetIsLicenseItem(true).Exec(context.Background()))
+
+	orderCodeStr := "6543210987654321"
+	orderCodeInt, _ := strconv.ParseInt(orderCodeStr, 10, 64)
+	transactionID := "test-txn-archived-license"
+	_, err = database.Db.CreateOrder(database.Order{
+		OrderCode: null.StringFrom(orderCodeStr),
+		Vendor:    vendor.ID,
+		Timestamp: time.Now(),
+		Entries: []database.OrderEntry{
+			{Item: itemID, Quantity: 1, Price: 5000, Sender: buyerAccountID, Receiver: vendorAccount.ID, IsSale: true},
+			{Item: licenseItemID, Quantity: 1, Price: 2000, Sender: buyerAccountID, Receiver: vendorAccount.ID, IsSale: true},
+		},
+	})
+	require.NoError(t, err)
+
+	// The license item is taken out of the shop while the customer is paying
+	require.NoError(t, database.Db.EntClient.Item.UpdateOneID(licenseItemID).SetArchived(true).SetDisabled(true).Exec(context.Background()))
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/connect/token" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"access_token": "fake_token", "expires_in": 3600, "token_type": "Bearer", "scope": "api"}`))
+			return
+		}
+		if r.URL.Path == "/checkout/v2/transactions/"+transactionID {
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(paymentprovider.TransactionVerificationResponse{
+				Amount:    50.00,
+				OrderCode: paymentprovider.VivaOrderCode(orderCodeInt),
+				StatusID:  "F",
+			})
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer mockServer.Close()
+
+	originalAPIURL := config.Config.VivaWalletAPIURL
+	originalAccountsURL := config.Config.VivaWalletAccountsURL
+	originalTransactionCostsName := config.Config.TransactionCostsName
+	originalClientID := config.Config.VivaWalletSmartCheckoutClientID
+	originalClientKey := config.Config.VivaWalletSmartCheckoutClientKey
+	defer func() {
+		config.Config.VivaWalletAPIURL = originalAPIURL
+		config.Config.VivaWalletAccountsURL = originalAccountsURL
+		config.Config.TransactionCostsName = originalTransactionCostsName
+		config.Config.VivaWalletSmartCheckoutClientID = originalClientID
+		config.Config.VivaWalletSmartCheckoutClientKey = originalClientKey
+	}()
+	config.Config.VivaWalletAPIURL = mockServer.URL
+	config.Config.VivaWalletAccountsURL = mockServer.URL
+	config.Config.TransactionCostsName = "Transaction Costs"
+	config.Config.VivaWalletSmartCheckoutClientID = "dummy"
+	config.Config.VivaWalletSmartCheckoutClientKey = "dummy"
+	CreateTestItem(t, config.Config.TransactionCostsName, 1, "", "")
+
+	payload, _ := json.Marshal(paymentprovider.TransactionSuccessRequest{
+		EventData: paymentprovider.EventData{
+			OrderCode:     paymentprovider.VivaOrderCode(orderCodeInt),
+			TransactionID: transactionID,
+			Amount:        50.00,
+			StatusID:      "F",
+		},
+	})
+	req := httptest.NewRequest("POST", "/webhooks/vivawallet/success/", bytes.NewReader(payload))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	VivaWalletWebhookSuccess(rec, req)
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	updatedOrder, err := database.Db.GetOrderByOrderCode(orderCodeStr)
+	require.NoError(t, err)
+	require.True(t, updatedOrder.Verified, "the archived license item is still left out of the sum")
 }

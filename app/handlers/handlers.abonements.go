@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/database"
-	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/go-chi/chi/v5"
 )
@@ -60,7 +59,9 @@ func CreateAbonement(w http.ResponseWriter, r *http.Request) {
 				}
 				mailReq, mailErr := database.BuildEmailRequestFromTemplate("abonementConfirmation", []string{customer.Email}, templateData)
 				if mailErr == nil && mailReq != nil {
-					_, _ = mailer.Send(mailReq)
+					if _, err := database.Db.QueueMail(mailReq, database.MailMeta{Kind: database.MailKindAbonementConfirmation, ItemID: item.ID}); err != nil {
+						log.Error("CreateAbonement: failed to queue confirmation mail: ", err)
+					}
 				}
 			}
 

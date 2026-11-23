@@ -254,6 +254,46 @@ func (_u *OrderUpdate) ClearInvalidatedAt() *OrderUpdate {
 	return _u
 }
 
+// SetReconcileFailedAt sets the "reconcile_failed_at" field.
+func (_u *OrderUpdate) SetReconcileFailedAt(v time.Time) *OrderUpdate {
+	_u.mutation.SetReconcileFailedAt(v)
+	return _u
+}
+
+// SetNillableReconcileFailedAt sets the "reconcile_failed_at" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableReconcileFailedAt(v *time.Time) *OrderUpdate {
+	if v != nil {
+		_u.SetReconcileFailedAt(*v)
+	}
+	return _u
+}
+
+// ClearReconcileFailedAt clears the value of the "reconcile_failed_at" field.
+func (_u *OrderUpdate) ClearReconcileFailedAt() *OrderUpdate {
+	_u.mutation.ClearReconcileFailedAt()
+	return _u
+}
+
+// SetReconcileError sets the "reconcile_error" field.
+func (_u *OrderUpdate) SetReconcileError(v string) *OrderUpdate {
+	_u.mutation.SetReconcileError(v)
+	return _u
+}
+
+// SetNillableReconcileError sets the "reconcile_error" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableReconcileError(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetReconcileError(*v)
+	}
+	return _u
+}
+
+// ClearReconcileError clears the value of the "reconcile_error" field.
+func (_u *OrderUpdate) ClearReconcileError() *OrderUpdate {
+	_u.mutation.ClearReconcileError()
+	return _u
+}
+
 // SetNewsletter sets the "newsletter" field.
 func (_u *OrderUpdate) SetNewsletter(v bool) *OrderUpdate {
 	_u.mutation.SetNewsletter(v)
@@ -490,6 +530,18 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.InvalidatedAtCleared() {
 		_spec.ClearField(order.FieldInvalidatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ReconcileFailedAt(); ok {
+		_spec.SetField(order.FieldReconcileFailedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ReconcileFailedAtCleared() {
+		_spec.ClearField(order.FieldReconcileFailedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ReconcileError(); ok {
+		_spec.SetField(order.FieldReconcileError, field.TypeString, value)
+	}
+	if _u.mutation.ReconcileErrorCleared() {
+		_spec.ClearField(order.FieldReconcileError, field.TypeString)
 	}
 	if value, ok := _u.mutation.Newsletter(); ok {
 		_spec.SetField(order.FieldNewsletter, field.TypeBool, value)
@@ -843,6 +895,46 @@ func (_u *OrderUpdateOne) ClearInvalidatedAt() *OrderUpdateOne {
 	return _u
 }
 
+// SetReconcileFailedAt sets the "reconcile_failed_at" field.
+func (_u *OrderUpdateOne) SetReconcileFailedAt(v time.Time) *OrderUpdateOne {
+	_u.mutation.SetReconcileFailedAt(v)
+	return _u
+}
+
+// SetNillableReconcileFailedAt sets the "reconcile_failed_at" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableReconcileFailedAt(v *time.Time) *OrderUpdateOne {
+	if v != nil {
+		_u.SetReconcileFailedAt(*v)
+	}
+	return _u
+}
+
+// ClearReconcileFailedAt clears the value of the "reconcile_failed_at" field.
+func (_u *OrderUpdateOne) ClearReconcileFailedAt() *OrderUpdateOne {
+	_u.mutation.ClearReconcileFailedAt()
+	return _u
+}
+
+// SetReconcileError sets the "reconcile_error" field.
+func (_u *OrderUpdateOne) SetReconcileError(v string) *OrderUpdateOne {
+	_u.mutation.SetReconcileError(v)
+	return _u
+}
+
+// SetNillableReconcileError sets the "reconcile_error" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableReconcileError(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetReconcileError(*v)
+	}
+	return _u
+}
+
+// ClearReconcileError clears the value of the "reconcile_error" field.
+func (_u *OrderUpdateOne) ClearReconcileError() *OrderUpdateOne {
+	_u.mutation.ClearReconcileError()
+	return _u
+}
+
 // SetNewsletter sets the "newsletter" field.
 func (_u *OrderUpdateOne) SetNewsletter(v bool) *OrderUpdateOne {
 	_u.mutation.SetNewsletter(v)
@@ -1109,6 +1201,18 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.InvalidatedAtCleared() {
 		_spec.ClearField(order.FieldInvalidatedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ReconcileFailedAt(); ok {
+		_spec.SetField(order.FieldReconcileFailedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ReconcileFailedAtCleared() {
+		_spec.ClearField(order.FieldReconcileFailedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ReconcileError(); ok {
+		_spec.SetField(order.FieldReconcileError, field.TypeString, value)
+	}
+	if _u.mutation.ReconcileErrorCleared() {
+		_spec.ClearField(order.FieldReconcileError, field.TypeString)
 	}
 	if value, ok := _u.mutation.Newsletter(); ok {
 		_spec.SetField(order.FieldNewsletter, field.TypeBool, value)

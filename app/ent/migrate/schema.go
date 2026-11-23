@@ -238,6 +238,52 @@ var (
 			},
 		},
 	}
+	// MailTaskColumns holds the columns for the "mail_task" table.
+	MailTaskColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "kind", Type: field.TypeString},
+		{Name: "recipients", Type: field.TypeString, Size: 2147483647},
+		{Name: "subject", Type: field.TypeString, Size: 2147483647},
+		{Name: "body", Type: field.TypeString, Size: 2147483647},
+		{Name: "attachments", Type: field.TypeBytes, Nullable: true},
+		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "attempts", Type: field.TypeInt, Default: 0},
+		{Name: "last_error", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "next_attempt_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "sent_at", Type: field.TypeTime, Nullable: true},
+		{Name: "order_id", Type: field.TypeInt, Nullable: true},
+		{Name: "item_id", Type: field.TypeInt, Nullable: true},
+	}
+	// MailTaskTable holds the schema information for the "mail_task" table.
+	MailTaskTable = &schema.Table{
+		Name:       "mail_task",
+		Columns:    MailTaskColumns,
+		PrimaryKey: []*schema.Column{MailTaskColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "mailtask_status_next_attempt_at",
+				Unique:  false,
+				Columns: []*schema.Column{MailTaskColumns[6], MailTaskColumns[9]},
+			},
+			{
+				Name:    "mailtask_item_id_kind",
+				Unique:  false,
+				Columns: []*schema.Column{MailTaskColumns[14], MailTaskColumns[1]},
+			},
+			{
+				Name:    "mailtask_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{MailTaskColumns[13]},
+			},
+			{
+				Name:    "mailtask_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{MailTaskColumns[10]},
+			},
+		},
+	}
 	// MailTemplatesColumns holds the columns for the "mail_templates" table.
 	MailTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -268,6 +314,8 @@ var (
 		{Name: "odoo_synced_at", Type: field.TypeTime, Nullable: true},
 		{Name: "odoo_sync_error", Type: field.TypeString, Nullable: true},
 		{Name: "invalidated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "reconcile_failed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "reconcile_error", Type: field.TypeString, Nullable: true},
 		{Name: "newsletter", Type: field.TypeBool, Default: false},
 		{Name: "payment_event_id", Type: field.TypeInt, Nullable: true},
 		{Name: "payment_failed_at", Type: field.TypeTime, Nullable: true},
@@ -283,6 +331,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "quantity", Type: field.TypeInt},
 		{Name: "price", Type: field.TypeInt},
+		{Name: "item_name", Type: field.TypeString, Default: ""},
 		{Name: "is_sale", Type: field.TypeBool},
 		{Name: "paymentorder", Type: field.TypeInt, Nullable: true},
 		{Name: "item", Type: field.TypeInt},
@@ -297,25 +346,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orderentry_paymentorder_entries",
-				Columns:    []*schema.Column{OrderentryColumns[4]},
+				Columns:    []*schema.Column{OrderentryColumns[5]},
 				RefColumns: []*schema.Column{PaymentorderColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "orderentry_item_item",
-				Columns:    []*schema.Column{OrderentryColumns[5]},
+				Columns:    []*schema.Column{OrderentryColumns[6]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orderentry_account_sender",
-				Columns:    []*schema.Column{OrderentryColumns[6]},
+				Columns:    []*schema.Column{OrderentryColumns[7]},
 				RefColumns: []*schema.Column{AccountColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orderentry_account_receiver",
-				Columns:    []*schema.Column{OrderentryColumns[7]},
+				Columns:    []*schema.Column{OrderentryColumns[8]},
 				RefColumns: []*schema.Column{AccountColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -502,6 +551,7 @@ var (
 		ExternalPaymentsTable,
 		ItemTable,
 		LocationsTable,
+		MailTaskTable,
 		MailTemplatesTable,
 		PaymentorderTable,
 		OrderentryTable,
@@ -536,6 +586,9 @@ func init() {
 		Table: "item",
 	}
 	LocationsTable.ForeignKeys[0].RefTable = VendorTable
+	MailTaskTable.Annotation = &entsql.Annotation{
+		Table: "mail_task",
+	}
 	PaymentorderTable.Annotation = &entsql.Annotation{
 		Table: "paymentorder",
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/externalpayment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/mailtask"
 	"github.com/augustin-wien/augustina-backend/ent/mailtemplate"
 	"github.com/augustin-wien/augustina-backend/ent/order"
 	"github.com/augustin-wien/augustina-backend/ent/orderentry"
@@ -60,6 +61,8 @@ type Client struct {
 	Item *ItemClient
 	// Location is the client for interacting with the Location builders.
 	Location *LocationClient
+	// MailTask is the client for interacting with the MailTask builders.
+	MailTask *MailTaskClient
 	// MailTemplate is the client for interacting with the MailTemplate builders.
 	MailTemplate *MailTemplateClient
 	// Order is the client for interacting with the Order builders.
@@ -97,6 +100,7 @@ func (c *Client) init() {
 	c.ExternalPayment = NewExternalPaymentClient(c.config)
 	c.Item = NewItemClient(c.config)
 	c.Location = NewLocationClient(c.config)
+	c.MailTask = NewMailTaskClient(c.config)
 	c.MailTemplate = NewMailTemplateClient(c.config)
 	c.Order = NewOrderClient(c.config)
 	c.OrderEntry = NewOrderEntryClient(c.config)
@@ -207,6 +211,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ExternalPayment: NewExternalPaymentClient(cfg),
 		Item:            NewItemClient(cfg),
 		Location:        NewLocationClient(cfg),
+		MailTask:        NewMailTaskClient(cfg),
 		MailTemplate:    NewMailTemplateClient(cfg),
 		Order:           NewOrderClient(cfg),
 		OrderEntry:      NewOrderEntryClient(cfg),
@@ -244,6 +249,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ExternalPayment: NewExternalPaymentClient(cfg),
 		Item:            NewItemClient(cfg),
 		Location:        NewLocationClient(cfg),
+		MailTask:        NewMailTaskClient(cfg),
 		MailTemplate:    NewMailTemplateClient(cfg),
 		Order:           NewOrderClient(cfg),
 		OrderEntry:      NewOrderEntryClient(cfg),
@@ -282,8 +288,9 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Abonement, c.Account, c.BlockedIP, c.Campaign, c.Comment, c.Customer,
-		c.DBSettings, c.ExternalPayment, c.Item, c.Location, c.MailTemplate, c.Order,
-		c.OrderEntry, c.PDF, c.PDFDownload, c.Payment, c.Settings, c.Vendor,
+		c.DBSettings, c.ExternalPayment, c.Item, c.Location, c.MailTask,
+		c.MailTemplate, c.Order, c.OrderEntry, c.PDF, c.PDFDownload, c.Payment,
+		c.Settings, c.Vendor,
 	} {
 		n.Use(hooks...)
 	}
@@ -294,8 +301,9 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Abonement, c.Account, c.BlockedIP, c.Campaign, c.Comment, c.Customer,
-		c.DBSettings, c.ExternalPayment, c.Item, c.Location, c.MailTemplate, c.Order,
-		c.OrderEntry, c.PDF, c.PDFDownload, c.Payment, c.Settings, c.Vendor,
+		c.DBSettings, c.ExternalPayment, c.Item, c.Location, c.MailTask,
+		c.MailTemplate, c.Order, c.OrderEntry, c.PDF, c.PDFDownload, c.Payment,
+		c.Settings, c.Vendor,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -324,6 +332,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Item.mutate(ctx, m)
 	case *LocationMutation:
 		return c.Location.mutate(ctx, m)
+	case *MailTaskMutation:
+		return c.MailTask.mutate(ctx, m)
 	case *MailTemplateMutation:
 		return c.MailTemplate.mutate(ctx, m)
 	case *OrderMutation:
@@ -1803,6 +1813,139 @@ func (c *LocationClient) mutate(ctx context.Context, m *LocationMutation) (Value
 	}
 }
 
+// MailTaskClient is a client for the MailTask schema.
+type MailTaskClient struct {
+	config
+}
+
+// NewMailTaskClient returns a client for the MailTask from the given config.
+func NewMailTaskClient(c config) *MailTaskClient {
+	return &MailTaskClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `mailtask.Hooks(f(g(h())))`.
+func (c *MailTaskClient) Use(hooks ...Hook) {
+	c.hooks.MailTask = append(c.hooks.MailTask, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `mailtask.Intercept(f(g(h())))`.
+func (c *MailTaskClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MailTask = append(c.inters.MailTask, interceptors...)
+}
+
+// Create returns a builder for creating a MailTask entity.
+func (c *MailTaskClient) Create() *MailTaskCreate {
+	mutation := newMailTaskMutation(c.config, OpCreate)
+	return &MailTaskCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MailTask entities.
+func (c *MailTaskClient) CreateBulk(builders ...*MailTaskCreate) *MailTaskCreateBulk {
+	return &MailTaskCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MailTaskClient) MapCreateBulk(slice any, setFunc func(*MailTaskCreate, int)) *MailTaskCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MailTaskCreateBulk{err: fmt.Errorf("calling to MailTaskClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MailTaskCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MailTaskCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MailTask.
+func (c *MailTaskClient) Update() *MailTaskUpdate {
+	mutation := newMailTaskMutation(c.config, OpUpdate)
+	return &MailTaskUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MailTaskClient) UpdateOne(_m *MailTask) *MailTaskUpdateOne {
+	mutation := newMailTaskMutation(c.config, OpUpdateOne, withMailTask(_m))
+	return &MailTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MailTaskClient) UpdateOneID(id int) *MailTaskUpdateOne {
+	mutation := newMailTaskMutation(c.config, OpUpdateOne, withMailTaskID(id))
+	return &MailTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MailTask.
+func (c *MailTaskClient) Delete() *MailTaskDelete {
+	mutation := newMailTaskMutation(c.config, OpDelete)
+	return &MailTaskDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MailTaskClient) DeleteOne(_m *MailTask) *MailTaskDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MailTaskClient) DeleteOneID(id int) *MailTaskDeleteOne {
+	builder := c.Delete().Where(mailtask.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MailTaskDeleteOne{builder}
+}
+
+// Query returns a query builder for MailTask.
+func (c *MailTaskClient) Query() *MailTaskQuery {
+	return &MailTaskQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMailTask},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MailTask entity by its id.
+func (c *MailTaskClient) Get(ctx context.Context, id int) (*MailTask, error) {
+	return c.Query().Where(mailtask.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MailTaskClient) GetX(ctx context.Context, id int) *MailTask {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MailTaskClient) Hooks() []Hook {
+	return c.hooks.MailTask
+}
+
+// Interceptors returns the client interceptors.
+func (c *MailTaskClient) Interceptors() []Interceptor {
+	return c.inters.MailTask
+}
+
+func (c *MailTaskClient) mutate(ctx context.Context, m *MailTaskMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MailTaskCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MailTaskUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MailTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MailTaskDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MailTask mutation op: %q", m.Op())
+	}
+}
+
 // MailTemplateClient is a client for the MailTemplate schema.
 type MailTemplateClient struct {
 	config
@@ -3079,12 +3222,12 @@ func (c *VendorClient) mutate(ctx context.Context, m *VendorMutation) (Value, er
 type (
 	hooks struct {
 		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings,
-		ExternalPayment, Item, Location, MailTemplate, Order, OrderEntry, PDF,
-		PDFDownload, Payment, Settings, Vendor []ent.Hook
+		ExternalPayment, Item, Location, MailTask, MailTemplate, Order, OrderEntry,
+		PDF, PDFDownload, Payment, Settings, Vendor []ent.Hook
 	}
 	inters struct {
 		Abonement, Account, BlockedIP, Campaign, Comment, Customer, DBSettings,
-		ExternalPayment, Item, Location, MailTemplate, Order, OrderEntry, PDF,
-		PDFDownload, Payment, Settings, Vendor []ent.Interceptor
+		ExternalPayment, Item, Location, MailTask, MailTemplate, Order, OrderEntry,
+		PDF, PDFDownload, Payment, Settings, Vendor []ent.Interceptor
 	}
 )

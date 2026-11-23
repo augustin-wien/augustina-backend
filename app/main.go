@@ -103,6 +103,7 @@ func main() {
 
 	mailer.Init()
 
+	jobs.StartMailQueue()
 	jobs.StartOrderReconciliation()
 	jobs.StartMonthlyAccountingReport()
 

@@ -129,6 +129,18 @@ func (f LocationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LocationMutation", m)
 }
 
+// The MailTaskFunc type is an adapter to allow the use of ordinary
+// function as MailTask mutator.
+type MailTaskFunc func(context.Context, *ent.MailTaskMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MailTaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MailTaskMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MailTaskMutation", m)
+}
+
 // The MailTemplateFunc type is an adapter to allow the use of ordinary
 // function as MailTemplate mutator.
 type MailTemplateFunc func(context.Context, *ent.MailTemplateMutation) (ent.Value, error)

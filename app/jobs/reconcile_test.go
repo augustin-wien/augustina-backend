@@ -10,6 +10,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,6 +54,21 @@ func createUnverifiedOrder(t *testing.T, transactionID string, age time.Duration
 	return o.ID
 }
 
+// createPaidOrder creates an unverified order without entries carrying an order code
+func createPaidOrder(t *testing.T, transactionID, orderCode string, age time.Duration) int {
+	t.Helper()
+	id := createUnverifiedOrder(t, transactionID, age)
+	require.NoError(t, database.Db.EntClient.Order.UpdateOneID(id).SetOrderCode(orderCode).Exec(context.Background()))
+	return id
+}
+
+func getOrder(t *testing.T, orderID int) *ent.Order {
+	t.Helper()
+	o, err := database.Db.EntClient.Order.Get(context.Background(), orderID)
+	require.NoError(t, err)
+	return o
+}
+
 func isInvalidated(t *testing.T, orderID int) bool {
 	t.Helper()
 
@@ -66,6 +82,17 @@ func isInvalidated(t *testing.T, orderID int) bool {
 // /connect/token and /checkout/v2/transactions/{id}, and restores the previous config after.
 func mockVivaWallet(t *testing.T, statusID string, transactionErr bool) {
 	t.Helper()
+	mockVivaWalletResponse(t, `{"statusId": "`+statusID+`"}`, transactionErr)
+}
+
+// mockVivaWalletPaid answers like VivaWallet for a successful transaction of the order
+func mockVivaWalletPaid(t *testing.T, orderCode string, amount string) {
+	t.Helper()
+	mockVivaWalletResponse(t, `{"statusId": "F", "orderCode": `+orderCode+`, "amount": `+amount+`, "transactionTypeId": 5}`, false)
+}
+
+func mockVivaWalletResponse(t *testing.T, body string, transactionErr bool) {
+	t.Helper()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/connect/token" {
@@ -78,7 +105,7 @@ func mockVivaWallet(t *testing.T, statusID string, transactionErr bool) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"statusId": "` + statusID + `"}`))
+		_, _ = w.Write([]byte(body))
 	}))
 	t.Cleanup(server.Close)
 
@@ -124,7 +151,8 @@ func TestReconcile_NeverInvalidatesAnOrderVivaWalletConfirmsWasPaid(t *testing.T
 	require.NoError(t, database.Db.InitEmptyTestDb())
 	mockVivaWallet(t, "F", false)
 
-	id := createUnverifiedOrder(t, "paid-tx-id", 30*time.Minute)
+	// The answer carries no order code, so the order cannot be verified either
+	id := createPaidOrder(t, "paid-tx-id", "1111222233334444", 30*time.Minute)
 
 	reconcileUnverifiedOrders()
 
@@ -135,20 +163,40 @@ func TestReconcile_NeverInvalidatesAnOrderVivaWalletConfirmsWasPaid(t *testing.T
 	require.Contains(t, orderIDs(orders), id, "it must stay visible for a human to resolve")
 }
 
-func TestReconcile_AlertsPaidOrderOnlyAfterAlertDelay(t *testing.T) {
+func TestReconcile_VerifiesPaidOrderOnlyAfterVerifyDelay(t *testing.T) {
 	require.NoError(t, database.Db.InitEmptyTestDb())
-	t.Cleanup(func() { forgetResolvedAlerts(nil) })
-	mockVivaWallet(t, "F", false)
+	mockVivaWalletPaid(t, "1111222233334444", "0")
 
-	recent := createUnverifiedOrder(t, "paid-recent-tx-id", 10*time.Minute)
-	old := createUnverifiedOrder(t, "paid-old-tx-id", 30*time.Minute)
+	recent := createPaidOrder(t, "paid-recent-tx-id", "5555666677778888", 10*time.Minute)
+	old := createPaidOrder(t, "paid-old-tx-id", "1111222233334444", 30*time.Minute)
 
 	reconcileUnverifiedOrders()
 
-	alertedMu.Lock()
-	defer alertedMu.Unlock()
-	require.NotContains(t, lastAlerted, recent, "the webhook may still be on its way")
-	require.Contains(t, lastAlerted, old)
+	require.False(t, getOrder(t, recent).Verified, "the webhook may still be on its way")
+	require.True(t, getOrder(t, old).Verified, "a paid order the webhook never verified is verified by the job")
+	require.Nil(t, getOrder(t, old).ReconcileFailedAt)
+}
+
+func TestReconcile_RecordsFailureOnceWhenPaidOrderCannotBeVerified(t *testing.T) {
+	require.NoError(t, database.Db.InitEmptyTestDb())
+	// The order has no entries, so a paid amount of 5 EUR does not match it
+	mockVivaWalletPaid(t, "1111222233334444", "5")
+
+	id := createPaidOrder(t, "paid-tx-id", "1111222233334444", 30*time.Minute)
+
+	reconcileUnverifiedOrders()
+
+	o := getOrder(t, id)
+	require.False(t, o.Verified)
+	require.False(t, isInvalidated(t, id))
+	require.NotNil(t, o.ReconcileFailedAt)
+	require.NotNil(t, o.ReconcileError)
+	require.Contains(t, *o.ReconcileError, "order_sum_mismatch")
+	firstFailure := *o.ReconcileFailedAt
+
+	reconcileUnverifiedOrders()
+
+	require.True(t, firstFailure.Equal(*getOrder(t, id).ReconcileFailedAt), "the failure is recorded, and reported, only the first time")
 }
 
 func TestReconcile_InvalidatesOldOrderVivaWalletConfirmsFailed(t *testing.T) {
@@ -214,23 +262,4 @@ func TestReconcile_LeavesRecentOrderWithPlaceholderTransactionIDAlone(t *testing
 	reconcileUnverifiedOrders()
 
 	require.False(t, isInvalidated(t, id), "an order still inside invalidateTimeout must not be invalidated yet")
-}
-
-func TestShouldAlert_DeduplicatesWithinRealertInterval(t *testing.T) {
-	t.Cleanup(func() { forgetResolvedAlerts(nil) })
-	now := time.Now()
-
-	require.True(t, shouldAlert(1, now), "first sighting alerts")
-	require.False(t, shouldAlert(1, now.Add(15*time.Minute)), "next reconcile run must not re-alert")
-	require.True(t, shouldAlert(2, now.Add(15*time.Minute)), "another order alerts independently")
-	require.True(t, shouldAlert(1, now.Add(realertInterval)), "still unresolved after realertInterval alerts again")
-}
-
-func TestForgetResolvedAlerts_ReAlertsIfOrderComesBack(t *testing.T) {
-	t.Cleanup(func() { forgetResolvedAlerts(nil) })
-	now := time.Now()
-
-	require.True(t, shouldAlert(1, now))
-	forgetResolvedAlerts([]database.Order{{ID: 2}})
-	require.True(t, shouldAlert(1, now.Add(time.Minute)), "state for an order no longer unverified is dropped")
 }

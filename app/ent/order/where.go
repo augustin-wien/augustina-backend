@@ -115,6 +115,16 @@ func InvalidatedAt(v time.Time) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldInvalidatedAt, v))
 }
 
+// ReconcileFailedAt applies equality check predicate on the "reconcile_failed_at" field. It's identical to ReconcileFailedAtEQ.
+func ReconcileFailedAt(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldReconcileFailedAt, v))
+}
+
+// ReconcileError applies equality check predicate on the "reconcile_error" field. It's identical to ReconcileErrorEQ.
+func ReconcileError(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldReconcileError, v))
+}
+
 // Newsletter applies equality check predicate on the "newsletter" field. It's identical to NewsletterEQ.
 func Newsletter(v bool) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldNewsletter, v))
@@ -773,6 +783,131 @@ func InvalidatedAtIsNil() predicate.Order {
 // InvalidatedAtNotNil applies the NotNil predicate on the "invalidated_at" field.
 func InvalidatedAtNotNil() predicate.Order {
 	return predicate.Order(sql.FieldNotNull(FieldInvalidatedAt))
+}
+
+// ReconcileFailedAtEQ applies the EQ predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldReconcileFailedAt, v))
+}
+
+// ReconcileFailedAtNEQ applies the NEQ predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtNEQ(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldReconcileFailedAt, v))
+}
+
+// ReconcileFailedAtIn applies the In predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldReconcileFailedAt, vs...))
+}
+
+// ReconcileFailedAtNotIn applies the NotIn predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtNotIn(vs ...time.Time) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldReconcileFailedAt, vs...))
+}
+
+// ReconcileFailedAtGT applies the GT predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtGT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldReconcileFailedAt, v))
+}
+
+// ReconcileFailedAtGTE applies the GTE predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtGTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldReconcileFailedAt, v))
+}
+
+// ReconcileFailedAtLT applies the LT predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtLT(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldReconcileFailedAt, v))
+}
+
+// ReconcileFailedAtLTE applies the LTE predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtLTE(v time.Time) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldReconcileFailedAt, v))
+}
+
+// ReconcileFailedAtIsNil applies the IsNil predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldReconcileFailedAt))
+}
+
+// ReconcileFailedAtNotNil applies the NotNil predicate on the "reconcile_failed_at" field.
+func ReconcileFailedAtNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldReconcileFailedAt))
+}
+
+// ReconcileErrorEQ applies the EQ predicate on the "reconcile_error" field.
+func ReconcileErrorEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldReconcileError, v))
+}
+
+// ReconcileErrorNEQ applies the NEQ predicate on the "reconcile_error" field.
+func ReconcileErrorNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldReconcileError, v))
+}
+
+// ReconcileErrorIn applies the In predicate on the "reconcile_error" field.
+func ReconcileErrorIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldReconcileError, vs...))
+}
+
+// ReconcileErrorNotIn applies the NotIn predicate on the "reconcile_error" field.
+func ReconcileErrorNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldReconcileError, vs...))
+}
+
+// ReconcileErrorGT applies the GT predicate on the "reconcile_error" field.
+func ReconcileErrorGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldReconcileError, v))
+}
+
+// ReconcileErrorGTE applies the GTE predicate on the "reconcile_error" field.
+func ReconcileErrorGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldReconcileError, v))
+}
+
+// ReconcileErrorLT applies the LT predicate on the "reconcile_error" field.
+func ReconcileErrorLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldReconcileError, v))
+}
+
+// ReconcileErrorLTE applies the LTE predicate on the "reconcile_error" field.
+func ReconcileErrorLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldReconcileError, v))
+}
+
+// ReconcileErrorContains applies the Contains predicate on the "reconcile_error" field.
+func ReconcileErrorContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldReconcileError, v))
+}
+
+// ReconcileErrorHasPrefix applies the HasPrefix predicate on the "reconcile_error" field.
+func ReconcileErrorHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldReconcileError, v))
+}
+
+// ReconcileErrorHasSuffix applies the HasSuffix predicate on the "reconcile_error" field.
+func ReconcileErrorHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldReconcileError, v))
+}
+
+// ReconcileErrorIsNil applies the IsNil predicate on the "reconcile_error" field.
+func ReconcileErrorIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldReconcileError))
+}
+
+// ReconcileErrorNotNil applies the NotNil predicate on the "reconcile_error" field.
+func ReconcileErrorNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldReconcileError))
+}
+
+// ReconcileErrorEqualFold applies the EqualFold predicate on the "reconcile_error" field.
+func ReconcileErrorEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldReconcileError, v))
+}
+
+// ReconcileErrorContainsFold applies the ContainsFold predicate on the "reconcile_error" field.
+func ReconcileErrorContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldReconcileError, v))
 }
 
 // NewsletterEQ applies the EQ predicate on the "newsletter" field.
