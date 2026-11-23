@@ -12,6 +12,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/ent"
+	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -171,8 +172,8 @@ func TestHandlersReportDatabaseErrors(t *testing.T) {
 			if tc.auth {
 				req.Header.Set("Authorization", "Bearer "+adminUserToken.AccessToken)
 			}
-			rr := httptest.NewRecorder()
-			require.NotPanics(t, func() { r.ServeHTTP(rr, req) })
+			var rr *httptest.ResponseRecorder
+			require.NotPanics(t, func() { rr = utils.SubmitRequest(req, r) })
 			require.GreaterOrEqual(t, rr.Code, http.StatusBadRequest, "body: %s", rr.Body.String())
 			require.NotEqual(t, "404 page not found\n", rr.Body.String(), "route not registered")
 			require.NotEqual(t, http.StatusMethodNotAllowed, rr.Code)

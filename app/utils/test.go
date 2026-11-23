@@ -3,8 +3,10 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -13,11 +15,20 @@ import (
 
 var log = GetLogger()
 
+// testClientCounter numbers the client addresses of test requests
+var testClientCounter atomic.Uint32
+
 // SubmitRequest creates a new ResponseRecorder
 // then executes the request by calling ServeHTTP in the router
 // after which the handler writes the response to the response recorder
 // which we can then inspect.
+// Requests without an explicit client address each get their own, so the
+// per-IP rate limit of the router does not add up over a whole test run.
 func SubmitRequest(req *http.Request, router *chi.Mux) *httptest.ResponseRecorder {
+	if req.RemoteAddr == "" || req.RemoteAddr == "192.0.2.1:1234" {
+		n := testClientCounter.Add(1)
+		req.RemoteAddr = fmt.Sprintf("10.%d.%d.%d:1234", n>>16&0xff, n>>8&0xff, n&0xff)
+	}
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
 	return rr

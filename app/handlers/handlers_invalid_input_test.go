@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/augustin-wien/augustina-backend/database"
+	"github.com/augustin-wien/augustina-backend/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -76,8 +77,7 @@ func TestHandlersRejectInvalidInput(t *testing.T) {
 		t.Run(tc.method+" "+tc.path+" "+tc.body, func(t *testing.T) {
 			req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
 			req.Header.Set("Authorization", "Bearer "+adminUserToken.AccessToken)
-			rr := httptest.NewRecorder()
-			r.ServeHTTP(rr, req)
+			rr := utils.SubmitRequest(req, r)
 			require.GreaterOrEqual(t, rr.Code, http.StatusBadRequest, rr.Body.String())
 			require.Less(t, rr.Code, http.StatusInternalServerError, rr.Body.String())
 			require.NotEqual(t, "404 page not found\n", rr.Body.String(), "route not registered")
