@@ -47,22 +47,6 @@ func (db *Database) CreatePDF(pdf PDF) (pdfId int64, err error) {
 	return int64(created.ID), err
 }
 
-// GetPDF returns the latest PDF from the database
-func (db *Database) GetPDF() (pdf PDF, err error) {
-	result, err := db.EntClient.PDF.Query().Order(ent.Desc(entpdf.FieldID)).First(context.Background())
-	if err != nil {
-		log.Error("GetPDF: ", err)
-		return pdf, err
-	}
-
-	ts, _ := time.Parse(time.RFC3339, result.Timestamp)
-	return PDF{
-		ID:        result.ID,
-		Path:      result.Path,
-		Timestamp: ts,
-	}, nil
-}
-
 // GetPDFByID returns the PDF with the given ID
 func (db *Database) GetPDFByID(id int64) (pdf PDF, err error) {
 	result, err := db.EntClient.PDF.Get(context.Background(), int(id))
