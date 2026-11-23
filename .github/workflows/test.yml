@@ -122,7 +122,7 @@ jobs:
         echo "Running tests ..."
         # Run the tests
         cd .. 
-        go test ./... -p 1 -v -cover
+        scripts/coverage.sh 89.5
 
     - name: Collect docker logs on failure
       if: failure()
