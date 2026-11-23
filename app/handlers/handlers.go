@@ -367,21 +367,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	order.User.String = requestData.User
 
 	// Get accounts
-	var buyerAccountID int
-	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
-	if authenticatedUserID != "" {
-		buyerAccount, err := database.Db.GetOrCreateAccountByUserID(authenticatedUserID)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
-		buyerAccountID = buyerAccount.ID
-	} else {
-		buyerAccountID, err = database.Db.GetAccountTypeID("UserAnon")
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
+	buyerAccountID, err := database.Db.GetAccountTypeID("UserAnon")
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	vendorAccount, err := database.Db.GetAccountByVendorID(order.Vendor)

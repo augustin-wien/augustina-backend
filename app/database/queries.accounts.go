@@ -116,30 +116,6 @@ func (db *Database) GetAccountByID(id int) (account Account, err error) {
 	return db.AccountEntIntoAccount(a), nil
 }
 
-// GetOrCreateAccountByUserID returns the account with the given user
-func (db *Database) GetOrCreateAccountByUserID(userID string) (account Account, err error) {
-	// Try to find existing account
-	a, err := db.EntClient.Account.Query().Where(entaccount.UserID(userID)).First(context.Background())
-	if err != nil {
-		if ent.IsNotFound(err) {
-			// Create new account
-			a, err = db.EntClient.Account.Create().
-				SetType("UserAuth").
-				SetUserID(userID).
-				Save(context.Background())
-			if err != nil {
-				log.Error("GetOrCreateAccountByUserID: create failed ", err)
-				return account, err
-			}
-			log.Info("Created new account for user " + userID)
-		} else {
-			log.Error("GetOrCreateAccountByUserID: ", err)
-			return account, err
-		}
-	}
-	return db.AccountEntIntoAccount(a), nil
-}
-
 // GetAccountTypeID returns the ID of the account with the given type
 func (db *Database) GetAccountTypeID(accountType string) (accountTypeID int, err error) {
 	// Query using Ent
