@@ -278,10 +278,11 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	order.CustomerEmail = requestData.CustomerEmail
 
 	// Security checks for entries
+	onlyDonations := len(requestData.Entries) > 0
 	for _, entry := range requestData.Entries {
 
 		// 1. Check: Quantity has to be > 0 for any item except donation, which may be 0
-		if entry.Quantity < 0 || (entry.Quantity == 0 && entry.Item != 2) {
+		if entry.Quantity < 0 {
 			utils.ErrorJSON(w, errors.New("nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
 			return
 		}
@@ -292,9 +293,14 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			utils.ErrorJSON(w, errors.New("nice try! Item does not exist"), http.StatusBadRequest)
 			return
 		}
+		if entry.Quantity == 0 && !isDonationItem(item) {
+			utils.ErrorJSON(w, errors.New("nice try! Quantity has to be greater than 0"), http.StatusBadRequest)
+			return
+		}
+		onlyDonations = onlyDonations && isDonationItem(item)
 
-		// 3. Check: Transaction costs (id == 3) are not allowed to be in entries
-		if entry.Item == 3 {
+		// 3. Check: Transaction costs are not allowed to be in entries
+		if isTransactionCostsItem(item) {
 			utils.ErrorJSON(w, errors.New("nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
 			return
 		}
@@ -325,8 +331,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// 6. Check: If item 2 (donation) is ordered without another item
-	if len(requestData.Entries) == 1 && requestData.Entries[0].Item == 2 {
+	// 6. Check: A donation can't be ordered without another item
+	if onlyDonations {
 		// Throw error
 		utils.ErrorJSON(w, errors.New("nice try! You are not allowed to purchase this item without another item"), http.StatusBadRequest)
 		return
@@ -1506,4 +1512,14 @@ func validatePDFLink(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("validatePDFLink: ", err)
 	}
+}
+
+// isDonationItem reports whether the item is the donation added to an order
+func isDonationItem(item database.Item) bool {
+	return item.Type == "donation" || item.Name == config.Config.DonationName
+}
+
+// isTransactionCostsItem reports whether the item books the payment provider's fees
+func isTransactionCostsItem(item database.Item) bool {
+	return item.Type == "transaction_costs" || item.Name == config.Config.TransactionCostsName
 }
