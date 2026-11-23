@@ -94,6 +94,21 @@ func (db *Database) GetCustomerByID(id int) (*Customer, error) {
 	return &result, nil
 }
 
+// GetCustomersByIDs returns the customers with the given IDs, keyed by ID.
+// IDs without a customer are left out.
+func (db *Database) GetCustomersByIDs(ids []int) (map[int]*Customer, error) {
+	ents, err := db.EntClient.Customer.Query().Where(entcustomer.IDIn(ids...)).All(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[int]*Customer, len(ents))
+	for _, e := range ents {
+		c := db.CustomerEntIntoCustomer(e)
+		out[c.ID] = &c
+	}
+	return out, nil
+}
+
 // GetCustomerByKeycloakID retrieves a customer by Keycloak ID
 func (db *Database) GetCustomerByKeycloakID(keycloakID string) (*Customer, error) {
 	ctx := context.Background()

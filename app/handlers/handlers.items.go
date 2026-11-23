@@ -752,10 +752,15 @@ func activeAbonementRecipients() ([]string, error) {
 		return nil, err
 	}
 
+	customers, err := database.Db.GetCustomersByIDs(abonementCustomerIDs(abonements))
+	if err != nil {
+		return nil, err
+	}
+
 	recipientSet := make(map[string]struct{})
 	for _, a := range abonements {
-		customer, customerErr := database.Db.GetCustomerByID(a.CustomerID)
-		if customerErr != nil {
+		customer, ok := customers[a.CustomerID]
+		if !ok {
 			continue
 		}
 		email := strings.TrimSpace(customer.Email)

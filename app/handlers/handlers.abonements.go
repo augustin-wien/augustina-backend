@@ -319,11 +319,17 @@ func ListActiveAbonementsWithCustomers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	customers, err := database.Db.GetCustomersByIDs(abonementCustomerIDs(abonements))
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
+
 	result := make([]ActiveAbonementWithCustomer, 0, len(abonements))
 	for _, abonement := range abonements {
-		customer, customerErr := database.Db.GetCustomerByID(abonement.CustomerID)
-		if customerErr != nil {
-			log.Error("ListActiveAbonementsWithCustomers: failed to load customer", customerErr)
+		customer, ok := customers[abonement.CustomerID]
+		if !ok {
+			log.Error("ListActiveAbonementsWithCustomers: customer not found ", abonement.CustomerID)
 			continue
 		}
 		result = append(result, ActiveAbonementWithCustomer{
@@ -336,4 +342,13 @@ func ListActiveAbonementsWithCustomers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("ListActiveAbonementsWithCustomers", err)
 	}
+}
+
+// abonementCustomerIDs returns the customer ID of each abonement
+func abonementCustomerIDs(abonements []*database.Abonement) []int {
+	ids := make([]int, 0, len(abonements))
+	for _, a := range abonements {
+		ids = append(ids, a.CustomerID)
+	}
+	return ids
 }

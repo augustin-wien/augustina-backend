@@ -34,12 +34,26 @@ func (as *AbonementService) ProcessAbonementLicenseGroupsForDate(issueDate time.
 		return err
 	}
 
+	// Most abonements share a few items, so each item is loaded once
+	itemGroups := make(map[int]*string)
+	itemLicenseGroup := func(itemID int) *string {
+		if group, ok := itemGroups[itemID]; ok {
+			return group
+		}
+		var group *string
+		if item, err := as.db.GetItemIncludingDisabled(itemID); err == nil {
+			group = &item.LicenseGroup.String
+		}
+		itemGroups[itemID] = group
+		return group
+	}
+
 	// For each abonement, update the customer's license groups
 	for _, abonement := range abonements {
 		// The abonement item's own license group; it may no longer be for sale
 		licenseGroups := issueLicenseGroups
-		if item, err := as.db.GetItemIncludingDisabled(abonement.ItemID); err == nil {
-			licenseGroups = append([]string{item.LicenseGroup.String}, issueLicenseGroups...)
+		if group := itemLicenseGroup(abonement.ItemID); group != nil {
+			licenseGroups = append([]string{*group}, issueLicenseGroups...)
 		}
 		var updatedCustomer *Customer
 		for _, licenseGroup := range licenseGroups {
