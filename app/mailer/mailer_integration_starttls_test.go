@@ -1,5 +1,3 @@
-//go:build integration
-
 package mailer
 
 import (
@@ -18,6 +16,8 @@ import (
 // This integration test starts a fake SMTP server that advertises STARTTLS, then upgrades
 // to TLS when the client issues STARTTLS and continues the SMTP session over TLS.
 func TestSendEmail_Integration_STARTTLS(t *testing.T) {
+	origConfig := config.Config
+	t.Cleanup(func() { config.Config = origConfig })
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("failed to listen: %v", err)
@@ -35,6 +35,8 @@ func TestSendEmail_Integration_STARTTLS(t *testing.T) {
 	config.Config.SMTPSenderAddress = "sender@test.local"
 	config.Config.SMTPSsl = false
 	config.Config.SMTPInsecureSkipVerify = true
+	config.Config.Development = true
+	config.Config.AllowInsecureSMTP = true
 
 	msgCh := make(chan string, 1)
 
@@ -162,7 +164,10 @@ func TestSendEmail_Integration_STARTTLS(t *testing.T) {
 
 	// init and send
 	Init()
-	rreq := NewRequest([]string{"recipient@test.local"}, "STARTTLS Integration Test", "Hello STARTTLS Integration")
+	rreq, err := NewRequest([]string{"recipient@test.local"}, "STARTTLS Integration Test", "Hello STARTTLS Integration")
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
 	ok, err := rreq.SendEmail()
 	if err != nil {
 		t.Fatalf("SendEmail returned error: %v", err)

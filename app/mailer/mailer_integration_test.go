@@ -131,7 +131,10 @@ func TestSendEmail_Integration_FakeSMTP(t *testing.T) {
 	Init()
 
 	// create and send email
-	r := NewRequest([]string{"recipient@test.local"}, "Integration Test", "Hello Integration")
+	r, err := NewRequest([]string{"recipient@test.local"}, "Integration Test", "Hello Integration")
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
 	ok, err := r.SendEmail()
 	if err != nil {
 		t.Fatalf("SendEmail returned error: %v", err)

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"gopkg.in/guregu/null.v4"
 )
 
 // TestCreateDevDataArchivedItems ensures the seed contains archived items and
@@ -31,4 +32,27 @@ func TestCreateDevDataArchivedItems(t *testing.T) {
 		}
 	}
 	require.True(t, found, "archived item must have a sale payment")
+}
+
+func TestSeedDevArchivedItems(t *testing.T) {
+	require.NoError(t, Db.InitEmptyTestDb())
+
+	_, err := Db.CreateVendor(Vendor{
+		FirstName: "Seed",
+		LastName:  "Vendor",
+		Email:     "seed@vendor.test",
+		LicenseID: null.StringFrom("tv-seed-1"),
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, Db.SeedDevArchivedItems("tv-seed-1"))
+	require.Error(t, Db.SeedDevArchivedItems("unknown-license"))
+
+	archived, err := Db.ListArchivedItems()
+	require.NoError(t, err)
+	require.Len(t, archived, 2)
+
+	payments, err := Db.ListPayments(time.Time{}, time.Time{}, "tv-seed-1", false, true, false, false, false)
+	require.NoError(t, err)
+	require.NotEmpty(t, payments)
 }
