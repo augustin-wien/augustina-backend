@@ -174,7 +174,6 @@ func TestQueriesReturnDatabaseErrors(t *testing.T) {
 		// PDFs
 		"DeletePDF":                func() error { return db.DeletePDF() },
 		"CreatePDF":                func() error { return errOf(db.CreatePDF(PDF{Path: "x"})) },
-		"GetPDF":                   func() error { return errOf(db.GetPDF()) },
 		"GetPDFByID":               func() error { return errOf(db.GetPDFByID(1)) },
 		"CreatePDFDownloadForItem": func() error { return errOf(db.CreatePDFDownloadForItem(1, 1)) },
 		"GetPDFDownload":           func() error { return errOf(db.GetPDFDownload("x")) },

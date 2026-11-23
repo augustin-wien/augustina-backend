@@ -1328,19 +1328,6 @@ paths:
       summary: Calculate statistics of items & payments
       tags:
       - Payments
-  /pdf/:
-    get:
-      consumes:
-      - application/json
-      description: Get PDF path
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Get PDF path
-      tags:
-      - PDF
   /pdf/download/:
     get:
       consumes:

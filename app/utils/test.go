@@ -83,23 +83,6 @@ func TestRequestWithAuth(t *testing.T, router *chi.Mux, method string, url strin
 	return res
 }
 
-// TestRequestMultiPart is a simple utility to test a request with multipart/form-data
-func TestRequestMultiPart(
-	t *testing.T,
-	router *chi.Mux,
-	method string,
-	url string,
-	body *bytes.Buffer,
-	contentType string,
-	expectedResponseCode int,
-) (res *httptest.ResponseRecorder) {
-	req, err := http.NewRequest(method, url, body)
-	CheckError(t, err)
-	req.Header.Set("Content-Type", contentType)
-	res = SubmitRequestAndCheckResponse(t, req, router, expectedResponseCode)
-	return res
-}
-
 // TestRequestMultiPartWithAuth is a simple utility to test a request with multipart/form-data including auth
 func TestRequestMultiPartWithAuth(
 	t *testing.T,

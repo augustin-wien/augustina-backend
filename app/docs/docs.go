@@ -925,26 +925,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/pdf/": {
-            "get": {
-                "description": "Get PDF path",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "PDF"
-                ],
-                "summary": "Get PDF path",
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/pdf/download/": {
             "get": {
                 "description": "Get PDF download path",

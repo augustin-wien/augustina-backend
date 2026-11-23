@@ -1407,27 +1407,6 @@ func VivaWalletVerificationKey(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetPDF godoc
-//
-//	@Summary		Get PDF path
-//	@Description	Get PDF path
-//	@Tags			PDF
-//	@Accept			json
-//	@Produce		json
-//	@Success		200
-//	@Router			/pdf/ [get]
-func GetPDF(w http.ResponseWriter, r *http.Request) {
-	pdf, err := database.Db.GetPDF()
-	if err != nil {
-		utils.ErrorJSON(w, err, http.StatusBadRequest)
-		return
-	}
-	err = utils.WriteJSON(w, http.StatusOK, pdf)
-	if err != nil {
-		log.Error("GetPDF: ", err)
-	}
-}
-
 // GetPDFDownload godoc
 //
 //	@Summary		Get PDF download path
