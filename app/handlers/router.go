@@ -255,6 +255,7 @@ func GetRouter() (r *chi.Mux) {
 					r.Delete("/", DeleteItem)
 					r.Post("/restore/", RestoreItem)
 					r.Post("/notify-abonements/", NotifyAbonementsOnlineIssue)
+					r.Get("/notify-abonements/", GetOnlineIssueMailStatus)
 					r.Get("/pdf/", GetItemPDF)
 				})
 			})
@@ -273,6 +274,16 @@ func GetRouter() (r *chi.Mux) {
 				r.Put("/{id}/", UpdateCampaign)
 				r.Delete("/{id}/", DeleteCampaign)
 			})
+		})
+
+		// Outgoing mails
+		r.Route("/api/mail-tasks", func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/", ListMailTasks)
+			r.Post("/retry-failed/", RetryFailedMailTasks)
+			r.Get("/{id}/", GetMailTask)
+			r.Post("/{id}/retry/", RetryMailTask)
 		})
 
 		// Monthly accounting report

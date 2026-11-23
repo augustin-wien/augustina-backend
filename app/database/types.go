@@ -106,6 +106,8 @@ type Order struct {
 	OdooSyncedAt      null.Time
 	OdooSyncError     null.String
 	InvalidatedAt     null.Time
+	ReconcileFailedAt null.Time
+	ReconcileError    null.String
 	Newsletter        bool
 	PaymentEventID    null.Int
 	PaymentFailedAt   null.Time
@@ -116,7 +118,8 @@ type OrderEntry struct {
 	ID           int
 	Item         int
 	Quantity     int
-	Price        int // Price at time of purchase in cents
+	Price        int    // Price at time of purchase in cents
+	ItemName     string // Name of the item at time of purchase
 	Sender       int
 	Receiver     int
 	SenderName   string

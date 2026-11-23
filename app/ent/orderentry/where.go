@@ -63,6 +63,11 @@ func Price(v int) predicate.OrderEntry {
 	return predicate.OrderEntry(sql.FieldEQ(FieldPrice, v))
 }
 
+// ItemName applies equality check predicate on the "item_name" field. It's identical to ItemNameEQ.
+func ItemName(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldEQ(FieldItemName, v))
+}
+
 // IsSale applies equality check predicate on the "is_sale" field. It's identical to IsSaleEQ.
 func IsSale(v bool) predicate.OrderEntry {
 	return predicate.OrderEntry(sql.FieldEQ(FieldIsSale, v))
@@ -166,6 +171,71 @@ func PriceLT(v int) predicate.OrderEntry {
 // PriceLTE applies the LTE predicate on the "price" field.
 func PriceLTE(v int) predicate.OrderEntry {
 	return predicate.OrderEntry(sql.FieldLTE(FieldPrice, v))
+}
+
+// ItemNameEQ applies the EQ predicate on the "item_name" field.
+func ItemNameEQ(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldEQ(FieldItemName, v))
+}
+
+// ItemNameNEQ applies the NEQ predicate on the "item_name" field.
+func ItemNameNEQ(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldNEQ(FieldItemName, v))
+}
+
+// ItemNameIn applies the In predicate on the "item_name" field.
+func ItemNameIn(vs ...string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldIn(FieldItemName, vs...))
+}
+
+// ItemNameNotIn applies the NotIn predicate on the "item_name" field.
+func ItemNameNotIn(vs ...string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldNotIn(FieldItemName, vs...))
+}
+
+// ItemNameGT applies the GT predicate on the "item_name" field.
+func ItemNameGT(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldGT(FieldItemName, v))
+}
+
+// ItemNameGTE applies the GTE predicate on the "item_name" field.
+func ItemNameGTE(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldGTE(FieldItemName, v))
+}
+
+// ItemNameLT applies the LT predicate on the "item_name" field.
+func ItemNameLT(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldLT(FieldItemName, v))
+}
+
+// ItemNameLTE applies the LTE predicate on the "item_name" field.
+func ItemNameLTE(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldLTE(FieldItemName, v))
+}
+
+// ItemNameContains applies the Contains predicate on the "item_name" field.
+func ItemNameContains(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldContains(FieldItemName, v))
+}
+
+// ItemNameHasPrefix applies the HasPrefix predicate on the "item_name" field.
+func ItemNameHasPrefix(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldHasPrefix(FieldItemName, v))
+}
+
+// ItemNameHasSuffix applies the HasSuffix predicate on the "item_name" field.
+func ItemNameHasSuffix(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldHasSuffix(FieldItemName, v))
+}
+
+// ItemNameEqualFold applies the EqualFold predicate on the "item_name" field.
+func ItemNameEqualFold(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldEqualFold(FieldItemName, v))
+}
+
+// ItemNameContainsFold applies the ContainsFold predicate on the "item_name" field.
+func ItemNameContainsFold(v string) predicate.OrderEntry {
+	return predicate.OrderEntry(sql.FieldContainsFold(FieldItemName, v))
 }
 
 // IsSaleEQ applies the EQ predicate on the "is_sale" field.

@@ -41,6 +41,10 @@ type Order struct {
 	OdooSyncError *string `json:"odoo_sync_error,omitempty"`
 	// InvalidatedAt holds the value of the "invalidated_at" field.
 	InvalidatedAt *time.Time `json:"invalidated_at,omitempty"`
+	// ReconcileFailedAt holds the value of the "reconcile_failed_at" field.
+	ReconcileFailedAt *time.Time `json:"reconcile_failed_at,omitempty"`
+	// ReconcileError holds the value of the "reconcile_error" field.
+	ReconcileError *string `json:"reconcile_error,omitempty"`
 	// Newsletter holds the value of the "newsletter" field.
 	Newsletter bool `json:"newsletter,omitempty"`
 	// PaymentEventID holds the value of the "payment_event_id" field.
@@ -91,9 +95,9 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case order.FieldID, order.FieldTransactionTypeID, order.FieldVendorID, order.FieldPaymentEventID:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderCode, order.FieldTransactionID, order.FieldUserID, order.FieldCustomerEmail, order.FieldOdooSyncError:
+		case order.FieldOrderCode, order.FieldTransactionID, order.FieldUserID, order.FieldCustomerEmail, order.FieldOdooSyncError, order.FieldReconcileError:
 			values[i] = new(sql.NullString)
-		case order.FieldVerifiedAt, order.FieldTimestamp, order.FieldOdooSyncedAt, order.FieldInvalidatedAt, order.FieldPaymentFailedAt:
+		case order.FieldVerifiedAt, order.FieldTimestamp, order.FieldOdooSyncedAt, order.FieldInvalidatedAt, order.FieldReconcileFailedAt, order.FieldPaymentFailedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -194,6 +198,20 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.InvalidatedAt = new(time.Time)
 				*_m.InvalidatedAt = value.Time
+			}
+		case order.FieldReconcileFailedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field reconcile_failed_at", values[i])
+			} else if value.Valid {
+				_m.ReconcileFailedAt = new(time.Time)
+				*_m.ReconcileFailedAt = value.Time
+			}
+		case order.FieldReconcileError:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field reconcile_error", values[i])
+			} else if value.Valid {
+				_m.ReconcileError = new(string)
+				*_m.ReconcileError = value.String
 			}
 		case order.FieldNewsletter:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -309,6 +327,16 @@ func (_m *Order) String() string {
 	if v := _m.InvalidatedAt; v != nil {
 		builder.WriteString("invalidated_at=")
 		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.ReconcileFailedAt; v != nil {
+		builder.WriteString("reconcile_failed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.ReconcileError; v != nil {
+		builder.WriteString("reconcile_error=")
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	builder.WriteString("newsletter=")

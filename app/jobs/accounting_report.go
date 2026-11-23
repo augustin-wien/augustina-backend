@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/database"
-	"github.com/augustin-wien/augustina-backend/mailer"
 	"github.com/augustin-wien/augustina-backend/reports"
 )
 
@@ -18,7 +17,7 @@ const accountingReportSendHour = 6
 
 // sendAccountingReport is replaced in tests
 var sendAccountingReport = func(month string) error {
-	return reports.SendMonthly(month, mailer.SendWithRetry)
+	return reports.SendMonthly(month, database.Db.QueueMailFunc(database.MailMeta{Kind: database.MailKindAccountingReport}))
 }
 
 // StartMonthlyAccountingReport runs a background job that mails the report of the previous month

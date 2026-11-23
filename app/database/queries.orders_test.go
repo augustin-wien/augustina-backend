@@ -452,3 +452,37 @@ func Test_VerifyOrderCreatesAbonementForAboItem(t *testing.T) {
 	require.Equal(t, "abonementConfirmation", capturedTemplate)
 	require.Equal(t, "abo-customer@example.com", capturedRecipient)
 }
+
+func TestCreateOrder_StoresItemNameAtPurchase(t *testing.T) {
+	require.NoError(t, Db.InitEmptyTestDb())
+
+	vendorID, err := Db.CreateVendor(Vendor{
+		FirstName: "Name",
+		LastName:  "Snapshot",
+		Email:     "name-snapshot@vendor.com",
+		LicenseID: null.StringFrom("nsv-001"),
+	})
+	require.NoError(t, err)
+	vendorAccount, err := Db.GetAccountByVendorID(vendorID)
+	require.NoError(t, err)
+	itemID, err := Db.CreateItem(Item{Name: "Oktober Ausgabe", Description: "Ausgabe", Price: 300, Type: "issue"})
+	require.NoError(t, err)
+
+	orderID, err := Db.CreateOrder(Order{
+		Vendor: vendorID,
+		Entries: []OrderEntry{
+			{Item: itemID, Quantity: 1, Sender: vendorAccount.ID, Receiver: vendorAccount.ID, IsSale: true},
+		},
+	})
+	require.NoError(t, err)
+
+	item, err := Db.GetItem(itemID)
+	require.NoError(t, err)
+	item.Name = "November Ausgabe"
+	require.NoError(t, Db.UpdateItem(itemID, item))
+
+	order, err := Db.GetOrderByID(orderID)
+	require.NoError(t, err)
+	require.Len(t, order.Entries, 1)
+	require.Equal(t, "Oktober Ausgabe", order.Entries[0].ItemName, "renaming the item later keeps the name it was bought under")
+}

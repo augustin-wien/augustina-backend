@@ -72,6 +72,20 @@ func (_u *OrderEntryUpdate) AddPrice(v int) *OrderEntryUpdate {
 	return _u
 }
 
+// SetItemName sets the "item_name" field.
+func (_u *OrderEntryUpdate) SetItemName(v string) *OrderEntryUpdate {
+	_u.mutation.SetItemName(v)
+	return _u
+}
+
+// SetNillableItemName sets the "item_name" field if the given value is not nil.
+func (_u *OrderEntryUpdate) SetNillableItemName(v *string) *OrderEntryUpdate {
+	if v != nil {
+		_u.SetItemName(*v)
+	}
+	return _u
+}
+
 // SetIsSale sets the "is_sale" field.
 func (_u *OrderEntryUpdate) SetIsSale(v bool) *OrderEntryUpdate {
 	_u.mutation.SetIsSale(v)
@@ -262,6 +276,9 @@ func (_u *OrderEntryUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.AddedPrice(); ok {
 		_spec.AddField(orderentry.FieldPrice, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.ItemName(); ok {
+		_spec.SetField(orderentry.FieldItemName, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.IsSale(); ok {
 		_spec.SetField(orderentry.FieldIsSale, field.TypeBool, value)
 	}
@@ -440,6 +457,20 @@ func (_u *OrderEntryUpdateOne) SetNillablePrice(v *int) *OrderEntryUpdateOne {
 // AddPrice adds value to the "price" field.
 func (_u *OrderEntryUpdateOne) AddPrice(v int) *OrderEntryUpdateOne {
 	_u.mutation.AddPrice(v)
+	return _u
+}
+
+// SetItemName sets the "item_name" field.
+func (_u *OrderEntryUpdateOne) SetItemName(v string) *OrderEntryUpdateOne {
+	_u.mutation.SetItemName(v)
+	return _u
+}
+
+// SetNillableItemName sets the "item_name" field if the given value is not nil.
+func (_u *OrderEntryUpdateOne) SetNillableItemName(v *string) *OrderEntryUpdateOne {
+	if v != nil {
+		_u.SetItemName(*v)
+	}
 	return _u
 }
 
@@ -662,6 +693,9 @@ func (_u *OrderEntryUpdateOne) sqlSave(ctx context.Context) (_node *OrderEntry, 
 	}
 	if value, ok := _u.mutation.AddedPrice(); ok {
 		_spec.AddField(orderentry.FieldPrice, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.ItemName(); ok {
+		_spec.SetField(orderentry.FieldItemName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.IsSale(); ok {
 		_spec.SetField(orderentry.FieldIsSale, field.TypeBool, value)

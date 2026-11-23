@@ -24,7 +24,7 @@ const (
 
 // getItemByID is a variable to allow mocking in tests
 var getItemByID = func(id int) (database.Item, error) {
-	return database.Db.GetItem(id)
+	return database.Db.GetItemIncludingArchived(id)
 }
 
 // Payload is the structure of the JSON payload to be sent.
@@ -118,11 +118,13 @@ func SendPaymentToFlour(id int, timestamp time.Time, items []database.OrderEntry
 		// Total price includes the quantity: price * quantity
 		totalPrice += itemPrice * item.Quantity
 
-		itemName := ""
-		if dbItem, err := getItemByID(item.Item); err != nil {
-			log.Errorf("SendPaymentToFlour: Failed to fetch item name for item %d: %v", item.Item, err)
-		} else {
-			itemName = dbItem.Name
+		itemName := item.ItemName
+		if itemName == "" {
+			if dbItem, err := getItemByID(item.Item); err != nil {
+				log.Errorf("SendPaymentToFlour: Failed to fetch item name for item %d: %v", item.Item, err)
+			} else {
+				itemName = dbItem.Name
+			}
 		}
 
 		flourItems = append(flourItems, FlourPayloadItem{

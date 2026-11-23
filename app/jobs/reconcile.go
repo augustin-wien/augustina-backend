@@ -4,7 +4,6 @@ package jobs
 import (
 	"errors"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
@@ -27,33 +26,21 @@ const paymentTimeout = 5 * time.Minute
 // showing it.
 const invalidateTimeout = 20 * time.Minute
 
-// alertDelay is how old a paid-but-unverified order has to be before it is alerted. VivaWallet
-// can deliver its webhook several minutes after the payment, and an alert for an order that
-// verifies itself on the next run is noise.
-const alertDelay = 20 * time.Minute
-
-// realertInterval is how often the same paid-but-unverified order is alerted again. Without
-// it every reconcile run re-alerts every such order until a human resolves it, burying new
-// cases under repeats of old ones.
-const realertInterval = 24 * time.Hour
+// verifyDelay is how old a paid-but-unverified order has to be before the job verifies it
+// itself. VivaWallet can deliver its webhook several minutes after the payment.
+const verifyDelay = 20 * time.Minute
 
 // placeholderTransactionIDPrefix marks the transaction id CreateOrder stores until
 // VivaWallet reports back (see database/queries.orders.go). An order still carrying it
 // never had a real transaction id, so there is nothing to look up at VivaWallet.
 const placeholderTransactionIDPrefix = "manual-"
 
-var (
-	alertedMu   sync.Mutex
-	lastAlerted = map[int]time.Time{}
-)
-
 // StartOrderReconciliation runs a background job that periodically checks orders still
-// marked unverified against VivaWallet directly. This exists to catch the case that
-// produces no error log on its own: VivaWallet's webhook never arrives (or is lost)
-// even though the customer did pay, so the order sits verified=false indefinitely,
-// indistinguishable from a customer who simply abandoned checkout. Deliberately
-// alert-only: it flags the mismatch so a human can confirm and re-verify, rather than
-// silently finalizing payment records from a background job.
+// marked unverified against VivaWallet directly. This catches the case that produces no
+// error log on its own: VivaWallet's webhook never arrives (or is lost, or failed) even
+// though the customer did pay, so the order sits verified=false indefinitely. Such an
+// order is verified with the same checks the webhook runs; if that fails, the failure is
+// stored on the order and reported once.
 func StartOrderReconciliation() {
 	interval := config.Config.OrderReconcileIntervalMinutes
 	if interval <= 0 {
@@ -76,8 +63,6 @@ func reconcileUnverifiedOrders() {
 		return
 	}
 
-	forgetResolvedAlerts(orders)
-
 	for _, order := range orders {
 		if order.TransactionID == "" || strings.HasPrefix(order.TransactionID, placeholderTransactionIDPrefix) {
 			// Never even got as far as VivaWallet redirecting back with a transaction id,
@@ -93,24 +78,11 @@ func reconcileUnverifiedOrders() {
 
 		viva, err := paymentprovider.VerifyTransactionID(order.TransactionID, false)
 		if err == nil {
-			// VivaWallet confirms the transaction succeeded, but our own database still
-			// shows the order unverified: the webhook that should have finalized it never
-			// arrived or was lost. This is the one case a log-based alert can never catch
-			// on its own, since no error was ever logged for it before now. Never
-			// invalidated, however old it gets - a human has to resolve this one.
-			if time.Since(order.Timestamp) >= alertDelay && shouldAlert(order.ID, time.Now()) {
-				log.Errorw(
-					"reconcileUnverifiedOrders: order paid at VivaWallet but not verified locally",
-					"order_id", order.ID,
-					"order_code", order.OrderCode.String,
-					"transaction_id", order.TransactionID,
-					"order_timestamp", order.Timestamp,
-					"age", time.Since(order.Timestamp).Round(time.Minute).String(),
-					"viva_status_id", viva.StatusID,
-					"viva_amount", viva.Amount,
-					"viva_order_code", viva.OrderCode.String(),
-					"viva_ins_date", viva.InsDate,
-				)
+			// VivaWallet confirms the transaction succeeded, but the order is still
+			// unverified: the webhook never arrived, was lost or failed. Never
+			// invalidated, however old it gets.
+			if time.Since(order.Timestamp) >= verifyDelay {
+				verifyPaidOrder(order, viva)
 			}
 			continue
 		}
@@ -125,34 +97,32 @@ func reconcileUnverifiedOrders() {
 	}
 }
 
-// shouldAlert reports whether a paid-but-unverified order is due an alert: the first time
-// it is seen, then again once every realertInterval while it stays unresolved.
-func shouldAlert(orderID int, now time.Time) bool {
-	alertedMu.Lock()
-	defer alertedMu.Unlock()
-
-	if last, ok := lastAlerted[orderID]; ok && now.Sub(last) < realertInterval {
-		return false
+// verifyPaidOrder verifies an order VivaWallet confirmed as paid. A failure is stored on
+// the order and reported the first time only; the next runs keep trying.
+func verifyPaidOrder(order database.Order, viva paymentprovider.TransactionVerificationResponse) {
+	reason, err := paymentprovider.ReconcilePaidOrder(order.ID, viva)
+	if err == nil {
+		return
 	}
-	lastAlerted[orderID] = now
-	return true
-}
-
-// forgetResolvedAlerts drops alert state for orders that are no longer unverified, so a
-// resolved order does not hold memory for the lifetime of the process.
-func forgetResolvedAlerts(unverified []database.Order) {
-	stillOpen := make(map[int]bool, len(unverified))
-	for _, o := range unverified {
-		stillOpen[o.ID] = true
+	first, dbErr := database.Db.SetOrderReconcileFailed(order.ID, reason+": "+err.Error())
+	if dbErr != nil {
+		log.Errorw("verifyPaidOrder: failed to store reconcile failure", "order_id", order.ID, "error", dbErr)
 	}
-
-	alertedMu.Lock()
-	defer alertedMu.Unlock()
-	for id := range lastAlerted {
-		if !stillOpen[id] {
-			delete(lastAlerted, id)
-		}
+	if !first {
+		return
 	}
+	log.Errorw(
+		"reconcileUnverifiedOrders: order paid at VivaWallet could not be verified",
+		"order_id", order.ID,
+		"order_code", order.OrderCode.String,
+		"transaction_id", order.TransactionID,
+		"order_timestamp", order.Timestamp,
+		"age", time.Since(order.Timestamp).Round(time.Minute).String(),
+		"reason", reason,
+		"error", err,
+		"viva_status_id", viva.StatusID,
+		"viva_amount", viva.Amount,
+	)
 }
 
 // invalidateIfAbandoned marks an order invalidated once it has had a full

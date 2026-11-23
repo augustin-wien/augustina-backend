@@ -21,6 +21,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/externalpayment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/mailtask"
 	"github.com/augustin-wien/augustina-backend/ent/mailtemplate"
 	"github.com/augustin-wien/augustina-backend/ent/order"
 	"github.com/augustin-wien/augustina-backend/ent/orderentry"
@@ -52,6 +53,7 @@ const (
 	TypeExternalPayment = "ExternalPayment"
 	TypeItem            = "Item"
 	TypeLocation        = "Location"
+	TypeMailTask        = "MailTask"
 	TypeMailTemplate    = "MailTemplate"
 	TypeOrder           = "Order"
 	TypeOrderEntry      = "OrderEntry"
@@ -7964,6 +7966,1242 @@ func (m *LocationMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Location edge %s", name)
 }
 
+// MailTaskMutation represents an operation that mutates the MailTask nodes in the graph.
+type MailTaskMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	kind            *string
+	recipients      *string
+	subject         *string
+	body            *string
+	attachments     *[]byte
+	status          *string
+	attempts        *int
+	addattempts     *int
+	last_error      *string
+	next_attempt_at *time.Time
+	created_at      *time.Time
+	updated_at      *time.Time
+	sent_at         *time.Time
+	order_id        *int
+	addorder_id     *int
+	item_id         *int
+	additem_id      *int
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*MailTask, error)
+	predicates      []predicate.MailTask
+}
+
+var _ ent.Mutation = (*MailTaskMutation)(nil)
+
+// mailtaskOption allows management of the mutation configuration using functional options.
+type mailtaskOption func(*MailTaskMutation)
+
+// newMailTaskMutation creates new mutation for the MailTask entity.
+func newMailTaskMutation(c config, op Op, opts ...mailtaskOption) *MailTaskMutation {
+	m := &MailTaskMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMailTask,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMailTaskID sets the ID field of the mutation.
+func withMailTaskID(id int) mailtaskOption {
+	return func(m *MailTaskMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MailTask
+		)
+		m.oldValue = func(ctx context.Context) (*MailTask, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MailTask.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMailTask sets the old MailTask of the mutation.
+func withMailTask(node *MailTask) mailtaskOption {
+	return func(m *MailTaskMutation) {
+		m.oldValue = func(context.Context) (*MailTask, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MailTaskMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MailTaskMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of MailTask entities.
+func (m *MailTaskMutation) SetID(id int) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MailTaskMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MailTaskMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MailTask.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetKind sets the "kind" field.
+func (m *MailTaskMutation) SetKind(s string) {
+	m.kind = &s
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *MailTaskMutation) Kind() (r string, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldKind(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *MailTaskMutation) ResetKind() {
+	m.kind = nil
+}
+
+// SetRecipients sets the "recipients" field.
+func (m *MailTaskMutation) SetRecipients(s string) {
+	m.recipients = &s
+}
+
+// Recipients returns the value of the "recipients" field in the mutation.
+func (m *MailTaskMutation) Recipients() (r string, exists bool) {
+	v := m.recipients
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRecipients returns the old "recipients" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldRecipients(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRecipients is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRecipients requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRecipients: %w", err)
+	}
+	return oldValue.Recipients, nil
+}
+
+// ResetRecipients resets all changes to the "recipients" field.
+func (m *MailTaskMutation) ResetRecipients() {
+	m.recipients = nil
+}
+
+// SetSubject sets the "subject" field.
+func (m *MailTaskMutation) SetSubject(s string) {
+	m.subject = &s
+}
+
+// Subject returns the value of the "subject" field in the mutation.
+func (m *MailTaskMutation) Subject() (r string, exists bool) {
+	v := m.subject
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubject returns the old "subject" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldSubject(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubject is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubject requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubject: %w", err)
+	}
+	return oldValue.Subject, nil
+}
+
+// ResetSubject resets all changes to the "subject" field.
+func (m *MailTaskMutation) ResetSubject() {
+	m.subject = nil
+}
+
+// SetBody sets the "body" field.
+func (m *MailTaskMutation) SetBody(s string) {
+	m.body = &s
+}
+
+// Body returns the value of the "body" field in the mutation.
+func (m *MailTaskMutation) Body() (r string, exists bool) {
+	v := m.body
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBody returns the old "body" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldBody(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBody is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBody requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBody: %w", err)
+	}
+	return oldValue.Body, nil
+}
+
+// ResetBody resets all changes to the "body" field.
+func (m *MailTaskMutation) ResetBody() {
+	m.body = nil
+}
+
+// SetAttachments sets the "attachments" field.
+func (m *MailTaskMutation) SetAttachments(b []byte) {
+	m.attachments = &b
+}
+
+// Attachments returns the value of the "attachments" field in the mutation.
+func (m *MailTaskMutation) Attachments() (r []byte, exists bool) {
+	v := m.attachments
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttachments returns the old "attachments" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldAttachments(ctx context.Context) (v *[]byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttachments is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttachments requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttachments: %w", err)
+	}
+	return oldValue.Attachments, nil
+}
+
+// ClearAttachments clears the value of the "attachments" field.
+func (m *MailTaskMutation) ClearAttachments() {
+	m.attachments = nil
+	m.clearedFields[mailtask.FieldAttachments] = struct{}{}
+}
+
+// AttachmentsCleared returns if the "attachments" field was cleared in this mutation.
+func (m *MailTaskMutation) AttachmentsCleared() bool {
+	_, ok := m.clearedFields[mailtask.FieldAttachments]
+	return ok
+}
+
+// ResetAttachments resets all changes to the "attachments" field.
+func (m *MailTaskMutation) ResetAttachments() {
+	m.attachments = nil
+	delete(m.clearedFields, mailtask.FieldAttachments)
+}
+
+// SetStatus sets the "status" field.
+func (m *MailTaskMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *MailTaskMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *MailTaskMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetAttempts sets the "attempts" field.
+func (m *MailTaskMutation) SetAttempts(i int) {
+	m.attempts = &i
+	m.addattempts = nil
+}
+
+// Attempts returns the value of the "attempts" field in the mutation.
+func (m *MailTaskMutation) Attempts() (r int, exists bool) {
+	v := m.attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttempts returns the old "attempts" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldAttempts(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttempts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttempts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttempts: %w", err)
+	}
+	return oldValue.Attempts, nil
+}
+
+// AddAttempts adds i to the "attempts" field.
+func (m *MailTaskMutation) AddAttempts(i int) {
+	if m.addattempts != nil {
+		*m.addattempts += i
+	} else {
+		m.addattempts = &i
+	}
+}
+
+// AddedAttempts returns the value that was added to the "attempts" field in this mutation.
+func (m *MailTaskMutation) AddedAttempts() (r int, exists bool) {
+	v := m.addattempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAttempts resets all changes to the "attempts" field.
+func (m *MailTaskMutation) ResetAttempts() {
+	m.attempts = nil
+	m.addattempts = nil
+}
+
+// SetLastError sets the "last_error" field.
+func (m *MailTaskMutation) SetLastError(s string) {
+	m.last_error = &s
+}
+
+// LastError returns the value of the "last_error" field in the mutation.
+func (m *MailTaskMutation) LastError() (r string, exists bool) {
+	v := m.last_error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastError returns the old "last_error" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldLastError(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastError: %w", err)
+	}
+	return oldValue.LastError, nil
+}
+
+// ClearLastError clears the value of the "last_error" field.
+func (m *MailTaskMutation) ClearLastError() {
+	m.last_error = nil
+	m.clearedFields[mailtask.FieldLastError] = struct{}{}
+}
+
+// LastErrorCleared returns if the "last_error" field was cleared in this mutation.
+func (m *MailTaskMutation) LastErrorCleared() bool {
+	_, ok := m.clearedFields[mailtask.FieldLastError]
+	return ok
+}
+
+// ResetLastError resets all changes to the "last_error" field.
+func (m *MailTaskMutation) ResetLastError() {
+	m.last_error = nil
+	delete(m.clearedFields, mailtask.FieldLastError)
+}
+
+// SetNextAttemptAt sets the "next_attempt_at" field.
+func (m *MailTaskMutation) SetNextAttemptAt(t time.Time) {
+	m.next_attempt_at = &t
+}
+
+// NextAttemptAt returns the value of the "next_attempt_at" field in the mutation.
+func (m *MailTaskMutation) NextAttemptAt() (r time.Time, exists bool) {
+	v := m.next_attempt_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextAttemptAt returns the old "next_attempt_at" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldNextAttemptAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextAttemptAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextAttemptAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextAttemptAt: %w", err)
+	}
+	return oldValue.NextAttemptAt, nil
+}
+
+// ResetNextAttemptAt resets all changes to the "next_attempt_at" field.
+func (m *MailTaskMutation) ResetNextAttemptAt() {
+	m.next_attempt_at = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *MailTaskMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *MailTaskMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *MailTaskMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *MailTaskMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *MailTaskMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *MailTaskMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetSentAt sets the "sent_at" field.
+func (m *MailTaskMutation) SetSentAt(t time.Time) {
+	m.sent_at = &t
+}
+
+// SentAt returns the value of the "sent_at" field in the mutation.
+func (m *MailTaskMutation) SentAt() (r time.Time, exists bool) {
+	v := m.sent_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSentAt returns the old "sent_at" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldSentAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSentAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSentAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSentAt: %w", err)
+	}
+	return oldValue.SentAt, nil
+}
+
+// ClearSentAt clears the value of the "sent_at" field.
+func (m *MailTaskMutation) ClearSentAt() {
+	m.sent_at = nil
+	m.clearedFields[mailtask.FieldSentAt] = struct{}{}
+}
+
+// SentAtCleared returns if the "sent_at" field was cleared in this mutation.
+func (m *MailTaskMutation) SentAtCleared() bool {
+	_, ok := m.clearedFields[mailtask.FieldSentAt]
+	return ok
+}
+
+// ResetSentAt resets all changes to the "sent_at" field.
+func (m *MailTaskMutation) ResetSentAt() {
+	m.sent_at = nil
+	delete(m.clearedFields, mailtask.FieldSentAt)
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *MailTaskMutation) SetOrderID(i int) {
+	m.order_id = &i
+	m.addorder_id = nil
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *MailTaskMutation) OrderID() (r int, exists bool) {
+	v := m.order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldOrderID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (m *MailTaskMutation) AddOrderID(i int) {
+	if m.addorder_id != nil {
+		*m.addorder_id += i
+	} else {
+		m.addorder_id = &i
+	}
+}
+
+// AddedOrderID returns the value that was added to the "order_id" field in this mutation.
+func (m *MailTaskMutation) AddedOrderID() (r int, exists bool) {
+	v := m.addorder_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (m *MailTaskMutation) ClearOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	m.clearedFields[mailtask.FieldOrderID] = struct{}{}
+}
+
+// OrderIDCleared returns if the "order_id" field was cleared in this mutation.
+func (m *MailTaskMutation) OrderIDCleared() bool {
+	_, ok := m.clearedFields[mailtask.FieldOrderID]
+	return ok
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *MailTaskMutation) ResetOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	delete(m.clearedFields, mailtask.FieldOrderID)
+}
+
+// SetItemID sets the "item_id" field.
+func (m *MailTaskMutation) SetItemID(i int) {
+	m.item_id = &i
+	m.additem_id = nil
+}
+
+// ItemID returns the value of the "item_id" field in the mutation.
+func (m *MailTaskMutation) ItemID() (r int, exists bool) {
+	v := m.item_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemID returns the old "item_id" field's value of the MailTask entity.
+// If the MailTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MailTaskMutation) OldItemID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemID: %w", err)
+	}
+	return oldValue.ItemID, nil
+}
+
+// AddItemID adds i to the "item_id" field.
+func (m *MailTaskMutation) AddItemID(i int) {
+	if m.additem_id != nil {
+		*m.additem_id += i
+	} else {
+		m.additem_id = &i
+	}
+}
+
+// AddedItemID returns the value that was added to the "item_id" field in this mutation.
+func (m *MailTaskMutation) AddedItemID() (r int, exists bool) {
+	v := m.additem_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearItemID clears the value of the "item_id" field.
+func (m *MailTaskMutation) ClearItemID() {
+	m.item_id = nil
+	m.additem_id = nil
+	m.clearedFields[mailtask.FieldItemID] = struct{}{}
+}
+
+// ItemIDCleared returns if the "item_id" field was cleared in this mutation.
+func (m *MailTaskMutation) ItemIDCleared() bool {
+	_, ok := m.clearedFields[mailtask.FieldItemID]
+	return ok
+}
+
+// ResetItemID resets all changes to the "item_id" field.
+func (m *MailTaskMutation) ResetItemID() {
+	m.item_id = nil
+	m.additem_id = nil
+	delete(m.clearedFields, mailtask.FieldItemID)
+}
+
+// Where appends a list predicates to the MailTaskMutation builder.
+func (m *MailTaskMutation) Where(ps ...predicate.MailTask) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MailTaskMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MailTaskMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MailTask, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MailTaskMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MailTaskMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MailTask).
+func (m *MailTaskMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MailTaskMutation) Fields() []string {
+	fields := make([]string, 0, 14)
+	if m.kind != nil {
+		fields = append(fields, mailtask.FieldKind)
+	}
+	if m.recipients != nil {
+		fields = append(fields, mailtask.FieldRecipients)
+	}
+	if m.subject != nil {
+		fields = append(fields, mailtask.FieldSubject)
+	}
+	if m.body != nil {
+		fields = append(fields, mailtask.FieldBody)
+	}
+	if m.attachments != nil {
+		fields = append(fields, mailtask.FieldAttachments)
+	}
+	if m.status != nil {
+		fields = append(fields, mailtask.FieldStatus)
+	}
+	if m.attempts != nil {
+		fields = append(fields, mailtask.FieldAttempts)
+	}
+	if m.last_error != nil {
+		fields = append(fields, mailtask.FieldLastError)
+	}
+	if m.next_attempt_at != nil {
+		fields = append(fields, mailtask.FieldNextAttemptAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, mailtask.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, mailtask.FieldUpdatedAt)
+	}
+	if m.sent_at != nil {
+		fields = append(fields, mailtask.FieldSentAt)
+	}
+	if m.order_id != nil {
+		fields = append(fields, mailtask.FieldOrderID)
+	}
+	if m.item_id != nil {
+		fields = append(fields, mailtask.FieldItemID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MailTaskMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case mailtask.FieldKind:
+		return m.Kind()
+	case mailtask.FieldRecipients:
+		return m.Recipients()
+	case mailtask.FieldSubject:
+		return m.Subject()
+	case mailtask.FieldBody:
+		return m.Body()
+	case mailtask.FieldAttachments:
+		return m.Attachments()
+	case mailtask.FieldStatus:
+		return m.Status()
+	case mailtask.FieldAttempts:
+		return m.Attempts()
+	case mailtask.FieldLastError:
+		return m.LastError()
+	case mailtask.FieldNextAttemptAt:
+		return m.NextAttemptAt()
+	case mailtask.FieldCreatedAt:
+		return m.CreatedAt()
+	case mailtask.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case mailtask.FieldSentAt:
+		return m.SentAt()
+	case mailtask.FieldOrderID:
+		return m.OrderID()
+	case mailtask.FieldItemID:
+		return m.ItemID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MailTaskMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case mailtask.FieldKind:
+		return m.OldKind(ctx)
+	case mailtask.FieldRecipients:
+		return m.OldRecipients(ctx)
+	case mailtask.FieldSubject:
+		return m.OldSubject(ctx)
+	case mailtask.FieldBody:
+		return m.OldBody(ctx)
+	case mailtask.FieldAttachments:
+		return m.OldAttachments(ctx)
+	case mailtask.FieldStatus:
+		return m.OldStatus(ctx)
+	case mailtask.FieldAttempts:
+		return m.OldAttempts(ctx)
+	case mailtask.FieldLastError:
+		return m.OldLastError(ctx)
+	case mailtask.FieldNextAttemptAt:
+		return m.OldNextAttemptAt(ctx)
+	case mailtask.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case mailtask.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case mailtask.FieldSentAt:
+		return m.OldSentAt(ctx)
+	case mailtask.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case mailtask.FieldItemID:
+		return m.OldItemID(ctx)
+	}
+	return nil, fmt.Errorf("unknown MailTask field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MailTaskMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case mailtask.FieldKind:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	case mailtask.FieldRecipients:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRecipients(v)
+		return nil
+	case mailtask.FieldSubject:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubject(v)
+		return nil
+	case mailtask.FieldBody:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBody(v)
+		return nil
+	case mailtask.FieldAttachments:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttachments(v)
+		return nil
+	case mailtask.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case mailtask.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttempts(v)
+		return nil
+	case mailtask.FieldLastError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastError(v)
+		return nil
+	case mailtask.FieldNextAttemptAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextAttemptAt(v)
+		return nil
+	case mailtask.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case mailtask.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case mailtask.FieldSentAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSentAt(v)
+		return nil
+	case mailtask.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case mailtask.FieldItemID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MailTask field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MailTaskMutation) AddedFields() []string {
+	var fields []string
+	if m.addattempts != nil {
+		fields = append(fields, mailtask.FieldAttempts)
+	}
+	if m.addorder_id != nil {
+		fields = append(fields, mailtask.FieldOrderID)
+	}
+	if m.additem_id != nil {
+		fields = append(fields, mailtask.FieldItemID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MailTaskMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case mailtask.FieldAttempts:
+		return m.AddedAttempts()
+	case mailtask.FieldOrderID:
+		return m.AddedOrderID()
+	case mailtask.FieldItemID:
+		return m.AddedItemID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MailTaskMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case mailtask.FieldAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAttempts(v)
+		return nil
+	case mailtask.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderID(v)
+		return nil
+	case mailtask.FieldItemID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddItemID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MailTask numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MailTaskMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(mailtask.FieldAttachments) {
+		fields = append(fields, mailtask.FieldAttachments)
+	}
+	if m.FieldCleared(mailtask.FieldLastError) {
+		fields = append(fields, mailtask.FieldLastError)
+	}
+	if m.FieldCleared(mailtask.FieldSentAt) {
+		fields = append(fields, mailtask.FieldSentAt)
+	}
+	if m.FieldCleared(mailtask.FieldOrderID) {
+		fields = append(fields, mailtask.FieldOrderID)
+	}
+	if m.FieldCleared(mailtask.FieldItemID) {
+		fields = append(fields, mailtask.FieldItemID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MailTaskMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MailTaskMutation) ClearField(name string) error {
+	switch name {
+	case mailtask.FieldAttachments:
+		m.ClearAttachments()
+		return nil
+	case mailtask.FieldLastError:
+		m.ClearLastError()
+		return nil
+	case mailtask.FieldSentAt:
+		m.ClearSentAt()
+		return nil
+	case mailtask.FieldOrderID:
+		m.ClearOrderID()
+		return nil
+	case mailtask.FieldItemID:
+		m.ClearItemID()
+		return nil
+	}
+	return fmt.Errorf("unknown MailTask nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MailTaskMutation) ResetField(name string) error {
+	switch name {
+	case mailtask.FieldKind:
+		m.ResetKind()
+		return nil
+	case mailtask.FieldRecipients:
+		m.ResetRecipients()
+		return nil
+	case mailtask.FieldSubject:
+		m.ResetSubject()
+		return nil
+	case mailtask.FieldBody:
+		m.ResetBody()
+		return nil
+	case mailtask.FieldAttachments:
+		m.ResetAttachments()
+		return nil
+	case mailtask.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case mailtask.FieldAttempts:
+		m.ResetAttempts()
+		return nil
+	case mailtask.FieldLastError:
+		m.ResetLastError()
+		return nil
+	case mailtask.FieldNextAttemptAt:
+		m.ResetNextAttemptAt()
+		return nil
+	case mailtask.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case mailtask.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case mailtask.FieldSentAt:
+		m.ResetSentAt()
+		return nil
+	case mailtask.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case mailtask.FieldItemID:
+		m.ResetItemID()
+		return nil
+	}
+	return fmt.Errorf("unknown MailTask field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MailTaskMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MailTaskMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MailTaskMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MailTaskMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MailTaskMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MailTaskMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MailTaskMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown MailTask unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MailTaskMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown MailTask edge %s", name)
+}
+
 // MailTemplateMutation represents an operation that mutates the MailTemplate nodes in the graph.
 type MailTemplateMutation struct {
 	config
@@ -8532,6 +9770,8 @@ type OrderMutation struct {
 	odoo_synced_at         *time.Time
 	odoo_sync_error        *string
 	invalidated_at         *time.Time
+	reconcile_failed_at    *time.Time
+	reconcile_error        *string
 	newsletter             *bool
 	payment_event_id       *int
 	addpayment_event_id    *int
@@ -9215,6 +10455,104 @@ func (m *OrderMutation) ResetInvalidatedAt() {
 	delete(m.clearedFields, order.FieldInvalidatedAt)
 }
 
+// SetReconcileFailedAt sets the "reconcile_failed_at" field.
+func (m *OrderMutation) SetReconcileFailedAt(t time.Time) {
+	m.reconcile_failed_at = &t
+}
+
+// ReconcileFailedAt returns the value of the "reconcile_failed_at" field in the mutation.
+func (m *OrderMutation) ReconcileFailedAt() (r time.Time, exists bool) {
+	v := m.reconcile_failed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReconcileFailedAt returns the old "reconcile_failed_at" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldReconcileFailedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReconcileFailedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReconcileFailedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReconcileFailedAt: %w", err)
+	}
+	return oldValue.ReconcileFailedAt, nil
+}
+
+// ClearReconcileFailedAt clears the value of the "reconcile_failed_at" field.
+func (m *OrderMutation) ClearReconcileFailedAt() {
+	m.reconcile_failed_at = nil
+	m.clearedFields[order.FieldReconcileFailedAt] = struct{}{}
+}
+
+// ReconcileFailedAtCleared returns if the "reconcile_failed_at" field was cleared in this mutation.
+func (m *OrderMutation) ReconcileFailedAtCleared() bool {
+	_, ok := m.clearedFields[order.FieldReconcileFailedAt]
+	return ok
+}
+
+// ResetReconcileFailedAt resets all changes to the "reconcile_failed_at" field.
+func (m *OrderMutation) ResetReconcileFailedAt() {
+	m.reconcile_failed_at = nil
+	delete(m.clearedFields, order.FieldReconcileFailedAt)
+}
+
+// SetReconcileError sets the "reconcile_error" field.
+func (m *OrderMutation) SetReconcileError(s string) {
+	m.reconcile_error = &s
+}
+
+// ReconcileError returns the value of the "reconcile_error" field in the mutation.
+func (m *OrderMutation) ReconcileError() (r string, exists bool) {
+	v := m.reconcile_error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReconcileError returns the old "reconcile_error" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldReconcileError(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReconcileError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReconcileError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReconcileError: %w", err)
+	}
+	return oldValue.ReconcileError, nil
+}
+
+// ClearReconcileError clears the value of the "reconcile_error" field.
+func (m *OrderMutation) ClearReconcileError() {
+	m.reconcile_error = nil
+	m.clearedFields[order.FieldReconcileError] = struct{}{}
+}
+
+// ReconcileErrorCleared returns if the "reconcile_error" field was cleared in this mutation.
+func (m *OrderMutation) ReconcileErrorCleared() bool {
+	_, ok := m.clearedFields[order.FieldReconcileError]
+	return ok
+}
+
+// ResetReconcileError resets all changes to the "reconcile_error" field.
+func (m *OrderMutation) ResetReconcileError() {
+	m.reconcile_error = nil
+	delete(m.clearedFields, order.FieldReconcileError)
+}
+
 // SetNewsletter sets the "newsletter" field.
 func (m *OrderMutation) SetNewsletter(b bool) {
 	m.newsletter = &b
@@ -9512,7 +10850,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 17)
 	if m.order_code != nil {
 		fields = append(fields, order.FieldOrderCode)
 	}
@@ -9548,6 +10886,12 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.invalidated_at != nil {
 		fields = append(fields, order.FieldInvalidatedAt)
+	}
+	if m.reconcile_failed_at != nil {
+		fields = append(fields, order.FieldReconcileFailedAt)
+	}
+	if m.reconcile_error != nil {
+		fields = append(fields, order.FieldReconcileError)
 	}
 	if m.newsletter != nil {
 		fields = append(fields, order.FieldNewsletter)
@@ -9590,6 +10934,10 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.OdooSyncError()
 	case order.FieldInvalidatedAt:
 		return m.InvalidatedAt()
+	case order.FieldReconcileFailedAt:
+		return m.ReconcileFailedAt()
+	case order.FieldReconcileError:
+		return m.ReconcileError()
 	case order.FieldNewsletter:
 		return m.Newsletter()
 	case order.FieldPaymentEventID:
@@ -9629,6 +10977,10 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldOdooSyncError(ctx)
 	case order.FieldInvalidatedAt:
 		return m.OldInvalidatedAt(ctx)
+	case order.FieldReconcileFailedAt:
+		return m.OldReconcileFailedAt(ctx)
+	case order.FieldReconcileError:
+		return m.OldReconcileError(ctx)
 	case order.FieldNewsletter:
 		return m.OldNewsletter(ctx)
 	case order.FieldPaymentEventID:
@@ -9727,6 +11079,20 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetInvalidatedAt(v)
+		return nil
+	case order.FieldReconcileFailedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReconcileFailedAt(v)
+		return nil
+	case order.FieldReconcileError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReconcileError(v)
 		return nil
 	case order.FieldNewsletter:
 		v, ok := value.(bool)
@@ -9839,6 +11205,12 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldInvalidatedAt) {
 		fields = append(fields, order.FieldInvalidatedAt)
 	}
+	if m.FieldCleared(order.FieldReconcileFailedAt) {
+		fields = append(fields, order.FieldReconcileFailedAt)
+	}
+	if m.FieldCleared(order.FieldReconcileError) {
+		fields = append(fields, order.FieldReconcileError)
+	}
 	if m.FieldCleared(order.FieldPaymentEventID) {
 		fields = append(fields, order.FieldPaymentEventID)
 	}
@@ -9879,6 +11251,12 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldInvalidatedAt:
 		m.ClearInvalidatedAt()
+		return nil
+	case order.FieldReconcileFailedAt:
+		m.ClearReconcileFailedAt()
+		return nil
+	case order.FieldReconcileError:
+		m.ClearReconcileError()
 		return nil
 	case order.FieldPaymentEventID:
 		m.ClearPaymentEventID()
@@ -9929,6 +11307,12 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldInvalidatedAt:
 		m.ResetInvalidatedAt()
+		return nil
+	case order.FieldReconcileFailedAt:
+		m.ResetReconcileFailedAt()
+		return nil
+	case order.FieldReconcileError:
+		m.ResetReconcileError()
 		return nil
 	case order.FieldNewsletter:
 		m.ResetNewsletter()
@@ -10063,6 +11447,7 @@ type OrderEntryMutation struct {
 	addquantity     *int
 	price           *int
 	addprice        *int
+	item_name       *string
 	is_sale         *bool
 	clearedFields   map[string]struct{}
 	_order          *int
@@ -10292,6 +11677,42 @@ func (m *OrderEntryMutation) AddedPrice() (r int, exists bool) {
 func (m *OrderEntryMutation) ResetPrice() {
 	m.price = nil
 	m.addprice = nil
+}
+
+// SetItemName sets the "item_name" field.
+func (m *OrderEntryMutation) SetItemName(s string) {
+	m.item_name = &s
+}
+
+// ItemName returns the value of the "item_name" field in the mutation.
+func (m *OrderEntryMutation) ItemName() (r string, exists bool) {
+	v := m.item_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemName returns the old "item_name" field's value of the OrderEntry entity.
+// If the OrderEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderEntryMutation) OldItemName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemName: %w", err)
+	}
+	return oldValue.ItemName, nil
+}
+
+// ResetItemName resets all changes to the "item_name" field.
+func (m *OrderEntryMutation) ResetItemName() {
+	m.item_name = nil
 }
 
 // SetIsSale sets the "is_sale" field.
@@ -10629,12 +12050,15 @@ func (m *OrderEntryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderEntryMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.quantity != nil {
 		fields = append(fields, orderentry.FieldQuantity)
 	}
 	if m.price != nil {
 		fields = append(fields, orderentry.FieldPrice)
+	}
+	if m.item_name != nil {
+		fields = append(fields, orderentry.FieldItemName)
 	}
 	if m.is_sale != nil {
 		fields = append(fields, orderentry.FieldIsSale)
@@ -10663,6 +12087,8 @@ func (m *OrderEntryMutation) Field(name string) (ent.Value, bool) {
 		return m.Quantity()
 	case orderentry.FieldPrice:
 		return m.Price()
+	case orderentry.FieldItemName:
+		return m.ItemName()
 	case orderentry.FieldIsSale:
 		return m.IsSale()
 	case orderentry.FieldItemID:
@@ -10686,6 +12112,8 @@ func (m *OrderEntryMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldQuantity(ctx)
 	case orderentry.FieldPrice:
 		return m.OldPrice(ctx)
+	case orderentry.FieldItemName:
+		return m.OldItemName(ctx)
 	case orderentry.FieldIsSale:
 		return m.OldIsSale(ctx)
 	case orderentry.FieldItemID:
@@ -10718,6 +12146,13 @@ func (m *OrderEntryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPrice(v)
+		return nil
+	case orderentry.FieldItemName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemName(v)
 		return nil
 	case orderentry.FieldIsSale:
 		v, ok := value.(bool)
@@ -10844,6 +12279,9 @@ func (m *OrderEntryMutation) ResetField(name string) error {
 		return nil
 	case orderentry.FieldPrice:
 		m.ResetPrice()
+		return nil
+	case orderentry.FieldItemName:
+		m.ResetItemName()
 		return nil
 	case orderentry.FieldIsSale:
 		m.ResetIsSale()

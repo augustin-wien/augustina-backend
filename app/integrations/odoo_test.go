@@ -374,3 +374,34 @@ func TestSendPaymentToOdooHeaders(t *testing.T) {
 	require.NoError(t, SendPaymentToOdoo(2, time.Now(), nil, vendor, 0))
 	require.Empty(t, dbFilter)
 }
+
+func TestSendPaymentToOdooPrefersNameAtPurchase(t *testing.T) {
+	originalGetItemByID := getItemByID
+	getItemByID = func(id int) (database.Item, error) {
+		return database.Item{ID: id, Name: "Renamed Item", Type: "issue"}, nil
+	}
+	defer func() { getItemByID = originalGetItemByID }()
+
+	var received OdooPayload
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&received))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer mockServer.Close()
+
+	originalURL := config.Config.OdooWebhookURL
+	config.Config.OdooWebhookURL = mockServer.URL
+	defer func() { config.Config.OdooWebhookURL = originalURL }()
+
+	items := []database.OrderEntry{
+		{ID: 1, Item: 1, Quantity: 1, Price: 300, Receiver: 6234, ItemName: "Name at purchase"},
+		{ID: 2, Item: 2, Quantity: 1, Price: 300, Receiver: 6234},
+	}
+	vendor := database.Vendor{ID: 6234, LicenseID: null.StringFrom("test-license")}
+
+	require.NoError(t, SendPaymentToOdoo(1, time.Now(), items, vendor, 600))
+	require.Len(t, received.Items, 2)
+	require.Equal(t, "Name at purchase", received.Items[0].Name)
+	require.Equal(t, "issue", received.Items[0].Type)
+	require.Equal(t, "Renamed Item", received.Items[1].Name, "entries without a stored name fall back to the item")
+}

@@ -20,6 +20,9 @@ func (OrderEntry) Fields() []ent.Field {
 			Positive(),
 		field.Int("quantity"),
 		field.Int("price"),
+		// Name of the item at the time of purchase
+		field.String("item_name").
+			Default(""),
 		field.Bool("is_sale"),
 		// Foreign keys as fields if not using Edges for everything,
 		// but Ent prefers Edges.

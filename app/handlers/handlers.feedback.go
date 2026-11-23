@@ -108,9 +108,9 @@ func SendFeedback(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, errors.New("internal error"), http.StatusInternalServerError)
 		return
 	}
-	if _, err := mailer.Send(mailReq); err != nil {
-		log.Error("SendFeedback: send mail: ", err)
-		utils.ErrorJSON(w, errors.New("feedback could not be sent"), http.StatusBadGateway)
+	if _, err := database.Db.QueueMail(mailReq, database.MailMeta{Kind: database.MailKindFeedback}); err != nil {
+		log.Error("SendFeedback: queue mail: ", err)
+		utils.ErrorJSON(w, errors.New("feedback could not be sent"), http.StatusInternalServerError)
 		return
 	}
 	respond(w, nil, nil)

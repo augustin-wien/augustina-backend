@@ -23,6 +23,8 @@ type OrderEntry struct {
 	Quantity int `json:"quantity,omitempty"`
 	// Price holds the value of the "price" field.
 	Price int `json:"price,omitempty"`
+	// ItemName holds the value of the "item_name" field.
+	ItemName string `json:"item_name,omitempty"`
 	// IsSale holds the value of the "is_sale" field.
 	IsSale bool `json:"is_sale,omitempty"`
 	// ItemID holds the value of the "item_id" field.
@@ -107,6 +109,8 @@ func (*OrderEntry) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case orderentry.FieldID, orderentry.FieldQuantity, orderentry.FieldPrice, orderentry.FieldItemID, orderentry.FieldSenderID, orderentry.FieldReceiverID, orderentry.FieldOrderID:
 			values[i] = new(sql.NullInt64)
+		case orderentry.FieldItemName:
+			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -139,6 +143,12 @@ func (_m *OrderEntry) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field price", values[i])
 			} else if value.Valid {
 				_m.Price = int(value.Int64)
+			}
+		case orderentry.FieldItemName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field item_name", values[i])
+			} else if value.Valid {
+				_m.ItemName = value.String
 			}
 		case orderentry.FieldIsSale:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -231,6 +241,9 @@ func (_m *OrderEntry) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("price=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Price))
+	builder.WriteString(", ")
+	builder.WriteString("item_name=")
+	builder.WriteString(_m.ItemName)
 	builder.WriteString(", ")
 	builder.WriteString("is_sale=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsSale))

@@ -38,6 +38,13 @@ func isTransientSMTPError(err error) bool {
 	return errors.As(err, &protoErr) && protoErr.Code >= 400 && protoErr.Code < 500
 }
 
+// IsPermanentSMTPError reports whether the SMTP server rejected the mail with a
+// permanent (5xx) reply, so sending it again will not help.
+func IsPermanentSMTPError(err error) bool {
+	var protoErr *textproto.Error
+	return errors.As(err, &protoErr) && protoErr.Code >= 500 && protoErr.Code < 600
+}
+
 // SendWithRetry sends like Send and tries again when the SMTP server answers
 // with a transient (4xx) error. It blocks for the waits in between, so use it
 // from background goroutines only.

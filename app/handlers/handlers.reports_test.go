@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -22,10 +23,21 @@ func TestMonthlyReport(t *testing.T) {
 
 	origSend := mailer.Send
 	defer func() { mailer.Send = origSend }()
+	var sentMu sync.Mutex
 	var sent []*mailer.EmailRequest
 	mailer.Send = func(r *mailer.EmailRequest) (bool, error) {
+		sentMu.Lock()
+		defer sentMu.Unlock()
 		sent = append(sent, r)
 		return true, nil
+	}
+	// Mails are queued and sent in the background
+	waitForSent := func(n int) {
+		require.Eventually(t, func() bool {
+			sentMu.Lock()
+			defer sentMu.Unlock()
+			return len(sent) == n
+		}, 5*time.Second, 20*time.Millisecond)
 	}
 
 	vendorLicenseID := "testmonthlyreport"
@@ -70,7 +82,7 @@ func TestMonthlyReport(t *testing.T) {
 		SetAccountingReportEmail("buchhaltung@example.com").
 		Exec(context.Background()))
 	utils.TestRequestWithAuth(t, r, "POST", url+"send/", nil, 200, adminUserToken)
-	require.Len(t, sent, 1)
+	waitForSent(1)
 	msg, _, err := sent[0].BuildMessage()
 	require.NoError(t, err)
 	require.Contains(t, string(msg), "To: buchhaltung@example.com\r\n")

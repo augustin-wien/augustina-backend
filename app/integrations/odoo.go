@@ -107,12 +107,14 @@ func SendPaymentToOdoo(id int, timestamp time.Time, items []database.OrderEntry,
 		}
 		totalPrice += itemPrice * item.Quantity
 
-		itemName := ""
+		itemName := item.ItemName
 		itemType := ""
 		if dbItem, err := getItemByID(item.Item); err != nil {
-			log.Errorf("SendPaymentToOdoo: Failed to fetch item name for item %d: %v", item.Item, err)
+			log.Errorf("SendPaymentToOdoo: Failed to fetch item %d: %v", item.Item, err)
 		} else {
-			itemName = dbItem.Name
+			if itemName == "" {
+				itemName = dbItem.Name
+			}
 			itemType = dbItem.Type
 		}
 
