@@ -65,6 +65,8 @@ type Settings struct {
 	AbonementUrl string `json:"AbonementUrl"`
 	// AbonementEnabled holds the value of the "AbonementEnabled" field.
 	AbonementEnabled bool `json:"AbonementEnabled"`
+	// VoucherEnabled holds the value of the "VoucherEnabled" field.
+	VoucherEnabled bool `json:"VoucherEnabled"`
 	// POSEnabled holds the value of the "POSEnabled" field.
 	POSEnabled bool `json:"POSEnabled"`
 	// WordPressInviteURL holds the value of the "WordPressInviteURL" field.
@@ -151,7 +153,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled, settings.FieldNewsletterEnabled, settings.FieldIDScanEnabled, settings.FieldNextcloudEnabled:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldVoucherEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled, settings.FieldNewsletterEnabled, settings.FieldIDScanEnabled, settings.FieldNextcloudEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
@@ -325,6 +327,12 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field AbonementEnabled", values[i])
 			} else if value.Valid {
 				_m.AbonementEnabled = value.Bool
+			}
+		case settings.FieldVoucherEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field VoucherEnabled", values[i])
+			} else if value.Valid {
+				_m.VoucherEnabled = value.Bool
 			}
 		case settings.FieldPOSEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -607,6 +615,9 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("AbonementEnabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AbonementEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("VoucherEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.VoucherEnabled))
 	builder.WriteString(", ")
 	builder.WriteString("POSEnabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.POSEnabled))

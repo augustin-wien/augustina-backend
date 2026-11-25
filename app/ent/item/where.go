@@ -118,6 +118,11 @@ func ItemTextColor(v string) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldItemTextColor, v))
 }
 
+// AboDurationMonths applies equality check predicate on the "AboDurationMonths" field. It's identical to AboDurationMonthsEQ.
+func AboDurationMonths(v int) predicate.Item {
+	return predicate.Item(sql.FieldEQ(FieldAboDurationMonths, v))
+}
+
 // NameEQ applies the EQ predicate on the "Name" field.
 func NameEQ(v string) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldName, v))
@@ -691,6 +696,46 @@ func ItemTextColorEqualFold(v string) predicate.Item {
 // ItemTextColorContainsFold applies the ContainsFold predicate on the "ItemTextColor" field.
 func ItemTextColorContainsFold(v string) predicate.Item {
 	return predicate.Item(sql.FieldContainsFold(FieldItemTextColor, v))
+}
+
+// AboDurationMonthsEQ applies the EQ predicate on the "AboDurationMonths" field.
+func AboDurationMonthsEQ(v int) predicate.Item {
+	return predicate.Item(sql.FieldEQ(FieldAboDurationMonths, v))
+}
+
+// AboDurationMonthsNEQ applies the NEQ predicate on the "AboDurationMonths" field.
+func AboDurationMonthsNEQ(v int) predicate.Item {
+	return predicate.Item(sql.FieldNEQ(FieldAboDurationMonths, v))
+}
+
+// AboDurationMonthsIn applies the In predicate on the "AboDurationMonths" field.
+func AboDurationMonthsIn(vs ...int) predicate.Item {
+	return predicate.Item(sql.FieldIn(FieldAboDurationMonths, vs...))
+}
+
+// AboDurationMonthsNotIn applies the NotIn predicate on the "AboDurationMonths" field.
+func AboDurationMonthsNotIn(vs ...int) predicate.Item {
+	return predicate.Item(sql.FieldNotIn(FieldAboDurationMonths, vs...))
+}
+
+// AboDurationMonthsGT applies the GT predicate on the "AboDurationMonths" field.
+func AboDurationMonthsGT(v int) predicate.Item {
+	return predicate.Item(sql.FieldGT(FieldAboDurationMonths, v))
+}
+
+// AboDurationMonthsGTE applies the GTE predicate on the "AboDurationMonths" field.
+func AboDurationMonthsGTE(v int) predicate.Item {
+	return predicate.Item(sql.FieldGTE(FieldAboDurationMonths, v))
+}
+
+// AboDurationMonthsLT applies the LT predicate on the "AboDurationMonths" field.
+func AboDurationMonthsLT(v int) predicate.Item {
+	return predicate.Item(sql.FieldLT(FieldAboDurationMonths, v))
+}
+
+// AboDurationMonthsLTE applies the LTE predicate on the "AboDurationMonths" field.
+func AboDurationMonthsLTE(v int) predicate.Item {
+	return predicate.Item(sql.FieldLTE(FieldAboDurationMonths, v))
 }
 
 // HasLicenseItem applies the HasEdge predicate on the "LicenseItem" edge.

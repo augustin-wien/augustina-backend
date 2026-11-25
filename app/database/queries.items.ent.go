@@ -91,9 +91,14 @@ func (db *Database) ListItemsShop() ([]Item, error) {
 		log.Error("ListItemsShop (ent): ", err)
 		return out, err
 	}
+	settings, _ := db.GetSettings()
+	vouchersOnSale := VouchersOnSale(settings)
 	for _, e := range ents {
 		it := convertEntItem(e)
 		if it.Name == config.Config.TransactionCostsName || it.Name == config.Config.DonationName {
+			continue
+		}
+		if it.Type == AbonementVoucherItemType && !vouchersOnSale {
 			continue
 		}
 		if it.IsLicenseItem {
@@ -210,6 +215,7 @@ func convertEntItem(e *ent.Item) Item {
 	if e.Edges.LicenseItem != nil {
 		it.LicenseItem = null.IntFrom(int64(e.Edges.LicenseItem.ID))
 	}
+	it.AboDurationMonths = e.AboDurationMonths
 	return it
 }
 
@@ -307,7 +313,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 			SetIsPDFItem(item.IsPDFItem).
 			SetItemOrder(item.ItemOrder).
 			SetItemColor(item.ItemColor.String).
-			SetItemTextColor(item.ItemTextColor.String).
+			SetItemTextColor(item.ItemTextColor.String).SetAboDurationMonths(aboDurationMonths(item)).
 			SetType(item.Type)
 		if item.LicenseItem.Valid {
 			v := int(item.LicenseItem.ValueOrZero())
@@ -330,7 +336,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 		return e.ID, nil
 	}
 
-	builder := db.EntClient.Item.Create().SetName(item.Name).SetDescription(item.Description).SetPrice(float64(item.Price)).SetImage(item.Image).SetArchived(item.Archived).SetDisabled(item.Disabled).SetIsLicenseItem(item.IsLicenseItem).SetLicenseGroup(item.LicenseGroup.String).SetIsPDFItem(item.IsPDFItem).SetItemOrder(item.ItemOrder).SetItemColor(item.ItemColor.String).SetItemTextColor(item.ItemTextColor.String).SetType(item.Type)
+	builder := db.EntClient.Item.Create().SetName(item.Name).SetDescription(item.Description).SetPrice(float64(item.Price)).SetImage(item.Image).SetArchived(item.Archived).SetDisabled(item.Disabled).SetIsLicenseItem(item.IsLicenseItem).SetLicenseGroup(item.LicenseGroup.String).SetIsPDFItem(item.IsPDFItem).SetItemOrder(item.ItemOrder).SetItemColor(item.ItemColor.String).SetItemTextColor(item.ItemTextColor.String).SetAboDurationMonths(aboDurationMonths(item)).SetType(item.Type)
 	if item.LicenseItem.Valid {
 		v := int(item.LicenseItem.ValueOrZero())
 		builder = builder.SetNillableLicenseItemID(&v)
@@ -483,7 +489,7 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 			SetIsPDFItem(item.IsPDFItem).
 			SetItemOrder(item.ItemOrder).
 			SetItemColor(item.ItemColor.String).
-			SetItemTextColor(item.ItemTextColor.String).
+			SetItemTextColor(item.ItemTextColor.String).SetAboDurationMonths(aboDurationMonths(item)).
 			SetType(item.Type).
 			SetNillableLicenseItemID(&licenseEnt.ID)
 		if item.PDF.Valid {
@@ -510,7 +516,7 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 			SetIsPDFItem(item.IsPDFItem).
 			SetItemOrder(item.ItemOrder).
 			SetItemColor(item.ItemColor.String).
-			SetItemTextColor(item.ItemTextColor.String).
+			SetItemTextColor(item.ItemTextColor.String).SetAboDurationMonths(aboDurationMonths(item)).
 			SetType(item.Type)
 
 		if item.LicenseItem.Valid {
@@ -547,6 +553,12 @@ func (db *Database) CreateAbonementItemWithLicense(item Item, licenseCost int) (
 	return db.createItemWithLicense(item, licenseCost, "abonement")
 }
 
+// CreateAbonementVoucherItemWithLicense creates an abonement_voucher item and its required
+// license_item in one transaction. The returned IDs are (voucherItemID, licenseID).
+func (db *Database) CreateAbonementVoucherItemWithLicense(item Item, licenseCost int) (voucherItemID int, licenseID int, err error) {
+	return db.createItemWithLicense(item, licenseCost, AbonementVoucherItemType)
+}
+
 // UpdateItem updates an item in the database
 func (db *Database) UpdateItem(id int, item Item) (err error) {
 	log.Infof("UpdateItem: %s", item.Name)
@@ -563,7 +575,7 @@ func (db *Database) UpdateItem(id int, item Item) (err error) {
 		SetIsPDFItem(item.IsPDFItem).
 		SetItemOrder(item.ItemOrder).
 		SetItemColor(item.ItemColor.String).
-		SetItemTextColor(item.ItemTextColor.String).
+		SetItemTextColor(item.ItemTextColor.String).SetAboDurationMonths(aboDurationMonths(item)).
 		SetType(item.Type)
 	if item.LicenseItem.Valid {
 		v := int(item.LicenseItem.ValueOrZero())
@@ -719,4 +731,12 @@ func (db *Database) RestoreItem(id int) (err error) {
 		log.Error("RestoreItem (ent): ", err)
 	}
 	return
+}
+
+// aboDurationMonths is the item's abonement duration, 12 months when not set
+func aboDurationMonths(item Item) int {
+	if item.AboDurationMonths <= 0 {
+		return 12
+	}
+	return item.AboDurationMonths
 }

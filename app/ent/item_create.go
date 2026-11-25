@@ -170,6 +170,20 @@ func (_c *ItemCreate) SetNillableItemTextColor(v *string) *ItemCreate {
 	return _c
 }
 
+// SetAboDurationMonths sets the "AboDurationMonths" field.
+func (_c *ItemCreate) SetAboDurationMonths(v int) *ItemCreate {
+	_c.mutation.SetAboDurationMonths(v)
+	return _c
+}
+
+// SetNillableAboDurationMonths sets the "AboDurationMonths" field if the given value is not nil.
+func (_c *ItemCreate) SetNillableAboDurationMonths(v *int) *ItemCreate {
+	if v != nil {
+		_c.SetAboDurationMonths(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *ItemCreate) SetID(v int) *ItemCreate {
 	_c.mutation.SetID(v)
@@ -285,6 +299,10 @@ func (_c *ItemCreate) defaults() {
 		v := item.DefaultItemTextColor
 		_c.mutation.SetItemTextColor(v)
 	}
+	if _, ok := _c.mutation.AboDurationMonths(); !ok {
+		v := item.DefaultAboDurationMonths
+		_c.mutation.SetAboDurationMonths(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -342,6 +360,9 @@ func (_c *ItemCreate) check() error {
 	}
 	if _, ok := _c.mutation.ItemTextColor(); !ok {
 		return &ValidationError{Name: "ItemTextColor", err: errors.New(`ent: missing required field "Item.ItemTextColor"`)}
+	}
+	if _, ok := _c.mutation.AboDurationMonths(); !ok {
+		return &ValidationError{Name: "AboDurationMonths", err: errors.New(`ent: missing required field "Item.AboDurationMonths"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := item.IDValidator(v); err != nil {
@@ -431,6 +452,10 @@ func (_c *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ItemTextColor(); ok {
 		_spec.SetField(item.FieldItemTextColor, field.TypeString, value)
 		_node.ItemTextColor = value
+	}
+	if value, ok := _c.mutation.AboDurationMonths(); ok {
+		_spec.SetField(item.FieldAboDurationMonths, field.TypeInt, value)
+		_node.AboDurationMonths = value
 	}
 	if nodes := _c.mutation.LicenseItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -194,7 +194,7 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if item.Type == "online_issue" || item.Type == "abonement" {
+	if item.Type == "online_issue" || item.Type == "abonement" || item.Type == database.AbonementVoucherItemType {
 		licenseCost, err := parseLicenseCost(mForm.Value)
 		if err != nil {
 			log.Error("CreateItem: parse license_cost failed", err)
@@ -204,6 +204,8 @@ func CreateItem(w http.ResponseWriter, r *http.Request) {
 		var id int
 		if item.Type == "online_issue" {
 			id, _, err = database.Db.CreateOnlineIssueWithLicense(item, licenseCost)
+		} else if item.Type == database.AbonementVoucherItemType {
+			id, _, err = database.Db.CreateAbonementVoucherItemWithLicense(item, licenseCost)
 		} else {
 			id, _, err = database.Db.CreateAbonementItemWithLicense(item, licenseCost)
 		}
@@ -462,6 +464,12 @@ func updateItemNormal(fields map[string][]string) (item database.Item, err error
 			if err != nil {
 				log.Error("updateItemNormal: Parse ItemOrder failed ", err)
 			}
+		case "AboDurationMonths":
+			fieldsClean[key], err = strconv.Atoi(value[0])
+			if err != nil {
+				log.Error("updateItemNormal: Parse AboDurationMonths failed ", err)
+				return
+			}
 		default:
 			fieldsClean[key] = value[0]
 		}
@@ -499,7 +507,10 @@ func parseLicenseCost(fields map[string][]string) (licenseCost int, err error) {
 // customers can buy the item but never read it. PDF items are delivered as a
 // download link and need no group.
 func validateLicenseGroup(item database.Item) error {
-	if item.Type != "online_issue" && item.Type != "abonement" {
+	if item.Type == database.AbonementVoucherItemType && (item.AboDurationMonths < 0 || item.AboDurationMonths > 120) {
+		return errors.New("abonement duration must be between 1 and 120 months")
+	}
+	if item.Type != "online_issue" && item.Type != "abonement" && item.Type != database.AbonementVoucherItemType {
 		return nil
 	}
 	if item.IsPDFItem {

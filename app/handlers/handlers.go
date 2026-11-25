@@ -10,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode/utf8"
 
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/ent"
@@ -114,6 +115,9 @@ type createOrderRequest struct {
 	VendorLicenseID string
 	CustomerEmail   null.String
 	Newsletter      bool
+	// Printed on the PDF of an abonement voucher
+	GiftRecipientName string
+	GiftMessage       string
 }
 
 type createOrderResponse struct {
@@ -277,6 +281,8 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	requestData.CustomerEmail.String = strings.TrimSpace(requestData.CustomerEmail.String)
 	order.CustomerEmail = requestData.CustomerEmail
 
+	hasVoucher := false
+
 	// Security checks for entries
 	onlyDonations := len(requestData.Entries) > 0
 	for _, entry := range requestData.Entries {
@@ -299,6 +305,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 		}
 		onlyDonations = onlyDonations && isDonationItem(item)
 
+		if item.Type == database.AbonementVoucherItemType {
+			hasVoucher = true
+		}
+
 		// 3. Check: Transaction costs are not allowed to be in entries
 		if isTransactionCostsItem(item) {
 			utils.ErrorJSON(w, errors.New("nice try! You are not allowed to purchase this item"), http.StatusBadRequest)
@@ -315,6 +325,13 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 			order.CustomerEmail = requestData.CustomerEmail
 			order.Newsletter = requestData.Newsletter
 		}
+	}
+
+	// Name and message only end up on voucher PDFs
+	order.GiftRecipientName, order.GiftMessage, err = giftTexts(requestData)
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	// 5. Check: If there is more than one entry, each item id has to be unique
@@ -366,6 +383,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	if !settings.NewsletterEnabled {
 		order.Newsletter = false
+	}
+	if hasVoucher && !database.VouchersOnSale(settings) {
+		utils.ErrorJSON(w, errors.New("abonement vouchers are not available"), http.StatusBadRequest)
+		return
 	}
 
 	// Add user to order
@@ -752,6 +773,9 @@ func onlineAccessItem(order database.Order) (item database.Item, ok bool) {
 		}
 		if item.Type == "abonement" {
 			return item, true
+		}
+		if item.Type == database.AbonementVoucherItemType {
+			continue
 		}
 		if item.LicenseItem.Valid && !item.IsPDFItem {
 			linked, err := database.Db.GetItemIncludingDisabled(int(item.LicenseItem.Int64))
@@ -1522,4 +1546,17 @@ func isDonationItem(item database.Item) bool {
 // isTransactionCostsItem reports whether the item books the payment provider's fees
 func isTransactionCostsItem(item database.Item) bool {
 	return item.Type == "transaction_costs" || item.Name == config.Config.TransactionCostsName
+}
+
+// giftTexts returns the trimmed recipient name and message of the order, or an error if one is too long
+func giftTexts(req createOrderRequest) (name, message string, err error) {
+	name = strings.TrimSpace(req.GiftRecipientName)
+	message = strings.TrimSpace(req.GiftMessage)
+	if utf8.RuneCountInString(name) > database.MaxVoucherRecipientNameLength {
+		return "", "", fmt.Errorf("gift recipient name must be at most %d characters", database.MaxVoucherRecipientNameLength)
+	}
+	if utf8.RuneCountInString(message) > database.MaxVoucherMessageLength {
+		return "", "", fmt.Errorf("gift message must be at most %d characters", database.MaxVoucherMessageLength)
+	}
+	return name, message, nil
 }

@@ -385,6 +385,20 @@ func (_u *SettingsUpdate) SetNillableAbonementEnabled(v *bool) *SettingsUpdate {
 	return _u
 }
 
+// SetVoucherEnabled sets the "VoucherEnabled" field.
+func (_u *SettingsUpdate) SetVoucherEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetVoucherEnabled(v)
+	return _u
+}
+
+// SetNillableVoucherEnabled sets the "VoucherEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableVoucherEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetVoucherEnabled(*v)
+	}
+	return _u
+}
+
 // SetPOSEnabled sets the "POSEnabled" field.
 func (_u *SettingsUpdate) SetPOSEnabled(v bool) *SettingsUpdate {
 	_u.mutation.SetPOSEnabled(v)
@@ -917,6 +931,9 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AbonementEnabled(); ok {
 		_spec.SetField(settings.FieldAbonementEnabled, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.VoucherEnabled(); ok {
+		_spec.SetField(settings.FieldVoucherEnabled, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.POSEnabled(); ok {
 		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)
 	}
@@ -1403,6 +1420,20 @@ func (_u *SettingsUpdateOne) SetAbonementEnabled(v bool) *SettingsUpdateOne {
 func (_u *SettingsUpdateOne) SetNillableAbonementEnabled(v *bool) *SettingsUpdateOne {
 	if v != nil {
 		_u.SetAbonementEnabled(*v)
+	}
+	return _u
+}
+
+// SetVoucherEnabled sets the "VoucherEnabled" field.
+func (_u *SettingsUpdateOne) SetVoucherEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetVoucherEnabled(v)
+	return _u
+}
+
+// SetNillableVoucherEnabled sets the "VoucherEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableVoucherEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetVoucherEnabled(*v)
 	}
 	return _u
 }
@@ -1968,6 +1999,9 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.AbonementEnabled(); ok {
 		_spec.SetField(settings.FieldAbonementEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.VoucherEnabled(); ok {
+		_spec.SetField(settings.FieldVoucherEnabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.POSEnabled(); ok {
 		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)

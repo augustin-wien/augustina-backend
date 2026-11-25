@@ -49,6 +49,9 @@ func (db *Database) buildPDFLicenceMail(email, linkID string) (*mailer.EmailRequ
 
 // isMailDeliveredItem reports whether buying the item sends the customer a mail
 func isMailDeliveredItem(item Item) bool {
+	if item.Type == AbonementVoucherItemType {
+		return false
+	}
 	return item.LicenseItem.Valid || item.Type == "abonement"
 }
 
@@ -93,6 +96,16 @@ func (db *Database) ResendOrderMails(orderID int) (sent int, err error) {
 		item, err := db.GetItemIncludingArchived(entry.Item)
 		if err != nil {
 			return 0, err
+		}
+		if item.Type == AbonementVoucherItemType {
+			mail, err := db.orderVoucherMail(orderID, item.ID, email)
+			if err != nil {
+				return 0, err
+			}
+			if mail != nil {
+				mails = append(mails, outgoingMail{mail, MailMeta{Kind: MailKindVoucher, OrderID: orderID, ItemID: item.ID}})
+			}
+			continue
 		}
 		if !isMailDeliveredItem(item) || linkedItemIsPDF(db.EntClient.Item, item) {
 			continue
@@ -177,7 +190,7 @@ func (db *Database) CreateWordPressInvite(email string, item Item) string {
 // one of its linked item: a license item and its issue point at each other,
 // and often only one of them carries the group.
 func (db *Database) inviteLicenseGroup(item Item) string {
-	if item.Type == "abonement" {
+	if item.Type == "abonement" || item.Type == AbonementVoucherItemType {
 		currentIssue, found, err := db.GetCurrentOnlineIssue()
 		if err != nil {
 			log.Error("inviteLicenseGroup: failed to look up current online_issue: ", err)
@@ -228,4 +241,22 @@ func (db *Database) renewOrderPDFDownload(orderID int, item Item) (pdfDownload P
 		return pdfDownload, err
 	}
 	return pdfDownload, tx.Commit()
+}
+
+// orderVoucherMail builds the mail with the vouchers bought with an order for an item, nil if there are none
+func (db *Database) orderVoucherMail(orderID, itemID int, email string) (*mailer.EmailRequest, error) {
+	all, err := db.GetVouchersByOrder(orderID)
+	if err != nil {
+		return nil, err
+	}
+	var vouchers []AbonementVoucher
+	for _, v := range all {
+		if v.ItemID == itemID {
+			vouchers = append(vouchers, v)
+		}
+	}
+	if len(vouchers) == 0 {
+		return nil, nil
+	}
+	return db.BuildVoucherMail(email, vouchers)
 }

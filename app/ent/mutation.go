@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/augustin-wien/augustina-backend/ent/abonement"
+	"github.com/augustin-wien/augustina-backend/ent/abonementvoucher"
 	"github.com/augustin-wien/augustina-backend/ent/account"
 	"github.com/augustin-wien/augustina-backend/ent/blockedip"
 	"github.com/augustin-wien/augustina-backend/ent/campaign"
@@ -43,25 +44,26 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAbonement       = "Abonement"
-	TypeAccount         = "Account"
-	TypeBlockedIP       = "BlockedIP"
-	TypeCampaign        = "Campaign"
-	TypeComment         = "Comment"
-	TypeCustomer        = "Customer"
-	TypeDBSettings      = "DBSettings"
-	TypeExternalPayment = "ExternalPayment"
-	TypeItem            = "Item"
-	TypeLocation        = "Location"
-	TypeMailTask        = "MailTask"
-	TypeMailTemplate    = "MailTemplate"
-	TypeOrder           = "Order"
-	TypeOrderEntry      = "OrderEntry"
-	TypePDF             = "PDF"
-	TypePDFDownload     = "PDFDownload"
-	TypePayment         = "Payment"
-	TypeSettings        = "Settings"
-	TypeVendor          = "Vendor"
+	TypeAbonement        = "Abonement"
+	TypeAbonementVoucher = "AbonementVoucher"
+	TypeAccount          = "Account"
+	TypeBlockedIP        = "BlockedIP"
+	TypeCampaign         = "Campaign"
+	TypeComment          = "Comment"
+	TypeCustomer         = "Customer"
+	TypeDBSettings       = "DBSettings"
+	TypeExternalPayment  = "ExternalPayment"
+	TypeItem             = "Item"
+	TypeLocation         = "Location"
+	TypeMailTask         = "MailTask"
+	TypeMailTemplate     = "MailTemplate"
+	TypeOrder            = "Order"
+	TypeOrderEntry       = "OrderEntry"
+	TypePDF              = "PDF"
+	TypePDFDownload      = "PDFDownload"
+	TypePayment          = "Payment"
+	TypeSettings         = "Settings"
+	TypeVendor           = "Vendor"
 )
 
 // AbonementMutation represents an operation that mutates the Abonement nodes in the graph.
@@ -881,6 +883,1255 @@ func (m *AbonementMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Abonement edge %s", name)
+}
+
+// AbonementVoucherMutation represents an operation that mutates the AbonementVoucher nodes in the graph.
+type AbonementVoucherMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int
+	code                    *string
+	item_id                 *int
+	additem_id              *int
+	order_id                *int
+	addorder_id             *int
+	buyer_email             *string
+	recipient_name          *string
+	message                 *string
+	duration_months         *int
+	addduration_months      *int
+	status                  *string
+	created_at              *time.Time
+	redeemed_at             *time.Time
+	redeemed_email          *string
+	redeemed_customer_id    *int
+	addredeemed_customer_id *int
+	abonement_id            *int
+	addabonement_id         *int
+	clearedFields           map[string]struct{}
+	done                    bool
+	oldValue                func(context.Context) (*AbonementVoucher, error)
+	predicates              []predicate.AbonementVoucher
+}
+
+var _ ent.Mutation = (*AbonementVoucherMutation)(nil)
+
+// abonementvoucherOption allows management of the mutation configuration using functional options.
+type abonementvoucherOption func(*AbonementVoucherMutation)
+
+// newAbonementVoucherMutation creates new mutation for the AbonementVoucher entity.
+func newAbonementVoucherMutation(c config, op Op, opts ...abonementvoucherOption) *AbonementVoucherMutation {
+	m := &AbonementVoucherMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAbonementVoucher,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAbonementVoucherID sets the ID field of the mutation.
+func withAbonementVoucherID(id int) abonementvoucherOption {
+	return func(m *AbonementVoucherMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AbonementVoucher
+		)
+		m.oldValue = func(ctx context.Context) (*AbonementVoucher, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AbonementVoucher.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAbonementVoucher sets the old AbonementVoucher of the mutation.
+func withAbonementVoucher(node *AbonementVoucher) abonementvoucherOption {
+	return func(m *AbonementVoucherMutation) {
+		m.oldValue = func(context.Context) (*AbonementVoucher, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AbonementVoucherMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AbonementVoucherMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AbonementVoucher entities.
+func (m *AbonementVoucherMutation) SetID(id int) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AbonementVoucherMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AbonementVoucherMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AbonementVoucher.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCode sets the "code" field.
+func (m *AbonementVoucherMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *AbonementVoucherMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *AbonementVoucherMutation) ResetCode() {
+	m.code = nil
+}
+
+// SetItemID sets the "item_id" field.
+func (m *AbonementVoucherMutation) SetItemID(i int) {
+	m.item_id = &i
+	m.additem_id = nil
+}
+
+// ItemID returns the value of the "item_id" field in the mutation.
+func (m *AbonementVoucherMutation) ItemID() (r int, exists bool) {
+	v := m.item_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldItemID returns the old "item_id" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldItemID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldItemID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldItemID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldItemID: %w", err)
+	}
+	return oldValue.ItemID, nil
+}
+
+// AddItemID adds i to the "item_id" field.
+func (m *AbonementVoucherMutation) AddItemID(i int) {
+	if m.additem_id != nil {
+		*m.additem_id += i
+	} else {
+		m.additem_id = &i
+	}
+}
+
+// AddedItemID returns the value that was added to the "item_id" field in this mutation.
+func (m *AbonementVoucherMutation) AddedItemID() (r int, exists bool) {
+	v := m.additem_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetItemID resets all changes to the "item_id" field.
+func (m *AbonementVoucherMutation) ResetItemID() {
+	m.item_id = nil
+	m.additem_id = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *AbonementVoucherMutation) SetOrderID(i int) {
+	m.order_id = &i
+	m.addorder_id = nil
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *AbonementVoucherMutation) OrderID() (r int, exists bool) {
+	v := m.order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldOrderID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// AddOrderID adds i to the "order_id" field.
+func (m *AbonementVoucherMutation) AddOrderID(i int) {
+	if m.addorder_id != nil {
+		*m.addorder_id += i
+	} else {
+		m.addorder_id = &i
+	}
+}
+
+// AddedOrderID returns the value that was added to the "order_id" field in this mutation.
+func (m *AbonementVoucherMutation) AddedOrderID() (r int, exists bool) {
+	v := m.addorder_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearOrderID clears the value of the "order_id" field.
+func (m *AbonementVoucherMutation) ClearOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	m.clearedFields[abonementvoucher.FieldOrderID] = struct{}{}
+}
+
+// OrderIDCleared returns if the "order_id" field was cleared in this mutation.
+func (m *AbonementVoucherMutation) OrderIDCleared() bool {
+	_, ok := m.clearedFields[abonementvoucher.FieldOrderID]
+	return ok
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *AbonementVoucherMutation) ResetOrderID() {
+	m.order_id = nil
+	m.addorder_id = nil
+	delete(m.clearedFields, abonementvoucher.FieldOrderID)
+}
+
+// SetBuyerEmail sets the "buyer_email" field.
+func (m *AbonementVoucherMutation) SetBuyerEmail(s string) {
+	m.buyer_email = &s
+}
+
+// BuyerEmail returns the value of the "buyer_email" field in the mutation.
+func (m *AbonementVoucherMutation) BuyerEmail() (r string, exists bool) {
+	v := m.buyer_email
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBuyerEmail returns the old "buyer_email" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldBuyerEmail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBuyerEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBuyerEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBuyerEmail: %w", err)
+	}
+	return oldValue.BuyerEmail, nil
+}
+
+// ResetBuyerEmail resets all changes to the "buyer_email" field.
+func (m *AbonementVoucherMutation) ResetBuyerEmail() {
+	m.buyer_email = nil
+}
+
+// SetRecipientName sets the "recipient_name" field.
+func (m *AbonementVoucherMutation) SetRecipientName(s string) {
+	m.recipient_name = &s
+}
+
+// RecipientName returns the value of the "recipient_name" field in the mutation.
+func (m *AbonementVoucherMutation) RecipientName() (r string, exists bool) {
+	v := m.recipient_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRecipientName returns the old "recipient_name" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldRecipientName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRecipientName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRecipientName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRecipientName: %w", err)
+	}
+	return oldValue.RecipientName, nil
+}
+
+// ResetRecipientName resets all changes to the "recipient_name" field.
+func (m *AbonementVoucherMutation) ResetRecipientName() {
+	m.recipient_name = nil
+}
+
+// SetMessage sets the "message" field.
+func (m *AbonementVoucherMutation) SetMessage(s string) {
+	m.message = &s
+}
+
+// Message returns the value of the "message" field in the mutation.
+func (m *AbonementVoucherMutation) Message() (r string, exists bool) {
+	v := m.message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessage returns the old "message" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessage: %w", err)
+	}
+	return oldValue.Message, nil
+}
+
+// ResetMessage resets all changes to the "message" field.
+func (m *AbonementVoucherMutation) ResetMessage() {
+	m.message = nil
+}
+
+// SetDurationMonths sets the "duration_months" field.
+func (m *AbonementVoucherMutation) SetDurationMonths(i int) {
+	m.duration_months = &i
+	m.addduration_months = nil
+}
+
+// DurationMonths returns the value of the "duration_months" field in the mutation.
+func (m *AbonementVoucherMutation) DurationMonths() (r int, exists bool) {
+	v := m.duration_months
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationMonths returns the old "duration_months" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldDurationMonths(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationMonths is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationMonths requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationMonths: %w", err)
+	}
+	return oldValue.DurationMonths, nil
+}
+
+// AddDurationMonths adds i to the "duration_months" field.
+func (m *AbonementVoucherMutation) AddDurationMonths(i int) {
+	if m.addduration_months != nil {
+		*m.addduration_months += i
+	} else {
+		m.addduration_months = &i
+	}
+}
+
+// AddedDurationMonths returns the value that was added to the "duration_months" field in this mutation.
+func (m *AbonementVoucherMutation) AddedDurationMonths() (r int, exists bool) {
+	v := m.addduration_months
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDurationMonths resets all changes to the "duration_months" field.
+func (m *AbonementVoucherMutation) ResetDurationMonths() {
+	m.duration_months = nil
+	m.addduration_months = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AbonementVoucherMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AbonementVoucherMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AbonementVoucherMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AbonementVoucherMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AbonementVoucherMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AbonementVoucherMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetRedeemedAt sets the "redeemed_at" field.
+func (m *AbonementVoucherMutation) SetRedeemedAt(t time.Time) {
+	m.redeemed_at = &t
+}
+
+// RedeemedAt returns the value of the "redeemed_at" field in the mutation.
+func (m *AbonementVoucherMutation) RedeemedAt() (r time.Time, exists bool) {
+	v := m.redeemed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRedeemedAt returns the old "redeemed_at" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldRedeemedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRedeemedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRedeemedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRedeemedAt: %w", err)
+	}
+	return oldValue.RedeemedAt, nil
+}
+
+// ClearRedeemedAt clears the value of the "redeemed_at" field.
+func (m *AbonementVoucherMutation) ClearRedeemedAt() {
+	m.redeemed_at = nil
+	m.clearedFields[abonementvoucher.FieldRedeemedAt] = struct{}{}
+}
+
+// RedeemedAtCleared returns if the "redeemed_at" field was cleared in this mutation.
+func (m *AbonementVoucherMutation) RedeemedAtCleared() bool {
+	_, ok := m.clearedFields[abonementvoucher.FieldRedeemedAt]
+	return ok
+}
+
+// ResetRedeemedAt resets all changes to the "redeemed_at" field.
+func (m *AbonementVoucherMutation) ResetRedeemedAt() {
+	m.redeemed_at = nil
+	delete(m.clearedFields, abonementvoucher.FieldRedeemedAt)
+}
+
+// SetRedeemedEmail sets the "redeemed_email" field.
+func (m *AbonementVoucherMutation) SetRedeemedEmail(s string) {
+	m.redeemed_email = &s
+}
+
+// RedeemedEmail returns the value of the "redeemed_email" field in the mutation.
+func (m *AbonementVoucherMutation) RedeemedEmail() (r string, exists bool) {
+	v := m.redeemed_email
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRedeemedEmail returns the old "redeemed_email" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldRedeemedEmail(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRedeemedEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRedeemedEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRedeemedEmail: %w", err)
+	}
+	return oldValue.RedeemedEmail, nil
+}
+
+// ClearRedeemedEmail clears the value of the "redeemed_email" field.
+func (m *AbonementVoucherMutation) ClearRedeemedEmail() {
+	m.redeemed_email = nil
+	m.clearedFields[abonementvoucher.FieldRedeemedEmail] = struct{}{}
+}
+
+// RedeemedEmailCleared returns if the "redeemed_email" field was cleared in this mutation.
+func (m *AbonementVoucherMutation) RedeemedEmailCleared() bool {
+	_, ok := m.clearedFields[abonementvoucher.FieldRedeemedEmail]
+	return ok
+}
+
+// ResetRedeemedEmail resets all changes to the "redeemed_email" field.
+func (m *AbonementVoucherMutation) ResetRedeemedEmail() {
+	m.redeemed_email = nil
+	delete(m.clearedFields, abonementvoucher.FieldRedeemedEmail)
+}
+
+// SetRedeemedCustomerID sets the "redeemed_customer_id" field.
+func (m *AbonementVoucherMutation) SetRedeemedCustomerID(i int) {
+	m.redeemed_customer_id = &i
+	m.addredeemed_customer_id = nil
+}
+
+// RedeemedCustomerID returns the value of the "redeemed_customer_id" field in the mutation.
+func (m *AbonementVoucherMutation) RedeemedCustomerID() (r int, exists bool) {
+	v := m.redeemed_customer_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRedeemedCustomerID returns the old "redeemed_customer_id" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldRedeemedCustomerID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRedeemedCustomerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRedeemedCustomerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRedeemedCustomerID: %w", err)
+	}
+	return oldValue.RedeemedCustomerID, nil
+}
+
+// AddRedeemedCustomerID adds i to the "redeemed_customer_id" field.
+func (m *AbonementVoucherMutation) AddRedeemedCustomerID(i int) {
+	if m.addredeemed_customer_id != nil {
+		*m.addredeemed_customer_id += i
+	} else {
+		m.addredeemed_customer_id = &i
+	}
+}
+
+// AddedRedeemedCustomerID returns the value that was added to the "redeemed_customer_id" field in this mutation.
+func (m *AbonementVoucherMutation) AddedRedeemedCustomerID() (r int, exists bool) {
+	v := m.addredeemed_customer_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearRedeemedCustomerID clears the value of the "redeemed_customer_id" field.
+func (m *AbonementVoucherMutation) ClearRedeemedCustomerID() {
+	m.redeemed_customer_id = nil
+	m.addredeemed_customer_id = nil
+	m.clearedFields[abonementvoucher.FieldRedeemedCustomerID] = struct{}{}
+}
+
+// RedeemedCustomerIDCleared returns if the "redeemed_customer_id" field was cleared in this mutation.
+func (m *AbonementVoucherMutation) RedeemedCustomerIDCleared() bool {
+	_, ok := m.clearedFields[abonementvoucher.FieldRedeemedCustomerID]
+	return ok
+}
+
+// ResetRedeemedCustomerID resets all changes to the "redeemed_customer_id" field.
+func (m *AbonementVoucherMutation) ResetRedeemedCustomerID() {
+	m.redeemed_customer_id = nil
+	m.addredeemed_customer_id = nil
+	delete(m.clearedFields, abonementvoucher.FieldRedeemedCustomerID)
+}
+
+// SetAbonementID sets the "abonement_id" field.
+func (m *AbonementVoucherMutation) SetAbonementID(i int) {
+	m.abonement_id = &i
+	m.addabonement_id = nil
+}
+
+// AbonementID returns the value of the "abonement_id" field in the mutation.
+func (m *AbonementVoucherMutation) AbonementID() (r int, exists bool) {
+	v := m.abonement_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAbonementID returns the old "abonement_id" field's value of the AbonementVoucher entity.
+// If the AbonementVoucher object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AbonementVoucherMutation) OldAbonementID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAbonementID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAbonementID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAbonementID: %w", err)
+	}
+	return oldValue.AbonementID, nil
+}
+
+// AddAbonementID adds i to the "abonement_id" field.
+func (m *AbonementVoucherMutation) AddAbonementID(i int) {
+	if m.addabonement_id != nil {
+		*m.addabonement_id += i
+	} else {
+		m.addabonement_id = &i
+	}
+}
+
+// AddedAbonementID returns the value that was added to the "abonement_id" field in this mutation.
+func (m *AbonementVoucherMutation) AddedAbonementID() (r int, exists bool) {
+	v := m.addabonement_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearAbonementID clears the value of the "abonement_id" field.
+func (m *AbonementVoucherMutation) ClearAbonementID() {
+	m.abonement_id = nil
+	m.addabonement_id = nil
+	m.clearedFields[abonementvoucher.FieldAbonementID] = struct{}{}
+}
+
+// AbonementIDCleared returns if the "abonement_id" field was cleared in this mutation.
+func (m *AbonementVoucherMutation) AbonementIDCleared() bool {
+	_, ok := m.clearedFields[abonementvoucher.FieldAbonementID]
+	return ok
+}
+
+// ResetAbonementID resets all changes to the "abonement_id" field.
+func (m *AbonementVoucherMutation) ResetAbonementID() {
+	m.abonement_id = nil
+	m.addabonement_id = nil
+	delete(m.clearedFields, abonementvoucher.FieldAbonementID)
+}
+
+// Where appends a list predicates to the AbonementVoucherMutation builder.
+func (m *AbonementVoucherMutation) Where(ps ...predicate.AbonementVoucher) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AbonementVoucherMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AbonementVoucherMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AbonementVoucher, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AbonementVoucherMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AbonementVoucherMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AbonementVoucher).
+func (m *AbonementVoucherMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AbonementVoucherMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.code != nil {
+		fields = append(fields, abonementvoucher.FieldCode)
+	}
+	if m.item_id != nil {
+		fields = append(fields, abonementvoucher.FieldItemID)
+	}
+	if m.order_id != nil {
+		fields = append(fields, abonementvoucher.FieldOrderID)
+	}
+	if m.buyer_email != nil {
+		fields = append(fields, abonementvoucher.FieldBuyerEmail)
+	}
+	if m.recipient_name != nil {
+		fields = append(fields, abonementvoucher.FieldRecipientName)
+	}
+	if m.message != nil {
+		fields = append(fields, abonementvoucher.FieldMessage)
+	}
+	if m.duration_months != nil {
+		fields = append(fields, abonementvoucher.FieldDurationMonths)
+	}
+	if m.status != nil {
+		fields = append(fields, abonementvoucher.FieldStatus)
+	}
+	if m.created_at != nil {
+		fields = append(fields, abonementvoucher.FieldCreatedAt)
+	}
+	if m.redeemed_at != nil {
+		fields = append(fields, abonementvoucher.FieldRedeemedAt)
+	}
+	if m.redeemed_email != nil {
+		fields = append(fields, abonementvoucher.FieldRedeemedEmail)
+	}
+	if m.redeemed_customer_id != nil {
+		fields = append(fields, abonementvoucher.FieldRedeemedCustomerID)
+	}
+	if m.abonement_id != nil {
+		fields = append(fields, abonementvoucher.FieldAbonementID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AbonementVoucherMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case abonementvoucher.FieldCode:
+		return m.Code()
+	case abonementvoucher.FieldItemID:
+		return m.ItemID()
+	case abonementvoucher.FieldOrderID:
+		return m.OrderID()
+	case abonementvoucher.FieldBuyerEmail:
+		return m.BuyerEmail()
+	case abonementvoucher.FieldRecipientName:
+		return m.RecipientName()
+	case abonementvoucher.FieldMessage:
+		return m.Message()
+	case abonementvoucher.FieldDurationMonths:
+		return m.DurationMonths()
+	case abonementvoucher.FieldStatus:
+		return m.Status()
+	case abonementvoucher.FieldCreatedAt:
+		return m.CreatedAt()
+	case abonementvoucher.FieldRedeemedAt:
+		return m.RedeemedAt()
+	case abonementvoucher.FieldRedeemedEmail:
+		return m.RedeemedEmail()
+	case abonementvoucher.FieldRedeemedCustomerID:
+		return m.RedeemedCustomerID()
+	case abonementvoucher.FieldAbonementID:
+		return m.AbonementID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AbonementVoucherMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case abonementvoucher.FieldCode:
+		return m.OldCode(ctx)
+	case abonementvoucher.FieldItemID:
+		return m.OldItemID(ctx)
+	case abonementvoucher.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case abonementvoucher.FieldBuyerEmail:
+		return m.OldBuyerEmail(ctx)
+	case abonementvoucher.FieldRecipientName:
+		return m.OldRecipientName(ctx)
+	case abonementvoucher.FieldMessage:
+		return m.OldMessage(ctx)
+	case abonementvoucher.FieldDurationMonths:
+		return m.OldDurationMonths(ctx)
+	case abonementvoucher.FieldStatus:
+		return m.OldStatus(ctx)
+	case abonementvoucher.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case abonementvoucher.FieldRedeemedAt:
+		return m.OldRedeemedAt(ctx)
+	case abonementvoucher.FieldRedeemedEmail:
+		return m.OldRedeemedEmail(ctx)
+	case abonementvoucher.FieldRedeemedCustomerID:
+		return m.OldRedeemedCustomerID(ctx)
+	case abonementvoucher.FieldAbonementID:
+		return m.OldAbonementID(ctx)
+	}
+	return nil, fmt.Errorf("unknown AbonementVoucher field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AbonementVoucherMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case abonementvoucher.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	case abonementvoucher.FieldItemID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetItemID(v)
+		return nil
+	case abonementvoucher.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case abonementvoucher.FieldBuyerEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBuyerEmail(v)
+		return nil
+	case abonementvoucher.FieldRecipientName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRecipientName(v)
+		return nil
+	case abonementvoucher.FieldMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessage(v)
+		return nil
+	case abonementvoucher.FieldDurationMonths:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationMonths(v)
+		return nil
+	case abonementvoucher.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case abonementvoucher.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case abonementvoucher.FieldRedeemedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRedeemedAt(v)
+		return nil
+	case abonementvoucher.FieldRedeemedEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRedeemedEmail(v)
+		return nil
+	case abonementvoucher.FieldRedeemedCustomerID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRedeemedCustomerID(v)
+		return nil
+	case abonementvoucher.FieldAbonementID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAbonementID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AbonementVoucher field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AbonementVoucherMutation) AddedFields() []string {
+	var fields []string
+	if m.additem_id != nil {
+		fields = append(fields, abonementvoucher.FieldItemID)
+	}
+	if m.addorder_id != nil {
+		fields = append(fields, abonementvoucher.FieldOrderID)
+	}
+	if m.addduration_months != nil {
+		fields = append(fields, abonementvoucher.FieldDurationMonths)
+	}
+	if m.addredeemed_customer_id != nil {
+		fields = append(fields, abonementvoucher.FieldRedeemedCustomerID)
+	}
+	if m.addabonement_id != nil {
+		fields = append(fields, abonementvoucher.FieldAbonementID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AbonementVoucherMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case abonementvoucher.FieldItemID:
+		return m.AddedItemID()
+	case abonementvoucher.FieldOrderID:
+		return m.AddedOrderID()
+	case abonementvoucher.FieldDurationMonths:
+		return m.AddedDurationMonths()
+	case abonementvoucher.FieldRedeemedCustomerID:
+		return m.AddedRedeemedCustomerID()
+	case abonementvoucher.FieldAbonementID:
+		return m.AddedAbonementID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AbonementVoucherMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case abonementvoucher.FieldItemID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddItemID(v)
+		return nil
+	case abonementvoucher.FieldOrderID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddOrderID(v)
+		return nil
+	case abonementvoucher.FieldDurationMonths:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDurationMonths(v)
+		return nil
+	case abonementvoucher.FieldRedeemedCustomerID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRedeemedCustomerID(v)
+		return nil
+	case abonementvoucher.FieldAbonementID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAbonementID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AbonementVoucher numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AbonementVoucherMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(abonementvoucher.FieldOrderID) {
+		fields = append(fields, abonementvoucher.FieldOrderID)
+	}
+	if m.FieldCleared(abonementvoucher.FieldRedeemedAt) {
+		fields = append(fields, abonementvoucher.FieldRedeemedAt)
+	}
+	if m.FieldCleared(abonementvoucher.FieldRedeemedEmail) {
+		fields = append(fields, abonementvoucher.FieldRedeemedEmail)
+	}
+	if m.FieldCleared(abonementvoucher.FieldRedeemedCustomerID) {
+		fields = append(fields, abonementvoucher.FieldRedeemedCustomerID)
+	}
+	if m.FieldCleared(abonementvoucher.FieldAbonementID) {
+		fields = append(fields, abonementvoucher.FieldAbonementID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AbonementVoucherMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AbonementVoucherMutation) ClearField(name string) error {
+	switch name {
+	case abonementvoucher.FieldOrderID:
+		m.ClearOrderID()
+		return nil
+	case abonementvoucher.FieldRedeemedAt:
+		m.ClearRedeemedAt()
+		return nil
+	case abonementvoucher.FieldRedeemedEmail:
+		m.ClearRedeemedEmail()
+		return nil
+	case abonementvoucher.FieldRedeemedCustomerID:
+		m.ClearRedeemedCustomerID()
+		return nil
+	case abonementvoucher.FieldAbonementID:
+		m.ClearAbonementID()
+		return nil
+	}
+	return fmt.Errorf("unknown AbonementVoucher nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AbonementVoucherMutation) ResetField(name string) error {
+	switch name {
+	case abonementvoucher.FieldCode:
+		m.ResetCode()
+		return nil
+	case abonementvoucher.FieldItemID:
+		m.ResetItemID()
+		return nil
+	case abonementvoucher.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case abonementvoucher.FieldBuyerEmail:
+		m.ResetBuyerEmail()
+		return nil
+	case abonementvoucher.FieldRecipientName:
+		m.ResetRecipientName()
+		return nil
+	case abonementvoucher.FieldMessage:
+		m.ResetMessage()
+		return nil
+	case abonementvoucher.FieldDurationMonths:
+		m.ResetDurationMonths()
+		return nil
+	case abonementvoucher.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case abonementvoucher.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case abonementvoucher.FieldRedeemedAt:
+		m.ResetRedeemedAt()
+		return nil
+	case abonementvoucher.FieldRedeemedEmail:
+		m.ResetRedeemedEmail()
+		return nil
+	case abonementvoucher.FieldRedeemedCustomerID:
+		m.ResetRedeemedCustomerID()
+		return nil
+	case abonementvoucher.FieldAbonementID:
+		m.ResetAbonementID()
+		return nil
+	}
+	return fmt.Errorf("unknown AbonementVoucher field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AbonementVoucherMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AbonementVoucherMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AbonementVoucherMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AbonementVoucherMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AbonementVoucherMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AbonementVoucherMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AbonementVoucherMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AbonementVoucher unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AbonementVoucherMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AbonementVoucher edge %s", name)
 }
 
 // AccountMutation represents an operation that mutates the Account nodes in the graph.
@@ -5948,32 +7199,34 @@ func (m *ExternalPaymentMutation) ResetEdge(name string) error {
 // ItemMutation represents an operation that mutates the Item nodes in the graph.
 type ItemMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *int
-	_Name               *string
-	_Description        *string
-	_Price              *float64
-	add_Price           *float64
-	_Image              *string
-	_Archived           *bool
-	_Disabled           *bool
-	_IsLicenseItem      *bool
-	_LicenseGroup       *string
-	_Type               *string
-	_IsPDFItem          *bool
-	_ItemOrder          *int
-	add_ItemOrder       *int
-	_ItemColor          *string
-	_ItemTextColor      *string
-	clearedFields       map[string]struct{}
-	_LicenseItem        *int
-	cleared_LicenseItem bool
-	_PDF                *int
-	cleared_PDF         bool
-	done                bool
-	oldValue            func(context.Context) (*Item, error)
-	predicates          []predicate.Item
+	op                    Op
+	typ                   string
+	id                    *int
+	_Name                 *string
+	_Description          *string
+	_Price                *float64
+	add_Price             *float64
+	_Image                *string
+	_Archived             *bool
+	_Disabled             *bool
+	_IsLicenseItem        *bool
+	_LicenseGroup         *string
+	_Type                 *string
+	_IsPDFItem            *bool
+	_ItemOrder            *int
+	add_ItemOrder         *int
+	_ItemColor            *string
+	_ItemTextColor        *string
+	_AboDurationMonths    *int
+	add_AboDurationMonths *int
+	clearedFields         map[string]struct{}
+	_LicenseItem          *int
+	cleared_LicenseItem   bool
+	_PDF                  *int
+	cleared_PDF           bool
+	done                  bool
+	oldValue              func(context.Context) (*Item, error)
+	predicates            []predicate.Item
 }
 
 var _ ent.Mutation = (*ItemMutation)(nil)
@@ -6588,6 +7841,62 @@ func (m *ItemMutation) ResetItemTextColor() {
 	m._ItemTextColor = nil
 }
 
+// SetAboDurationMonths sets the "AboDurationMonths" field.
+func (m *ItemMutation) SetAboDurationMonths(i int) {
+	m._AboDurationMonths = &i
+	m.add_AboDurationMonths = nil
+}
+
+// AboDurationMonths returns the value of the "AboDurationMonths" field in the mutation.
+func (m *ItemMutation) AboDurationMonths() (r int, exists bool) {
+	v := m._AboDurationMonths
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAboDurationMonths returns the old "AboDurationMonths" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldAboDurationMonths(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAboDurationMonths is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAboDurationMonths requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAboDurationMonths: %w", err)
+	}
+	return oldValue.AboDurationMonths, nil
+}
+
+// AddAboDurationMonths adds i to the "AboDurationMonths" field.
+func (m *ItemMutation) AddAboDurationMonths(i int) {
+	if m.add_AboDurationMonths != nil {
+		*m.add_AboDurationMonths += i
+	} else {
+		m.add_AboDurationMonths = &i
+	}
+}
+
+// AddedAboDurationMonths returns the value that was added to the "AboDurationMonths" field in this mutation.
+func (m *ItemMutation) AddedAboDurationMonths() (r int, exists bool) {
+	v := m.add_AboDurationMonths
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAboDurationMonths resets all changes to the "AboDurationMonths" field.
+func (m *ItemMutation) ResetAboDurationMonths() {
+	m._AboDurationMonths = nil
+	m.add_AboDurationMonths = nil
+}
+
 // SetLicenseItemID sets the "LicenseItem" edge to the Item entity by id.
 func (m *ItemMutation) SetLicenseItemID(id int) {
 	m._LicenseItem = &id
@@ -6700,7 +8009,7 @@ func (m *ItemMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ItemMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m._Name != nil {
 		fields = append(fields, item.FieldName)
 	}
@@ -6740,6 +8049,9 @@ func (m *ItemMutation) Fields() []string {
 	if m._ItemTextColor != nil {
 		fields = append(fields, item.FieldItemTextColor)
 	}
+	if m._AboDurationMonths != nil {
+		fields = append(fields, item.FieldAboDurationMonths)
+	}
 	return fields
 }
 
@@ -6774,6 +8086,8 @@ func (m *ItemMutation) Field(name string) (ent.Value, bool) {
 		return m.ItemColor()
 	case item.FieldItemTextColor:
 		return m.ItemTextColor()
+	case item.FieldAboDurationMonths:
+		return m.AboDurationMonths()
 	}
 	return nil, false
 }
@@ -6809,6 +8123,8 @@ func (m *ItemMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldItemColor(ctx)
 	case item.FieldItemTextColor:
 		return m.OldItemTextColor(ctx)
+	case item.FieldAboDurationMonths:
+		return m.OldAboDurationMonths(ctx)
 	}
 	return nil, fmt.Errorf("unknown Item field %s", name)
 }
@@ -6909,6 +8225,13 @@ func (m *ItemMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetItemTextColor(v)
 		return nil
+	case item.FieldAboDurationMonths:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAboDurationMonths(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Item field %s", name)
 }
@@ -6923,6 +8246,9 @@ func (m *ItemMutation) AddedFields() []string {
 	if m.add_ItemOrder != nil {
 		fields = append(fields, item.FieldItemOrder)
 	}
+	if m.add_AboDurationMonths != nil {
+		fields = append(fields, item.FieldAboDurationMonths)
+	}
 	return fields
 }
 
@@ -6935,6 +8261,8 @@ func (m *ItemMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedPrice()
 	case item.FieldItemOrder:
 		return m.AddedItemOrder()
+	case item.FieldAboDurationMonths:
+		return m.AddedAboDurationMonths()
 	}
 	return nil, false
 }
@@ -6957,6 +8285,13 @@ func (m *ItemMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddItemOrder(v)
+		return nil
+	case item.FieldAboDurationMonths:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAboDurationMonths(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Item numeric field %s", name)
@@ -7023,6 +8358,9 @@ func (m *ItemMutation) ResetField(name string) error {
 		return nil
 	case item.FieldItemTextColor:
 		m.ResetItemTextColor()
+		return nil
+	case item.FieldAboDurationMonths:
+		m.ResetAboDurationMonths()
 		return nil
 	}
 	return fmt.Errorf("unknown Item field %s", name)
@@ -9776,6 +11114,8 @@ type OrderMutation struct {
 	payment_event_id       *int
 	addpayment_event_id    *int
 	payment_failed_at      *time.Time
+	gift_recipient_name    *string
+	gift_message           *string
 	clearedFields          map[string]struct{}
 	entries                map[int]struct{}
 	removedentries         map[int]struct{}
@@ -10708,6 +12048,78 @@ func (m *OrderMutation) ResetPaymentFailedAt() {
 	delete(m.clearedFields, order.FieldPaymentFailedAt)
 }
 
+// SetGiftRecipientName sets the "gift_recipient_name" field.
+func (m *OrderMutation) SetGiftRecipientName(s string) {
+	m.gift_recipient_name = &s
+}
+
+// GiftRecipientName returns the value of the "gift_recipient_name" field in the mutation.
+func (m *OrderMutation) GiftRecipientName() (r string, exists bool) {
+	v := m.gift_recipient_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGiftRecipientName returns the old "gift_recipient_name" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldGiftRecipientName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGiftRecipientName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGiftRecipientName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGiftRecipientName: %w", err)
+	}
+	return oldValue.GiftRecipientName, nil
+}
+
+// ResetGiftRecipientName resets all changes to the "gift_recipient_name" field.
+func (m *OrderMutation) ResetGiftRecipientName() {
+	m.gift_recipient_name = nil
+}
+
+// SetGiftMessage sets the "gift_message" field.
+func (m *OrderMutation) SetGiftMessage(s string) {
+	m.gift_message = &s
+}
+
+// GiftMessage returns the value of the "gift_message" field in the mutation.
+func (m *OrderMutation) GiftMessage() (r string, exists bool) {
+	v := m.gift_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGiftMessage returns the old "gift_message" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldGiftMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGiftMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGiftMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGiftMessage: %w", err)
+	}
+	return oldValue.GiftMessage, nil
+}
+
+// ResetGiftMessage resets all changes to the "gift_message" field.
+func (m *OrderMutation) ResetGiftMessage() {
+	m.gift_message = nil
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by ids.
 func (m *OrderMutation) AddEntryIDs(ids ...int) {
 	if m.entries == nil {
@@ -10850,7 +12262,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 19)
 	if m.order_code != nil {
 		fields = append(fields, order.FieldOrderCode)
 	}
@@ -10902,6 +12314,12 @@ func (m *OrderMutation) Fields() []string {
 	if m.payment_failed_at != nil {
 		fields = append(fields, order.FieldPaymentFailedAt)
 	}
+	if m.gift_recipient_name != nil {
+		fields = append(fields, order.FieldGiftRecipientName)
+	}
+	if m.gift_message != nil {
+		fields = append(fields, order.FieldGiftMessage)
+	}
 	return fields
 }
 
@@ -10944,6 +12362,10 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.PaymentEventID()
 	case order.FieldPaymentFailedAt:
 		return m.PaymentFailedAt()
+	case order.FieldGiftRecipientName:
+		return m.GiftRecipientName()
+	case order.FieldGiftMessage:
+		return m.GiftMessage()
 	}
 	return nil, false
 }
@@ -10987,6 +12409,10 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldPaymentEventID(ctx)
 	case order.FieldPaymentFailedAt:
 		return m.OldPaymentFailedAt(ctx)
+	case order.FieldGiftRecipientName:
+		return m.OldGiftRecipientName(ctx)
+	case order.FieldGiftMessage:
+		return m.OldGiftMessage(ctx)
 	}
 	return nil, fmt.Errorf("unknown Order field %s", name)
 }
@@ -11114,6 +12540,20 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPaymentFailedAt(v)
+		return nil
+	case order.FieldGiftRecipientName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGiftRecipientName(v)
+		return nil
+	case order.FieldGiftMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGiftMessage(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)
@@ -11322,6 +12762,12 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldPaymentFailedAt:
 		m.ResetPaymentFailedAt()
+		return nil
+	case order.FieldGiftRecipientName:
+		m.ResetGiftRecipientName()
+		return nil
+	case order.FieldGiftMessage:
+		m.ResetGiftMessage()
 		return nil
 	}
 	return fmt.Errorf("unknown Order field %s", name)
@@ -15249,6 +16695,7 @@ type SettingsMutation struct {
 	_DigitalItemsUrl            *string
 	_AbonementUrl               *string
 	_AbonementEnabled           *bool
+	_VoucherEnabled             *bool
 	_POSEnabled                 *bool
 	_WordPressInviteURL         *string
 	_WordPressInviteAPIKey      *string
@@ -16311,6 +17758,42 @@ func (m *SettingsMutation) OldAbonementEnabled(ctx context.Context) (v bool, err
 // ResetAbonementEnabled resets all changes to the "AbonementEnabled" field.
 func (m *SettingsMutation) ResetAbonementEnabled() {
 	m._AbonementEnabled = nil
+}
+
+// SetVoucherEnabled sets the "VoucherEnabled" field.
+func (m *SettingsMutation) SetVoucherEnabled(b bool) {
+	m._VoucherEnabled = &b
+}
+
+// VoucherEnabled returns the value of the "VoucherEnabled" field in the mutation.
+func (m *SettingsMutation) VoucherEnabled() (r bool, exists bool) {
+	v := m._VoucherEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVoucherEnabled returns the old "VoucherEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldVoucherEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVoucherEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVoucherEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVoucherEnabled: %w", err)
+	}
+	return oldValue.VoucherEnabled, nil
+}
+
+// ResetVoucherEnabled resets all changes to the "VoucherEnabled" field.
+func (m *SettingsMutation) ResetVoucherEnabled() {
+	m._VoucherEnabled = nil
 }
 
 // SetPOSEnabled sets the "POSEnabled" field.
@@ -17378,7 +18861,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 51)
+	fields := make([]string, 0, 52)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -17450,6 +18933,9 @@ func (m *SettingsMutation) Fields() []string {
 	}
 	if m._AbonementEnabled != nil {
 		fields = append(fields, settings.FieldAbonementEnabled)
+	}
+	if m._VoucherEnabled != nil {
+		fields = append(fields, settings.FieldVoucherEnabled)
 	}
 	if m._POSEnabled != nil {
 		fields = append(fields, settings.FieldPOSEnabled)
@@ -17588,6 +19074,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.AbonementUrl()
 	case settings.FieldAbonementEnabled:
 		return m.AbonementEnabled()
+	case settings.FieldVoucherEnabled:
+		return m.VoucherEnabled()
 	case settings.FieldPOSEnabled:
 		return m.POSEnabled()
 	case settings.FieldWordPressInviteURL:
@@ -17699,6 +19187,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldAbonementUrl(ctx)
 	case settings.FieldAbonementEnabled:
 		return m.OldAbonementEnabled(ctx)
+	case settings.FieldVoucherEnabled:
+		return m.OldVoucherEnabled(ctx)
 	case settings.FieldPOSEnabled:
 		return m.OldPOSEnabled(ctx)
 	case settings.FieldWordPressInviteURL:
@@ -17929,6 +19419,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAbonementEnabled(v)
+		return nil
+	case settings.FieldVoucherEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVoucherEnabled(v)
 		return nil
 	case settings.FieldPOSEnabled:
 		v, ok := value.(bool)
@@ -18290,6 +19787,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldAbonementEnabled:
 		m.ResetAbonementEnabled()
+		return nil
+	case settings.FieldVoucherEnabled:
+		m.ResetVoucherEnabled()
 		return nil
 	case settings.FieldPOSEnabled:
 		m.ResetPOSEnabled()

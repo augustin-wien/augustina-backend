@@ -356,6 +356,20 @@ func (_c *SettingsCreate) SetNillableAbonementEnabled(v *bool) *SettingsCreate {
 	return _c
 }
 
+// SetVoucherEnabled sets the "VoucherEnabled" field.
+func (_c *SettingsCreate) SetVoucherEnabled(v bool) *SettingsCreate {
+	_c.mutation.SetVoucherEnabled(v)
+	return _c
+}
+
+// SetNillableVoucherEnabled sets the "VoucherEnabled" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableVoucherEnabled(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetVoucherEnabled(*v)
+	}
+	return _c
+}
+
 // SetPOSEnabled sets the "POSEnabled" field.
 func (_c *SettingsCreate) SetPOSEnabled(v bool) *SettingsCreate {
 	_c.mutation.SetPOSEnabled(v)
@@ -890,6 +904,10 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultAbonementEnabled
 		_c.mutation.SetAbonementEnabled(v)
 	}
+	if _, ok := _c.mutation.VoucherEnabled(); !ok {
+		v := settings.DefaultVoucherEnabled
+		_c.mutation.SetVoucherEnabled(v)
+	}
 	if _, ok := _c.mutation.POSEnabled(); !ok {
 		v := settings.DefaultPOSEnabled
 		_c.mutation.SetPOSEnabled(v)
@@ -1073,6 +1091,9 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.AbonementEnabled(); !ok {
 		return &ValidationError{Name: "AbonementEnabled", err: errors.New(`ent: missing required field "Settings.AbonementEnabled"`)}
+	}
+	if _, ok := _c.mutation.VoucherEnabled(); !ok {
+		return &ValidationError{Name: "VoucherEnabled", err: errors.New(`ent: missing required field "Settings.VoucherEnabled"`)}
 	}
 	if _, ok := _c.mutation.POSEnabled(); !ok {
 		return &ValidationError{Name: "POSEnabled", err: errors.New(`ent: missing required field "Settings.POSEnabled"`)}
@@ -1287,6 +1308,10 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.AbonementEnabled(); ok {
 		_spec.SetField(settings.FieldAbonementEnabled, field.TypeBool, value)
 		_node.AbonementEnabled = value
+	}
+	if value, ok := _c.mutation.VoucherEnabled(); ok {
+		_spec.SetField(settings.FieldVoucherEnabled, field.TypeBool, value)
+		_node.VoucherEnabled = value
 	}
 	if value, ok := _c.mutation.POSEnabled(); ok {
 		_spec.SetField(settings.FieldPOSEnabled, field.TypeBool, value)

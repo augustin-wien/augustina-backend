@@ -51,6 +51,10 @@ func (Item) Fields() []ent.Field {
 		field.String("ItemTextColor").
 			StorageKey("itemtextcolor").
 			Default("#000000"),
+		// Length of the abonement an abonement_voucher grants when redeemed
+		field.Int("AboDurationMonths").
+			StorageKey("abo_duration_months").
+			Default(12),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

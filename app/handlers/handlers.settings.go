@@ -115,6 +115,7 @@ type PublicSettings struct {
 	DigitalItemsUrl            string
 	AbonementUrl               string
 	AbonementEnabled           bool
+	VoucherEnabled             bool
 	POSEnabled                 bool
 	OdooEnabled                bool
 	PrivacyPolicyUrl           string
@@ -165,6 +166,7 @@ func toPublicSettings(s *ent.Settings) PublicSettings {
 		DigitalItemsUrl:            s.DigitalItemsUrl,
 		AbonementUrl:               s.AbonementUrl,
 		AbonementEnabled:           s.AbonementEnabled,
+		VoucherEnabled:             s.VoucherEnabled,
 		POSEnabled:                 s.POSEnabled,
 		OdooEnabled:                config.Config.OdooWebhookURL != "",
 		PrivacyPolicyUrl:           s.PrivacyPolicyUrl,
@@ -431,7 +433,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("DonationTrackingEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		case "AGBRequired", "DonationPageEnabled", "MatomoTrackCart", "FeedbackEnabled", "NewsletterEnabled", "IDScanEnabled", "NextcloudEnabled":
+		case "AGBRequired", "DonationPageEnabled", "MatomoTrackCart", "FeedbackEnabled", "NewsletterEnabled", "IDScanEnabled", "NextcloudEnabled", "VoucherEnabled":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error(key + " is not a boolean")
