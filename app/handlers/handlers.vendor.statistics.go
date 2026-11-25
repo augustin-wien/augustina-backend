@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -67,14 +68,19 @@ func ListVendorUsageStatistics(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	accountIDs, err := database.Db.GetVendorAccountIDs()
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
+	}
 	vendorAccountByAccountID := make(map[int]int)
 	for _, vendor := range vendors {
-		account, accErr := database.Db.GetAccountByVendorID(vendor.ID)
-		if accErr != nil {
-			utils.ErrorJSON(w, accErr, http.StatusBadRequest)
+		accountID, ok := accountIDs[vendor.ID]
+		if !ok {
+			utils.ErrorJSON(w, errors.New("account does not exist for vendor"), http.StatusBadRequest)
 			return
 		}
-		vendorAccountByAccountID[account.ID] = vendor.ID
+		vendorAccountByAccountID[accountID] = vendor.ID
 	}
 
 	payments, err := database.Db.ListPayments(minDate, maxDate, "", false, false, false, true, true)

@@ -167,6 +167,21 @@ func (db *Database) GetAccountByType(accountType string) (account Account, err e
 
 var accountTypeIDCache = make(map[string]int)
 
+// GetVendorAccountIDs returns the ID of each vendor's account, keyed by vendor ID
+func (db *Database) GetVendorAccountIDs() (map[int]int, error) {
+	accounts, err := db.EntClient.Account.Query().
+		Where(entaccount.Type("Vendor"), entaccount.VendorIDNotNil()).
+		All(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[int]int, len(accounts))
+	for _, a := range accounts {
+		out[a.VendorID] = a.ID
+	}
+	return out, nil
+}
+
 // GetAccountByVendorID returns the account for a vendor
 func (db *Database) GetAccountByVendorID(vendorID int) (account Account, err error) {
 	a, err := db.EntClient.Account.Query().Where(entaccount.VendorID(vendorID)).First(context.Background())

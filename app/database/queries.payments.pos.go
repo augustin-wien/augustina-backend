@@ -6,6 +6,7 @@ import (
 
 	"github.com/augustin-wien/augustina-backend/ent"
 	entaccount "github.com/augustin-wien/augustina-backend/ent/account"
+	entitem "github.com/augustin-wien/augustina-backend/ent/item"
 	entpayment "github.com/augustin-wien/augustina-backend/ent/payment"
 )
 
@@ -67,16 +68,9 @@ func (db *Database) ListPOSOrdersForVendor(licenseID string, limit int) ([]POSOr
 		return nil, err
 	}
 
-	// Resolve item names in one pass.
-	itemNames := make(map[int]string)
-	for _, p := range ents {
-		if p.ItemID != nil {
-			if _, seen := itemNames[*p.ItemID]; !seen {
-				if name, e := db.GetItemName(*p.ItemID); e == nil {
-					itemNames[*p.ItemID] = name
-				}
-			}
-		}
+	itemNames, err := db.paymentItemNames(ctx, ents)
+	if err != nil {
+		return nil, err
 	}
 
 	// Group payments by second-precision timestamp.
@@ -171,26 +165,22 @@ func (db *Database) ListAllPOSOrders(minDate, maxDate time.Time) ([]POSOrder, er
 	if err != nil {
 		return nil, err
 	}
+	vendorByID := make(map[int]Vendor, len(allVendors))
 	for _, v := range allVendors {
-		acc, e := db.GetAccountByVendorID(v.ID)
-		if e == nil {
-			vendorByAccount[acc.ID] = vendorInfo{
+		vendorByID[v.ID] = v
+	}
+	for _, a := range vendorAccounts {
+		if v, ok := vendorByID[a.VendorID]; ok {
+			vendorByAccount[a.ID] = vendorInfo{
 				name:      v.FirstName + " " + v.LastName,
 				licenseID: v.LicenseID.String,
 			}
 		}
 	}
 
-	// Resolve item names.
-	itemNames := make(map[int]string)
-	for _, p := range ents {
-		if p.ItemID != nil {
-			if _, seen := itemNames[*p.ItemID]; !seen {
-				if name, e := db.GetItemName(*p.ItemID); e == nil {
-					itemNames[*p.ItemID] = name
-				}
-			}
-		}
+	itemNames, err := db.paymentItemNames(ctx, ents)
+	if err != nil {
+		return nil, err
 	}
 
 	// Group by (vendorAccountID, second-truncated timestamp).
@@ -246,4 +236,26 @@ func (db *Database) ListAllPOSOrders(minDate, maxDate time.Time) ([]POSOrder, er
 		orders = append(orders, *orderMap[k])
 	}
 	return orders, nil
+}
+
+// paymentItemNames returns the names of the items the payments refer to, keyed by item ID
+func (db *Database) paymentItemNames(ctx context.Context, payments []*ent.Payment) (map[int]string, error) {
+	var ids []int
+	for _, p := range payments {
+		if p.ItemID != nil {
+			ids = append(ids, *p.ItemID)
+		}
+	}
+	names := make(map[int]string)
+	if len(ids) == 0 {
+		return names, nil
+	}
+	items, err := db.EntClient.Item.Query().Where(entitem.IDIn(ids...)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, it := range items {
+		names[it.ID] = it.Name
+	}
+	return names, nil
 }
