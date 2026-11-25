@@ -43,6 +43,8 @@ type Item struct {
 	ItemColor string `json:"ItemColor"`
 	// ItemTextColor holds the value of the "ItemTextColor" field.
 	ItemTextColor string `json:"ItemTextColor"`
+	// AboDurationMonths holds the value of the "AboDurationMonths" field.
+	AboDurationMonths int `json:"AboDurationMonths"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ItemQuery when eager-loading is set.
 	Edges        ItemEdges `json:"edges"`
@@ -93,7 +95,7 @@ func (*Item) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case item.FieldPrice:
 			values[i] = new(sql.NullFloat64)
-		case item.FieldID, item.FieldItemOrder:
+		case item.FieldID, item.FieldItemOrder, item.FieldAboDurationMonths:
 			values[i] = new(sql.NullInt64)
 		case item.FieldName, item.FieldDescription, item.FieldImage, item.FieldLicenseGroup, item.FieldType, item.FieldItemColor, item.FieldItemTextColor:
 			values[i] = new(sql.NullString)
@@ -200,6 +202,12 @@ func (_m *Item) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ItemTextColor = value.String
 			}
+		case item.FieldAboDurationMonths:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field AboDurationMonths", values[i])
+			} else if value.Valid {
+				_m.AboDurationMonths = int(value.Int64)
+			}
 		case item.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field licenseitem", value)
@@ -298,6 +306,9 @@ func (_m *Item) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("ItemTextColor=")
 	builder.WriteString(_m.ItemTextColor)
+	builder.WriteString(", ")
+	builder.WriteString("AboDurationMonths=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AboDurationMonths))
 	builder.WriteByte(')')
 	return builder.String()
 }

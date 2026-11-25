@@ -38,6 +38,8 @@ const (
 	FieldItemColor = "itemcolor"
 	// FieldItemTextColor holds the string denoting the itemtextcolor field in the database.
 	FieldItemTextColor = "itemtextcolor"
+	// FieldAboDurationMonths holds the string denoting the abodurationmonths field in the database.
+	FieldAboDurationMonths = "abo_duration_months"
 	// EdgeLicenseItem holds the string denoting the licenseitem edge name in mutations.
 	EdgeLicenseItem = "LicenseItem"
 	// EdgePDF holds the string denoting the pdf edge name in mutations.
@@ -73,6 +75,7 @@ var Columns = []string{
 	FieldItemOrder,
 	FieldItemColor,
 	FieldItemTextColor,
+	FieldAboDurationMonths,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "item"
@@ -122,6 +125,8 @@ var (
 	DefaultItemColor string
 	// DefaultItemTextColor holds the default value on creation for the "ItemTextColor" field.
 	DefaultItemTextColor string
+	// DefaultAboDurationMonths holds the default value on creation for the "AboDurationMonths" field.
+	DefaultAboDurationMonths int
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -197,6 +202,11 @@ func ByItemColor(opts ...sql.OrderTermOption) OrderOption {
 // ByItemTextColor orders the results by the ItemTextColor field.
 func ByItemTextColor(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldItemTextColor, opts...).ToFunc()
+}
+
+// ByAboDurationMonths orders the results by the AboDurationMonths field.
+func ByAboDurationMonths(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAboDurationMonths, opts...).ToFunc()
 }
 
 // ByLicenseItemField orders the results by LicenseItem field.

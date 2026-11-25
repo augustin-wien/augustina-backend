@@ -28,6 +28,7 @@ const (
 	MailKindWelcome               = "welcome"
 	MailKindDigitalLicence        = "digital_licence"
 	MailKindPDFLicence            = "pdf_licence"
+	MailKindVoucher               = "voucher"
 	MailKindAbonementConfirmation = "abonement_confirmation"
 	MailKindAccountingReport      = "accounting_report"
 	MailKindFeedback              = "feedback"

@@ -220,6 +220,34 @@ func (_c *OrderCreate) SetNillablePaymentFailedAt(v *time.Time) *OrderCreate {
 	return _c
 }
 
+// SetGiftRecipientName sets the "gift_recipient_name" field.
+func (_c *OrderCreate) SetGiftRecipientName(v string) *OrderCreate {
+	_c.mutation.SetGiftRecipientName(v)
+	return _c
+}
+
+// SetNillableGiftRecipientName sets the "gift_recipient_name" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableGiftRecipientName(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetGiftRecipientName(*v)
+	}
+	return _c
+}
+
+// SetGiftMessage sets the "gift_message" field.
+func (_c *OrderCreate) SetGiftMessage(v string) *OrderCreate {
+	_c.mutation.SetGiftMessage(v)
+	return _c
+}
+
+// SetNillableGiftMessage sets the "gift_message" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableGiftMessage(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetGiftMessage(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *OrderCreate) SetID(v int) *OrderCreate {
 	_c.mutation.SetID(v)
@@ -295,6 +323,14 @@ func (_c *OrderCreate) defaults() {
 		v := order.DefaultNewsletter
 		_c.mutation.SetNewsletter(v)
 	}
+	if _, ok := _c.mutation.GiftRecipientName(); !ok {
+		v := order.DefaultGiftRecipientName
+		_c.mutation.SetGiftRecipientName(v)
+	}
+	if _, ok := _c.mutation.GiftMessage(); !ok {
+		v := order.DefaultGiftMessage
+		_c.mutation.SetGiftMessage(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -316,6 +352,12 @@ func (_c *OrderCreate) check() error {
 	}
 	if _, ok := _c.mutation.Newsletter(); !ok {
 		return &ValidationError{Name: "newsletter", err: errors.New(`ent: missing required field "Order.newsletter"`)}
+	}
+	if _, ok := _c.mutation.GiftRecipientName(); !ok {
+		return &ValidationError{Name: "gift_recipient_name", err: errors.New(`ent: missing required field "Order.gift_recipient_name"`)}
+	}
+	if _, ok := _c.mutation.GiftMessage(); !ok {
+		return &ValidationError{Name: "gift_message", err: errors.New(`ent: missing required field "Order.gift_message"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := order.IDValidator(v); err != nil {
@@ -421,6 +463,14 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.PaymentFailedAt(); ok {
 		_spec.SetField(order.FieldPaymentFailedAt, field.TypeTime, value)
 		_node.PaymentFailedAt = &value
+	}
+	if value, ok := _c.mutation.GiftRecipientName(); ok {
+		_spec.SetField(order.FieldGiftRecipientName, field.TypeString, value)
+		_node.GiftRecipientName = value
+	}
+	if value, ok := _c.mutation.GiftMessage(); ok {
+		_spec.SetField(order.FieldGiftMessage, field.TypeString, value)
+		_node.GiftMessage = value
 	}
 	if nodes := _c.mutation.EntriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -10,6 +10,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/config"
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/middlewares"
+	"github.com/augustin-wien/augustina-backend/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -340,6 +341,30 @@ func GetRouter() (r *chi.Mux) {
 		})
 
 		// Abonements (admin)
+		// Abonement gift vouchers
+		r.Route("/api/vouchers", func(r chi.Router) {
+			r.Group(func(r chi.Router) {
+				// Few attempts per client so codes can't be guessed; keyed by the client
+				// behind the proxy, otherwise all customers would share one limit
+				r.Use(httprate.Limit(10, 1*time.Minute, httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
+					return utils.ReadUserIP(r), nil
+				})))
+				r.Post("/check/", CheckVoucher)
+				r.Post("/redeem/", RedeemVoucher)
+			})
+			r.Group(func(r chi.Router) {
+				r.Use(middlewares.AuthMiddleware)
+				r.Use(middlewares.AdminAuthMiddleware)
+				r.Get("/", ListVouchers)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Get("/pdf/", GetVoucherPDF)
+					r.Post("/resend/", ResendVoucher)
+					r.Post("/disable/", DisableVoucher)
+					r.Post("/enable/", EnableVoucher)
+				})
+			})
+		})
+
 		r.Route("/api/abonements", func(r chi.Router) {
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.AuthMiddleware)

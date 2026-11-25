@@ -355,6 +355,34 @@ func (_u *OrderUpdate) ClearPaymentFailedAt() *OrderUpdate {
 	return _u
 }
 
+// SetGiftRecipientName sets the "gift_recipient_name" field.
+func (_u *OrderUpdate) SetGiftRecipientName(v string) *OrderUpdate {
+	_u.mutation.SetGiftRecipientName(v)
+	return _u
+}
+
+// SetNillableGiftRecipientName sets the "gift_recipient_name" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableGiftRecipientName(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetGiftRecipientName(*v)
+	}
+	return _u
+}
+
+// SetGiftMessage sets the "gift_message" field.
+func (_u *OrderUpdate) SetGiftMessage(v string) *OrderUpdate {
+	_u.mutation.SetGiftMessage(v)
+	return _u
+}
+
+// SetNillableGiftMessage sets the "gift_message" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableGiftMessage(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetGiftMessage(*v)
+	}
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdate) AddEntryIDs(ids ...int) *OrderUpdate {
 	_u.mutation.AddEntryIDs(ids...)
@@ -560,6 +588,12 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.PaymentFailedAtCleared() {
 		_spec.ClearField(order.FieldPaymentFailedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.GiftRecipientName(); ok {
+		_spec.SetField(order.FieldGiftRecipientName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.GiftMessage(); ok {
+		_spec.SetField(order.FieldGiftMessage, field.TypeString, value)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -996,6 +1030,34 @@ func (_u *OrderUpdateOne) ClearPaymentFailedAt() *OrderUpdateOne {
 	return _u
 }
 
+// SetGiftRecipientName sets the "gift_recipient_name" field.
+func (_u *OrderUpdateOne) SetGiftRecipientName(v string) *OrderUpdateOne {
+	_u.mutation.SetGiftRecipientName(v)
+	return _u
+}
+
+// SetNillableGiftRecipientName sets the "gift_recipient_name" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableGiftRecipientName(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetGiftRecipientName(*v)
+	}
+	return _u
+}
+
+// SetGiftMessage sets the "gift_message" field.
+func (_u *OrderUpdateOne) SetGiftMessage(v string) *OrderUpdateOne {
+	_u.mutation.SetGiftMessage(v)
+	return _u
+}
+
+// SetNillableGiftMessage sets the "gift_message" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableGiftMessage(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetGiftMessage(*v)
+	}
+	return _u
+}
+
 // AddEntryIDs adds the "entries" edge to the OrderEntry entity by IDs.
 func (_u *OrderUpdateOne) AddEntryIDs(ids ...int) *OrderUpdateOne {
 	_u.mutation.AddEntryIDs(ids...)
@@ -1231,6 +1293,12 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.PaymentFailedAtCleared() {
 		_spec.ClearField(order.FieldPaymentFailedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.GiftRecipientName(); ok {
+		_spec.SetField(order.FieldGiftRecipientName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.GiftMessage(); ok {
+		_spec.SetField(order.FieldGiftMessage, field.TypeString, value)
 	}
 	if _u.mutation.EntriesCleared() {
 		edge := &sqlgraph.EdgeSpec{

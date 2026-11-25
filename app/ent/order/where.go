@@ -140,6 +140,16 @@ func PaymentFailedAt(v time.Time) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldPaymentFailedAt, v))
 }
 
+// GiftRecipientName applies equality check predicate on the "gift_recipient_name" field. It's identical to GiftRecipientNameEQ.
+func GiftRecipientName(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldGiftRecipientName, v))
+}
+
+// GiftMessage applies equality check predicate on the "gift_message" field. It's identical to GiftMessageEQ.
+func GiftMessage(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldGiftMessage, v))
+}
+
 // OrderCodeEQ applies the EQ predicate on the "order_code" field.
 func OrderCodeEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrderCode, v))
@@ -1018,6 +1028,136 @@ func PaymentFailedAtIsNil() predicate.Order {
 // PaymentFailedAtNotNil applies the NotNil predicate on the "payment_failed_at" field.
 func PaymentFailedAtNotNil() predicate.Order {
 	return predicate.Order(sql.FieldNotNull(FieldPaymentFailedAt))
+}
+
+// GiftRecipientNameEQ applies the EQ predicate on the "gift_recipient_name" field.
+func GiftRecipientNameEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameNEQ applies the NEQ predicate on the "gift_recipient_name" field.
+func GiftRecipientNameNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameIn applies the In predicate on the "gift_recipient_name" field.
+func GiftRecipientNameIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldGiftRecipientName, vs...))
+}
+
+// GiftRecipientNameNotIn applies the NotIn predicate on the "gift_recipient_name" field.
+func GiftRecipientNameNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldGiftRecipientName, vs...))
+}
+
+// GiftRecipientNameGT applies the GT predicate on the "gift_recipient_name" field.
+func GiftRecipientNameGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameGTE applies the GTE predicate on the "gift_recipient_name" field.
+func GiftRecipientNameGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameLT applies the LT predicate on the "gift_recipient_name" field.
+func GiftRecipientNameLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameLTE applies the LTE predicate on the "gift_recipient_name" field.
+func GiftRecipientNameLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameContains applies the Contains predicate on the "gift_recipient_name" field.
+func GiftRecipientNameContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameHasPrefix applies the HasPrefix predicate on the "gift_recipient_name" field.
+func GiftRecipientNameHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameHasSuffix applies the HasSuffix predicate on the "gift_recipient_name" field.
+func GiftRecipientNameHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameEqualFold applies the EqualFold predicate on the "gift_recipient_name" field.
+func GiftRecipientNameEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldGiftRecipientName, v))
+}
+
+// GiftRecipientNameContainsFold applies the ContainsFold predicate on the "gift_recipient_name" field.
+func GiftRecipientNameContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldGiftRecipientName, v))
+}
+
+// GiftMessageEQ applies the EQ predicate on the "gift_message" field.
+func GiftMessageEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldGiftMessage, v))
+}
+
+// GiftMessageNEQ applies the NEQ predicate on the "gift_message" field.
+func GiftMessageNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldGiftMessage, v))
+}
+
+// GiftMessageIn applies the In predicate on the "gift_message" field.
+func GiftMessageIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldGiftMessage, vs...))
+}
+
+// GiftMessageNotIn applies the NotIn predicate on the "gift_message" field.
+func GiftMessageNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldGiftMessage, vs...))
+}
+
+// GiftMessageGT applies the GT predicate on the "gift_message" field.
+func GiftMessageGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldGiftMessage, v))
+}
+
+// GiftMessageGTE applies the GTE predicate on the "gift_message" field.
+func GiftMessageGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldGiftMessage, v))
+}
+
+// GiftMessageLT applies the LT predicate on the "gift_message" field.
+func GiftMessageLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldGiftMessage, v))
+}
+
+// GiftMessageLTE applies the LTE predicate on the "gift_message" field.
+func GiftMessageLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldGiftMessage, v))
+}
+
+// GiftMessageContains applies the Contains predicate on the "gift_message" field.
+func GiftMessageContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldGiftMessage, v))
+}
+
+// GiftMessageHasPrefix applies the HasPrefix predicate on the "gift_message" field.
+func GiftMessageHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldGiftMessage, v))
+}
+
+// GiftMessageHasSuffix applies the HasSuffix predicate on the "gift_message" field.
+func GiftMessageHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldGiftMessage, v))
+}
+
+// GiftMessageEqualFold applies the EqualFold predicate on the "gift_message" field.
+func GiftMessageEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldGiftMessage, v))
+}
+
+// GiftMessageContainsFold applies the ContainsFold predicate on the "gift_message" field.
+func GiftMessageContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldGiftMessage, v))
 }
 
 // HasEntries applies the HasEdge predicate on the "entries" edge.
