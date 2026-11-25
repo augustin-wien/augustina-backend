@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 	"unicode/utf8"
 
@@ -35,8 +37,20 @@ func respond(w http.ResponseWriter, err error, payload interface{}) {
 	}
 	err = utils.WriteJSON(w, http.StatusOK, payload)
 	if err != nil {
-		log.Error("respond: ", err)
+		if isClientGone(err) {
+			log.Warn("respond: ", err)
+		} else {
+			log.Error("respond: ", err)
+		}
 	}
+}
+
+// isClientGone reports whether a write failed because the client timed out or
+// closed the connection, which says nothing about the server
+func isClientGone(err error) bool {
+	var netErr net.Error
+	return errors.Is(err, syscall.EPIPE) || errors.Is(err, syscall.ECONNRESET) ||
+		(errors.As(err, &netErr) && netErr.Timeout())
 }
 
 // HelloWorld godoc
@@ -758,7 +772,7 @@ const inviteMaxOrderAge = time.Hour
 // if it has one. PDF purchases only get a download link.
 func onlineAccessItem(order database.Order) (item database.Item, ok bool) {
 	for _, entry := range order.Entries {
-		item, err := database.Db.GetItemIncludingDisabled(entry.Item)
+		item, err := database.Db.GetItemIncludingArchived(entry.Item)
 		if err != nil {
 			continue
 		}

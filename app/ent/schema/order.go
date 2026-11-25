@@ -46,9 +46,16 @@ func (Order) Fields() []ent.Field {
 		// Set once an unverified order is judged permanently abandoned (no
 		// transaction ID after 20 minutes, or VivaWallet itself confirms no
 		// payment exists) - see jobs/reconcile.go. Never set on an order
-		// VivaWallet confirms was paid; those stay unverified for a human to
-		// resolve, however old they get.
+		// VivaWallet confirms was paid; the reconcile job verifies those.
 		field.Time("invalidated_at").
+			Optional().
+			Nillable(),
+		// Set when the reconcile job found the order paid at VivaWallet but could
+		// not verify it, so the failure is reported once and not on every run
+		field.Time("reconcile_failed_at").
+			Optional().
+			Nillable(),
+		field.String("reconcile_error").
 			Optional().
 			Nillable(),
 		// Customer opted in to the newsletter at checkout; copied to the

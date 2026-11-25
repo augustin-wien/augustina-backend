@@ -71,18 +71,6 @@ func linkedItemIsPDF(items *ent.ItemClient, item Item) bool {
 	return linked.IsPDFItem
 }
 
-// sendMail sends a mail and turns an unsuccessful send into an error
-func sendMail(m *mailer.EmailRequest) error {
-	success, err := mailer.Send(m)
-	if err != nil {
-		return err
-	}
-	if !success {
-		return errors.New("mail was not sent")
-	}
-	return nil
-}
-
 // ResendOrderMails sends the digital licence and PDF download mails of a
 // verified order again, e.g. when the customer lost them or sending failed.
 // Keycloak users and license groups are left alone, they were set up when the
@@ -101,11 +89,11 @@ func (db *Database) ResendOrderMails(orderID int) (sent int, err error) {
 	}
 	email := o.CustomerEmail.String
 
-	var mails []*mailer.EmailRequest
+	var mails []outgoingMail
 	digitalMailAdded := false
 	pdfItemsDone := make(map[int]bool)
 	for _, entry := range o.Entries {
-		item, err := db.GetItem(entry.Item)
+		item, err := db.GetItemIncludingArchived(entry.Item)
 		if err != nil {
 			return 0, err
 		}
@@ -115,7 +103,7 @@ func (db *Database) ResendOrderMails(orderID int) (sent int, err error) {
 				return 0, err
 			}
 			if mail != nil {
-				mails = append(mails, mail)
+				mails = append(mails, outgoingMail{mail, MailMeta{Kind: MailKindVoucher, OrderID: orderID, ItemID: item.ID}})
 			}
 			continue
 		}
@@ -132,7 +120,7 @@ func (db *Database) ResendOrderMails(orderID int) (sent int, err error) {
 			if err != nil {
 				return 0, err
 			}
-			mails = append(mails, mail)
+			mails = append(mails, outgoingMail{mail, MailMeta{Kind: MailKindDigitalLicence, OrderID: orderID, ItemID: item.ID}})
 			digitalMailAdded = true
 			continue
 		}
@@ -148,7 +136,7 @@ func (db *Database) ResendOrderMails(orderID int) (sent int, err error) {
 		if err != nil {
 			return 0, err
 		}
-		mails = append(mails, mail)
+		mails = append(mails, outgoingMail{mail, MailMeta{Kind: MailKindPDFLicence, OrderID: orderID, ItemID: item.ID}})
 		pdfItemsDone[item.ID] = true
 	}
 
@@ -157,7 +145,7 @@ func (db *Database) ResendOrderMails(orderID int) (sent int, err error) {
 	}
 
 	for _, mail := range mails {
-		if err := sendMail(mail); err != nil {
+		if err := db.SendMailNow(mail.mail, mail.meta); err != nil {
 			log.Error("ResendOrderMails: failed to send mail: ", orderID, err)
 			return sent, err
 		}

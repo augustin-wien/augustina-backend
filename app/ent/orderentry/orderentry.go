@@ -16,6 +16,8 @@ const (
 	FieldQuantity = "quantity"
 	// FieldPrice holds the string denoting the price field in the database.
 	FieldPrice = "price"
+	// FieldItemName holds the string denoting the item_name field in the database.
+	FieldItemName = "item_name"
 	// FieldIsSale holds the string denoting the is_sale field in the database.
 	FieldIsSale = "is_sale"
 	// FieldItemID holds the string denoting the item_id field in the database.
@@ -71,6 +73,7 @@ var Columns = []string{
 	FieldID,
 	FieldQuantity,
 	FieldPrice,
+	FieldItemName,
 	FieldIsSale,
 	FieldItemID,
 	FieldSenderID,
@@ -89,6 +92,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultItemName holds the default value on creation for the "item_name" field.
+	DefaultItemName string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -109,6 +114,11 @@ func ByQuantity(opts ...sql.OrderTermOption) OrderOption {
 // ByPrice orders the results by the price field.
 func ByPrice(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPrice, opts...).ToFunc()
+}
+
+// ByItemName orders the results by the item_name field.
+func ByItemName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldItemName, opts...).ToFunc()
 }
 
 // ByIsSale orders the results by the is_sale field.

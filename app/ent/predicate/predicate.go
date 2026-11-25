@@ -39,6 +39,9 @@ type Item func(*sql.Selector)
 // Location is the predicate function for location builders.
 type Location func(*sql.Selector)
 
+// MailTask is the predicate function for mailtask builders.
+type MailTask func(*sql.Selector)
+
 // MailTemplate is the predicate function for mailtemplate builders.
 type MailTemplate func(*sql.Selector)
 

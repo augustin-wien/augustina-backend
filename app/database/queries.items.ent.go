@@ -155,7 +155,24 @@ func (db *Database) GetItemIncludingDisabled(id int) (item Item, err error) {
 	return
 }
 
-// GetItemTx returns the item with the given ID inside a transaction
+// GetItemIncludingArchived returns the item with the given ID whether it is
+// disabled or archived. Orders keep referring to their items after those were
+// taken out of the shop, so code processing an existing order uses this.
+func (db *Database) GetItemIncludingArchived(id int) (item Item, err error) {
+	e, err := db.EntClient.Item.Query().
+		Where(entitem.IDEQ(id)).
+		WithLicenseItem().
+		WithPDF().
+		Only(context.Background())
+	if err != nil {
+		log.Error("GetItemIncludingArchived (ent): ", err)
+		return
+	}
+	return convertEntItem(e), nil
+}
+
+// GetItemTx returns the item with the given ID inside a transaction, like
+// GetItemIncludingArchived whether it is disabled or archived
 func (db *Database) GetItemTx(tx *ent.Tx, id int) (item Item, err error) {
 	e, err := tx.Item.Query().
 		Where(entitem.ID(id)).
@@ -167,11 +184,7 @@ func (db *Database) GetItemTx(tx *ent.Tx, id int) (item Item, err error) {
 		log.Error("GetItem: failed in GetItemTx() ", err)
 		return
 	}
-	item = convertEntItem(e)
-	if item.Disabled {
-		return item, errors.New("item is disabled")
-	}
-	return
+	return convertEntItem(e), nil
 }
 
 func convertEntItem(e *ent.Item) Item {
@@ -286,7 +299,7 @@ func (db *Database) CreateItem(item Item) (id int, err error) {
 
 	if err == nil {
 		if !existing.Archived {
-			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			err = ErrItemNameTaken
 			return 0, err
 		}
 		ub := db.EntClient.Item.UpdateOneID(existing.ID).
@@ -396,7 +409,7 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 	var licenseEnt *ent.Item
 	if err == nil {
 		if !existingLicense.IsLicenseItem {
-			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			err = ErrItemNameTaken
 			return 0, 0, err
 		}
 		var hasOwner bool
@@ -405,7 +418,7 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 			return 0, 0, err
 		}
 		if hasOwner {
-			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			err = ErrItemNameTaken
 			return 0, 0, err
 		}
 		licenseEnt, err = tx.Item.UpdateOneID(existingLicense.ID).
@@ -462,7 +475,7 @@ func (db *Database) createItemWithLicense(item Item, licenseCost int, itemType s
 	var mainEnt *ent.Item
 	if err == nil {
 		if !existingMain.Archived {
-			err = errors.New("Item with the same name already exists. Update it or delete it first")
+			err = ErrItemNameTaken
 			return 0, 0, err
 		}
 		mub := tx.Item.UpdateOneID(existingMain.ID).
@@ -591,6 +604,10 @@ func (db *Database) UpdateItem(id int, item Item) (err error) {
 		ub = ub.ClearPDF()
 	}
 	_, err = ub.Save(ctx)
+	if ent.IsConstraintError(err) && strings.Contains(err.Error(), "item_name_key") {
+		log.Warnf("UpdateItem: item name %q is taken", item.Name)
+		return ErrItemNameTaken
+	}
 	if err != nil {
 		log.Errorf("UpdateItem 1(ent): %s %+v", err, item)
 	}
@@ -611,6 +628,9 @@ func (db *Database) DeleteItem(id int) (err error) {
 
 // ErrLicenseItemInUse is returned when a license item is still linked to an
 // item that has not been deleted.
+// ErrItemNameTaken is returned when an item with the same name already exists
+var ErrItemNameTaken = errors.New("Item with the same name already exists. Update it or delete it first")
+
 var ErrLicenseItemInUse = errors.New("license item is still linked to an item")
 
 // DeleteItemChecked deletes an item like DeleteItem, but refuses to delete a
@@ -623,14 +643,20 @@ func (db *Database) DeleteItemChecked(id int, deleteLicense bool) error {
 		log.Error("DeleteItemChecked (ent): ", err)
 		return err
 	}
-	inUse, err := db.EntClient.Item.Query().
-		Where(entitem.HasLicenseItemWith(entitem.IDEQ(id)), entitem.ArchivedEQ(false)).
-		Exist(ctx)
-	if err != nil {
-		return err
-	}
-	if inUse {
-		return ErrLicenseItemInUse
+	if e.IsLicenseItem || e.Type == "license_item" {
+		inUse, err := db.EntClient.Item.Query().
+			Where(
+				entitem.HasLicenseItemWith(entitem.IDEQ(id)),
+				entitem.ArchivedEQ(false),
+				entitem.TypeNEQ("license_item"),
+			).
+			Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if inUse {
+			return ErrLicenseItemInUse
+		}
 	}
 	if err = db.DeleteItem(id); err != nil {
 		return err

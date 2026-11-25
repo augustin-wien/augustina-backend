@@ -34,6 +34,8 @@ type Tx struct {
 	Item *ItemClient
 	// Location is the client for interacting with the Location builders.
 	Location *LocationClient
+	// MailTask is the client for interacting with the MailTask builders.
+	MailTask *MailTaskClient
 	// MailTemplate is the client for interacting with the MailTemplate builders.
 	MailTemplate *MailTemplateClient
 	// Order is the client for interacting with the Order builders.
@@ -192,6 +194,7 @@ func (tx *Tx) init() {
 	tx.ExternalPayment = NewExternalPaymentClient(tx.config)
 	tx.Item = NewItemClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
+	tx.MailTask = NewMailTaskClient(tx.config)
 	tx.MailTemplate = NewMailTemplateClient(tx.config)
 	tx.Order = NewOrderClient(tx.config)
 	tx.OrderEntry = NewOrderEntryClient(tx.config)

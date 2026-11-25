@@ -15,6 +15,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent/externalpayment"
 	"github.com/augustin-wien/augustina-backend/ent/item"
 	"github.com/augustin-wien/augustina-backend/ent/location"
+	"github.com/augustin-wien/augustina-backend/ent/mailtask"
 	"github.com/augustin-wien/augustina-backend/ent/order"
 	"github.com/augustin-wien/augustina-backend/ent/orderentry"
 	"github.com/augustin-wien/augustina-backend/ent/payment"
@@ -269,18 +270,46 @@ func init() {
 	locationDescID := locationFields[0].Descriptor()
 	// location.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	location.IDValidator = locationDescID.Validators[0].(func(int) error)
+	mailtaskFields := schema.MailTask{}.Fields()
+	_ = mailtaskFields
+	// mailtaskDescStatus is the schema descriptor for status field.
+	mailtaskDescStatus := mailtaskFields[6].Descriptor()
+	// mailtask.DefaultStatus holds the default value on creation for the status field.
+	mailtask.DefaultStatus = mailtaskDescStatus.Default.(string)
+	// mailtaskDescAttempts is the schema descriptor for attempts field.
+	mailtaskDescAttempts := mailtaskFields[7].Descriptor()
+	// mailtask.DefaultAttempts holds the default value on creation for the attempts field.
+	mailtask.DefaultAttempts = mailtaskDescAttempts.Default.(int)
+	// mailtaskDescNextAttemptAt is the schema descriptor for next_attempt_at field.
+	mailtaskDescNextAttemptAt := mailtaskFields[9].Descriptor()
+	// mailtask.DefaultNextAttemptAt holds the default value on creation for the next_attempt_at field.
+	mailtask.DefaultNextAttemptAt = mailtaskDescNextAttemptAt.Default.(func() time.Time)
+	// mailtaskDescCreatedAt is the schema descriptor for created_at field.
+	mailtaskDescCreatedAt := mailtaskFields[10].Descriptor()
+	// mailtask.DefaultCreatedAt holds the default value on creation for the created_at field.
+	mailtask.DefaultCreatedAt = mailtaskDescCreatedAt.Default.(func() time.Time)
+	// mailtaskDescUpdatedAt is the schema descriptor for updated_at field.
+	mailtaskDescUpdatedAt := mailtaskFields[11].Descriptor()
+	// mailtask.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	mailtask.DefaultUpdatedAt = mailtaskDescUpdatedAt.Default.(func() time.Time)
+	// mailtask.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	mailtask.UpdateDefaultUpdatedAt = mailtaskDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// mailtaskDescID is the schema descriptor for id field.
+	mailtaskDescID := mailtaskFields[0].Descriptor()
+	// mailtask.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	mailtask.IDValidator = mailtaskDescID.Validators[0].(func(int) error)
 	orderFields := schema.Order{}.Fields()
 	_ = orderFields
 	// orderDescNewsletter is the schema descriptor for newsletter field.
-	orderDescNewsletter := orderFields[13].Descriptor()
+	orderDescNewsletter := orderFields[15].Descriptor()
 	// order.DefaultNewsletter holds the default value on creation for the newsletter field.
 	order.DefaultNewsletter = orderDescNewsletter.Default.(bool)
 	// orderDescGiftRecipientName is the schema descriptor for gift_recipient_name field.
-	orderDescGiftRecipientName := orderFields[16].Descriptor()
+	orderDescGiftRecipientName := orderFields[18].Descriptor()
 	// order.DefaultGiftRecipientName holds the default value on creation for the gift_recipient_name field.
 	order.DefaultGiftRecipientName = orderDescGiftRecipientName.Default.(string)
 	// orderDescGiftMessage is the schema descriptor for gift_message field.
-	orderDescGiftMessage := orderFields[17].Descriptor()
+	orderDescGiftMessage := orderFields[19].Descriptor()
 	// order.DefaultGiftMessage holds the default value on creation for the gift_message field.
 	order.DefaultGiftMessage = orderDescGiftMessage.Default.(string)
 	// orderDescID is the schema descriptor for id field.
@@ -289,6 +318,10 @@ func init() {
 	order.IDValidator = orderDescID.Validators[0].(func(int) error)
 	orderentryFields := schema.OrderEntry{}.Fields()
 	_ = orderentryFields
+	// orderentryDescItemName is the schema descriptor for item_name field.
+	orderentryDescItemName := orderentryFields[3].Descriptor()
+	// orderentry.DefaultItemName holds the default value on creation for the item_name field.
+	orderentry.DefaultItemName = orderentryDescItemName.Default.(string)
 	// orderentryDescID is the schema descriptor for id field.
 	orderentryDescID := orderentryFields[0].Descriptor()
 	// orderentry.IDValidator is a validator for the "id" field. It is called by the builders before save.

@@ -153,9 +153,9 @@ func CreatePaymentOrder(accessToken string, order database.Order, vendorLicenseI
 
 	// Iterate through the order entries and retrieve item names
 	for _, entry := range order.Entries {
-		item, err := database.Db.GetItem(entry.Item) // Get item by ID
+		item, err := database.Db.GetItemIncludingArchived(entry.Item)
 		if err != nil {
-			log.Error("AuthenticateToVivaWallet: Item could not be found", zap.Error(err))
+			log.Error("CreatePaymentOrder: Item could not be found", zap.Error(err))
 		}
 		items = append(items, item.Name)
 	}
@@ -453,20 +453,60 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 		return err
 	}
 
-	// 2. Check: Verify amount matches with the ones in the database
+	// 2. Check: Verify amount matches with the ones in the database, then verify the order
+	if reason, fields, err := finalizePaidOrder(order, data.Amount, data.TransactionTypeID); err != nil {
+		logWebhookNotVerified(reason, order.ID, data, err, fields...)
+		return err
+	}
+	log.Infow("HandlePaymentSuccessfulResponse: order verified", "order_id", order.ID, "order_code", data.OrderCode.String(), "transaction_id", data.TransactionID)
 
+	// Create transaction costs for Paypal
+	//err = CreatePaypalTransactionCosts(paymentSuccessful, order)
+
+	return
+}
+
+// ErrOrderCodeMismatch means VivaWallet reports a different order code for the transaction
+// than the order it is stored on
+var ErrOrderCodeMismatch = errors.New("order code mismatch")
+
+// ReconcilePaidOrder verifies an order whose payment VivaWallet confirmed (viva is the
+// answer of VerifyTransactionID for the order's transaction) but which was never verified
+// locally, e.g. because the webhook got lost. It runs the same checks as the webhook.
+// reason names the check that failed.
+func ReconcilePaidOrder(orderID int, viva TransactionVerificationResponse) (reason string, err error) {
+	order, err := database.Db.GetOrderByID(orderID)
+	if err != nil {
+		return "order_not_found", err
+	}
+	if order.Verified {
+		return "", nil
+	}
+	if viva.OrderCode.String() != order.OrderCode.String {
+		return "order_code_mismatch", ErrOrderCodeMismatch
+	}
+	reason, fields, err := finalizePaidOrder(order, viva.Amount, viva.TransactionTypeID)
+	if err != nil {
+		log.Warnw("ReconcilePaidOrder: order could not be verified", append([]interface{}{"order_id", orderID, "reason", reason, "error", err}, fields...)...)
+		return reason, err
+	}
+	log.Infow("ReconcilePaidOrder: order verified", "order_id", orderID, "order_code", order.OrderCode.String, "transaction_id", order.TransactionID)
+	return "", nil
+}
+
+// finalizePaidOrder checks that the order's entries add up to the amount VivaWallet
+// confirmed, then verifies the order, creates its payments and sends it to Odoo. On
+// failure reason names the failed check and fields carry details for the log.
+func finalizePaidOrder(order database.Order, paidAmount float64, transactionTypeID int) (reason string, fields []interface{}, err error) {
 	// Check for TransactionCostsName
 	if config.Config.TransactionCostsName == "" {
-		err = errors.New("transaction costs name is not set")
-		logWebhookNotVerified("config_transaction_costs_name_missing", order.ID, data, err)
-		return err
+		return "config_transaction_costs_name_missing", nil, errors.New("transaction costs name is not set")
 	}
 
 	// Transaction costs are not included in the sum
 	transactionCostItem, err := database.Db.GetItemByName(config.Config.TransactionCostsName)
 	if err != nil {
-		logWebhookNotVerified("transaction_costs_item_not_found", order.ID, data, err)
-		return err
+		return "transaction_costs_item_not_found", nil, err
 	}
 
 	// Sum up all prices of orderentries and compare with amount. entries records how each
@@ -478,9 +518,10 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 			entries = append(entries, fmt.Sprintf("item=%d price=%d qty=%d skipped=transaction_costs", entry.Item, entry.Price, entry.Quantity))
 			continue
 		}
-		item, err := database.Db.GetItem(entry.Item) // Get item by ID
+		// The item may have been disabled or archived since the order was created
+		item, err := database.Db.GetItemIncludingArchived(entry.Item)
 		if err != nil {
-			log.Errorw("HandlePaymentSuccessfulResponse: item could not be found", "order_id", order.ID, "item_id", entry.Item, "error", err)
+			return "order_item_not_found", []interface{}{"item_id", entry.Item}, err
 		}
 
 		if item.IsLicenseItem {
@@ -495,20 +536,17 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 	// Note: Bad consistency by VivaWallet representing amount in cents and int vs euro and float
 	sum = float64(sum) / 100
 
-	if sum != data.Amount {
-		err = errors.New("amount mismatch: " + fmt.Sprintf("%f", sum) + " vs " + fmt.Sprintf("%f", data.Amount) + " with transaction id " + data.TransactionID)
-		logWebhookNotVerified("order_sum_mismatch", order.ID, data, err, "order_sum", sum, "entries", entries)
-		return err
+	if sum != paidAmount {
+		err = errors.New("amount mismatch: " + fmt.Sprintf("%f", sum) + " vs " + fmt.Sprintf("%f", paidAmount) + " with transaction id " + order.TransactionID)
+		return "order_sum_mismatch", []interface{}{"order_sum", sum, "entries", entries}, err
 	}
 
 	// Since every check passed, now set verification status of order and create payments
-	err = database.Db.VerifyOrderAndCreatePayments(order.ID, data.TransactionTypeID)
+	err = database.Db.VerifyOrderAndCreatePayments(order.ID, transactionTypeID)
 	if err != nil {
-		logWebhookNotVerified("verify_order_failed", order.ID, data, err)
-		return err
+		return "verify_order_failed", nil, err
 	}
-	log.Infow("HandlePaymentSuccessfulResponse: order verified", "order_id", order.ID, "order_code", data.OrderCode.String(), "transaction_id", data.TransactionID)
-	// odoo
+
 	if config.Config.OdooWebhookURL != "" {
 		log.Info("Odoo Webhook set, sending webhook for order", order.ID)
 		go func(id int, timestamp time.Time, items []database.OrderEntry, vendorID int, totalSum int) {
@@ -519,7 +557,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 			}
 			err = integrations.SendPaymentToOdoo(id, timestamp, items, vendor, totalSum)
 			if err != nil {
-				log.Errorw("Sending payment to Odoo failed", "order_id", id, "error", err)
+				log.Errorw(fmt.Sprintf("Sending payment to Odoo failed for order %d: %v", id, err), "order_id", id, "error", err)
 				if dbErr := database.Db.SetOdooSyncFailure(id, err); dbErr != nil {
 					log.Errorw("Failed to record Odoo sync failure", "order_id", id, "error", dbErr)
 				}
@@ -530,11 +568,7 @@ func HandlePaymentSuccessfulResponse(paymentSuccessful TransactionSuccessRequest
 			}
 		}(order.ID, order.Timestamp, order.Entries, order.Vendor, int(sum))
 	}
-
-	// Create transaction costs for Paypal
-	//err = CreatePaypalTransactionCosts(paymentSuccessful, order)
-
-	return
+	return "", nil, nil
 }
 
 // CreatePaypalTransactionCosts creates transaction costs for Paypal payments

@@ -135,6 +135,24 @@ func (db *Database) InvalidateOrder(orderID int) error {
 		Exec(context.Background())
 }
 
+// SetOrderReconcileFailed records why the reconcile job could not verify a paid
+// order. first is true the first time a failure is recorded for the order.
+func (db *Database) SetOrderReconcileFailed(orderID int, reason string) (first bool, err error) {
+	ctx := context.Background()
+	n, err := db.EntClient.Order.Update().
+		Where(order.ID(orderID), order.ReconcileFailedAtIsNil()).
+		SetReconcileFailedAt(time.Now().UTC()).
+		SetReconcileError(reason).
+		Save(ctx)
+	if err != nil {
+		return false, err
+	}
+	if n > 0 {
+		return true, nil
+	}
+	return false, db.EntClient.Order.UpdateOneID(orderID).SetReconcileError(reason).Exec(ctx)
+}
+
 // OrderStatistics counts the online checkouts started in a period by outcome
 type OrderStatistics struct {
 	Started   int // all checkouts
@@ -316,11 +334,13 @@ func createOrderEntryTx(tx *ent.Tx, orderID int, entry OrderEntry) (OrderEntry, 
 		return entry, errors.New("item is disabled")
 	}
 	entry.Price = int(math.Round(itemRes.Price))
+	entry.ItemName = itemRes.Name
 
 	// Create order entry
 	oeRes, err := tx.OrderEntry.Create().
 		SetItemID(entry.Item).
 		SetPrice(entry.Price).
+		SetItemName(entry.ItemName).
 		SetQuantity(entry.Quantity).
 		SetOrderID(orderID).
 		SetSenderID(entry.Sender).
@@ -531,6 +551,9 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		log.Error("VerifyOrderAndCreatePayments: update payment order", orderID, err)
 	}
 
+	// Mails are queued after the commit, so none goes out for a rolled back verification
+	var outgoing []outgoingMail
+
 	// Get Paymentorder (including payments)
 	o, err := db.GetOrderByIDTx(tx, orderID)
 	if err != nil {
@@ -641,12 +664,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 							if aboMailErr != nil {
 								log.Error("VerifyOrderAndCreatePayments: failed to build abonement confirmation mail: ", orderID, aboMailErr)
 							} else if aboMail != nil {
-								go func(m *mailer.EmailRequest) {
-									success, sendErr := mailer.SendWithRetry(m)
-									if sendErr != nil || !success {
-										log.Error("VerifyOrderAndCreatePayments: failed to send abonement confirmation mail: ", orderID, sendErr)
-									}
-								}(aboMail)
+								outgoing = append(outgoing, outgoingMail{aboMail, MailMeta{Kind: MailKindAbonementConfirmation, OrderID: orderID, ItemID: item.ID}})
 							}
 						}
 						// Also grant access to the current online_issue so the customer
@@ -675,13 +693,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 						} else if mail != nil {
-							// use subject from DB template (do not override)
-							go func(m *mailer.EmailRequest) {
-								success, err := mailer.SendWithRetry(m)
-								if err != nil || !success {
-									log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
-								}
-							}(mail)
+							outgoing = append(outgoing, outgoingMail{mail, MailMeta{Kind: MailKindDigitalLicence, OrderID: orderID, ItemID: item.ID}})
 						}
 						sentDigitalLicenceEmail = true
 					}
@@ -701,12 +713,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create welcome mail: ", orderID, err)
 						} else if newUserMail != nil {
-							go func(m *mailer.EmailRequest) {
-								success, err := mailer.SendWithRetry(m)
-								if err != nil || !success {
-									log.Error("VerifyOrderAndCreatePayments: failed to send welcome mail: ", orderID, err)
-								}
-							}(newUserMail)
+							outgoing = append(outgoing, outgoingMail{newUserMail, MailMeta{Kind: MailKindWelcome, OrderID: orderID, ItemID: item.ID}})
 						}
 					}
 
@@ -739,13 +746,7 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 						if err != nil {
 							log.Error("VerifyOrderAndCreatePayments: failed to create mail: ", orderID, err)
 						} else if mail != nil {
-							// use subject from DB template (do not override)
-							go func(m *mailer.EmailRequest) {
-								success, err := mailer.SendWithRetry(m)
-								if err != nil || !success {
-									log.Error("VerifyOrderAndCreatePayments: failed to send mail: ", orderID, err)
-								}
-							}(mail)
+							outgoing = append(outgoing, outgoingMail{mail, MailMeta{Kind: MailKindPDFLicence, OrderID: orderID, ItemID: item.ID}})
 						}
 
 						pdfDownload.EmailSent = true
@@ -799,6 +800,11 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 		}
 		SendVoucherMail(m)
 	}
+	for _, m := range outgoing {
+		if _, err := db.QueueMail(m.mail, m.meta); err != nil {
+			log.Error("VerifyOrderAndCreatePayments: failed to queue mail: ", orderID, err)
+		}
+	}
 	return nil
 }
 
@@ -806,6 +812,12 @@ func (db *Database) VerifyOrderAndCreatePayments(orderID int, transactionTypeID 
 type voucherMail struct {
 	email    string
 	vouchers []AbonementVoucher
+}
+
+// outgoingMail is a mail queued once the transaction creating it is committed
+type outgoingMail struct {
+	mail *mailer.EmailRequest
+	meta MailMeta
 }
 
 // CreatePayedOrderEntries creates entries with a payment for an order
@@ -846,6 +858,7 @@ func convertOrderEntry(e *ent.OrderEntry) OrderEntry {
 		Item:     e.ItemID,
 		Quantity: e.Quantity,
 		Price:    e.Price,
+		ItemName: e.ItemName,
 		Sender:   e.SenderID,
 		Receiver: e.ReceiverID,
 		IsSale:   e.IsSale,
@@ -889,6 +902,12 @@ func convertOrder(e *ent.Order) Order {
 	}
 	if e.OdooSyncError != nil {
 		o.OdooSyncError = null.StringFrom(*e.OdooSyncError)
+	}
+	if e.ReconcileFailedAt != nil {
+		o.ReconcileFailedAt = null.TimeFrom(*e.ReconcileFailedAt)
+	}
+	if e.ReconcileError != nil {
+		o.ReconcileError = null.StringFrom(*e.ReconcileError)
 	}
 	if e.InvalidatedAt != nil {
 		o.InvalidatedAt = null.TimeFrom(*e.InvalidatedAt)

@@ -36,6 +36,10 @@ const (
 	FieldOdooSyncError = "odoo_sync_error"
 	// FieldInvalidatedAt holds the string denoting the invalidated_at field in the database.
 	FieldInvalidatedAt = "invalidated_at"
+	// FieldReconcileFailedAt holds the string denoting the reconcile_failed_at field in the database.
+	FieldReconcileFailedAt = "reconcile_failed_at"
+	// FieldReconcileError holds the string denoting the reconcile_error field in the database.
+	FieldReconcileError = "reconcile_error"
 	// FieldNewsletter holds the string denoting the newsletter field in the database.
 	FieldNewsletter = "newsletter"
 	// FieldPaymentEventID holds the string denoting the payment_event_id field in the database.
@@ -83,6 +87,8 @@ var Columns = []string{
 	FieldOdooSyncedAt,
 	FieldOdooSyncError,
 	FieldInvalidatedAt,
+	FieldReconcileFailedAt,
+	FieldReconcileError,
 	FieldNewsletter,
 	FieldPaymentEventID,
 	FieldPaymentFailedAt,
@@ -177,6 +183,16 @@ func ByOdooSyncError(opts ...sql.OrderTermOption) OrderOption {
 // ByInvalidatedAt orders the results by the invalidated_at field.
 func ByInvalidatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldInvalidatedAt, opts...).ToFunc()
+}
+
+// ByReconcileFailedAt orders the results by the reconcile_failed_at field.
+func ByReconcileFailedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReconcileFailedAt, opts...).ToFunc()
+}
+
+// ByReconcileError orders the results by the reconcile_error field.
+func ByReconcileError(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReconcileError, opts...).ToFunc()
 }
 
 // ByNewsletter orders the results by the newsletter field.

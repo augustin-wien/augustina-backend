@@ -256,6 +256,7 @@ func GetRouter() (r *chi.Mux) {
 					r.Delete("/", DeleteItem)
 					r.Post("/restore/", RestoreItem)
 					r.Post("/notify-abonements/", NotifyAbonementsOnlineIssue)
+					r.Get("/notify-abonements/", GetOnlineIssueMailStatus)
 					r.Get("/pdf/", GetItemPDF)
 				})
 			})
@@ -274,6 +275,16 @@ func GetRouter() (r *chi.Mux) {
 				r.Put("/{id}/", UpdateCampaign)
 				r.Delete("/{id}/", DeleteCampaign)
 			})
+		})
+
+		// Outgoing mails
+		r.Route("/api/mail-tasks", func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			r.Use(middlewares.AdminAuthMiddleware)
+			r.Get("/", ListMailTasks)
+			r.Post("/retry-failed/", RetryFailedMailTasks)
+			r.Get("/{id}/", GetMailTask)
+			r.Post("/{id}/retry/", RetryMailTask)
 		})
 
 		// Monthly accounting report
@@ -436,11 +447,12 @@ func GetRouter() (r *chi.Mux) {
 		})
 
 		// Mount static file servers in img folder
-		fsImg := http.FileServer(http.Dir("img"))
+		r.Get("/img/thumbs/*", serveThumbnail)
+		fsImg := http.FileServer(noDirListingFS{http.Dir("img")})
 		r.Handle("/img/*", http.StripPrefix("/img/", fsImg))
 
 		// Mount style.css file server and always serve the same file
-		fsCSS := http.FileServer(http.Dir("public"))
+		fsCSS := http.FileServer(noDirListingFS{http.Dir("public")})
 		r.Handle("/public/*", http.StripPrefix("/public/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "no-cache")
 			fsCSS.ServeHTTP(w, r)

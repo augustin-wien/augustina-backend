@@ -150,6 +150,34 @@ func (_c *OrderCreate) SetNillableInvalidatedAt(v *time.Time) *OrderCreate {
 	return _c
 }
 
+// SetReconcileFailedAt sets the "reconcile_failed_at" field.
+func (_c *OrderCreate) SetReconcileFailedAt(v time.Time) *OrderCreate {
+	_c.mutation.SetReconcileFailedAt(v)
+	return _c
+}
+
+// SetNillableReconcileFailedAt sets the "reconcile_failed_at" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableReconcileFailedAt(v *time.Time) *OrderCreate {
+	if v != nil {
+		_c.SetReconcileFailedAt(*v)
+	}
+	return _c
+}
+
+// SetReconcileError sets the "reconcile_error" field.
+func (_c *OrderCreate) SetReconcileError(v string) *OrderCreate {
+	_c.mutation.SetReconcileError(v)
+	return _c
+}
+
+// SetNillableReconcileError sets the "reconcile_error" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableReconcileError(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetReconcileError(*v)
+	}
+	return _c
+}
+
 // SetNewsletter sets the "newsletter" field.
 func (_c *OrderCreate) SetNewsletter(v bool) *OrderCreate {
 	_c.mutation.SetNewsletter(v)
@@ -415,6 +443,14 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.InvalidatedAt(); ok {
 		_spec.SetField(order.FieldInvalidatedAt, field.TypeTime, value)
 		_node.InvalidatedAt = &value
+	}
+	if value, ok := _c.mutation.ReconcileFailedAt(); ok {
+		_spec.SetField(order.FieldReconcileFailedAt, field.TypeTime, value)
+		_node.ReconcileFailedAt = &value
+	}
+	if value, ok := _c.mutation.ReconcileError(); ok {
+		_spec.SetField(order.FieldReconcileError, field.TypeString, value)
+		_node.ReconcileError = &value
 	}
 	if value, ok := _c.mutation.Newsletter(); ok {
 		_spec.SetField(order.FieldNewsletter, field.TypeBool, value)

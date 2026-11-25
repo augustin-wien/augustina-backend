@@ -410,7 +410,7 @@ func (db *Database) ResendVoucherMail(id int, email string) error {
 	if err != nil {
 		return err
 	}
-	return sendMail(m)
+	return db.SendMailNow(m, MailMeta{Kind: MailKindVoucher, OrderID: int(v.OrderID.Int64), ItemID: v.ItemID})
 }
 
 // RedeemVoucherRequest is what the person redeeming a voucher enters

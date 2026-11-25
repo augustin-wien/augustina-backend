@@ -34,6 +34,20 @@ func (_c *OrderEntryCreate) SetPrice(v int) *OrderEntryCreate {
 	return _c
 }
 
+// SetItemName sets the "item_name" field.
+func (_c *OrderEntryCreate) SetItemName(v string) *OrderEntryCreate {
+	_c.mutation.SetItemName(v)
+	return _c
+}
+
+// SetNillableItemName sets the "item_name" field if the given value is not nil.
+func (_c *OrderEntryCreate) SetNillableItemName(v *string) *OrderEntryCreate {
+	if v != nil {
+		_c.SetItemName(*v)
+	}
+	return _c
+}
+
 // SetIsSale sets the "is_sale" field.
 func (_c *OrderEntryCreate) SetIsSale(v bool) *OrderEntryCreate {
 	_c.mutation.SetIsSale(v)
@@ -105,6 +119,7 @@ func (_c *OrderEntryCreate) Mutation() *OrderEntryMutation {
 
 // Save creates the OrderEntry in the database.
 func (_c *OrderEntryCreate) Save(ctx context.Context) (*OrderEntry, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -130,6 +145,14 @@ func (_c *OrderEntryCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *OrderEntryCreate) defaults() {
+	if _, ok := _c.mutation.ItemName(); !ok {
+		v := orderentry.DefaultItemName
+		_c.mutation.SetItemName(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *OrderEntryCreate) check() error {
 	if _, ok := _c.mutation.Quantity(); !ok {
@@ -137,6 +160,9 @@ func (_c *OrderEntryCreate) check() error {
 	}
 	if _, ok := _c.mutation.Price(); !ok {
 		return &ValidationError{Name: "price", err: errors.New(`ent: missing required field "OrderEntry.price"`)}
+	}
+	if _, ok := _c.mutation.ItemName(); !ok {
+		return &ValidationError{Name: "item_name", err: errors.New(`ent: missing required field "OrderEntry.item_name"`)}
 	}
 	if _, ok := _c.mutation.IsSale(); !ok {
 		return &ValidationError{Name: "is_sale", err: errors.New(`ent: missing required field "OrderEntry.is_sale"`)}
@@ -203,6 +229,10 @@ func (_c *OrderEntryCreate) createSpec() (*OrderEntry, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Price(); ok {
 		_spec.SetField(orderentry.FieldPrice, field.TypeInt, value)
 		_node.Price = value
+	}
+	if value, ok := _c.mutation.ItemName(); ok {
+		_spec.SetField(orderentry.FieldItemName, field.TypeString, value)
+		_node.ItemName = value
 	}
 	if value, ok := _c.mutation.IsSale(); ok {
 		_spec.SetField(orderentry.FieldIsSale, field.TypeBool, value)
@@ -297,6 +327,7 @@ func (_c *OrderEntryCreateBulk) Save(ctx context.Context) ([]*OrderEntry, error)
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*OrderEntryMutation)
 				if !ok {
