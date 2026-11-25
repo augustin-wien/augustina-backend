@@ -1,5 +1,3 @@
-//go:build integration
-
 package mailer
 
 import (
@@ -24,6 +22,8 @@ import (
 // This integration test spins up a minimal fake SMTP server over implicit TLS (SMTPS, port 465 style)
 // and verifies that SendEmail successfully connects over TLS and performs EHLO/AUTH/MAIL/RCPT/DATA.
 func TestSendEmail_Integration_FakeSMTPS_TLS(t *testing.T) {
+	origConfig := config.Config
+	t.Cleanup(func() { config.Config = origConfig })
 	// pick a free port on loopback
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -52,6 +52,8 @@ func TestSendEmail_Integration_FakeSMTPS_TLS(t *testing.T) {
 	config.Config.SMTPSsl = true
 	// allow insecure verify for the self-signed test certificate
 	config.Config.SMTPInsecureSkipVerify = true
+	config.Config.Development = true
+	config.Config.AllowInsecureSMTP = true
 
 	msgCh := make(chan string, 1)
 
@@ -138,7 +140,10 @@ func TestSendEmail_Integration_FakeSMTPS_TLS(t *testing.T) {
 
 	// init mailer and send
 	Init()
-	rreq := NewRequest([]string{"recipient@test.local"}, "TLS Integration Test", "Hello TLS Integration")
+	rreq, err := NewRequest([]string{"recipient@test.local"}, "TLS Integration Test", "Hello TLS Integration")
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
 	ok, err := rreq.SendEmail()
 	if err != nil {
 		t.Fatalf("SendEmail error: %v", err)

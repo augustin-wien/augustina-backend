@@ -388,21 +388,10 @@ func CreatePaymentOrder(w http.ResponseWriter, r *http.Request) {
 	order.User.String = requestData.User
 
 	// Get accounts
-	var buyerAccountID int
-	authenticatedUserID := r.Header.Get("X-Auth-User-Name")
-	if authenticatedUserID != "" {
-		buyerAccount, err := database.Db.GetOrCreateAccountByUserID(authenticatedUserID)
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
-		buyerAccountID = buyerAccount.ID
-	} else {
-		buyerAccountID, err = database.Db.GetAccountTypeID("UserAnon")
-		if err != nil {
-			utils.ErrorJSON(w, err, http.StatusBadRequest)
-			return
-		}
+	buyerAccountID, err := database.Db.GetAccountTypeID("UserAnon")
+	if err != nil {
+		utils.ErrorJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	vendorAccount, err := database.Db.GetAccountByVendorID(order.Vendor)
@@ -1004,12 +993,14 @@ func ListPaymentsForPayout(w http.ResponseWriter, r *http.Request) {
 		minDate, err = time.Parse(time.RFC3339, minDateRaw)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
 		}
 	}
 	if maxDateRaw != "" {
 		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
 		}
 	}
 	payments, err := database.Db.ListPaymentsForPayout(minDate, maxDate, vendor)
@@ -1111,12 +1102,14 @@ func ListPayments(w http.ResponseWriter, r *http.Request) {
 		minDate, err = time.Parse(time.RFC3339, minDateRaw)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
 		}
 	}
 	if maxDateRaw != "" {
 		maxDate, err = time.Parse(time.RFC3339, maxDateRaw)
 		if err != nil {
 			utils.ErrorJSON(w, err, http.StatusBadRequest)
+			return
 		}
 	}
 
@@ -1479,6 +1472,7 @@ func downloadPDF(w http.ResponseWriter, r *http.Request) {
 	tx, err := database.Db.EntClient.Tx(context.Background())
 	if err != nil {
 		log.Error("UpdatePdfDownload: failed to start transaction ", err)
+		utils.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
 	defer func() {

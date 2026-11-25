@@ -194,3 +194,35 @@ func TestStripAuthHeadersRemovesForgedHeadersBeforeTheHandler(t *testing.T) {
 		require.Equal(t, "Bearer token", seen.Get("Authorization"), method)
 	}
 }
+
+func TestRoleMiddlewares(t *testing.T) {
+	cases := []struct {
+		name       string
+		middleware func(http.Handler) http.Handler
+		roleHeader string
+	}{
+		{"flour", FlourAuthMiddleware, "X-Auth-Roles-flour"},
+		{"odoo", OdooAuthMiddleware, "X-Auth-Roles-odoo"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			handler := tc.middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusTeapot)
+			}))
+			serve := func(method string, headers map[string]string) int {
+				req := httptest.NewRequest(method, "/", nil)
+				for k, v := range headers {
+					req.Header.Set(k, v)
+				}
+				res := httptest.NewRecorder()
+				handler.ServeHTTP(res, req)
+				return res.Code
+			}
+
+			require.Equal(t, http.StatusTeapot, serve(http.MethodOptions, nil))
+			require.Equal(t, http.StatusUnauthorized, serve(http.MethodPost, map[string]string{"X-Auth-User-Validated": "false"}))
+			require.Equal(t, http.StatusForbidden, serve(http.MethodPost, map[string]string{"X-Auth-User-Validated": "true"}))
+			require.Equal(t, http.StatusTeapot, serve(http.MethodPost, map[string]string{"X-Auth-User-Validated": "true", tc.roleHeader: tc.name}))
+		})
+	}
+}
