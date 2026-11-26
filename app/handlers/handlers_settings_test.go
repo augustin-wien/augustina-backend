@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/augustin-wien/augustina-backend/database"
@@ -36,7 +37,7 @@ func TestSettings(t *testing.T) {
 	res := utils.TestRequest(t, r, "GET", "/api/settings/", nil, 200)
 	err := json.Unmarshal(res.Body.Bytes(), &exSettings)
 	utils.CheckError(t, err)
-	require.Equal(t, "/img/logo.png", exSettings.Settings.Logo)
+	require.Regexp(t, `^/img/logo\.png\?v=[0-9a-f]{8}$`, exSettings.Settings.Logo)
 	require.Equal(t, 10, exSettings.Settings.MaxOrderAmount)
 
 	// Check item join
@@ -49,7 +50,7 @@ func TestSettings(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	file, err := os.ReadFile(dir + "/" + exSettings.Settings.Logo)
+	file, err := os.ReadFile(dir + "/" + strings.SplitN(exSettings.Settings.Logo, "?", 2)[0])
 	utils.CheckError(t, err)
 	require.Equal(t, `i am the content of a jpg file :D`, string(file))
 

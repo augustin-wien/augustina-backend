@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"io"
 	"net/http"
 	"net/mail"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -300,7 +303,24 @@ func updateSettingsImg(r *http.Request, fileType Imagetype) (path string, err er
 		return "", err
 	}
 	log.Info("updateSettingsLogo: saved file to ", dir+path)
-	return path, nil
+	if fileType == ImagetypeLogo {
+		updateSettingsThumbnail(buf.Bytes(), path)
+	}
+	// The file name stays the same on every upload, so the stored URL carries the content
+	// hash: a new upload gets a new URL and the old one can be cached indefinitely
+	sum := sha256.Sum256(buf.Bytes())
+	return path + "?v=" + hex.EncodeToString(sum[:4]), nil
+}
+
+// updateSettingsThumbnail replaces the thumbnail of an uploaded settings image. If no
+// thumbnail can be made, the old one is removed so the new original is served instead.
+func updateSettingsThumbnail(data []byte, path string) {
+	if err := createThumbnail(data, path); err != nil {
+		log.Error("updateSettingsLogo: failed to create thumbnail: ", err)
+		if err = os.Remove(filepath.Join(thumbnailDir, filepath.Base(path))); err != nil && !errors.Is(err, os.ErrNotExist) {
+			log.Error("updateSettingsLogo: failed to remove old thumbnail: ", err)
+		}
+	}
 }
 
 var updateSettingsMutex sync.Mutex

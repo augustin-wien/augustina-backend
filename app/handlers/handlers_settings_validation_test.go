@@ -79,7 +79,7 @@ func TestUpdateSettingsValidation(t *testing.T) {
 	require.Equal(t, 0.1, settings.MapCenterLong)
 	require.Equal(t, "feedback@example.com", settings.FeedbackEmail)
 	require.Equal(t, "a@example.com, b@example.com", settings.AccountingReportEmail)
-	require.Equal(t, "/img/favicon.png", settings.Favicon)
-	require.Equal(t, "/img/qrcode.png", settings.QRCodeLogoImgUrl)
+	require.Regexp(t, `^/img/favicon\.png\?v=[0-9a-f]{8}$`, settings.Favicon)
+	require.Regexp(t, `^/img/qrcode\.png\?v=[0-9a-f]{8}$`, settings.QRCodeLogoImgUrl)
 	require.Equal(t, 7, settings.WordPressInviteTTL)
 }
