@@ -34,6 +34,8 @@ var publicRoutes = map[string]bool{
 	"GET /api/orders/verify/":                true,
 	"GET /api/pdf/{id}/":                     true,
 	"GET /api/pdf/{id}/validate/":            true,
+	"POST /api/vouchers/check/":              true,
+	"POST /api/vouchers/redeem/":             true,
 	"GET /api/webhooks/vivawallet/success/":  true,
 	"POST /api/webhooks/vivawallet/success/": true,
 	"GET /api/webhooks/vivawallet/failure/":  true,
