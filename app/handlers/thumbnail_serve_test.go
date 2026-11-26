@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/color"
+	_ "image/jpeg"
 	"image/png"
 	"os"
 	"path/filepath"
@@ -39,22 +40,28 @@ func TestServeThumbnail(t *testing.T) {
 		}
 	})
 
-	// The thumbnail is created on the first request and served from then on
+	// The thumbnail is created on the first request and served from then on. The opaque
+	// png becomes a jpeg, which the content type has to say despite the .png name.
 	res := utils.TestRequest(t, r, "GET", "/img/thumbs/"+name, nil, 200)
-	cfg, err := png.DecodeConfig(bytes.NewReader(res.Body.Bytes()))
+	cfg, format, err := image.DecodeConfig(bytes.NewReader(res.Body.Bytes()))
 	require.NoError(t, err)
+	require.Equal(t, "jpeg", format)
+	require.Equal(t, "image/jpeg", res.Header().Get("Content-Type"))
 	require.Equal(t, thumbnailWidth, cfg.Width)
 	require.Equal(t, thumbnailWidth/2, cfg.Height)
 	require.FileExists(t, filepath.Join(thumbnailDir, name))
+	require.Equal(t, cacheRevalidate, res.Header().Get("Cache-Control"), "the name can be overwritten")
 
-	res = utils.TestRequest(t, r, "GET", "/img/thumbs/"+name, nil, 200)
-	cfg, err = png.DecodeConfig(bytes.NewReader(res.Body.Bytes()))
+	res = utils.TestRequest(t, r, "GET", "/img/thumbs/"+name+"?v=abc", nil, 200)
+	cfg, _, err = image.DecodeConfig(bytes.NewReader(res.Body.Bytes()))
 	require.NoError(t, err)
 	require.Equal(t, thumbnailWidth, cfg.Width)
+	require.Equal(t, cacheImmutable, res.Header().Get("Cache-Control"), "a versioned URL never changes")
 
-	// If no thumbnail can be made, the original is served
-	res = utils.TestRequest(t, r, "GET", "/img/thumbs/"+broken, nil, 200)
+	// If no thumbnail can be made, the original is served, but not cached for long
+	res = utils.TestRequest(t, r, "GET", "/img/thumbs/"+broken+"?v=abc", nil, 200)
 	require.Equal(t, "not an image", res.Body.String())
+	require.Equal(t, cacheRevalidate, res.Header().Get("Cache-Control"))
 
 	utils.TestRequest(t, r, "GET", "/img/thumbs/zz_does_not_exist.png", nil, 404)
 	utils.TestRequest(t, r, "GET", "/img/thumbs/.hidden.png", nil, 404)
@@ -81,4 +88,26 @@ func TestReadFileLimited(t *testing.T) {
 	require.False(t, isRegularFile(root, "missing.png"))
 	require.NoError(t, os.Mkdir(filepath.Join(dir, "sub.png"), 0o755))
 	require.False(t, isRegularFile(root, "sub.png"))
+}
+
+func TestServeImagesCacheControl(t *testing.T) {
+	mutex_test.Lock()
+	defer mutex_test.Unlock()
+
+	const upload = "zz_cache_test_3.png"
+	const fixed = "zz_cache_test.png"
+	for _, n := range []string{upload, fixed} {
+		require.NoError(t, os.WriteFile(filepath.Join("img", n), []byte("x"), 0o644))
+	}
+	t.Cleanup(func() {
+		_ = os.Remove(filepath.Join("img", upload))
+		_ = os.Remove(filepath.Join("img", fixed))
+	})
+
+	res := utils.TestRequest(t, r, "GET", "/img/"+upload, nil, 200)
+	require.Equal(t, cacheImmutable, res.Header().Get("Cache-Control"), "item uploads get a new name on every upload")
+	res = utils.TestRequest(t, r, "GET", "/img/"+fixed, nil, 200)
+	require.Equal(t, cacheRevalidate, res.Header().Get("Cache-Control"), "settings images are overwritten in place")
+	res = utils.TestRequest(t, r, "GET", "/img/"+fixed+"?v=1a2b3c4d", nil, 200)
+	require.Equal(t, cacheImmutable, res.Header().Get("Cache-Control"))
 }

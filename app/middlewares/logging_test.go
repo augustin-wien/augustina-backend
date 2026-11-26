@@ -91,6 +91,9 @@ func TestRequestLogger_LogsRequestId(t *testing.T) {
 }
 
 func TestRequestLogger_LogsRequestId_WithDatabaseCall(t *testing.T) {
+	// The SQL queries are only logged at debug level
+	t.Setenv("LOG_LEVEL", "debug")
+
 	// Setup environment and DB
 	wd, _ := os.Getwd()
 	// Assuming we are in app/middlewares, go up to app/

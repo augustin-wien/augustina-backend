@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/augustin-wien/augustina-backend/config"
@@ -37,7 +38,7 @@ func GetLogger() *zap.SugaredLogger {
 		consoleEncoder = zapcore.NewConsoleEncoder(productionCfg)
 	}
 
-	level := zap.NewAtomicLevelAt(zap.DebugLevel)
+	level := zap.NewAtomicLevelAt(logLevel())
 
 	consoleCore := zapcore.NewCore(consoleEncoder, stdout, level)
 	alertCore := newAlertCore(zap.NewAtomicLevelAt(zap.ErrorLevel))
@@ -48,6 +49,18 @@ func GetLogger() *zap.SugaredLogger {
 	)
 
 	return zap.New(core, zap.AddCaller()).Sugar()
+}
+
+// logLevel is the console log level: LOG_LEVEL if set, otherwise info in tests, where the
+// debug output (every SQL query) would bury the test results, and debug everywhere else
+func logLevel() zapcore.Level {
+	if l, err := zapcore.ParseLevel(os.Getenv("LOG_LEVEL")); err == nil && os.Getenv("LOG_LEVEL") != "" {
+		return l
+	}
+	if testing.Testing() {
+		return zapcore.InfoLevel
+	}
+	return zapcore.DebugLevel
 }
 
 // alertCore is a zapcore.Core that reports Error-and-above log entries to

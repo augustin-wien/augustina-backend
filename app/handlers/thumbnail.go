@@ -4,22 +4,75 @@ import (
 	"bytes"
 	"crypto/rand"
 	"errors"
-	"github.com/go-chi/chi/v5"
 	"image"
 	"image/jpeg"
 	"image/png"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+
+	"github.com/go-chi/chi/v5"
 )
 
 // thumbnailWidth is the maximum width of generated item image thumbnails
 const thumbnailWidth = 400
 
-// thumbnailDir is the folder below img/ that holds the thumbnails. A thumbnail has
-// the same file name as the original, so img/x_0.png has img/thumbs/x_0.png.
-const thumbnailDir = "img/thumbs"
+// thumbnailDir holds the thumbnails, which are served at /img/thumbs/<name>. A thumbnail
+// has the same file name as the original, so img/x_0.png has <thumbnailDir>/x_0.png.
+// The version folder changes whenever the thumbnail format changes, so thumbnails in the
+// old format are regenerated on their next request.
+const thumbnailDir = "img/thumbs/v2"
+
+// Cache-Control values for images. Item uploads get a new, numbered file name on every
+// upload (see updateItemImage), and the settings images carry a ?v=<content hash> in their
+// stored URL, so both URLs never change their content. Any other image may be overwritten.
+// Several papers can share one API host name, behind which the proxy picks the backend by
+// referer, so the same URL can be a different image per paper: shared caches must not store it.
+const (
+	cacheImmutable   = "private, max-age=31536000, immutable"
+	cacheRevalidate  = "no-cache"
+	thumbnailQuality = 82
+)
+
+// uniqueUploadName matches the file names that updateItemImage gives to item uploads
+var uniqueUploadName = regexp.MustCompile(`_[0-9]+\.[A-Za-z]+$`)
+
+// imageCacheControl returns the Cache-Control header for the image file name served for r
+func imageCacheControl(r *http.Request, name string) string {
+	if r.URL.Query().Get("v") != "" || uniqueUploadName.MatchString(name) {
+		return cacheImmutable
+	}
+	return cacheRevalidate
+}
+
+// serveImages serves the files in dir with the Cache-Control from imageCacheControl
+func serveImages(dir http.FileSystem) http.Handler {
+	fs := http.FileServer(dir)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", imageCacheControl(r, filepath.Base(r.URL.Path)))
+		fs.ServeHTTP(w, r)
+	})
+}
+
+// isOpaque reports whether the image has no transparent pixels
+func isOpaque(img image.Image) bool {
+	o, ok := img.(interface{ Opaque() bool })
+	return ok && o.Opaque()
+}
+
+// encodeThumbnail encodes a thumbnail. Opaque images are stored as JPEG, also when the
+// original is a PNG, because photos and scans saved as PNG are many times larger. Only
+// images that use transparency stay PNG.
+func encodeThumbnail(w io.Writer, thumb image.Image) error {
+	if isOpaque(thumb) {
+		return jpeg.Encode(w, thumb, &jpeg.Options{Quality: thumbnailQuality})
+	}
+	enc := png.Encoder{CompressionLevel: png.BestCompression}
+	return enc.Encode(w, thumb)
+}
 
 // Limits for source images, so a crafted image cannot exhaust memory when decoded
 const (
@@ -105,12 +158,7 @@ func createThumbnail(data []byte, imagePath string) error {
 	thumb := scaleDown(src, thumbnailWidth)
 
 	buf := bytes.NewBuffer(nil)
-	if ext == ".png" {
-		err = png.Encode(buf, thumb)
-	} else {
-		err = jpeg.Encode(buf, thumb, &jpeg.Options{Quality: 85})
-	}
-	if err != nil {
+	if err = encodeThumbnail(buf, thumb); err != nil {
 		return err
 	}
 	if err = os.MkdirAll(thumbnailDir, 0755); err != nil {
@@ -162,7 +210,7 @@ func serveThumbnail(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() { _ = root.Close() }()
 
-	thumbName := filepath.Base(thumbnailDir) + "/" + name
+	thumbName := strings.TrimPrefix(thumbnailDir, "img/") + "/" + name
 	if !isRegularFile(root, name) {
 		http.NotFound(w, r)
 		return
@@ -179,16 +227,19 @@ func serveThumbnail(w http.ResponseWriter, r *http.Request) {
 		default:
 		}
 	}
-	if isRegularFile(root, thumbName) && serveRootFile(w, r, root, thumbName) {
+	if isRegularFile(root, thumbName) && serveRootFile(w, r, root, thumbName, imageCacheControl(r, name)) {
 		return
 	}
-	if !serveRootFile(w, r, root, name) {
+	// The original stands in for a thumbnail that could not be made yet, so it must not be
+	// cached for long under the thumbnail URL
+	if !serveRootFile(w, r, root, name, cacheRevalidate) {
 		http.NotFound(w, r)
 	}
 }
 
-// serveRootFile serves a file from root and reports whether it could be opened
-func serveRootFile(w http.ResponseWriter, r *http.Request, root *os.Root, name string) bool {
+// serveRootFile serves a file from root and reports whether it could be opened. The
+// content type is taken from the file's content, since a thumbnail of a PNG can be a JPEG.
+func serveRootFile(w http.ResponseWriter, r *http.Request, root *os.Root, name, cacheControl string) bool {
 	f, err := root.Open(name)
 	if err != nil {
 		return false
@@ -198,6 +249,15 @@ func serveRootFile(w http.ResponseWriter, r *http.Request, root *os.Root, name s
 	if err != nil || !fi.Mode().IsRegular() {
 		return false
 	}
+	head := make([]byte, 512)
+	n, _ := io.ReadFull(f, head)
+	if _, err = f.Seek(0, io.SeekStart); err != nil {
+		return false
+	}
+	if contentType := http.DetectContentType(head[:n]); strings.HasPrefix(contentType, "image/") {
+		w.Header().Set("Content-Type", contentType)
+	}
+	w.Header().Set("Cache-Control", cacheControl)
 	http.ServeContent(w, r, filepath.Base(name), fi.ModTime(), f)
 	return true
 }
