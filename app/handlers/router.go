@@ -93,6 +93,9 @@ func GetRouter() (r *chi.Mux) {
 
 	r.Use(middleware.Recoverer)
 
+	// Compress text responses for clients that accept it; images are compressed already
+	r.Use(middleware.Compress(5, "application/json", "text/css", "text/csv", "text/plain"))
+
 	// Basic security headers to harden the application surface
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
