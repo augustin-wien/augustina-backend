@@ -102,6 +102,7 @@ func main() {
 	middlewares.InitIPBlocker(database.Db.EntClient)
 
 	mailer.Init()
+	keycloak.ActionMailSender = database.Db.SendKeycloakActionMail
 
 	jobs.StartMailQueue()
 	jobs.StartOrderReconciliation()

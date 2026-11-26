@@ -10,6 +10,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent"
 	"github.com/augustin-wien/augustina-backend/ent/mailtask"
 	"github.com/augustin-wien/augustina-backend/ent/predicate"
+	"github.com/augustin-wien/augustina-backend/keycloak"
 	"github.com/augustin-wien/augustina-backend/mailer"
 	"gopkg.in/guregu/null.v4"
 )
@@ -33,6 +34,10 @@ const (
 	MailKindAccountingReport      = "accounting_report"
 	MailKindFeedback              = "feedback"
 	MailKindTemplateTest          = "template_test"
+
+	MailKindKeycloakUpdatePassword = "keycloak_update_password"
+	MailKindKeycloakVerifyEmail    = "keycloak_verify_email"
+	MailKindKeycloakOther          = "keycloak_action"
 )
 
 // mailRetryDelays are the waits before each further attempt of a failed mail. Once
@@ -115,7 +120,7 @@ func convertMailTask(e *ent.MailTask, withBody bool) MailTask {
 		CreatedAt:      e.CreatedAt,
 		UpdatedAt:      e.UpdatedAt,
 	}
-	if withBody {
+	if withBody && !IsKeycloakMailKind(e.Kind) {
 		t.Body = e.Body
 	}
 	if e.LastError != nil {
@@ -175,6 +180,49 @@ func (db *Database) createMailTask(m *mailer.EmailRequest, meta MailMeta) (int, 
 		return 0, err
 	}
 	return e.ID, nil
+}
+
+const keycloakMailKindPrefix = "keycloak_"
+
+var sendKeycloakActionMail = func(m keycloak.ActionMail) error {
+	return keycloak.KeycloakClient.SendActionMail(m)
+}
+
+// IsKeycloakMailKind reports whether mail tasks of the kind are sent by Keycloak.
+// Their body holds the keycloak.ActionMail instead of the mail content.
+func IsKeycloakMailKind(kind string) bool {
+	return strings.HasPrefix(kind, keycloakMailKindPrefix)
+}
+
+func keycloakMailKind(action string) string {
+	switch action {
+	case "UPDATE_PASSWORD":
+		return MailKindKeycloakUpdatePassword
+	case "VERIFY_EMAIL":
+		return MailKindKeycloakVerifyEmail
+	}
+	return MailKindKeycloakOther
+}
+
+// SendKeycloakActionMail records the Keycloak action mail as a mail task and
+// sends it right away. On failure the error is returned and the task stays
+// queued for retries.
+func (db *Database) SendKeycloakActionMail(m keycloak.ActionMail) error {
+	body, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	e, err := db.EntClient.MailTask.Create().
+		SetKind(keycloakMailKind(m.Action)).
+		SetRecipients(m.Recipient).
+		SetSubject(m.Action).
+		SetBody(string(body)).
+		Save(context.Background())
+	if err != nil {
+		log.Error("SendKeycloakActionMail: recording mail failed, sending it unrecorded: ", err)
+		return sendKeycloakActionMail(m)
+	}
+	return db.DeliverMailTask(e.ID)
 }
 
 // QueueMail stores the mail as a task and sends it in the background. A failed
@@ -240,7 +288,7 @@ func (db *Database) DeliverMailTask(id int) error {
 	update := db.EntClient.MailTask.UpdateOneID(id).SetAttempts(attempts)
 	if sendErr == nil {
 		update = update.SetStatus(MailTaskSent).SetSentAt(time.Now()).ClearLastError()
-	} else if mailer.IsPermanentSMTPError(sendErr) || attempts > len(mailRetryDelays) {
+	} else if isPermanentMailError(sendErr) || attempts > len(mailRetryDelays) {
 		update = update.SetStatus(MailTaskFailed).SetLastError(sendErr.Error())
 	} else {
 		update = update.SetStatus(MailTaskPending).
@@ -252,7 +300,7 @@ func (db *Database) DeliverMailTask(id int) error {
 	}
 
 	if sendErr != nil {
-		if attempts > len(mailRetryDelays) || mailer.IsPermanentSMTPError(sendErr) {
+		if attempts > len(mailRetryDelays) || isPermanentMailError(sendErr) {
 			log.Errorw("DeliverMailTask: mail could not be sent", "mail_task_id", id, "kind", e.Kind, "attempts", attempts, "error", sendErr)
 		} else {
 			log.Warnw("DeliverMailTask: sending mail failed, will retry", "mail_task_id", id, "kind", e.Kind, "attempts", attempts, "error", sendErr)
@@ -261,8 +309,19 @@ func (db *Database) DeliverMailTask(id int) error {
 	return sendErr
 }
 
+func isPermanentMailError(err error) bool {
+	return mailer.IsPermanentSMTPError(err) || keycloak.IsPermanentActionMailError(err)
+}
+
 // sendMailTask rebuilds the mail of a task and sends it
 func sendMailTask(e *ent.MailTask) error {
+	if IsKeycloakMailKind(e.Kind) {
+		var m keycloak.ActionMail
+		if err := json.Unmarshal([]byte(e.Body), &m); err != nil {
+			return err
+		}
+		return sendKeycloakActionMail(m)
+	}
 	m, err := mailer.NewRequest(splitRecipients(e.Recipients), e.Subject, e.Body)
 	if err != nil {
 		return err
@@ -319,7 +378,8 @@ func (db *Database) ProcessDueMailTasks(limit int) (int, error) {
 // cutoff. The delivery record itself is kept.
 func (db *Database) PurgeSentMailContent(before time.Time) (int, error) {
 	return db.EntClient.MailTask.Update().
-		Where(mailtask.StatusEQ(MailTaskSent), mailtask.SentAtLT(before), mailtask.BodyNEQ("")).
+		Where(mailtask.StatusEQ(MailTaskSent), mailtask.SentAtLT(before), mailtask.BodyNEQ(""),
+			mailtask.Not(mailtask.KindHasPrefix(keycloakMailKindPrefix))).
 		SetBody("").
 		ClearAttachments().
 		Save(context.Background())
