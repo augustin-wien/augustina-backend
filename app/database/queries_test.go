@@ -186,6 +186,13 @@ func TestAccounts(t *testing.T) {
 	utils.CheckError(t, err)
 
 	require.Equal(t, "UserAuth", test_vendor.LicenseID.String)
+
+	sameID, err := Db.CreateSpecialVendorAccount(Vendor{
+		LicenseID: null.StringFrom("UserAuth"),
+		Email:     "UserAuth@augustina.cc",
+	})
+	require.NoError(t, err)
+	require.Equal(t, id, sameID)
 }
 
 func TestVendors(t *testing.T) {
