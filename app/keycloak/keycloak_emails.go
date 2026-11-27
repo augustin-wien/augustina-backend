@@ -12,12 +12,12 @@ import (
 
 // SendPasswordResetEmailToUser sends the customer with the given Keycloak ID a password reset email
 func (k *Keycloak) SendPasswordResetEmailToUser(userID string) error {
-	return k.executeActionsEmail(userID, userID, config.Config.OnlinePaperUrl, "UPDATE_PASSWORD")
+	return k.executeActionsEmail(userID, k.emailOfUser(userID), config.Config.OnlinePaperUrl, "UPDATE_PASSWORD")
 }
 
 // SendVerifyEmailToUser sends the customer with the given Keycloak ID a mail to confirm their email address
 func (k *Keycloak) SendVerifyEmailToUser(userID string) error {
-	return k.executeActionsEmail(userID, userID, config.Config.OnlinePaperUrl, "VERIFY_EMAIL")
+	return k.executeActionsEmail(userID, k.emailOfUser(userID), config.Config.OnlinePaperUrl, "VERIFY_EMAIL")
 }
 
 // SendPasswordResetEmail function sends a password reset email to the user
@@ -61,10 +61,22 @@ func (k *Keycloak) sendActionsEmail(email, redirectURI, action string) error {
 	return k.executeActionsEmail(*user.ID, email, redirectURI, action)
 }
 
+// ActionMail is a mail Keycloak sends to let a user perform an action, e.g.
+// set their password or verify their email address
+type ActionMail struct {
+	UserID      string
+	Recipient   string
+	RedirectURI string
+	Action      string
+}
+
+// ActionMailSender, when set, takes over sending action mails, so they can be
+// recorded and sent again later. It must deliver them with SendActionMail.
+var ActionMailSender func(m ActionMail) error
+
 // executeActionsEmail lets Keycloak mail the user with userID a link to perform
 // action; recipient names the user in the logs
 func (k *Keycloak) executeActionsEmail(userID, recipient, redirectURI, action string) error {
-	k.checkAdminToken()
 	// If no SMTP sender is configured in the app config, skip attempting
 	// to trigger Keycloak to send emails. This avoids noisy errors during
 	// tests and in environments where Keycloak SMTP isn't set up.
@@ -82,21 +94,60 @@ func (k *Keycloak) executeActionsEmail(userID, recipient, redirectURI, action st
 		return nil
 	}
 
-	log.Info("SendPasswordResetEmail: Keycloak: execute "+action+" email for ", recipient)
+	m := ActionMail{UserID: userID, Recipient: recipient, RedirectURI: redirectURI, Action: action}
+	if ActionMailSender != nil {
+		return ActionMailSender(m)
+	}
+	return k.SendActionMail(m)
+}
+
+// SendActionMail asks Keycloak to send the action mail now
+func (k *Keycloak) SendActionMail(m ActionMail) error {
+	if k.Client == nil {
+		return errors.New("keycloak client not initialized")
+	}
+	k.checkAdminToken()
+	log.Info("SendPasswordResetEmail: Keycloak: execute "+m.Action+" email for ", m.Recipient)
 	err := k.Client.ExecuteActionsEmail(k.Context, k.adminAccessToken(), k.Realm, gocloak.ExecuteActionsEmail{
-		UserID: &userID,
+		UserID: &m.UserID,
 		// The mail is often only read hours later, e.g. after the welcome mail for a
 		// new vendor or abo customer, so 10 minutes were far too short. Whole days
 		// only: Keycloak's formatter writes "1 Tage" for a single day
 		Lifespan:    gocloak.IntP(2 * 24 * 60 * 60),
-		Actions:     &[]string{action},
+		Actions:     &[]string{m.Action},
 		ClientID:    gocloak.StringP("frontend"),
-		RedirectURI: gocloak.StringP(redirectURI),
+		RedirectURI: gocloak.StringP(m.RedirectURI),
 	})
 	if err != nil {
 		// An "invalid redirect uri" here means redirectURI is not in the Valid Redirect URIs
 		// of this realm's "frontend" client - name both so the fix is clear from the alert.
-		return fmt.Errorf("realm %s, client frontend, redirect_uri %q: %w", k.Realm, redirectURI, err)
+		return fmt.Errorf("realm %s, client frontend, redirect_uri %q: %w", k.Realm, m.RedirectURI, err)
 	}
 	return nil
+}
+
+// IsPermanentActionMailError reports whether sending the action mail again
+// cannot succeed, e.g. because the user is gone or the redirect URI is invalid
+func IsPermanentActionMailError(err error) bool {
+	var apiErr *gocloak.APIError
+	if !errors.As(err, &apiErr) {
+		return false
+	}
+	return apiErr.Code >= 400 && apiErr.Code < 500 &&
+		apiErr.Code != http.StatusRequestTimeout && apiErr.Code != http.StatusTooManyRequests &&
+		apiErr.Code != http.StatusUnauthorized
+}
+
+// emailOfUser returns the email address of the user with userID, or userID
+// if it cannot be read
+func (k *Keycloak) emailOfUser(userID string) string {
+	if k.Client == nil {
+		return userID
+	}
+	k.checkAdminToken()
+	user, err := k.Client.GetUserByID(k.Context, k.adminAccessToken(), k.Realm, userID)
+	if err != nil || user == nil || user.Email == nil || *user.Email == "" {
+		return userID
+	}
+	return *user.Email
 }
