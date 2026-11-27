@@ -58,6 +58,15 @@ func TestMonthlyReport(t *testing.T) {
 	utils.TestRequest(t, r, "GET", url, nil, 401)
 	utils.TestRequestWithAuth(t, r, "GET", "/api/reports/monthly/2026-13/", nil, 400, adminUserToken)
 
+	lastReport := func() string {
+		res := utils.TestRequestWithAuth(t, r, "GET", "/api/reports/last/", nil, 200, adminUserToken)
+		var last LastReport
+		require.NoError(t, json.Unmarshal(res.Body.Bytes(), &last))
+		return last.To
+	}
+	utils.TestRequest(t, r, "GET", "/api/reports/last/", nil, 401)
+	require.Empty(t, lastReport())
+
 	res := utils.TestRequestWithAuth(t, r, "GET", url, nil, 200, adminUserToken)
 	var report reports.MonthlyReport
 	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &report))
@@ -69,6 +78,22 @@ func TestMonthlyReport(t *testing.T) {
 	require.Equal(t, "text/csv; charset=utf-8", res.Header().Get("Content-Type"))
 	require.Contains(t, res.Header().Get("Content-Disposition"), "monatsbericht_"+month+".csv")
 	require.Contains(t, res.Body.String(), ";12,50;1")
+	// Viewing does not count as a report, exporting does; the running month ends today
+	today := time.Now().In(reports.Location).Format(time.DateOnly)
+	require.Equal(t, today, lastReport())
+
+	period := "?from=" + month + "-01&to=" + today
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/reports/period/"+period, nil, 200, adminUserToken)
+	require.NoError(t, json.Unmarshal(res.Body.Bytes(), &report))
+	require.Equal(t, 1250, report.Payouts)
+
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/reports/period/csv/?from=2026-01-01&to=2026-01-15", nil, 200, adminUserToken)
+	require.Contains(t, res.Header().Get("Content-Disposition"), "bericht_2026-01-01_2026-01-15.csv")
+	require.Equal(t, "2026-01-15", lastReport())
+
+	res = utils.TestRequestWithAuth(t, r, "GET", "/api/reports/period/pdf/"+period, nil, 200, adminUserToken)
+	require.Equal(t, "application/pdf", res.Header().Get("Content-Type"))
+	require.Equal(t, today, lastReport())
 
 	res = utils.TestRequestWithAuth(t, r, "GET", url+"pdf/", nil, 200, adminUserToken)
 	require.Equal(t, "application/pdf", res.Header().Get("Content-Type"))
@@ -81,10 +106,14 @@ func TestMonthlyReport(t *testing.T) {
 	require.NoError(t, database.Db.EntClient.Settings.Update().
 		SetAccountingReportEmail("buchhaltung@example.com").
 		Exec(context.Background()))
-	utils.TestRequestWithAuth(t, r, "POST", url+"send/", nil, 200, adminUserToken)
+	utils.TestRequestWithAuth(t, r, "POST", "/api/reports/period/send/?from=2026-01-01&to=2026-01-31", nil, 200, adminUserToken)
+	require.Equal(t, "2026-01-31", lastReport())
 	waitForSent(1)
-	msg, _, err := sent[0].BuildMessage()
+	require.Contains(t, sent[0].Subject(), "Monatsbericht Jänner 2026")
+	utils.TestRequestWithAuth(t, r, "POST", url+"send/", nil, 200, adminUserToken)
+	waitForSent(2)
+	msg, _, err := sent[1].BuildMessage()
 	require.NoError(t, err)
 	require.Contains(t, string(msg), "To: buchhaltung@example.com\r\n")
-	require.Len(t, sent[0].Attachments(), 2)
+	require.Len(t, sent[1].Attachments(), 2)
 }

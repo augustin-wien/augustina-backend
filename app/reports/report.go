@@ -1,4 +1,4 @@
-// Package reports builds the monthly accounting report and exports it as CSV and PDF.
+// Package reports builds the accounting report of a month or any other period and exports it as CSV and PDF.
 package reports
 
 import (
@@ -36,11 +36,11 @@ type ItemLine struct {
 	Amount   int
 }
 
-// MonthlyReport holds the sums of one month, all amounts in cents
+// MonthlyReport holds the sums of one month or another period, all amounts in cents
 type MonthlyReport struct {
-	Month       string    // YYYY-MM
-	From        time.Time // start of the month
-	To          time.Time // start of the next month, exclusive
+	Month       string    // YYYY-MM if the report covers exactly one month, empty otherwise
+	From        time.Time // start of the first day
+	To          time.Time // start of the day after the last day, exclusive
 	GeneratedAt time.Time
 
 	// Income is the money that came in: OnlineSales + POSCash + ExternalPayments
@@ -81,6 +81,27 @@ func ParseMonth(month string) (from, to time.Time, err error) {
 	return from, from.AddDate(0, 1, 0), nil
 }
 
+// ParsePeriod returns the start of the first day and the start of the day after the last day, both YYYY-MM-DD
+func ParsePeriod(first, last string) (from, to time.Time, err error) {
+	from, err = time.ParseInLocation(time.DateOnly, first, Location)
+	if err != nil {
+		return from, to, fmt.Errorf("invalid start date %q, expected YYYY-MM-DD", first)
+	}
+	lastDay, err := time.ParseInLocation(time.DateOnly, last, Location)
+	if err != nil {
+		return from, to, fmt.Errorf("invalid end date %q, expected YYYY-MM-DD", last)
+	}
+	if lastDay.Before(from) {
+		return from, to, errors.New("the end date is before the start date")
+	}
+	return from, lastDay.AddDate(0, 0, 1), nil
+}
+
+// LastDay returns the last day the report covers
+func (r MonthlyReport) LastDay() time.Time {
+	return r.To.In(Location).AddDate(0, 0, -1)
+}
+
 // PreviousMonth returns the month (YYYY-MM) before the one t lies in
 func PreviousMonth(t time.Time) string {
 	t = t.In(Location)
@@ -114,7 +135,11 @@ func Build(month string) (MonthlyReport, error) {
 	if err != nil {
 		return MonthlyReport{}, err
 	}
+	return BuildPeriod(from, to)
+}
 
+// BuildPeriod calculates the report from the start of from up to to, exclusive
+func BuildPeriod(from, to time.Time) (MonthlyReport, error) {
 	items, err := database.Db.ListItemsIncludingArchived(false, false)
 	if err != nil {
 		return MonthlyReport{}, err
@@ -139,10 +164,13 @@ func Build(month string) (MonthlyReport, error) {
 
 func build(from, to time.Time, items []database.Item, accounts []database.Account, payments []database.Payment, external []*ent.ExternalPayment) MonthlyReport {
 	report := MonthlyReport{
-		Month: from.In(Location).Format("2006-01"),
 		From:  from,
 		To:    to,
 		Items: []ItemLine{},
+	}
+	month := from.In(Location).Format("2006-01")
+	if monthStart, monthEnd, err := ParseMonth(month); err == nil && from.Equal(monthStart) && to.Equal(monthEnd) {
+		report.Month = month
 	}
 
 	accountTypes := make(map[int]string, len(accounts))

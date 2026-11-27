@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"strings"
+	"time"
 
 	"github.com/augustin-wien/augustina-backend/database"
 	"github.com/augustin-wien/augustina-backend/mailer"
@@ -16,14 +17,14 @@ func BuildMail(r MonthlyReport, newspaperName string, recipients []string) (*mai
 		return nil, errors.New("no recipients for the accounting report")
 	}
 
-	subject := "Monatsbericht " + r.MonthName()
+	subject := r.Title()
 	if newspaperName != "" {
 		subject = newspaperName + ": " + subject
 	}
 
 	var body strings.Builder
 	body.WriteString("<p>Hallo,</p>")
-	fmt.Fprintf(&body, "<p>anbei der Monatsbericht für %s als PDF und CSV.</p>", html.EscapeString(r.MonthName()))
+	fmt.Fprintf(&body, "<p>anbei der %s als PDF und CSV.</p>", html.EscapeString(r.Title()))
 	body.WriteString(`<table cellpadding="4" style="border-collapse:collapse">`)
 	for _, row := range r.summaryRows() {
 		label := html.EscapeString(row.label)
@@ -66,6 +67,15 @@ var ErrNoRecipients = errors.New("no accounting report email configured")
 // SendMonthly builds the report of the month (YYYY-MM) and mails it to the configured recipients with send,
 // mailer.Send or mailer.SendWithRetry
 func SendMonthly(month string, send func(*mailer.EmailRequest) (bool, error)) error {
+	from, to, err := ParseMonth(month)
+	if err != nil {
+		return err
+	}
+	return SendPeriod(from, to, send)
+}
+
+// SendPeriod builds the report from the start of from up to to, exclusive, and mails it like SendMonthly
+func SendPeriod(from, to time.Time, send func(*mailer.EmailRequest) (bool, error)) error {
 	settings, err := database.Db.GetSettings()
 	if err != nil {
 		return err
@@ -77,7 +87,7 @@ func SendMonthly(month string, send func(*mailer.EmailRequest) (bool, error)) er
 	if len(recipients) == 0 {
 		return ErrNoRecipients
 	}
-	r, err := Build(month)
+	r, err := BuildPeriod(from, to)
 	if err != nil {
 		return err
 	}

@@ -116,6 +116,11 @@ func TestHandlersReportDatabaseErrors(t *testing.T) {
 		{"GET", "/api/reports/monthly/2026-01/csv/", "", true},
 		{"GET", "/api/reports/monthly/2026-01/pdf/", "", true},
 		{"POST", "/api/reports/monthly/2026-01/send/", "", true},
+		{"GET", "/api/reports/last/", "", true},
+		{"GET", "/api/reports/period/?from=2026-01-01&to=2026-01-15", "", true},
+		{"GET", "/api/reports/period/csv/?from=2026-01-01&to=2026-01-15", "", true},
+		{"GET", "/api/reports/period/pdf/?from=2026-01-01&to=2026-01-15", "", true},
+		{"POST", "/api/reports/period/send/?from=2026-01-01&to=2026-01-15", "", true},
 		// Orders
 		{"GET", "/api/orders/unverified/", "", true},
 		{"GET", "/api/orders/verified/", "", true},

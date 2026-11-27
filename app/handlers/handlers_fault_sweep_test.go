@@ -255,6 +255,9 @@ func TestHandlersSurviveEachDatabaseFailure(t *testing.T) {
 		{"map", 200, get("/api/map/")},
 		{"monthly report", 200, get("/api/reports/monthly/" + month + "/")},
 		{"monthly report csv", 200, get("/api/reports/monthly/" + month + "/csv/")},
+		{"period report", 200, get("/api/reports/period/?from=" + month + "-01&to=" + month + "-02")},
+		{"period report pdf", 200, get("/api/reports/period/pdf/?from=" + month + "-01&to=" + month + "-02")},
+		{"last report", 200, get("/api/reports/last/")},
 		{"external payments", 200, get("/api/external-payments/")},
 		{"public settings", 200, get("/api/settings/")},
 	}

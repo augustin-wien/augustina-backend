@@ -254,3 +254,24 @@ func (db *Database) SetAccountingReportSentMonth(month string) error {
 	}
 	return err
 }
+
+// GetAccountingReportLastTo returns the last day (YYYY-MM-DD) of the last report exported or sent in the backoffice
+func (db *Database) GetAccountingReportLastTo() (string, error) {
+	res, err := db.EntClient.DBSettings.Query().Where(entdbsettings.ID(1)).Only(context.Background())
+	if err != nil {
+		log.Error("GetAccountingReportLastTo: ", err)
+		return "", err
+	}
+	return res.AccountingReportLastTo, nil
+}
+
+// SetAccountingReportLastTo stores the last day (YYYY-MM-DD) of the last report exported or sent in the backoffice
+func (db *Database) SetAccountingReportLastTo(day string) error {
+	err := db.EntClient.DBSettings.UpdateOneID(1).
+		SetAccountingReportLastTo(day).
+		Exec(context.Background())
+	if err != nil {
+		log.Error("SetAccountingReportLastTo: ", err)
+	}
+	return err
+}

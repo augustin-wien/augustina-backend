@@ -5844,6 +5844,7 @@ type DBSettingsMutation struct {
 	id                           *int
 	is_initialized               *bool
 	accounting_report_sent_month *string
+	accounting_report_last_to    *string
 	clearedFields                map[string]struct{}
 	done                         bool
 	oldValue                     func(context.Context) (*DBSettings, error)
@@ -6026,6 +6027,42 @@ func (m *DBSettingsMutation) ResetAccountingReportSentMonth() {
 	m.accounting_report_sent_month = nil
 }
 
+// SetAccountingReportLastTo sets the "accounting_report_last_to" field.
+func (m *DBSettingsMutation) SetAccountingReportLastTo(s string) {
+	m.accounting_report_last_to = &s
+}
+
+// AccountingReportLastTo returns the value of the "accounting_report_last_to" field in the mutation.
+func (m *DBSettingsMutation) AccountingReportLastTo() (r string, exists bool) {
+	v := m.accounting_report_last_to
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccountingReportLastTo returns the old "accounting_report_last_to" field's value of the DBSettings entity.
+// If the DBSettings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DBSettingsMutation) OldAccountingReportLastTo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccountingReportLastTo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccountingReportLastTo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccountingReportLastTo: %w", err)
+	}
+	return oldValue.AccountingReportLastTo, nil
+}
+
+// ResetAccountingReportLastTo resets all changes to the "accounting_report_last_to" field.
+func (m *DBSettingsMutation) ResetAccountingReportLastTo() {
+	m.accounting_report_last_to = nil
+}
+
 // Where appends a list predicates to the DBSettingsMutation builder.
 func (m *DBSettingsMutation) Where(ps ...predicate.DBSettings) {
 	m.predicates = append(m.predicates, ps...)
@@ -6060,12 +6097,15 @@ func (m *DBSettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DBSettingsMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.is_initialized != nil {
 		fields = append(fields, dbsettings.FieldIsInitialized)
 	}
 	if m.accounting_report_sent_month != nil {
 		fields = append(fields, dbsettings.FieldAccountingReportSentMonth)
+	}
+	if m.accounting_report_last_to != nil {
+		fields = append(fields, dbsettings.FieldAccountingReportLastTo)
 	}
 	return fields
 }
@@ -6079,6 +6119,8 @@ func (m *DBSettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.IsInitialized()
 	case dbsettings.FieldAccountingReportSentMonth:
 		return m.AccountingReportSentMonth()
+	case dbsettings.FieldAccountingReportLastTo:
+		return m.AccountingReportLastTo()
 	}
 	return nil, false
 }
@@ -6092,6 +6134,8 @@ func (m *DBSettingsMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldIsInitialized(ctx)
 	case dbsettings.FieldAccountingReportSentMonth:
 		return m.OldAccountingReportSentMonth(ctx)
+	case dbsettings.FieldAccountingReportLastTo:
+		return m.OldAccountingReportLastTo(ctx)
 	}
 	return nil, fmt.Errorf("unknown DBSettings field %s", name)
 }
@@ -6114,6 +6158,13 @@ func (m *DBSettingsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAccountingReportSentMonth(v)
+		return nil
+	case dbsettings.FieldAccountingReportLastTo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccountingReportLastTo(v)
 		return nil
 	}
 	return fmt.Errorf("unknown DBSettings field %s", name)
@@ -6169,6 +6220,9 @@ func (m *DBSettingsMutation) ResetField(name string) error {
 		return nil
 	case dbsettings.FieldAccountingReportSentMonth:
 		m.ResetAccountingReportSentMonth()
+		return nil
+	case dbsettings.FieldAccountingReportLastTo:
+		m.ResetAccountingReportLastTo()
 		return nil
 	}
 	return fmt.Errorf("unknown DBSettings field %s", name)

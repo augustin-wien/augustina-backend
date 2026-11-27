@@ -290,14 +290,23 @@ func GetRouter() (r *chi.Mux) {
 			r.Post("/{id}/retry/", RetryMailTask)
 		})
 
-		// Monthly accounting report
-		r.Route("/api/reports/monthly/{month}", func(r chi.Router) {
+		// Accounting report of a month or another period
+		r.Route("/api/reports", func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware)
 			r.Use(middlewares.AdminAuthMiddleware)
-			r.Get("/", GetMonthlyReport)
-			r.Get("/csv/", GetMonthlyReportCSV)
-			r.Get("/pdf/", GetMonthlyReportPDF)
-			r.Post("/send/", SendMonthlyReport)
+			r.Get("/last/", GetLastReport)
+			r.Route("/monthly/{month}", func(r chi.Router) {
+				r.Get("/", GetMonthlyReport)
+				r.Get("/csv/", GetMonthlyReportCSV)
+				r.Get("/pdf/", GetMonthlyReportPDF)
+				r.Post("/send/", SendMonthlyReport)
+			})
+			r.Route("/period", func(r chi.Router) {
+				r.Get("/", GetPeriodReport)
+				r.Get("/csv/", GetPeriodReportCSV)
+				r.Get("/pdf/", GetPeriodReportPDF)
+				r.Post("/send/", SendPeriodReport)
+			})
 		})
 
 		// Payment orders

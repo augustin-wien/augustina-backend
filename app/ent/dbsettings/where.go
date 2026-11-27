@@ -62,6 +62,11 @@ func AccountingReportSentMonth(v string) predicate.DBSettings {
 	return predicate.DBSettings(sql.FieldEQ(FieldAccountingReportSentMonth, v))
 }
 
+// AccountingReportLastTo applies equality check predicate on the "accounting_report_last_to" field. It's identical to AccountingReportLastToEQ.
+func AccountingReportLastTo(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldEQ(FieldAccountingReportLastTo, v))
+}
+
 // IsInitializedEQ applies the EQ predicate on the "is_initialized" field.
 func IsInitializedEQ(v bool) predicate.DBSettings {
 	return predicate.DBSettings(sql.FieldEQ(FieldIsInitialized, v))
@@ -135,6 +140,71 @@ func AccountingReportSentMonthEqualFold(v string) predicate.DBSettings {
 // AccountingReportSentMonthContainsFold applies the ContainsFold predicate on the "accounting_report_sent_month" field.
 func AccountingReportSentMonthContainsFold(v string) predicate.DBSettings {
 	return predicate.DBSettings(sql.FieldContainsFold(FieldAccountingReportSentMonth, v))
+}
+
+// AccountingReportLastToEQ applies the EQ predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToEQ(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldEQ(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToNEQ applies the NEQ predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToNEQ(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldNEQ(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToIn applies the In predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToIn(vs ...string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldIn(FieldAccountingReportLastTo, vs...))
+}
+
+// AccountingReportLastToNotIn applies the NotIn predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToNotIn(vs ...string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldNotIn(FieldAccountingReportLastTo, vs...))
+}
+
+// AccountingReportLastToGT applies the GT predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToGT(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldGT(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToGTE applies the GTE predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToGTE(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldGTE(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToLT applies the LT predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToLT(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldLT(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToLTE applies the LTE predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToLTE(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldLTE(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToContains applies the Contains predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToContains(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldContains(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToHasPrefix applies the HasPrefix predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToHasPrefix(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldHasPrefix(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToHasSuffix applies the HasSuffix predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToHasSuffix(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldHasSuffix(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToEqualFold applies the EqualFold predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToEqualFold(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldEqualFold(FieldAccountingReportLastTo, v))
+}
+
+// AccountingReportLastToContainsFold applies the ContainsFold predicate on the "accounting_report_last_to" field.
+func AccountingReportLastToContainsFold(v string) predicate.DBSettings {
+	return predicate.DBSettings(sql.FieldContainsFold(FieldAccountingReportLastTo, v))
 }
 
 // And groups predicates with the AND operator between them.

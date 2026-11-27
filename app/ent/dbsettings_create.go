@@ -39,6 +39,20 @@ func (_c *DBSettingsCreate) SetNillableAccountingReportSentMonth(v *string) *DBS
 	return _c
 }
 
+// SetAccountingReportLastTo sets the "accounting_report_last_to" field.
+func (_c *DBSettingsCreate) SetAccountingReportLastTo(v string) *DBSettingsCreate {
+	_c.mutation.SetAccountingReportLastTo(v)
+	return _c
+}
+
+// SetNillableAccountingReportLastTo sets the "accounting_report_last_to" field if the given value is not nil.
+func (_c *DBSettingsCreate) SetNillableAccountingReportLastTo(v *string) *DBSettingsCreate {
+	if v != nil {
+		_c.SetAccountingReportLastTo(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *DBSettingsCreate) SetID(v int) *DBSettingsCreate {
 	_c.mutation.SetID(v)
@@ -84,6 +98,10 @@ func (_c *DBSettingsCreate) defaults() {
 		v := dbsettings.DefaultAccountingReportSentMonth
 		_c.mutation.SetAccountingReportSentMonth(v)
 	}
+	if _, ok := _c.mutation.AccountingReportLastTo(); !ok {
+		v := dbsettings.DefaultAccountingReportLastTo
+		_c.mutation.SetAccountingReportLastTo(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -93,6 +111,9 @@ func (_c *DBSettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.AccountingReportSentMonth(); !ok {
 		return &ValidationError{Name: "accounting_report_sent_month", err: errors.New(`ent: missing required field "DBSettings.accounting_report_sent_month"`)}
+	}
+	if _, ok := _c.mutation.AccountingReportLastTo(); !ok {
+		return &ValidationError{Name: "accounting_report_last_to", err: errors.New(`ent: missing required field "DBSettings.accounting_report_last_to"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := dbsettings.IDValidator(v); err != nil {
@@ -138,6 +159,10 @@ func (_c *DBSettingsCreate) createSpec() (*DBSettings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.AccountingReportSentMonth(); ok {
 		_spec.SetField(dbsettings.FieldAccountingReportSentMonth, field.TypeString, value)
 		_node.AccountingReportSentMonth = value
+	}
+	if value, ok := _c.mutation.AccountingReportLastTo(); ok {
+		_spec.SetField(dbsettings.FieldAccountingReportLastTo, field.TypeString, value)
+		_node.AccountingReportLastTo = value
 	}
 	return _node, _spec
 }
