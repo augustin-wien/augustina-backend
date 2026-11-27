@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/mail"
@@ -455,13 +456,21 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("DonationTrackingEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		case "AGBRequired", "DonationPageEnabled", "MatomoTrackCart", "FeedbackEnabled", "NewsletterEnabled", "IDScanEnabled", "NextcloudEnabled", "SteckbriefEnabled", "VoucherEnabled":
+		case "AGBRequired", "DonationPageEnabled", "MatomoTrackCart", "FeedbackEnabled", "NewsletterEnabled", "IDScanEnabled", "NextcloudEnabled", "SteckbriefEnabled", "VoucherEnabled",
+			"SalesAnonymizationEnabled", "VendorAnonymizationEnabled":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error(key + " is not a boolean")
 				utils.ErrorJSON(w, errors.New(key+" is not a boolean"), http.StatusBadRequest)
 				return
 			}
+		case "AnonymizationRetentionDays":
+			days, err := strconv.Atoi(value[0])
+			if err != nil || days < database.MinAnonymizationRetentionDays {
+				utils.ErrorJSON(w, fmt.Errorf("AnonymizationRetentionDays must be a number of at least %d", database.MinAnonymizationRetentionDays), http.StatusBadRequest)
+				return
+			}
+			fieldsClean[key] = days
 		case "WordPressInviteTTL":
 			fieldsClean[key], err = strconv.Atoi(value[0])
 			if err != nil {

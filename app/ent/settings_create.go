@@ -762,6 +762,48 @@ func (_c *SettingsCreate) SetNillableAccountingReportEmail(v *string) *SettingsC
 	return _c
 }
 
+// SetSalesAnonymizationEnabled sets the "SalesAnonymizationEnabled" field.
+func (_c *SettingsCreate) SetSalesAnonymizationEnabled(v bool) *SettingsCreate {
+	_c.mutation.SetSalesAnonymizationEnabled(v)
+	return _c
+}
+
+// SetNillableSalesAnonymizationEnabled sets the "SalesAnonymizationEnabled" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableSalesAnonymizationEnabled(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetSalesAnonymizationEnabled(*v)
+	}
+	return _c
+}
+
+// SetVendorAnonymizationEnabled sets the "VendorAnonymizationEnabled" field.
+func (_c *SettingsCreate) SetVendorAnonymizationEnabled(v bool) *SettingsCreate {
+	_c.mutation.SetVendorAnonymizationEnabled(v)
+	return _c
+}
+
+// SetNillableVendorAnonymizationEnabled sets the "VendorAnonymizationEnabled" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableVendorAnonymizationEnabled(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetVendorAnonymizationEnabled(*v)
+	}
+	return _c
+}
+
+// SetAnonymizationRetentionDays sets the "AnonymizationRetentionDays" field.
+func (_c *SettingsCreate) SetAnonymizationRetentionDays(v int) *SettingsCreate {
+	_c.mutation.SetAnonymizationRetentionDays(v)
+	return _c
+}
+
+// SetNillableAnonymizationRetentionDays sets the "AnonymizationRetentionDays" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableAnonymizationRetentionDays(v *int) *SettingsCreate {
+	if v != nil {
+		_c.SetAnonymizationRetentionDays(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
 	_c.mutation.SetID(v)
@@ -1034,6 +1076,18 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultAccountingReportEmail
 		_c.mutation.SetAccountingReportEmail(v)
 	}
+	if _, ok := _c.mutation.SalesAnonymizationEnabled(); !ok {
+		v := settings.DefaultSalesAnonymizationEnabled
+		_c.mutation.SetSalesAnonymizationEnabled(v)
+	}
+	if _, ok := _c.mutation.VendorAnonymizationEnabled(); !ok {
+		v := settings.DefaultVendorAnonymizationEnabled
+		_c.mutation.SetVendorAnonymizationEnabled(v)
+	}
+	if _, ok := _c.mutation.AnonymizationRetentionDays(); !ok {
+		v := settings.DefaultAnonymizationRetentionDays
+		_c.mutation.SetAnonymizationRetentionDays(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -1196,6 +1250,15 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.AccountingReportEmail(); !ok {
 		return &ValidationError{Name: "AccountingReportEmail", err: errors.New(`ent: missing required field "Settings.AccountingReportEmail"`)}
+	}
+	if _, ok := _c.mutation.SalesAnonymizationEnabled(); !ok {
+		return &ValidationError{Name: "SalesAnonymizationEnabled", err: errors.New(`ent: missing required field "Settings.SalesAnonymizationEnabled"`)}
+	}
+	if _, ok := _c.mutation.VendorAnonymizationEnabled(); !ok {
+		return &ValidationError{Name: "VendorAnonymizationEnabled", err: errors.New(`ent: missing required field "Settings.VendorAnonymizationEnabled"`)}
+	}
+	if _, ok := _c.mutation.AnonymizationRetentionDays(); !ok {
+		return &ValidationError{Name: "AnonymizationRetentionDays", err: errors.New(`ent: missing required field "Settings.AnonymizationRetentionDays"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := settings.IDValidator(v); err != nil {
@@ -1445,6 +1508,18 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.AccountingReportEmail(); ok {
 		_spec.SetField(settings.FieldAccountingReportEmail, field.TypeString, value)
 		_node.AccountingReportEmail = value
+	}
+	if value, ok := _c.mutation.SalesAnonymizationEnabled(); ok {
+		_spec.SetField(settings.FieldSalesAnonymizationEnabled, field.TypeBool, value)
+		_node.SalesAnonymizationEnabled = value
+	}
+	if value, ok := _c.mutation.VendorAnonymizationEnabled(); ok {
+		_spec.SetField(settings.FieldVendorAnonymizationEnabled, field.TypeBool, value)
+		_node.VendorAnonymizationEnabled = value
+	}
+	if value, ok := _c.mutation.AnonymizationRetentionDays(); ok {
+		_spec.SetField(settings.FieldAnonymizationRetentionDays, field.TypeInt, value)
+		_node.AnonymizationRetentionDays = value
 	}
 	if nodes := _c.mutation.MainItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

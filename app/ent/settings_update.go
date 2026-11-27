@@ -798,6 +798,55 @@ func (_u *SettingsUpdate) SetNillableAccountingReportEmail(v *string) *SettingsU
 	return _u
 }
 
+// SetSalesAnonymizationEnabled sets the "SalesAnonymizationEnabled" field.
+func (_u *SettingsUpdate) SetSalesAnonymizationEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetSalesAnonymizationEnabled(v)
+	return _u
+}
+
+// SetNillableSalesAnonymizationEnabled sets the "SalesAnonymizationEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableSalesAnonymizationEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetSalesAnonymizationEnabled(*v)
+	}
+	return _u
+}
+
+// SetVendorAnonymizationEnabled sets the "VendorAnonymizationEnabled" field.
+func (_u *SettingsUpdate) SetVendorAnonymizationEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetVendorAnonymizationEnabled(v)
+	return _u
+}
+
+// SetNillableVendorAnonymizationEnabled sets the "VendorAnonymizationEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableVendorAnonymizationEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetVendorAnonymizationEnabled(*v)
+	}
+	return _u
+}
+
+// SetAnonymizationRetentionDays sets the "AnonymizationRetentionDays" field.
+func (_u *SettingsUpdate) SetAnonymizationRetentionDays(v int) *SettingsUpdate {
+	_u.mutation.ResetAnonymizationRetentionDays()
+	_u.mutation.SetAnonymizationRetentionDays(v)
+	return _u
+}
+
+// SetNillableAnonymizationRetentionDays sets the "AnonymizationRetentionDays" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableAnonymizationRetentionDays(v *int) *SettingsUpdate {
+	if v != nil {
+		_u.SetAnonymizationRetentionDays(*v)
+	}
+	return _u
+}
+
+// AddAnonymizationRetentionDays adds value to the "AnonymizationRetentionDays" field.
+func (_u *SettingsUpdate) AddAnonymizationRetentionDays(v int) *SettingsUpdate {
+	_u.mutation.AddAnonymizationRetentionDays(v)
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdate) SetMainItemID(id int) *SettingsUpdate {
 	_u.mutation.SetMainItemID(id)
@@ -1034,6 +1083,18 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AccountingReportEmail(); ok {
 		_spec.SetField(settings.FieldAccountingReportEmail, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SalesAnonymizationEnabled(); ok {
+		_spec.SetField(settings.FieldSalesAnonymizationEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.VendorAnonymizationEnabled(); ok {
+		_spec.SetField(settings.FieldVendorAnonymizationEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AnonymizationRetentionDays(); ok {
+		_spec.SetField(settings.FieldAnonymizationRetentionDays, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAnonymizationRetentionDays(); ok {
+		_spec.AddField(settings.FieldAnonymizationRetentionDays, field.TypeInt, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1854,6 +1915,55 @@ func (_u *SettingsUpdateOne) SetNillableAccountingReportEmail(v *string) *Settin
 	return _u
 }
 
+// SetSalesAnonymizationEnabled sets the "SalesAnonymizationEnabled" field.
+func (_u *SettingsUpdateOne) SetSalesAnonymizationEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetSalesAnonymizationEnabled(v)
+	return _u
+}
+
+// SetNillableSalesAnonymizationEnabled sets the "SalesAnonymizationEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableSalesAnonymizationEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetSalesAnonymizationEnabled(*v)
+	}
+	return _u
+}
+
+// SetVendorAnonymizationEnabled sets the "VendorAnonymizationEnabled" field.
+func (_u *SettingsUpdateOne) SetVendorAnonymizationEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetVendorAnonymizationEnabled(v)
+	return _u
+}
+
+// SetNillableVendorAnonymizationEnabled sets the "VendorAnonymizationEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableVendorAnonymizationEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetVendorAnonymizationEnabled(*v)
+	}
+	return _u
+}
+
+// SetAnonymizationRetentionDays sets the "AnonymizationRetentionDays" field.
+func (_u *SettingsUpdateOne) SetAnonymizationRetentionDays(v int) *SettingsUpdateOne {
+	_u.mutation.ResetAnonymizationRetentionDays()
+	_u.mutation.SetAnonymizationRetentionDays(v)
+	return _u
+}
+
+// SetNillableAnonymizationRetentionDays sets the "AnonymizationRetentionDays" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableAnonymizationRetentionDays(v *int) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetAnonymizationRetentionDays(*v)
+	}
+	return _u
+}
+
+// AddAnonymizationRetentionDays adds value to the "AnonymizationRetentionDays" field.
+func (_u *SettingsUpdateOne) AddAnonymizationRetentionDays(v int) *SettingsUpdateOne {
+	_u.mutation.AddAnonymizationRetentionDays(v)
+	return _u
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by ID.
 func (_u *SettingsUpdateOne) SetMainItemID(id int) *SettingsUpdateOne {
 	_u.mutation.SetMainItemID(id)
@@ -2120,6 +2230,18 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.AccountingReportEmail(); ok {
 		_spec.SetField(settings.FieldAccountingReportEmail, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SalesAnonymizationEnabled(); ok {
+		_spec.SetField(settings.FieldSalesAnonymizationEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.VendorAnonymizationEnabled(); ok {
+		_spec.SetField(settings.FieldVendorAnonymizationEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AnonymizationRetentionDays(); ok {
+		_spec.SetField(settings.FieldAnonymizationRetentionDays, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAnonymizationRetentionDays(); ok {
+		_spec.AddField(settings.FieldAnonymizationRetentionDays, field.TypeInt, value)
 	}
 	if _u.mutation.MainItemCleared() {
 		edge := &sqlgraph.EdgeSpec{

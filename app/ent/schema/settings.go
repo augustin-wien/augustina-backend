@@ -197,6 +197,19 @@ func (Settings) Fields() []ent.Field {
 		field.String("AccountingReportEmail").
 			StorageKey("accountingreportemail").
 			Default(""),
+		// Removes customer data (email, user ID, gift texts, mail recipients) from sales older
+		// than AnonymizationRetentionDays. Cannot be undone.
+		field.Bool("SalesAnonymizationEnabled").
+			StorageKey("salesanonymizationenabled").
+			Default(false),
+		// Detaches paid out sales from the vendors AnonymizationRetentionDays after the payout,
+		// and the payouts themselves after the 7 year retention period. Cannot be undone.
+		field.Bool("VendorAnonymizationEnabled").
+			StorageKey("vendoranonymizationenabled").
+			Default(false),
+		field.Int("AnonymizationRetentionDays").
+			StorageKey("anonymizationretentiondays").
+			Default(90),
 	}
 	for _, f := range fields {
 		f.Descriptor().Tag = `json:"` + f.Descriptor().Name + `"`

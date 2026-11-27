@@ -16719,72 +16719,76 @@ func (m *PaymentMutation) ResetEdge(name string) error {
 // SettingsMutation represents an operation that mutates the Settings nodes in the graph.
 type SettingsMutation struct {
 	config
-	op                          Op
-	typ                         string
-	id                          *int
-	_AGBUrl                     *string
-	_Color                      *string
-	_FontColor                  *string
-	_Logo                       *string
-	_MaxOrderAmount             *int
-	add_MaxOrderAmount          *int
-	_OrgaCoversTransactionCosts *bool
-	_WebshopIsClosed            *bool
-	_VendorNotFoundHelpUrl      *string
-	_MaintainanceModeHelpUrl    *string
-	_VendorEmailPostfix         *string
-	_NewspaperName              *string
-	_QRCodeUrl                  *string
-	_QRCodeLogoImgUrl           *string
-	_MapCenterLat               *float64
-	add_MapCenterLat            *float64
-	_MapCenterLong              *float64
-	add_MapCenterLong           *float64
-	_UseVendorLicenseIdInShop   *bool
-	_Favicon                    *string
-	_QRCodeSettings             *string
-	_QRCodeEnableLogo           *bool
-	_UseTipInsteadOfDonation    *bool
-	_ShopLanding                *bool
-	_DigitalItemsUrl            *string
-	_AbonementUrl               *string
-	_AbonementEnabled           *bool
-	_VoucherEnabled             *bool
-	_POSEnabled                 *bool
-	_WordPressInviteURL         *string
-	_WordPressInviteAPIKey      *string
-	_WordPressInviteTTL         *int
-	add_WordPressInviteTTL      *int
-	_PrivacyPolicyUrl           *string
-	_MatomoUrl                  *string
-	_MatomoSiteId               *string
-	_OnlinePaperUrl             *string
-	_MailSenderName             *string
-	_DonationTrackingEnabled    *bool
-	_AGBRequired                *bool
-	_DonationPageEnabled        *bool
-	_MatomoTrackCart            *bool
-	_FeedbackEnabled            *bool
-	_FeedbackEmail              *string
-	_NewsletterEnabled          *bool
-	_IDScanEnabled              *bool
-	_NextcloudEnabled           *bool
-	_SteckbriefEnabled          *bool
-	_NextcloudURL               *string
-	_NextcloudPublicURL         *string
-	_NextcloudUsername          *string
-	_NextcloudAppPassword       *string
-	_NextcloudVendorRoot        *string
-	_OdooWebhookURL             *string
-	_OdooWebhookToken           *string
-	_OdooDBFilter               *string
-	_AccountingReportEmail      *string
-	clearedFields               map[string]struct{}
-	_MainItem                   *int
-	cleared_MainItem            bool
-	done                        bool
-	oldValue                    func(context.Context) (*Settings, error)
-	predicates                  []predicate.Settings
+	op                             Op
+	typ                            string
+	id                             *int
+	_AGBUrl                        *string
+	_Color                         *string
+	_FontColor                     *string
+	_Logo                          *string
+	_MaxOrderAmount                *int
+	add_MaxOrderAmount             *int
+	_OrgaCoversTransactionCosts    *bool
+	_WebshopIsClosed               *bool
+	_VendorNotFoundHelpUrl         *string
+	_MaintainanceModeHelpUrl       *string
+	_VendorEmailPostfix            *string
+	_NewspaperName                 *string
+	_QRCodeUrl                     *string
+	_QRCodeLogoImgUrl              *string
+	_MapCenterLat                  *float64
+	add_MapCenterLat               *float64
+	_MapCenterLong                 *float64
+	add_MapCenterLong              *float64
+	_UseVendorLicenseIdInShop      *bool
+	_Favicon                       *string
+	_QRCodeSettings                *string
+	_QRCodeEnableLogo              *bool
+	_UseTipInsteadOfDonation       *bool
+	_ShopLanding                   *bool
+	_DigitalItemsUrl               *string
+	_AbonementUrl                  *string
+	_AbonementEnabled              *bool
+	_VoucherEnabled                *bool
+	_POSEnabled                    *bool
+	_WordPressInviteURL            *string
+	_WordPressInviteAPIKey         *string
+	_WordPressInviteTTL            *int
+	add_WordPressInviteTTL         *int
+	_PrivacyPolicyUrl              *string
+	_MatomoUrl                     *string
+	_MatomoSiteId                  *string
+	_OnlinePaperUrl                *string
+	_MailSenderName                *string
+	_DonationTrackingEnabled       *bool
+	_AGBRequired                   *bool
+	_DonationPageEnabled           *bool
+	_MatomoTrackCart               *bool
+	_FeedbackEnabled               *bool
+	_FeedbackEmail                 *string
+	_NewsletterEnabled             *bool
+	_IDScanEnabled                 *bool
+	_NextcloudEnabled              *bool
+	_SteckbriefEnabled             *bool
+	_NextcloudURL                  *string
+	_NextcloudPublicURL            *string
+	_NextcloudUsername             *string
+	_NextcloudAppPassword          *string
+	_NextcloudVendorRoot           *string
+	_OdooWebhookURL                *string
+	_OdooWebhookToken              *string
+	_OdooDBFilter                  *string
+	_AccountingReportEmail         *string
+	_SalesAnonymizationEnabled     *bool
+	_VendorAnonymizationEnabled    *bool
+	_AnonymizationRetentionDays    *int
+	add_AnonymizationRetentionDays *int
+	clearedFields                  map[string]struct{}
+	_MainItem                      *int
+	cleared_MainItem               bool
+	done                           bool
+	oldValue                       func(context.Context) (*Settings, error)
+	predicates                     []predicate.Settings
 }
 
 var _ ent.Mutation = (*SettingsMutation)(nil)
@@ -18879,6 +18883,134 @@ func (m *SettingsMutation) ResetAccountingReportEmail() {
 	m._AccountingReportEmail = nil
 }
 
+// SetSalesAnonymizationEnabled sets the "SalesAnonymizationEnabled" field.
+func (m *SettingsMutation) SetSalesAnonymizationEnabled(b bool) {
+	m._SalesAnonymizationEnabled = &b
+}
+
+// SalesAnonymizationEnabled returns the value of the "SalesAnonymizationEnabled" field in the mutation.
+func (m *SettingsMutation) SalesAnonymizationEnabled() (r bool, exists bool) {
+	v := m._SalesAnonymizationEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSalesAnonymizationEnabled returns the old "SalesAnonymizationEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldSalesAnonymizationEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSalesAnonymizationEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSalesAnonymizationEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSalesAnonymizationEnabled: %w", err)
+	}
+	return oldValue.SalesAnonymizationEnabled, nil
+}
+
+// ResetSalesAnonymizationEnabled resets all changes to the "SalesAnonymizationEnabled" field.
+func (m *SettingsMutation) ResetSalesAnonymizationEnabled() {
+	m._SalesAnonymizationEnabled = nil
+}
+
+// SetVendorAnonymizationEnabled sets the "VendorAnonymizationEnabled" field.
+func (m *SettingsMutation) SetVendorAnonymizationEnabled(b bool) {
+	m._VendorAnonymizationEnabled = &b
+}
+
+// VendorAnonymizationEnabled returns the value of the "VendorAnonymizationEnabled" field in the mutation.
+func (m *SettingsMutation) VendorAnonymizationEnabled() (r bool, exists bool) {
+	v := m._VendorAnonymizationEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVendorAnonymizationEnabled returns the old "VendorAnonymizationEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldVendorAnonymizationEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVendorAnonymizationEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVendorAnonymizationEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVendorAnonymizationEnabled: %w", err)
+	}
+	return oldValue.VendorAnonymizationEnabled, nil
+}
+
+// ResetVendorAnonymizationEnabled resets all changes to the "VendorAnonymizationEnabled" field.
+func (m *SettingsMutation) ResetVendorAnonymizationEnabled() {
+	m._VendorAnonymizationEnabled = nil
+}
+
+// SetAnonymizationRetentionDays sets the "AnonymizationRetentionDays" field.
+func (m *SettingsMutation) SetAnonymizationRetentionDays(i int) {
+	m._AnonymizationRetentionDays = &i
+	m.add_AnonymizationRetentionDays = nil
+}
+
+// AnonymizationRetentionDays returns the value of the "AnonymizationRetentionDays" field in the mutation.
+func (m *SettingsMutation) AnonymizationRetentionDays() (r int, exists bool) {
+	v := m._AnonymizationRetentionDays
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnonymizationRetentionDays returns the old "AnonymizationRetentionDays" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldAnonymizationRetentionDays(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnonymizationRetentionDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnonymizationRetentionDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnonymizationRetentionDays: %w", err)
+	}
+	return oldValue.AnonymizationRetentionDays, nil
+}
+
+// AddAnonymizationRetentionDays adds i to the "AnonymizationRetentionDays" field.
+func (m *SettingsMutation) AddAnonymizationRetentionDays(i int) {
+	if m.add_AnonymizationRetentionDays != nil {
+		*m.add_AnonymizationRetentionDays += i
+	} else {
+		m.add_AnonymizationRetentionDays = &i
+	}
+}
+
+// AddedAnonymizationRetentionDays returns the value that was added to the "AnonymizationRetentionDays" field in this mutation.
+func (m *SettingsMutation) AddedAnonymizationRetentionDays() (r int, exists bool) {
+	v := m.add_AnonymizationRetentionDays
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAnonymizationRetentionDays resets all changes to the "AnonymizationRetentionDays" field.
+func (m *SettingsMutation) ResetAnonymizationRetentionDays() {
+	m._AnonymizationRetentionDays = nil
+	m.add_AnonymizationRetentionDays = nil
+}
+
 // SetMainItemID sets the "MainItem" edge to the Item entity by id.
 func (m *SettingsMutation) SetMainItemID(id int) {
 	m._MainItem = &id
@@ -18952,7 +19084,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 53)
+	fields := make([]string, 0, 56)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -19112,6 +19244,15 @@ func (m *SettingsMutation) Fields() []string {
 	if m._AccountingReportEmail != nil {
 		fields = append(fields, settings.FieldAccountingReportEmail)
 	}
+	if m._SalesAnonymizationEnabled != nil {
+		fields = append(fields, settings.FieldSalesAnonymizationEnabled)
+	}
+	if m._VendorAnonymizationEnabled != nil {
+		fields = append(fields, settings.FieldVendorAnonymizationEnabled)
+	}
+	if m._AnonymizationRetentionDays != nil {
+		fields = append(fields, settings.FieldAnonymizationRetentionDays)
+	}
 	return fields
 }
 
@@ -19226,6 +19367,12 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.OdooDBFilter()
 	case settings.FieldAccountingReportEmail:
 		return m.AccountingReportEmail()
+	case settings.FieldSalesAnonymizationEnabled:
+		return m.SalesAnonymizationEnabled()
+	case settings.FieldVendorAnonymizationEnabled:
+		return m.VendorAnonymizationEnabled()
+	case settings.FieldAnonymizationRetentionDays:
+		return m.AnonymizationRetentionDays()
 	}
 	return nil, false
 }
@@ -19341,6 +19488,12 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldOdooDBFilter(ctx)
 	case settings.FieldAccountingReportEmail:
 		return m.OldAccountingReportEmail(ctx)
+	case settings.FieldSalesAnonymizationEnabled:
+		return m.OldSalesAnonymizationEnabled(ctx)
+	case settings.FieldVendorAnonymizationEnabled:
+		return m.OldVendorAnonymizationEnabled(ctx)
+	case settings.FieldAnonymizationRetentionDays:
+		return m.OldAnonymizationRetentionDays(ctx)
 	}
 	return nil, fmt.Errorf("unknown Settings field %s", name)
 }
@@ -19721,6 +19874,27 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAccountingReportEmail(v)
 		return nil
+	case settings.FieldSalesAnonymizationEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSalesAnonymizationEnabled(v)
+		return nil
+	case settings.FieldVendorAnonymizationEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVendorAnonymizationEnabled(v)
+		return nil
+	case settings.FieldAnonymizationRetentionDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnonymizationRetentionDays(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
 }
@@ -19741,6 +19915,9 @@ func (m *SettingsMutation) AddedFields() []string {
 	if m.add_WordPressInviteTTL != nil {
 		fields = append(fields, settings.FieldWordPressInviteTTL)
 	}
+	if m.add_AnonymizationRetentionDays != nil {
+		fields = append(fields, settings.FieldAnonymizationRetentionDays)
+	}
 	return fields
 }
 
@@ -19757,6 +19934,8 @@ func (m *SettingsMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedMapCenterLong()
 	case settings.FieldWordPressInviteTTL:
 		return m.AddedWordPressInviteTTL()
+	case settings.FieldAnonymizationRetentionDays:
+		return m.AddedAnonymizationRetentionDays()
 	}
 	return nil, false
 }
@@ -19793,6 +19972,13 @@ func (m *SettingsMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddWordPressInviteTTL(v)
+		return nil
+	case settings.FieldAnonymizationRetentionDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAnonymizationRetentionDays(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Settings numeric field %s", name)
@@ -19979,6 +20165,15 @@ func (m *SettingsMutation) ResetField(name string) error {
 		return nil
 	case settings.FieldAccountingReportEmail:
 		m.ResetAccountingReportEmail()
+		return nil
+	case settings.FieldSalesAnonymizationEnabled:
+		m.ResetSalesAnonymizationEnabled()
+		return nil
+	case settings.FieldVendorAnonymizationEnabled:
+		m.ResetVendorAnonymizationEnabled()
+		return nil
+	case settings.FieldAnonymizationRetentionDays:
+		m.ResetAnonymizationRetentionDays()
 		return nil
 	}
 	return fmt.Errorf("unknown Settings field %s", name)
