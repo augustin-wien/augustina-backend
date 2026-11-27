@@ -259,6 +259,104 @@ func (_c *VendorCreate) SetNillableLastidscan(v *time.Time) *VendorCreate {
 	return _c
 }
 
+// SetSteckbriefimage sets the "steckbriefimage" field.
+func (_c *VendorCreate) SetSteckbriefimage(v string) *VendorCreate {
+	_c.mutation.SetSteckbriefimage(v)
+	return _c
+}
+
+// SetNillableSteckbriefimage sets the "steckbriefimage" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableSteckbriefimage(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetSteckbriefimage(*v)
+	}
+	return _c
+}
+
+// SetSteckbriefdescription sets the "steckbriefdescription" field.
+func (_c *VendorCreate) SetSteckbriefdescription(v string) *VendorCreate {
+	_c.mutation.SetSteckbriefdescription(v)
+	return _c
+}
+
+// SetNillableSteckbriefdescription sets the "steckbriefdescription" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableSteckbriefdescription(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetSteckbriefdescription(*v)
+	}
+	return _c
+}
+
+// SetSteckbrieffamily sets the "steckbrieffamily" field.
+func (_c *VendorCreate) SetSteckbrieffamily(v string) *VendorCreate {
+	_c.mutation.SetSteckbrieffamily(v)
+	return _c
+}
+
+// SetNillableSteckbrieffamily sets the "steckbrieffamily" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableSteckbrieffamily(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetSteckbrieffamily(*v)
+	}
+	return _c
+}
+
+// SetSteckbriefresidence sets the "steckbriefresidence" field.
+func (_c *VendorCreate) SetSteckbriefresidence(v string) *VendorCreate {
+	_c.mutation.SetSteckbriefresidence(v)
+	return _c
+}
+
+// SetNillableSteckbriefresidence sets the "steckbriefresidence" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableSteckbriefresidence(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetSteckbriefresidence(*v)
+	}
+	return _c
+}
+
+// SetSteckbriefeducation sets the "steckbriefeducation" field.
+func (_c *VendorCreate) SetSteckbriefeducation(v string) *VendorCreate {
+	_c.mutation.SetSteckbriefeducation(v)
+	return _c
+}
+
+// SetNillableSteckbriefeducation sets the "steckbriefeducation" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableSteckbriefeducation(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetSteckbriefeducation(*v)
+	}
+	return _c
+}
+
+// SetSteckbriefcareergoal sets the "steckbriefcareergoal" field.
+func (_c *VendorCreate) SetSteckbriefcareergoal(v string) *VendorCreate {
+	_c.mutation.SetSteckbriefcareergoal(v)
+	return _c
+}
+
+// SetNillableSteckbriefcareergoal sets the "steckbriefcareergoal" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableSteckbriefcareergoal(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetSteckbriefcareergoal(*v)
+	}
+	return _c
+}
+
+// SetSteckbriefsupport sets the "steckbriefsupport" field.
+func (_c *VendorCreate) SetSteckbriefsupport(v string) *VendorCreate {
+	_c.mutation.SetSteckbriefsupport(v)
+	return _c
+}
+
+// SetNillableSteckbriefsupport sets the "steckbriefsupport" field if the given value is not nil.
+func (_c *VendorCreate) SetNillableSteckbriefsupport(v *string) *VendorCreate {
+	if v != nil {
+		_c.SetSteckbriefsupport(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *VendorCreate) SetID(v int) *VendorCreate {
 	_c.mutation.SetID(v)
@@ -393,6 +491,34 @@ func (_c *VendorCreate) defaults() {
 		v := vendor.DefaultBlockednote
 		_c.mutation.SetBlockednote(v)
 	}
+	if _, ok := _c.mutation.Steckbriefimage(); !ok {
+		v := vendor.DefaultSteckbriefimage
+		_c.mutation.SetSteckbriefimage(v)
+	}
+	if _, ok := _c.mutation.Steckbriefdescription(); !ok {
+		v := vendor.DefaultSteckbriefdescription
+		_c.mutation.SetSteckbriefdescription(v)
+	}
+	if _, ok := _c.mutation.Steckbrieffamily(); !ok {
+		v := vendor.DefaultSteckbrieffamily
+		_c.mutation.SetSteckbrieffamily(v)
+	}
+	if _, ok := _c.mutation.Steckbriefresidence(); !ok {
+		v := vendor.DefaultSteckbriefresidence
+		_c.mutation.SetSteckbriefresidence(v)
+	}
+	if _, ok := _c.mutation.Steckbriefeducation(); !ok {
+		v := vendor.DefaultSteckbriefeducation
+		_c.mutation.SetSteckbriefeducation(v)
+	}
+	if _, ok := _c.mutation.Steckbriefcareergoal(); !ok {
+		v := vendor.DefaultSteckbriefcareergoal
+		_c.mutation.SetSteckbriefcareergoal(v)
+	}
+	if _, ok := _c.mutation.Steckbriefsupport(); !ok {
+		v := vendor.DefaultSteckbriefsupport
+		_c.mutation.SetSteckbriefsupport(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -459,6 +585,27 @@ func (_c *VendorCreate) check() error {
 	}
 	if _, ok := _c.mutation.Debt(); !ok {
 		return &ValidationError{Name: "debt", err: errors.New(`ent: missing required field "Vendor.debt"`)}
+	}
+	if _, ok := _c.mutation.Steckbriefimage(); !ok {
+		return &ValidationError{Name: "steckbriefimage", err: errors.New(`ent: missing required field "Vendor.steckbriefimage"`)}
+	}
+	if _, ok := _c.mutation.Steckbriefdescription(); !ok {
+		return &ValidationError{Name: "steckbriefdescription", err: errors.New(`ent: missing required field "Vendor.steckbriefdescription"`)}
+	}
+	if _, ok := _c.mutation.Steckbrieffamily(); !ok {
+		return &ValidationError{Name: "steckbrieffamily", err: errors.New(`ent: missing required field "Vendor.steckbrieffamily"`)}
+	}
+	if _, ok := _c.mutation.Steckbriefresidence(); !ok {
+		return &ValidationError{Name: "steckbriefresidence", err: errors.New(`ent: missing required field "Vendor.steckbriefresidence"`)}
+	}
+	if _, ok := _c.mutation.Steckbriefeducation(); !ok {
+		return &ValidationError{Name: "steckbriefeducation", err: errors.New(`ent: missing required field "Vendor.steckbriefeducation"`)}
+	}
+	if _, ok := _c.mutation.Steckbriefcareergoal(); !ok {
+		return &ValidationError{Name: "steckbriefcareergoal", err: errors.New(`ent: missing required field "Vendor.steckbriefcareergoal"`)}
+	}
+	if _, ok := _c.mutation.Steckbriefsupport(); !ok {
+		return &ValidationError{Name: "steckbriefsupport", err: errors.New(`ent: missing required field "Vendor.steckbriefsupport"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := vendor.IDValidator(v); err != nil {
@@ -584,6 +731,34 @@ func (_c *VendorCreate) createSpec() (*Vendor, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Lastidscan(); ok {
 		_spec.SetField(vendor.FieldLastidscan, field.TypeTime, value)
 		_node.Lastidscan = &value
+	}
+	if value, ok := _c.mutation.Steckbriefimage(); ok {
+		_spec.SetField(vendor.FieldSteckbriefimage, field.TypeString, value)
+		_node.Steckbriefimage = value
+	}
+	if value, ok := _c.mutation.Steckbriefdescription(); ok {
+		_spec.SetField(vendor.FieldSteckbriefdescription, field.TypeString, value)
+		_node.Steckbriefdescription = value
+	}
+	if value, ok := _c.mutation.Steckbrieffamily(); ok {
+		_spec.SetField(vendor.FieldSteckbrieffamily, field.TypeString, value)
+		_node.Steckbrieffamily = value
+	}
+	if value, ok := _c.mutation.Steckbriefresidence(); ok {
+		_spec.SetField(vendor.FieldSteckbriefresidence, field.TypeString, value)
+		_node.Steckbriefresidence = value
+	}
+	if value, ok := _c.mutation.Steckbriefeducation(); ok {
+		_spec.SetField(vendor.FieldSteckbriefeducation, field.TypeString, value)
+		_node.Steckbriefeducation = value
+	}
+	if value, ok := _c.mutation.Steckbriefcareergoal(); ok {
+		_spec.SetField(vendor.FieldSteckbriefcareergoal, field.TypeString, value)
+		_node.Steckbriefcareergoal = value
+	}
+	if value, ok := _c.mutation.Steckbriefsupport(); ok {
+		_spec.SetField(vendor.FieldSteckbriefsupport, field.TypeString, value)
+		_node.Steckbriefsupport = value
 	}
 	if nodes := _c.mutation.LocationsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

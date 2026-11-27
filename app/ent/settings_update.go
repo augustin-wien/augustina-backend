@@ -658,6 +658,20 @@ func (_u *SettingsUpdate) SetNillableNextcloudEnabled(v *bool) *SettingsUpdate {
 	return _u
 }
 
+// SetSteckbriefEnabled sets the "SteckbriefEnabled" field.
+func (_u *SettingsUpdate) SetSteckbriefEnabled(v bool) *SettingsUpdate {
+	_u.mutation.SetSteckbriefEnabled(v)
+	return _u
+}
+
+// SetNillableSteckbriefEnabled sets the "SteckbriefEnabled" field if the given value is not nil.
+func (_u *SettingsUpdate) SetNillableSteckbriefEnabled(v *bool) *SettingsUpdate {
+	if v != nil {
+		_u.SetSteckbriefEnabled(*v)
+	}
+	return _u
+}
+
 // SetNextcloudURL sets the "NextcloudURL" field.
 func (_u *SettingsUpdate) SetNextcloudURL(v string) *SettingsUpdate {
 	_u.mutation.SetNextcloudURL(v)
@@ -990,6 +1004,9 @@ func (_u *SettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.NextcloudEnabled(); ok {
 		_spec.SetField(settings.FieldNextcloudEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SteckbriefEnabled(); ok {
+		_spec.SetField(settings.FieldSteckbriefEnabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.NextcloudURL(); ok {
 		_spec.SetField(settings.FieldNextcloudURL, field.TypeString, value)
@@ -1697,6 +1714,20 @@ func (_u *SettingsUpdateOne) SetNillableNextcloudEnabled(v *bool) *SettingsUpdat
 	return _u
 }
 
+// SetSteckbriefEnabled sets the "SteckbriefEnabled" field.
+func (_u *SettingsUpdateOne) SetSteckbriefEnabled(v bool) *SettingsUpdateOne {
+	_u.mutation.SetSteckbriefEnabled(v)
+	return _u
+}
+
+// SetNillableSteckbriefEnabled sets the "SteckbriefEnabled" field if the given value is not nil.
+func (_u *SettingsUpdateOne) SetNillableSteckbriefEnabled(v *bool) *SettingsUpdateOne {
+	if v != nil {
+		_u.SetSteckbriefEnabled(*v)
+	}
+	return _u
+}
+
 // SetNextcloudURL sets the "NextcloudURL" field.
 func (_u *SettingsUpdateOne) SetNextcloudURL(v string) *SettingsUpdateOne {
 	_u.mutation.SetNextcloudURL(v)
@@ -2059,6 +2090,9 @@ func (_u *SettingsUpdateOne) sqlSave(ctx context.Context) (_node *Settings, err 
 	}
 	if value, ok := _u.mutation.NextcloudEnabled(); ok {
 		_spec.SetField(settings.FieldNextcloudEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.SteckbriefEnabled(); ok {
+		_spec.SetField(settings.FieldSteckbriefEnabled, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.NextcloudURL(); ok {
 		_spec.SetField(settings.FieldNextcloudURL, field.TypeString, value)

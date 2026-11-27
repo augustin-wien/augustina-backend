@@ -24,6 +24,8 @@ var errVendorBlocked = errors.New("vendor is blocked")
 type checkLicenseIDResponse struct {
 	FirstName       string
 	AccountProofUrl null.String
+	// The shop links to the Steckbrief instead of AccountProofUrl
+	HasSteckbrief bool
 }
 
 // CheckVendorsLicenseID godoc
@@ -65,6 +67,13 @@ func CheckVendorsLicenseID(w http.ResponseWriter, r *http.Request) {
 	}
 	if settings.UseVendorLicenseIdInShop {
 		response.FirstName = licenseID
+	}
+	if settings.SteckbriefEnabled {
+		s, err := database.Db.GetVendorSteckbrief(users.ID)
+		if err != nil {
+			log.Error("checkVendorsLicenseID: ", err)
+		}
+		response.HasSteckbrief = err == nil && !s.IsEmpty()
 	}
 
 	err = utils.WriteJSON(w, http.StatusOK, response)

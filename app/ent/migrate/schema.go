@@ -516,6 +516,7 @@ var (
 		{Name: "newsletterenabled", Type: field.TypeBool, Default: false},
 		{Name: "idscanenabled", Type: field.TypeBool, Default: false},
 		{Name: "nextcloudenabled", Type: field.TypeBool, Default: false},
+		{Name: "steckbriefenabled", Type: field.TypeBool, Default: false},
 		{Name: "nextcloudurl", Type: field.TypeString, Default: ""},
 		{Name: "nextcloudpublicurl", Type: field.TypeString, Default: ""},
 		{Name: "nextcloudusername", Type: field.TypeString, Default: ""},
@@ -535,7 +536,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[53]},
+				Columns:    []*schema.Column{SettingsColumns[54]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -566,6 +567,13 @@ var (
 		{Name: "accountproofurl", Type: field.TypeString},
 		{Name: "debt", Type: field.TypeString},
 		{Name: "lastidscan", Type: field.TypeTime, Nullable: true},
+		{Name: "steckbriefimage", Type: field.TypeString, Default: ""},
+		{Name: "steckbriefdescription", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "steckbrieffamily", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "steckbriefresidence", Type: field.TypeString, Default: ""},
+		{Name: "steckbriefeducation", Type: field.TypeString, Default: ""},
+		{Name: "steckbriefcareergoal", Type: field.TypeString, Default: ""},
+		{Name: "steckbriefsupport", Type: field.TypeString, Size: 2147483647, Default: ""},
 	}
 	// VendorTable holds the schema information for the "vendor" table.
 	VendorTable = &schema.Table{

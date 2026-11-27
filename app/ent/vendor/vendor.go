@@ -56,6 +56,20 @@ const (
 	FieldDebt = "debt"
 	// FieldLastidscan holds the string denoting the lastidscan field in the database.
 	FieldLastidscan = "lastidscan"
+	// FieldSteckbriefimage holds the string denoting the steckbriefimage field in the database.
+	FieldSteckbriefimage = "steckbriefimage"
+	// FieldSteckbriefdescription holds the string denoting the steckbriefdescription field in the database.
+	FieldSteckbriefdescription = "steckbriefdescription"
+	// FieldSteckbrieffamily holds the string denoting the steckbrieffamily field in the database.
+	FieldSteckbrieffamily = "steckbrieffamily"
+	// FieldSteckbriefresidence holds the string denoting the steckbriefresidence field in the database.
+	FieldSteckbriefresidence = "steckbriefresidence"
+	// FieldSteckbriefeducation holds the string denoting the steckbriefeducation field in the database.
+	FieldSteckbriefeducation = "steckbriefeducation"
+	// FieldSteckbriefcareergoal holds the string denoting the steckbriefcareergoal field in the database.
+	FieldSteckbriefcareergoal = "steckbriefcareergoal"
+	// FieldSteckbriefsupport holds the string denoting the steckbriefsupport field in the database.
+	FieldSteckbriefsupport = "steckbriefsupport"
 	// EdgeLocations holds the string denoting the locations edge name in mutations.
 	EdgeLocations = "locations"
 	// EdgeComments holds the string denoting the comments edge name in mutations.
@@ -112,6 +126,13 @@ var Columns = []string{
 	FieldAccountproofurl,
 	FieldDebt,
 	FieldLastidscan,
+	FieldSteckbriefimage,
+	FieldSteckbriefdescription,
+	FieldSteckbrieffamily,
+	FieldSteckbriefresidence,
+	FieldSteckbriefeducation,
+	FieldSteckbriefcareergoal,
+	FieldSteckbriefsupport,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -149,6 +170,20 @@ var (
 	DefaultIsblocked bool
 	// DefaultBlockednote holds the default value on creation for the "blockednote" field.
 	DefaultBlockednote string
+	// DefaultSteckbriefimage holds the default value on creation for the "steckbriefimage" field.
+	DefaultSteckbriefimage string
+	// DefaultSteckbriefdescription holds the default value on creation for the "steckbriefdescription" field.
+	DefaultSteckbriefdescription string
+	// DefaultSteckbrieffamily holds the default value on creation for the "steckbrieffamily" field.
+	DefaultSteckbrieffamily string
+	// DefaultSteckbriefresidence holds the default value on creation for the "steckbriefresidence" field.
+	DefaultSteckbriefresidence string
+	// DefaultSteckbriefeducation holds the default value on creation for the "steckbriefeducation" field.
+	DefaultSteckbriefeducation string
+	// DefaultSteckbriefcareergoal holds the default value on creation for the "steckbriefcareergoal" field.
+	DefaultSteckbriefcareergoal string
+	// DefaultSteckbriefsupport holds the default value on creation for the "steckbriefsupport" field.
+	DefaultSteckbriefsupport string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -269,6 +304,41 @@ func ByDebt(opts ...sql.OrderTermOption) OrderOption {
 // ByLastidscan orders the results by the lastidscan field.
 func ByLastidscan(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastidscan, opts...).ToFunc()
+}
+
+// BySteckbriefimage orders the results by the steckbriefimage field.
+func BySteckbriefimage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSteckbriefimage, opts...).ToFunc()
+}
+
+// BySteckbriefdescription orders the results by the steckbriefdescription field.
+func BySteckbriefdescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSteckbriefdescription, opts...).ToFunc()
+}
+
+// BySteckbrieffamily orders the results by the steckbrieffamily field.
+func BySteckbrieffamily(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSteckbrieffamily, opts...).ToFunc()
+}
+
+// BySteckbriefresidence orders the results by the steckbriefresidence field.
+func BySteckbriefresidence(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSteckbriefresidence, opts...).ToFunc()
+}
+
+// BySteckbriefeducation orders the results by the steckbriefeducation field.
+func BySteckbriefeducation(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSteckbriefeducation, opts...).ToFunc()
+}
+
+// BySteckbriefcareergoal orders the results by the steckbriefcareergoal field.
+func BySteckbriefcareergoal(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSteckbriefcareergoal, opts...).ToFunc()
+}
+
+// BySteckbriefsupport orders the results by the steckbriefsupport field.
+func BySteckbriefsupport(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSteckbriefsupport, opts...).ToFunc()
 }
 
 // ByLocationsCount orders the results by locations count.

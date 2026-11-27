@@ -103,6 +103,8 @@ type Settings struct {
 	IDScanEnabled bool `json:"IDScanEnabled"`
 	// NextcloudEnabled holds the value of the "NextcloudEnabled" field.
 	NextcloudEnabled bool `json:"NextcloudEnabled"`
+	// SteckbriefEnabled holds the value of the "SteckbriefEnabled" field.
+	SteckbriefEnabled bool `json:"SteckbriefEnabled"`
 	// NextcloudURL holds the value of the "NextcloudURL" field.
 	NextcloudURL string `json:"NextcloudURL"`
 	// NextcloudPublicURL holds the value of the "NextcloudPublicURL" field.
@@ -153,7 +155,7 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldVoucherEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled, settings.FieldNewsletterEnabled, settings.FieldIDScanEnabled, settings.FieldNextcloudEnabled:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldVoucherEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled, settings.FieldNewsletterEnabled, settings.FieldIDScanEnabled, settings.FieldNextcloudEnabled, settings.FieldSteckbriefEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
@@ -442,6 +444,12 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.NextcloudEnabled = value.Bool
 			}
+		case settings.FieldSteckbriefEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field SteckbriefEnabled", values[i])
+			} else if value.Valid {
+				_m.SteckbriefEnabled = value.Bool
+			}
 		case settings.FieldNextcloudURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field NextcloudURL", values[i])
@@ -672,6 +680,9 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("NextcloudEnabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.NextcloudEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("SteckbriefEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SteckbriefEnabled))
 	builder.WriteString(", ")
 	builder.WriteString("NextcloudURL=")
 	builder.WriteString(_m.NextcloudURL)

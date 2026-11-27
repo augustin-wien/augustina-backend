@@ -207,6 +207,7 @@ func GetRouter() (r *chi.Mux) {
 		// Vendors
 		r.Route("/api/vendors", func(r chi.Router) {
 			r.Get("/check/{licenseID}/", CheckVendorsLicenseID)
+			r.Get("/check/{licenseID}/steckbrief/", GetPublicVendorSteckbrief)
 			r.Group(func(r chi.Router) {
 				r.Use(middlewares.AuthMiddleware)
 				r.Use(middlewares.AdminAuthMiddleware)
@@ -224,6 +225,10 @@ func GetRouter() (r *chi.Mux) {
 				r.Post("/{vendorid}/comments/", CreateVendorComment)
 				r.Delete("/{vendorid}/comments/{id}/", DeleteVendorComment)
 				r.Patch("/{vendorid}/comments/{id}/", UpdateVendorComment)
+				r.Get("/{vendorid}/steckbrief/", GetVendorSteckbrief)
+				r.Put("/{vendorid}/steckbrief/", UpdateVendorSteckbrief)
+				r.Post("/{vendorid}/steckbrief/image/", UploadVendorSteckbriefImage)
+				r.Delete("/{vendorid}/steckbrief/image/", DeleteVendorSteckbriefImage)
 
 				r.Post("/{licenseID}/pos-order/", CreatePOSOrder)
 				r.Get("/{licenseID}/pos-orders/", ListPOSOrdersForVendor)

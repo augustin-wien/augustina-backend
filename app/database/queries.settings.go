@@ -158,6 +158,7 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetNewsletterEnabled(settings.NewsletterEnabled).
 		SetIDScanEnabled(settings.IDScanEnabled).
 		SetNextcloudEnabled(settings.NextcloudEnabled).
+		SetSteckbriefEnabled(settings.SteckbriefEnabled).
 		SetNextcloudURL(settings.NextcloudURL).
 		SetNextcloudPublicURL(settings.NextcloudPublicURL).
 		SetNextcloudUsername(settings.NextcloudUsername).

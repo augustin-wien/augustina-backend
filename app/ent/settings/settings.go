@@ -98,6 +98,8 @@ const (
 	FieldIDScanEnabled = "idscanenabled"
 	// FieldNextcloudEnabled holds the string denoting the nextcloudenabled field in the database.
 	FieldNextcloudEnabled = "nextcloudenabled"
+	// FieldSteckbriefEnabled holds the string denoting the steckbriefenabled field in the database.
+	FieldSteckbriefEnabled = "steckbriefenabled"
 	// FieldNextcloudURL holds the string denoting the nextcloudurl field in the database.
 	FieldNextcloudURL = "nextcloudurl"
 	// FieldNextcloudPublicURL holds the string denoting the nextcloudpublicurl field in the database.
@@ -175,6 +177,7 @@ var Columns = []string{
 	FieldNewsletterEnabled,
 	FieldIDScanEnabled,
 	FieldNextcloudEnabled,
+	FieldSteckbriefEnabled,
 	FieldNextcloudURL,
 	FieldNextcloudPublicURL,
 	FieldNextcloudUsername,
@@ -294,6 +297,8 @@ var (
 	DefaultIDScanEnabled bool
 	// DefaultNextcloudEnabled holds the default value on creation for the "NextcloudEnabled" field.
 	DefaultNextcloudEnabled bool
+	// DefaultSteckbriefEnabled holds the default value on creation for the "SteckbriefEnabled" field.
+	DefaultSteckbriefEnabled bool
 	// DefaultNextcloudURL holds the default value on creation for the "NextcloudURL" field.
 	DefaultNextcloudURL string
 	// DefaultNextcloudPublicURL holds the default value on creation for the "NextcloudPublicURL" field.
@@ -537,6 +542,11 @@ func ByIDScanEnabled(opts ...sql.OrderTermOption) OrderOption {
 // ByNextcloudEnabled orders the results by the NextcloudEnabled field.
 func ByNextcloudEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNextcloudEnabled, opts...).ToFunc()
+}
+
+// BySteckbriefEnabled orders the results by the SteckbriefEnabled field.
+func BySteckbriefEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSteckbriefEnabled, opts...).ToFunc()
 }
 
 // ByNextcloudURL orders the results by the NextcloudURL field.

@@ -165,6 +165,41 @@ func Lastidscan(v time.Time) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldLastidscan, v))
 }
 
+// Steckbriefimage applies equality check predicate on the "steckbriefimage" field. It's identical to SteckbriefimageEQ.
+func Steckbriefimage(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefimage, v))
+}
+
+// Steckbriefdescription applies equality check predicate on the "steckbriefdescription" field. It's identical to SteckbriefdescriptionEQ.
+func Steckbriefdescription(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefdescription, v))
+}
+
+// Steckbrieffamily applies equality check predicate on the "steckbrieffamily" field. It's identical to SteckbrieffamilyEQ.
+func Steckbrieffamily(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbrieffamily, v))
+}
+
+// Steckbriefresidence applies equality check predicate on the "steckbriefresidence" field. It's identical to SteckbriefresidenceEQ.
+func Steckbriefresidence(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefresidence, v))
+}
+
+// Steckbriefeducation applies equality check predicate on the "steckbriefeducation" field. It's identical to SteckbriefeducationEQ.
+func Steckbriefeducation(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefeducation, v))
+}
+
+// Steckbriefcareergoal applies equality check predicate on the "steckbriefcareergoal" field. It's identical to SteckbriefcareergoalEQ.
+func Steckbriefcareergoal(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefcareergoal, v))
+}
+
+// Steckbriefsupport applies equality check predicate on the "steckbriefsupport" field. It's identical to SteckbriefsupportEQ.
+func Steckbriefsupport(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefsupport, v))
+}
+
 // KeycloakidEQ applies the EQ predicate on the "keycloakid" field.
 func KeycloakidEQ(v string) predicate.Vendor {
 	return predicate.Vendor(sql.FieldEQ(FieldKeycloakid, v))
@@ -1168,6 +1203,461 @@ func LastidscanIsNil() predicate.Vendor {
 // LastidscanNotNil applies the NotNil predicate on the "lastidscan" field.
 func LastidscanNotNil() predicate.Vendor {
 	return predicate.Vendor(sql.FieldNotNull(FieldLastidscan))
+}
+
+// SteckbriefimageEQ applies the EQ predicate on the "steckbriefimage" field.
+func SteckbriefimageEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageNEQ applies the NEQ predicate on the "steckbriefimage" field.
+func SteckbriefimageNEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageIn applies the In predicate on the "steckbriefimage" field.
+func SteckbriefimageIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldSteckbriefimage, vs...))
+}
+
+// SteckbriefimageNotIn applies the NotIn predicate on the "steckbriefimage" field.
+func SteckbriefimageNotIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldSteckbriefimage, vs...))
+}
+
+// SteckbriefimageGT applies the GT predicate on the "steckbriefimage" field.
+func SteckbriefimageGT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageGTE applies the GTE predicate on the "steckbriefimage" field.
+func SteckbriefimageGTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageLT applies the LT predicate on the "steckbriefimage" field.
+func SteckbriefimageLT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageLTE applies the LTE predicate on the "steckbriefimage" field.
+func SteckbriefimageLTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageContains applies the Contains predicate on the "steckbriefimage" field.
+func SteckbriefimageContains(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContains(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageHasPrefix applies the HasPrefix predicate on the "steckbriefimage" field.
+func SteckbriefimageHasPrefix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasPrefix(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageHasSuffix applies the HasSuffix predicate on the "steckbriefimage" field.
+func SteckbriefimageHasSuffix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasSuffix(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageEqualFold applies the EqualFold predicate on the "steckbriefimage" field.
+func SteckbriefimageEqualFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEqualFold(FieldSteckbriefimage, v))
+}
+
+// SteckbriefimageContainsFold applies the ContainsFold predicate on the "steckbriefimage" field.
+func SteckbriefimageContainsFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContainsFold(FieldSteckbriefimage, v))
+}
+
+// SteckbriefdescriptionEQ applies the EQ predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionNEQ applies the NEQ predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionNEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionIn applies the In predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldSteckbriefdescription, vs...))
+}
+
+// SteckbriefdescriptionNotIn applies the NotIn predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionNotIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldSteckbriefdescription, vs...))
+}
+
+// SteckbriefdescriptionGT applies the GT predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionGT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionGTE applies the GTE predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionGTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionLT applies the LT predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionLT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionLTE applies the LTE predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionLTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionContains applies the Contains predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionContains(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContains(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionHasPrefix applies the HasPrefix predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionHasPrefix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasPrefix(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionHasSuffix applies the HasSuffix predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionHasSuffix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasSuffix(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionEqualFold applies the EqualFold predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionEqualFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEqualFold(FieldSteckbriefdescription, v))
+}
+
+// SteckbriefdescriptionContainsFold applies the ContainsFold predicate on the "steckbriefdescription" field.
+func SteckbriefdescriptionContainsFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContainsFold(FieldSteckbriefdescription, v))
+}
+
+// SteckbrieffamilyEQ applies the EQ predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyNEQ applies the NEQ predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyNEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyIn applies the In predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldSteckbrieffamily, vs...))
+}
+
+// SteckbrieffamilyNotIn applies the NotIn predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyNotIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldSteckbrieffamily, vs...))
+}
+
+// SteckbrieffamilyGT applies the GT predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyGT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyGTE applies the GTE predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyGTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyLT applies the LT predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyLT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyLTE applies the LTE predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyLTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyContains applies the Contains predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyContains(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContains(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyHasPrefix applies the HasPrefix predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyHasPrefix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasPrefix(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyHasSuffix applies the HasSuffix predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyHasSuffix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasSuffix(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyEqualFold applies the EqualFold predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyEqualFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEqualFold(FieldSteckbrieffamily, v))
+}
+
+// SteckbrieffamilyContainsFold applies the ContainsFold predicate on the "steckbrieffamily" field.
+func SteckbrieffamilyContainsFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContainsFold(FieldSteckbrieffamily, v))
+}
+
+// SteckbriefresidenceEQ applies the EQ predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceNEQ applies the NEQ predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceNEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceIn applies the In predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldSteckbriefresidence, vs...))
+}
+
+// SteckbriefresidenceNotIn applies the NotIn predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceNotIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldSteckbriefresidence, vs...))
+}
+
+// SteckbriefresidenceGT applies the GT predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceGT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceGTE applies the GTE predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceGTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceLT applies the LT predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceLT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceLTE applies the LTE predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceLTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceContains applies the Contains predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceContains(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContains(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceHasPrefix applies the HasPrefix predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceHasPrefix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasPrefix(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceHasSuffix applies the HasSuffix predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceHasSuffix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasSuffix(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceEqualFold applies the EqualFold predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceEqualFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEqualFold(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefresidenceContainsFold applies the ContainsFold predicate on the "steckbriefresidence" field.
+func SteckbriefresidenceContainsFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContainsFold(FieldSteckbriefresidence, v))
+}
+
+// SteckbriefeducationEQ applies the EQ predicate on the "steckbriefeducation" field.
+func SteckbriefeducationEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationNEQ applies the NEQ predicate on the "steckbriefeducation" field.
+func SteckbriefeducationNEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationIn applies the In predicate on the "steckbriefeducation" field.
+func SteckbriefeducationIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldSteckbriefeducation, vs...))
+}
+
+// SteckbriefeducationNotIn applies the NotIn predicate on the "steckbriefeducation" field.
+func SteckbriefeducationNotIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldSteckbriefeducation, vs...))
+}
+
+// SteckbriefeducationGT applies the GT predicate on the "steckbriefeducation" field.
+func SteckbriefeducationGT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationGTE applies the GTE predicate on the "steckbriefeducation" field.
+func SteckbriefeducationGTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationLT applies the LT predicate on the "steckbriefeducation" field.
+func SteckbriefeducationLT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationLTE applies the LTE predicate on the "steckbriefeducation" field.
+func SteckbriefeducationLTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationContains applies the Contains predicate on the "steckbriefeducation" field.
+func SteckbriefeducationContains(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContains(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationHasPrefix applies the HasPrefix predicate on the "steckbriefeducation" field.
+func SteckbriefeducationHasPrefix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasPrefix(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationHasSuffix applies the HasSuffix predicate on the "steckbriefeducation" field.
+func SteckbriefeducationHasSuffix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasSuffix(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationEqualFold applies the EqualFold predicate on the "steckbriefeducation" field.
+func SteckbriefeducationEqualFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEqualFold(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefeducationContainsFold applies the ContainsFold predicate on the "steckbriefeducation" field.
+func SteckbriefeducationContainsFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContainsFold(FieldSteckbriefeducation, v))
+}
+
+// SteckbriefcareergoalEQ applies the EQ predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalNEQ applies the NEQ predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalNEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalIn applies the In predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldSteckbriefcareergoal, vs...))
+}
+
+// SteckbriefcareergoalNotIn applies the NotIn predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalNotIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldSteckbriefcareergoal, vs...))
+}
+
+// SteckbriefcareergoalGT applies the GT predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalGT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalGTE applies the GTE predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalGTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalLT applies the LT predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalLT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalLTE applies the LTE predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalLTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalContains applies the Contains predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalContains(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContains(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalHasPrefix applies the HasPrefix predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalHasPrefix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasPrefix(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalHasSuffix applies the HasSuffix predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalHasSuffix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasSuffix(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalEqualFold applies the EqualFold predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalEqualFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEqualFold(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefcareergoalContainsFold applies the ContainsFold predicate on the "steckbriefcareergoal" field.
+func SteckbriefcareergoalContainsFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContainsFold(FieldSteckbriefcareergoal, v))
+}
+
+// SteckbriefsupportEQ applies the EQ predicate on the "steckbriefsupport" field.
+func SteckbriefsupportEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEQ(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportNEQ applies the NEQ predicate on the "steckbriefsupport" field.
+func SteckbriefsupportNEQ(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNEQ(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportIn applies the In predicate on the "steckbriefsupport" field.
+func SteckbriefsupportIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldIn(FieldSteckbriefsupport, vs...))
+}
+
+// SteckbriefsupportNotIn applies the NotIn predicate on the "steckbriefsupport" field.
+func SteckbriefsupportNotIn(vs ...string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldNotIn(FieldSteckbriefsupport, vs...))
+}
+
+// SteckbriefsupportGT applies the GT predicate on the "steckbriefsupport" field.
+func SteckbriefsupportGT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGT(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportGTE applies the GTE predicate on the "steckbriefsupport" field.
+func SteckbriefsupportGTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldGTE(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportLT applies the LT predicate on the "steckbriefsupport" field.
+func SteckbriefsupportLT(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLT(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportLTE applies the LTE predicate on the "steckbriefsupport" field.
+func SteckbriefsupportLTE(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldLTE(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportContains applies the Contains predicate on the "steckbriefsupport" field.
+func SteckbriefsupportContains(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContains(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportHasPrefix applies the HasPrefix predicate on the "steckbriefsupport" field.
+func SteckbriefsupportHasPrefix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasPrefix(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportHasSuffix applies the HasSuffix predicate on the "steckbriefsupport" field.
+func SteckbriefsupportHasSuffix(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldHasSuffix(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportEqualFold applies the EqualFold predicate on the "steckbriefsupport" field.
+func SteckbriefsupportEqualFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldEqualFold(FieldSteckbriefsupport, v))
+}
+
+// SteckbriefsupportContainsFold applies the ContainsFold predicate on the "steckbriefsupport" field.
+func SteckbriefsupportContainsFold(v string) predicate.Vendor {
+	return predicate.Vendor(sql.FieldContainsFold(FieldSteckbriefsupport, v))
 }
 
 // HasLocations applies the HasEdge predicate on the "locations" edge.
