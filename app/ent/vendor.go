@@ -61,6 +61,20 @@ type Vendor struct {
 	Debt string `json:"debt,omitempty"`
 	// Lastidscan holds the value of the "lastidscan" field.
 	Lastidscan *time.Time `json:"lastidscan,omitempty"`
+	// Steckbriefimage holds the value of the "steckbriefimage" field.
+	Steckbriefimage string `json:"steckbriefimage,omitempty"`
+	// Steckbriefdescription holds the value of the "steckbriefdescription" field.
+	Steckbriefdescription string `json:"steckbriefdescription,omitempty"`
+	// Steckbrieffamily holds the value of the "steckbrieffamily" field.
+	Steckbrieffamily string `json:"steckbrieffamily,omitempty"`
+	// Steckbriefresidence holds the value of the "steckbriefresidence" field.
+	Steckbriefresidence string `json:"steckbriefresidence,omitempty"`
+	// Steckbriefeducation holds the value of the "steckbriefeducation" field.
+	Steckbriefeducation string `json:"steckbriefeducation,omitempty"`
+	// Steckbriefcareergoal holds the value of the "steckbriefcareergoal" field.
+	Steckbriefcareergoal string `json:"steckbriefcareergoal,omitempty"`
+	// Steckbriefsupport holds the value of the "steckbriefsupport" field.
+	Steckbriefsupport string `json:"steckbriefsupport,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the VendorQuery when eager-loading is set.
 	Edges        VendorEdges `json:"edges"`
@@ -116,7 +130,7 @@ func (*Vendor) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case vendor.FieldID:
 			values[i] = new(sql.NullInt64)
-		case vendor.FieldKeycloakid, vendor.FieldUrlid, vendor.FieldLicenseid, vendor.FieldFirstname, vendor.FieldLastname, vendor.FieldEmail, vendor.FieldLanguage, vendor.FieldTelephone, vendor.FieldRegistrationdate, vendor.FieldVendorsince, vendor.FieldBlockednote, vendor.FieldAccountproofurl, vendor.FieldDebt:
+		case vendor.FieldKeycloakid, vendor.FieldUrlid, vendor.FieldLicenseid, vendor.FieldFirstname, vendor.FieldLastname, vendor.FieldEmail, vendor.FieldLanguage, vendor.FieldTelephone, vendor.FieldRegistrationdate, vendor.FieldVendorsince, vendor.FieldBlockednote, vendor.FieldAccountproofurl, vendor.FieldDebt, vendor.FieldSteckbriefimage, vendor.FieldSteckbriefdescription, vendor.FieldSteckbrieffamily, vendor.FieldSteckbriefresidence, vendor.FieldSteckbriefeducation, vendor.FieldSteckbriefcareergoal, vendor.FieldSteckbriefsupport:
 			values[i] = new(sql.NullString)
 		case vendor.FieldLastpayout, vendor.FieldLastidscan:
 			values[i] = new(sql.NullTime)
@@ -274,6 +288,48 @@ func (_m *Vendor) assignValues(columns []string, values []any) error {
 				_m.Lastidscan = new(time.Time)
 				*_m.Lastidscan = value.Time
 			}
+		case vendor.FieldSteckbriefimage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field steckbriefimage", values[i])
+			} else if value.Valid {
+				_m.Steckbriefimage = value.String
+			}
+		case vendor.FieldSteckbriefdescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field steckbriefdescription", values[i])
+			} else if value.Valid {
+				_m.Steckbriefdescription = value.String
+			}
+		case vendor.FieldSteckbrieffamily:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field steckbrieffamily", values[i])
+			} else if value.Valid {
+				_m.Steckbrieffamily = value.String
+			}
+		case vendor.FieldSteckbriefresidence:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field steckbriefresidence", values[i])
+			} else if value.Valid {
+				_m.Steckbriefresidence = value.String
+			}
+		case vendor.FieldSteckbriefeducation:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field steckbriefeducation", values[i])
+			} else if value.Valid {
+				_m.Steckbriefeducation = value.String
+			}
+		case vendor.FieldSteckbriefcareergoal:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field steckbriefcareergoal", values[i])
+			} else if value.Valid {
+				_m.Steckbriefcareergoal = value.String
+			}
+		case vendor.FieldSteckbriefsupport:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field steckbriefsupport", values[i])
+			} else if value.Valid {
+				_m.Steckbriefsupport = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -392,6 +448,27 @@ func (_m *Vendor) String() string {
 		builder.WriteString("lastidscan=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("steckbriefimage=")
+	builder.WriteString(_m.Steckbriefimage)
+	builder.WriteString(", ")
+	builder.WriteString("steckbriefdescription=")
+	builder.WriteString(_m.Steckbriefdescription)
+	builder.WriteString(", ")
+	builder.WriteString("steckbrieffamily=")
+	builder.WriteString(_m.Steckbrieffamily)
+	builder.WriteString(", ")
+	builder.WriteString("steckbriefresidence=")
+	builder.WriteString(_m.Steckbriefresidence)
+	builder.WriteString(", ")
+	builder.WriteString("steckbriefeducation=")
+	builder.WriteString(_m.Steckbriefeducation)
+	builder.WriteString(", ")
+	builder.WriteString("steckbriefcareergoal=")
+	builder.WriteString(_m.Steckbriefcareergoal)
+	builder.WriteString(", ")
+	builder.WriteString("steckbriefsupport=")
+	builder.WriteString(_m.Steckbriefsupport)
 	builder.WriteByte(')')
 	return builder.String()
 }

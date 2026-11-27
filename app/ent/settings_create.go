@@ -622,6 +622,20 @@ func (_c *SettingsCreate) SetNillableNextcloudEnabled(v *bool) *SettingsCreate {
 	return _c
 }
 
+// SetSteckbriefEnabled sets the "SteckbriefEnabled" field.
+func (_c *SettingsCreate) SetSteckbriefEnabled(v bool) *SettingsCreate {
+	_c.mutation.SetSteckbriefEnabled(v)
+	return _c
+}
+
+// SetNillableSteckbriefEnabled sets the "SteckbriefEnabled" field if the given value is not nil.
+func (_c *SettingsCreate) SetNillableSteckbriefEnabled(v *bool) *SettingsCreate {
+	if v != nil {
+		_c.SetSteckbriefEnabled(*v)
+	}
+	return _c
+}
+
 // SetNextcloudURL sets the "NextcloudURL" field.
 func (_c *SettingsCreate) SetNextcloudURL(v string) *SettingsCreate {
 	_c.mutation.SetNextcloudURL(v)
@@ -980,6 +994,10 @@ func (_c *SettingsCreate) defaults() {
 		v := settings.DefaultNextcloudEnabled
 		_c.mutation.SetNextcloudEnabled(v)
 	}
+	if _, ok := _c.mutation.SteckbriefEnabled(); !ok {
+		v := settings.DefaultSteckbriefEnabled
+		_c.mutation.SetSteckbriefEnabled(v)
+	}
 	if _, ok := _c.mutation.NextcloudURL(); !ok {
 		v := settings.DefaultNextcloudURL
 		_c.mutation.SetNextcloudURL(v)
@@ -1148,6 +1166,9 @@ func (_c *SettingsCreate) check() error {
 	}
 	if _, ok := _c.mutation.NextcloudEnabled(); !ok {
 		return &ValidationError{Name: "NextcloudEnabled", err: errors.New(`ent: missing required field "Settings.NextcloudEnabled"`)}
+	}
+	if _, ok := _c.mutation.SteckbriefEnabled(); !ok {
+		return &ValidationError{Name: "SteckbriefEnabled", err: errors.New(`ent: missing required field "Settings.SteckbriefEnabled"`)}
 	}
 	if _, ok := _c.mutation.NextcloudURL(); !ok {
 		return &ValidationError{Name: "NextcloudURL", err: errors.New(`ent: missing required field "Settings.NextcloudURL"`)}
@@ -1384,6 +1405,10 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.NextcloudEnabled(); ok {
 		_spec.SetField(settings.FieldNextcloudEnabled, field.TypeBool, value)
 		_node.NextcloudEnabled = value
+	}
+	if value, ok := _c.mutation.SteckbriefEnabled(); ok {
+		_spec.SetField(settings.FieldSteckbriefEnabled, field.TypeBool, value)
+		_node.SteckbriefEnabled = value
 	}
 	if value, ok := _c.mutation.NextcloudURL(); ok {
 		_spec.SetField(settings.FieldNextcloudURL, field.TypeString, value)

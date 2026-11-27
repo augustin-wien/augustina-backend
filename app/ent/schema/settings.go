@@ -160,6 +160,10 @@ func (Settings) Fields() []ent.Field {
 		field.Bool("NextcloudEnabled").
 			StorageKey("nextcloudenabled").
 			Default(false),
+		// Adds a Steckbrief (profile sheet with photo) to the vendor profile in the backoffice
+		field.Bool("SteckbriefEnabled").
+			StorageKey("steckbriefenabled").
+			Default(false),
 		// Where the backend reaches Nextcloud, e.g. https://cloud.example.org
 		field.String("NextcloudURL").
 			StorageKey("nextcloudurl").

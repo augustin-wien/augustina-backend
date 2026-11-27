@@ -37,7 +37,7 @@ func TestUpdateSettingsValidation(t *testing.T) {
 		"OrgaCoversTransactionCosts", "WebshopIsClosed", "QRCodeEnableLogo", "UseVendorLicenseIdInShop",
 		"UseTipInsteadOfDonation", "ShopLanding", "AbonementEnabled", "POSEnabled", "DonationTrackingEnabled",
 		"AGBRequired", "DonationPageEnabled", "MatomoTrackCart", "FeedbackEnabled", "NewsletterEnabled",
-		"IDScanEnabled", "NextcloudEnabled",
+		"IDScanEnabled", "NextcloudEnabled", "SteckbriefEnabled",
 	} {
 		t.Run(key, func(t *testing.T) {
 			putSettings(t, map[string]string{key: "maybe"}, nil, 400)

@@ -534,40 +534,44 @@ func init() {
 	settingsDescNextcloudEnabled := settingsFields[43].Descriptor()
 	// settings.DefaultNextcloudEnabled holds the default value on creation for the NextcloudEnabled field.
 	settings.DefaultNextcloudEnabled = settingsDescNextcloudEnabled.Default.(bool)
+	// settingsDescSteckbriefEnabled is the schema descriptor for SteckbriefEnabled field.
+	settingsDescSteckbriefEnabled := settingsFields[44].Descriptor()
+	// settings.DefaultSteckbriefEnabled holds the default value on creation for the SteckbriefEnabled field.
+	settings.DefaultSteckbriefEnabled = settingsDescSteckbriefEnabled.Default.(bool)
 	// settingsDescNextcloudURL is the schema descriptor for NextcloudURL field.
-	settingsDescNextcloudURL := settingsFields[44].Descriptor()
+	settingsDescNextcloudURL := settingsFields[45].Descriptor()
 	// settings.DefaultNextcloudURL holds the default value on creation for the NextcloudURL field.
 	settings.DefaultNextcloudURL = settingsDescNextcloudURL.Default.(string)
 	// settingsDescNextcloudPublicURL is the schema descriptor for NextcloudPublicURL field.
-	settingsDescNextcloudPublicURL := settingsFields[45].Descriptor()
+	settingsDescNextcloudPublicURL := settingsFields[46].Descriptor()
 	// settings.DefaultNextcloudPublicURL holds the default value on creation for the NextcloudPublicURL field.
 	settings.DefaultNextcloudPublicURL = settingsDescNextcloudPublicURL.Default.(string)
 	// settingsDescNextcloudUsername is the schema descriptor for NextcloudUsername field.
-	settingsDescNextcloudUsername := settingsFields[46].Descriptor()
+	settingsDescNextcloudUsername := settingsFields[47].Descriptor()
 	// settings.DefaultNextcloudUsername holds the default value on creation for the NextcloudUsername field.
 	settings.DefaultNextcloudUsername = settingsDescNextcloudUsername.Default.(string)
 	// settingsDescNextcloudAppPassword is the schema descriptor for NextcloudAppPassword field.
-	settingsDescNextcloudAppPassword := settingsFields[47].Descriptor()
+	settingsDescNextcloudAppPassword := settingsFields[48].Descriptor()
 	// settings.DefaultNextcloudAppPassword holds the default value on creation for the NextcloudAppPassword field.
 	settings.DefaultNextcloudAppPassword = settingsDescNextcloudAppPassword.Default.(string)
 	// settingsDescNextcloudVendorRoot is the schema descriptor for NextcloudVendorRoot field.
-	settingsDescNextcloudVendorRoot := settingsFields[48].Descriptor()
+	settingsDescNextcloudVendorRoot := settingsFields[49].Descriptor()
 	// settings.DefaultNextcloudVendorRoot holds the default value on creation for the NextcloudVendorRoot field.
 	settings.DefaultNextcloudVendorRoot = settingsDescNextcloudVendorRoot.Default.(string)
 	// settingsDescOdooWebhookURL is the schema descriptor for OdooWebhookURL field.
-	settingsDescOdooWebhookURL := settingsFields[49].Descriptor()
+	settingsDescOdooWebhookURL := settingsFields[50].Descriptor()
 	// settings.DefaultOdooWebhookURL holds the default value on creation for the OdooWebhookURL field.
 	settings.DefaultOdooWebhookURL = settingsDescOdooWebhookURL.Default.(string)
 	// settingsDescOdooWebhookToken is the schema descriptor for OdooWebhookToken field.
-	settingsDescOdooWebhookToken := settingsFields[50].Descriptor()
+	settingsDescOdooWebhookToken := settingsFields[51].Descriptor()
 	// settings.DefaultOdooWebhookToken holds the default value on creation for the OdooWebhookToken field.
 	settings.DefaultOdooWebhookToken = settingsDescOdooWebhookToken.Default.(string)
 	// settingsDescOdooDBFilter is the schema descriptor for OdooDBFilter field.
-	settingsDescOdooDBFilter := settingsFields[51].Descriptor()
+	settingsDescOdooDBFilter := settingsFields[52].Descriptor()
 	// settings.DefaultOdooDBFilter holds the default value on creation for the OdooDBFilter field.
 	settings.DefaultOdooDBFilter = settingsDescOdooDBFilter.Default.(string)
 	// settingsDescAccountingReportEmail is the schema descriptor for AccountingReportEmail field.
-	settingsDescAccountingReportEmail := settingsFields[52].Descriptor()
+	settingsDescAccountingReportEmail := settingsFields[53].Descriptor()
 	// settings.DefaultAccountingReportEmail holds the default value on creation for the AccountingReportEmail field.
 	settings.DefaultAccountingReportEmail = settingsDescAccountingReportEmail.Default.(string)
 	// settingsDescID is the schema descriptor for id field.
@@ -624,6 +628,34 @@ func init() {
 	vendorDescBlockednote := vendorFields[19].Descriptor()
 	// vendor.DefaultBlockednote holds the default value on creation for the blockednote field.
 	vendor.DefaultBlockednote = vendorDescBlockednote.Default.(string)
+	// vendorDescSteckbriefimage is the schema descriptor for steckbriefimage field.
+	vendorDescSteckbriefimage := vendorFields[23].Descriptor()
+	// vendor.DefaultSteckbriefimage holds the default value on creation for the steckbriefimage field.
+	vendor.DefaultSteckbriefimage = vendorDescSteckbriefimage.Default.(string)
+	// vendorDescSteckbriefdescription is the schema descriptor for steckbriefdescription field.
+	vendorDescSteckbriefdescription := vendorFields[24].Descriptor()
+	// vendor.DefaultSteckbriefdescription holds the default value on creation for the steckbriefdescription field.
+	vendor.DefaultSteckbriefdescription = vendorDescSteckbriefdescription.Default.(string)
+	// vendorDescSteckbrieffamily is the schema descriptor for steckbrieffamily field.
+	vendorDescSteckbrieffamily := vendorFields[25].Descriptor()
+	// vendor.DefaultSteckbrieffamily holds the default value on creation for the steckbrieffamily field.
+	vendor.DefaultSteckbrieffamily = vendorDescSteckbrieffamily.Default.(string)
+	// vendorDescSteckbriefresidence is the schema descriptor for steckbriefresidence field.
+	vendorDescSteckbriefresidence := vendorFields[26].Descriptor()
+	// vendor.DefaultSteckbriefresidence holds the default value on creation for the steckbriefresidence field.
+	vendor.DefaultSteckbriefresidence = vendorDescSteckbriefresidence.Default.(string)
+	// vendorDescSteckbriefeducation is the schema descriptor for steckbriefeducation field.
+	vendorDescSteckbriefeducation := vendorFields[27].Descriptor()
+	// vendor.DefaultSteckbriefeducation holds the default value on creation for the steckbriefeducation field.
+	vendor.DefaultSteckbriefeducation = vendorDescSteckbriefeducation.Default.(string)
+	// vendorDescSteckbriefcareergoal is the schema descriptor for steckbriefcareergoal field.
+	vendorDescSteckbriefcareergoal := vendorFields[28].Descriptor()
+	// vendor.DefaultSteckbriefcareergoal holds the default value on creation for the steckbriefcareergoal field.
+	vendor.DefaultSteckbriefcareergoal = vendorDescSteckbriefcareergoal.Default.(string)
+	// vendorDescSteckbriefsupport is the schema descriptor for steckbriefsupport field.
+	vendorDescSteckbriefsupport := vendorFields[29].Descriptor()
+	// vendor.DefaultSteckbriefsupport holds the default value on creation for the steckbriefsupport field.
+	vendor.DefaultSteckbriefsupport = vendorDescSteckbriefsupport.Default.(string)
 	// vendorDescID is the schema descriptor for id field.
 	vendorDescID := vendorFields[0].Descriptor()
 	// vendor.IDValidator is a validator for the "id" field. It is called by the builders before save.

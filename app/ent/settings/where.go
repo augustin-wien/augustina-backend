@@ -268,6 +268,11 @@ func NextcloudEnabled(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldNextcloudEnabled, v))
 }
 
+// SteckbriefEnabled applies equality check predicate on the "SteckbriefEnabled" field. It's identical to SteckbriefEnabledEQ.
+func SteckbriefEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldSteckbriefEnabled, v))
+}
+
 // NextcloudURL applies equality check predicate on the "NextcloudURL" field. It's identical to NextcloudURLEQ.
 func NextcloudURL(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldNextcloudURL, v))
@@ -2071,6 +2076,16 @@ func NextcloudEnabledEQ(v bool) predicate.Settings {
 // NextcloudEnabledNEQ applies the NEQ predicate on the "NextcloudEnabled" field.
 func NextcloudEnabledNEQ(v bool) predicate.Settings {
 	return predicate.Settings(sql.FieldNEQ(FieldNextcloudEnabled, v))
+}
+
+// SteckbriefEnabledEQ applies the EQ predicate on the "SteckbriefEnabled" field.
+func SteckbriefEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldSteckbriefEnabled, v))
+}
+
+// SteckbriefEnabledNEQ applies the NEQ predicate on the "SteckbriefEnabled" field.
+func SteckbriefEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldSteckbriefEnabled, v))
 }
 
 // NextcloudURLEQ applies the EQ predicate on the "NextcloudURL" field.

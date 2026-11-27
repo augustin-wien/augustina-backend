@@ -57,6 +57,21 @@ func (Vendor) Fields() []ent.Field {
 		field.Time("lastidscan").
 			Optional().
 			Nillable(),
+		// Steckbrief: a profile sheet with photo, shown in the backoffice when SteckbriefEnabled is set
+		field.String("steckbriefimage").
+			Default(""),
+		field.Text("steckbriefdescription").
+			Default(""),
+		field.Text("steckbrieffamily").
+			Default(""),
+		field.String("steckbriefresidence").
+			Default(""),
+		field.String("steckbriefeducation").
+			Default(""),
+		field.String("steckbriefcareergoal").
+			Default(""),
+		field.Text("steckbriefsupport").
+			Default(""),
 	}
 }
 

@@ -132,6 +132,7 @@ type PublicSettings struct {
 	NewsletterEnabled          bool
 	IDScanEnabled              bool
 	NextcloudEnabled           bool
+	SteckbriefEnabled          bool
 	// NextcloudConfigured reports whether the connection is filled in, without giving it away
 	NextcloudConfigured bool
 	Edges               ent.SettingsEdges
@@ -183,6 +184,7 @@ func toPublicSettings(s *ent.Settings) PublicSettings {
 		NewsletterEnabled:          s.NewsletterEnabled,
 		IDScanEnabled:              s.IDScanEnabled,
 		NextcloudEnabled:           s.NextcloudEnabled,
+		SteckbriefEnabled:          s.SteckbriefEnabled,
 		NextcloudConfigured:        integrations.NextcloudFromSettings(s).Configured(),
 		Edges:                      s.Edges,
 	}
@@ -453,7 +455,7 @@ func updateSettings(w http.ResponseWriter, r *http.Request) {
 				utils.ErrorJSON(w, errors.New("DonationTrackingEnabled is not a boolean"), http.StatusBadRequest)
 				return
 			}
-		case "AGBRequired", "DonationPageEnabled", "MatomoTrackCart", "FeedbackEnabled", "NewsletterEnabled", "IDScanEnabled", "NextcloudEnabled", "VoucherEnabled":
+		case "AGBRequired", "DonationPageEnabled", "MatomoTrackCart", "FeedbackEnabled", "NewsletterEnabled", "IDScanEnabled", "NextcloudEnabled", "SteckbriefEnabled", "VoucherEnabled":
 			fieldsClean[key], err = strconv.ParseBool(value[0])
 			if err != nil {
 				log.Error(key + " is not a boolean")

@@ -204,3 +204,18 @@ type PDFDownload struct {
 	DownloadCount int
 	ItemID        null.Int
 }
+
+// VendorSteckbrief is the vendor's profile sheet: a photo and a few lines about the vendor
+type VendorSteckbrief struct {
+	VendorID    int
+	FirstName   string // read-only, from the vendor
+	LastName    string // read-only, from the vendor
+	LicenseID   string // read-only, from the vendor
+	Image       string // path below the backend, e.g. img/steckbrief_ab12_0.jpg; set via the image upload
+	Description string
+	Family      string
+	Residence   string
+	Education   string
+	CareerGoal  string
+	Support     string
+}

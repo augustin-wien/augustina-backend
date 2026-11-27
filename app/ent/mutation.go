@@ -16769,6 +16769,7 @@ type SettingsMutation struct {
 	_NewsletterEnabled          *bool
 	_IDScanEnabled              *bool
 	_NextcloudEnabled           *bool
+	_SteckbriefEnabled          *bool
 	_NextcloudURL               *string
 	_NextcloudPublicURL         *string
 	_NextcloudUsername          *string
@@ -18518,6 +18519,42 @@ func (m *SettingsMutation) ResetNextcloudEnabled() {
 	m._NextcloudEnabled = nil
 }
 
+// SetSteckbriefEnabled sets the "SteckbriefEnabled" field.
+func (m *SettingsMutation) SetSteckbriefEnabled(b bool) {
+	m._SteckbriefEnabled = &b
+}
+
+// SteckbriefEnabled returns the value of the "SteckbriefEnabled" field in the mutation.
+func (m *SettingsMutation) SteckbriefEnabled() (r bool, exists bool) {
+	v := m._SteckbriefEnabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSteckbriefEnabled returns the old "SteckbriefEnabled" field's value of the Settings entity.
+// If the Settings object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SettingsMutation) OldSteckbriefEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSteckbriefEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSteckbriefEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSteckbriefEnabled: %w", err)
+	}
+	return oldValue.SteckbriefEnabled, nil
+}
+
+// ResetSteckbriefEnabled resets all changes to the "SteckbriefEnabled" field.
+func (m *SettingsMutation) ResetSteckbriefEnabled() {
+	m._SteckbriefEnabled = nil
+}
+
 // SetNextcloudURL sets the "NextcloudURL" field.
 func (m *SettingsMutation) SetNextcloudURL(s string) {
 	m._NextcloudURL = &s
@@ -18915,7 +18952,7 @@ func (m *SettingsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SettingsMutation) Fields() []string {
-	fields := make([]string, 0, 52)
+	fields := make([]string, 0, 53)
 	if m._AGBUrl != nil {
 		fields = append(fields, settings.FieldAGBUrl)
 	}
@@ -19045,6 +19082,9 @@ func (m *SettingsMutation) Fields() []string {
 	if m._NextcloudEnabled != nil {
 		fields = append(fields, settings.FieldNextcloudEnabled)
 	}
+	if m._SteckbriefEnabled != nil {
+		fields = append(fields, settings.FieldSteckbriefEnabled)
+	}
 	if m._NextcloudURL != nil {
 		fields = append(fields, settings.FieldNextcloudURL)
 	}
@@ -19166,6 +19206,8 @@ func (m *SettingsMutation) Field(name string) (ent.Value, bool) {
 		return m.IDScanEnabled()
 	case settings.FieldNextcloudEnabled:
 		return m.NextcloudEnabled()
+	case settings.FieldSteckbriefEnabled:
+		return m.SteckbriefEnabled()
 	case settings.FieldNextcloudURL:
 		return m.NextcloudURL()
 	case settings.FieldNextcloudPublicURL:
@@ -19279,6 +19321,8 @@ func (m *SettingsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldIDScanEnabled(ctx)
 	case settings.FieldNextcloudEnabled:
 		return m.OldNextcloudEnabled(ctx)
+	case settings.FieldSteckbriefEnabled:
+		return m.OldSteckbriefEnabled(ctx)
 	case settings.FieldNextcloudURL:
 		return m.OldNextcloudURL(ctx)
 	case settings.FieldNextcloudPublicURL:
@@ -19607,6 +19651,13 @@ func (m *SettingsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNextcloudEnabled(v)
 		return nil
+	case settings.FieldSteckbriefEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSteckbriefEnabled(v)
+		return nil
 	case settings.FieldNextcloudURL:
 		v, ok := value.(string)
 		if !ok {
@@ -19899,6 +19950,9 @@ func (m *SettingsMutation) ResetField(name string) error {
 	case settings.FieldNextcloudEnabled:
 		m.ResetNextcloudEnabled()
 		return nil
+	case settings.FieldSteckbriefEnabled:
+		m.ResetSteckbriefEnabled()
+		return nil
 	case settings.FieldNextcloudURL:
 		m.ResetNextcloudURL()
 		return nil
@@ -20007,44 +20061,51 @@ func (m *SettingsMutation) ResetEdge(name string) error {
 // VendorMutation represents an operation that mutates the Vendor nodes in the graph.
 type VendorMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *int
-	keycloakid       *string
-	urlid            *string
-	licenseid        *string
-	firstname        *string
-	lastname         *string
-	email            *string
-	hasownemail      *bool
-	lastpayout       *time.Time
-	isdisabled       *bool
-	language         *string
-	telephone        *string
-	registrationdate *string
-	vendorsince      *string
-	onlinemap        *bool
-	hassmartphone    *bool
-	hasbankaccount   *bool
-	isdeleted        *bool
-	isblocked        *bool
-	blockednote      *string
-	accountproofurl  *string
-	debt             *string
-	lastidscan       *time.Time
-	clearedFields    map[string]struct{}
-	locations        map[int]struct{}
-	removedlocations map[int]struct{}
-	clearedlocations bool
-	comments         map[int]struct{}
-	removedcomments  map[int]struct{}
-	clearedcomments  bool
-	accounts         map[int]struct{}
-	removedaccounts  map[int]struct{}
-	clearedaccounts  bool
-	done             bool
-	oldValue         func(context.Context) (*Vendor, error)
-	predicates       []predicate.Vendor
+	op                    Op
+	typ                   string
+	id                    *int
+	keycloakid            *string
+	urlid                 *string
+	licenseid             *string
+	firstname             *string
+	lastname              *string
+	email                 *string
+	hasownemail           *bool
+	lastpayout            *time.Time
+	isdisabled            *bool
+	language              *string
+	telephone             *string
+	registrationdate      *string
+	vendorsince           *string
+	onlinemap             *bool
+	hassmartphone         *bool
+	hasbankaccount        *bool
+	isdeleted             *bool
+	isblocked             *bool
+	blockednote           *string
+	accountproofurl       *string
+	debt                  *string
+	lastidscan            *time.Time
+	steckbriefimage       *string
+	steckbriefdescription *string
+	steckbrieffamily      *string
+	steckbriefresidence   *string
+	steckbriefeducation   *string
+	steckbriefcareergoal  *string
+	steckbriefsupport     *string
+	clearedFields         map[string]struct{}
+	locations             map[int]struct{}
+	removedlocations      map[int]struct{}
+	clearedlocations      bool
+	comments              map[int]struct{}
+	removedcomments       map[int]struct{}
+	clearedcomments       bool
+	accounts              map[int]struct{}
+	removedaccounts       map[int]struct{}
+	clearedaccounts       bool
+	done                  bool
+	oldValue              func(context.Context) (*Vendor, error)
+	predicates            []predicate.Vendor
 }
 
 var _ ent.Mutation = (*VendorMutation)(nil)
@@ -20956,6 +21017,258 @@ func (m *VendorMutation) ResetLastidscan() {
 	delete(m.clearedFields, vendor.FieldLastidscan)
 }
 
+// SetSteckbriefimage sets the "steckbriefimage" field.
+func (m *VendorMutation) SetSteckbriefimage(s string) {
+	m.steckbriefimage = &s
+}
+
+// Steckbriefimage returns the value of the "steckbriefimage" field in the mutation.
+func (m *VendorMutation) Steckbriefimage() (r string, exists bool) {
+	v := m.steckbriefimage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSteckbriefimage returns the old "steckbriefimage" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldSteckbriefimage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSteckbriefimage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSteckbriefimage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSteckbriefimage: %w", err)
+	}
+	return oldValue.Steckbriefimage, nil
+}
+
+// ResetSteckbriefimage resets all changes to the "steckbriefimage" field.
+func (m *VendorMutation) ResetSteckbriefimage() {
+	m.steckbriefimage = nil
+}
+
+// SetSteckbriefdescription sets the "steckbriefdescription" field.
+func (m *VendorMutation) SetSteckbriefdescription(s string) {
+	m.steckbriefdescription = &s
+}
+
+// Steckbriefdescription returns the value of the "steckbriefdescription" field in the mutation.
+func (m *VendorMutation) Steckbriefdescription() (r string, exists bool) {
+	v := m.steckbriefdescription
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSteckbriefdescription returns the old "steckbriefdescription" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldSteckbriefdescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSteckbriefdescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSteckbriefdescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSteckbriefdescription: %w", err)
+	}
+	return oldValue.Steckbriefdescription, nil
+}
+
+// ResetSteckbriefdescription resets all changes to the "steckbriefdescription" field.
+func (m *VendorMutation) ResetSteckbriefdescription() {
+	m.steckbriefdescription = nil
+}
+
+// SetSteckbrieffamily sets the "steckbrieffamily" field.
+func (m *VendorMutation) SetSteckbrieffamily(s string) {
+	m.steckbrieffamily = &s
+}
+
+// Steckbrieffamily returns the value of the "steckbrieffamily" field in the mutation.
+func (m *VendorMutation) Steckbrieffamily() (r string, exists bool) {
+	v := m.steckbrieffamily
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSteckbrieffamily returns the old "steckbrieffamily" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldSteckbrieffamily(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSteckbrieffamily is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSteckbrieffamily requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSteckbrieffamily: %w", err)
+	}
+	return oldValue.Steckbrieffamily, nil
+}
+
+// ResetSteckbrieffamily resets all changes to the "steckbrieffamily" field.
+func (m *VendorMutation) ResetSteckbrieffamily() {
+	m.steckbrieffamily = nil
+}
+
+// SetSteckbriefresidence sets the "steckbriefresidence" field.
+func (m *VendorMutation) SetSteckbriefresidence(s string) {
+	m.steckbriefresidence = &s
+}
+
+// Steckbriefresidence returns the value of the "steckbriefresidence" field in the mutation.
+func (m *VendorMutation) Steckbriefresidence() (r string, exists bool) {
+	v := m.steckbriefresidence
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSteckbriefresidence returns the old "steckbriefresidence" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldSteckbriefresidence(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSteckbriefresidence is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSteckbriefresidence requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSteckbriefresidence: %w", err)
+	}
+	return oldValue.Steckbriefresidence, nil
+}
+
+// ResetSteckbriefresidence resets all changes to the "steckbriefresidence" field.
+func (m *VendorMutation) ResetSteckbriefresidence() {
+	m.steckbriefresidence = nil
+}
+
+// SetSteckbriefeducation sets the "steckbriefeducation" field.
+func (m *VendorMutation) SetSteckbriefeducation(s string) {
+	m.steckbriefeducation = &s
+}
+
+// Steckbriefeducation returns the value of the "steckbriefeducation" field in the mutation.
+func (m *VendorMutation) Steckbriefeducation() (r string, exists bool) {
+	v := m.steckbriefeducation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSteckbriefeducation returns the old "steckbriefeducation" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldSteckbriefeducation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSteckbriefeducation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSteckbriefeducation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSteckbriefeducation: %w", err)
+	}
+	return oldValue.Steckbriefeducation, nil
+}
+
+// ResetSteckbriefeducation resets all changes to the "steckbriefeducation" field.
+func (m *VendorMutation) ResetSteckbriefeducation() {
+	m.steckbriefeducation = nil
+}
+
+// SetSteckbriefcareergoal sets the "steckbriefcareergoal" field.
+func (m *VendorMutation) SetSteckbriefcareergoal(s string) {
+	m.steckbriefcareergoal = &s
+}
+
+// Steckbriefcareergoal returns the value of the "steckbriefcareergoal" field in the mutation.
+func (m *VendorMutation) Steckbriefcareergoal() (r string, exists bool) {
+	v := m.steckbriefcareergoal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSteckbriefcareergoal returns the old "steckbriefcareergoal" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldSteckbriefcareergoal(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSteckbriefcareergoal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSteckbriefcareergoal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSteckbriefcareergoal: %w", err)
+	}
+	return oldValue.Steckbriefcareergoal, nil
+}
+
+// ResetSteckbriefcareergoal resets all changes to the "steckbriefcareergoal" field.
+func (m *VendorMutation) ResetSteckbriefcareergoal() {
+	m.steckbriefcareergoal = nil
+}
+
+// SetSteckbriefsupport sets the "steckbriefsupport" field.
+func (m *VendorMutation) SetSteckbriefsupport(s string) {
+	m.steckbriefsupport = &s
+}
+
+// Steckbriefsupport returns the value of the "steckbriefsupport" field in the mutation.
+func (m *VendorMutation) Steckbriefsupport() (r string, exists bool) {
+	v := m.steckbriefsupport
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSteckbriefsupport returns the old "steckbriefsupport" field's value of the Vendor entity.
+// If the Vendor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *VendorMutation) OldSteckbriefsupport(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSteckbriefsupport is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSteckbriefsupport requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSteckbriefsupport: %w", err)
+	}
+	return oldValue.Steckbriefsupport, nil
+}
+
+// ResetSteckbriefsupport resets all changes to the "steckbriefsupport" field.
+func (m *VendorMutation) ResetSteckbriefsupport() {
+	m.steckbriefsupport = nil
+}
+
 // AddLocationIDs adds the "locations" edge to the Location entity by ids.
 func (m *VendorMutation) AddLocationIDs(ids ...int) {
 	if m.locations == nil {
@@ -21152,7 +21465,7 @@ func (m *VendorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *VendorMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 29)
 	if m.keycloakid != nil {
 		fields = append(fields, vendor.FieldKeycloakid)
 	}
@@ -21219,6 +21532,27 @@ func (m *VendorMutation) Fields() []string {
 	if m.lastidscan != nil {
 		fields = append(fields, vendor.FieldLastidscan)
 	}
+	if m.steckbriefimage != nil {
+		fields = append(fields, vendor.FieldSteckbriefimage)
+	}
+	if m.steckbriefdescription != nil {
+		fields = append(fields, vendor.FieldSteckbriefdescription)
+	}
+	if m.steckbrieffamily != nil {
+		fields = append(fields, vendor.FieldSteckbrieffamily)
+	}
+	if m.steckbriefresidence != nil {
+		fields = append(fields, vendor.FieldSteckbriefresidence)
+	}
+	if m.steckbriefeducation != nil {
+		fields = append(fields, vendor.FieldSteckbriefeducation)
+	}
+	if m.steckbriefcareergoal != nil {
+		fields = append(fields, vendor.FieldSteckbriefcareergoal)
+	}
+	if m.steckbriefsupport != nil {
+		fields = append(fields, vendor.FieldSteckbriefsupport)
+	}
 	return fields
 }
 
@@ -21271,6 +21605,20 @@ func (m *VendorMutation) Field(name string) (ent.Value, bool) {
 		return m.Debt()
 	case vendor.FieldLastidscan:
 		return m.Lastidscan()
+	case vendor.FieldSteckbriefimage:
+		return m.Steckbriefimage()
+	case vendor.FieldSteckbriefdescription:
+		return m.Steckbriefdescription()
+	case vendor.FieldSteckbrieffamily:
+		return m.Steckbrieffamily()
+	case vendor.FieldSteckbriefresidence:
+		return m.Steckbriefresidence()
+	case vendor.FieldSteckbriefeducation:
+		return m.Steckbriefeducation()
+	case vendor.FieldSteckbriefcareergoal:
+		return m.Steckbriefcareergoal()
+	case vendor.FieldSteckbriefsupport:
+		return m.Steckbriefsupport()
 	}
 	return nil, false
 }
@@ -21324,6 +21672,20 @@ func (m *VendorMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldDebt(ctx)
 	case vendor.FieldLastidscan:
 		return m.OldLastidscan(ctx)
+	case vendor.FieldSteckbriefimage:
+		return m.OldSteckbriefimage(ctx)
+	case vendor.FieldSteckbriefdescription:
+		return m.OldSteckbriefdescription(ctx)
+	case vendor.FieldSteckbrieffamily:
+		return m.OldSteckbrieffamily(ctx)
+	case vendor.FieldSteckbriefresidence:
+		return m.OldSteckbriefresidence(ctx)
+	case vendor.FieldSteckbriefeducation:
+		return m.OldSteckbriefeducation(ctx)
+	case vendor.FieldSteckbriefcareergoal:
+		return m.OldSteckbriefcareergoal(ctx)
+	case vendor.FieldSteckbriefsupport:
+		return m.OldSteckbriefsupport(ctx)
 	}
 	return nil, fmt.Errorf("unknown Vendor field %s", name)
 }
@@ -21487,6 +21849,55 @@ func (m *VendorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLastidscan(v)
 		return nil
+	case vendor.FieldSteckbriefimage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSteckbriefimage(v)
+		return nil
+	case vendor.FieldSteckbriefdescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSteckbriefdescription(v)
+		return nil
+	case vendor.FieldSteckbrieffamily:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSteckbrieffamily(v)
+		return nil
+	case vendor.FieldSteckbriefresidence:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSteckbriefresidence(v)
+		return nil
+	case vendor.FieldSteckbriefeducation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSteckbriefeducation(v)
+		return nil
+	case vendor.FieldSteckbriefcareergoal:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSteckbriefcareergoal(v)
+		return nil
+	case vendor.FieldSteckbriefsupport:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSteckbriefsupport(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Vendor field %s", name)
 }
@@ -21610,6 +22021,27 @@ func (m *VendorMutation) ResetField(name string) error {
 		return nil
 	case vendor.FieldLastidscan:
 		m.ResetLastidscan()
+		return nil
+	case vendor.FieldSteckbriefimage:
+		m.ResetSteckbriefimage()
+		return nil
+	case vendor.FieldSteckbriefdescription:
+		m.ResetSteckbriefdescription()
+		return nil
+	case vendor.FieldSteckbrieffamily:
+		m.ResetSteckbrieffamily()
+		return nil
+	case vendor.FieldSteckbriefresidence:
+		m.ResetSteckbriefresidence()
+		return nil
+	case vendor.FieldSteckbriefeducation:
+		m.ResetSteckbriefeducation()
+		return nil
+	case vendor.FieldSteckbriefcareergoal:
+		m.ResetSteckbriefcareergoal()
+		return nil
+	case vendor.FieldSteckbriefsupport:
+		m.ResetSteckbriefsupport()
 		return nil
 	}
 	return fmt.Errorf("unknown Vendor field %s", name)

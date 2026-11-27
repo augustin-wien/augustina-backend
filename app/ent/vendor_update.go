@@ -345,6 +345,104 @@ func (_u *VendorUpdate) ClearLastidscan() *VendorUpdate {
 	return _u
 }
 
+// SetSteckbriefimage sets the "steckbriefimage" field.
+func (_u *VendorUpdate) SetSteckbriefimage(v string) *VendorUpdate {
+	_u.mutation.SetSteckbriefimage(v)
+	return _u
+}
+
+// SetNillableSteckbriefimage sets the "steckbriefimage" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableSteckbriefimage(v *string) *VendorUpdate {
+	if v != nil {
+		_u.SetSteckbriefimage(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefdescription sets the "steckbriefdescription" field.
+func (_u *VendorUpdate) SetSteckbriefdescription(v string) *VendorUpdate {
+	_u.mutation.SetSteckbriefdescription(v)
+	return _u
+}
+
+// SetNillableSteckbriefdescription sets the "steckbriefdescription" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableSteckbriefdescription(v *string) *VendorUpdate {
+	if v != nil {
+		_u.SetSteckbriefdescription(*v)
+	}
+	return _u
+}
+
+// SetSteckbrieffamily sets the "steckbrieffamily" field.
+func (_u *VendorUpdate) SetSteckbrieffamily(v string) *VendorUpdate {
+	_u.mutation.SetSteckbrieffamily(v)
+	return _u
+}
+
+// SetNillableSteckbrieffamily sets the "steckbrieffamily" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableSteckbrieffamily(v *string) *VendorUpdate {
+	if v != nil {
+		_u.SetSteckbrieffamily(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefresidence sets the "steckbriefresidence" field.
+func (_u *VendorUpdate) SetSteckbriefresidence(v string) *VendorUpdate {
+	_u.mutation.SetSteckbriefresidence(v)
+	return _u
+}
+
+// SetNillableSteckbriefresidence sets the "steckbriefresidence" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableSteckbriefresidence(v *string) *VendorUpdate {
+	if v != nil {
+		_u.SetSteckbriefresidence(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefeducation sets the "steckbriefeducation" field.
+func (_u *VendorUpdate) SetSteckbriefeducation(v string) *VendorUpdate {
+	_u.mutation.SetSteckbriefeducation(v)
+	return _u
+}
+
+// SetNillableSteckbriefeducation sets the "steckbriefeducation" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableSteckbriefeducation(v *string) *VendorUpdate {
+	if v != nil {
+		_u.SetSteckbriefeducation(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefcareergoal sets the "steckbriefcareergoal" field.
+func (_u *VendorUpdate) SetSteckbriefcareergoal(v string) *VendorUpdate {
+	_u.mutation.SetSteckbriefcareergoal(v)
+	return _u
+}
+
+// SetNillableSteckbriefcareergoal sets the "steckbriefcareergoal" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableSteckbriefcareergoal(v *string) *VendorUpdate {
+	if v != nil {
+		_u.SetSteckbriefcareergoal(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefsupport sets the "steckbriefsupport" field.
+func (_u *VendorUpdate) SetSteckbriefsupport(v string) *VendorUpdate {
+	_u.mutation.SetSteckbriefsupport(v)
+	return _u
+}
+
+// SetNillableSteckbriefsupport sets the "steckbriefsupport" field if the given value is not nil.
+func (_u *VendorUpdate) SetNillableSteckbriefsupport(v *string) *VendorUpdate {
+	if v != nil {
+		_u.SetSteckbriefsupport(*v)
+	}
+	return _u
+}
+
 // AddLocationIDs adds the "locations" edge to the Location entity by IDs.
 func (_u *VendorUpdate) AddLocationIDs(ids ...int) *VendorUpdate {
 	_u.mutation.AddLocationIDs(ids...)
@@ -562,6 +660,27 @@ func (_u *VendorUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.LastidscanCleared() {
 		_spec.ClearField(vendor.FieldLastidscan, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Steckbriefimage(); ok {
+		_spec.SetField(vendor.FieldSteckbriefimage, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefdescription(); ok {
+		_spec.SetField(vendor.FieldSteckbriefdescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbrieffamily(); ok {
+		_spec.SetField(vendor.FieldSteckbrieffamily, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefresidence(); ok {
+		_spec.SetField(vendor.FieldSteckbriefresidence, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefeducation(); ok {
+		_spec.SetField(vendor.FieldSteckbriefeducation, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefcareergoal(); ok {
+		_spec.SetField(vendor.FieldSteckbriefcareergoal, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefsupport(); ok {
+		_spec.SetField(vendor.FieldSteckbriefsupport, field.TypeString, value)
 	}
 	if _u.mutation.LocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1032,6 +1151,104 @@ func (_u *VendorUpdateOne) ClearLastidscan() *VendorUpdateOne {
 	return _u
 }
 
+// SetSteckbriefimage sets the "steckbriefimage" field.
+func (_u *VendorUpdateOne) SetSteckbriefimage(v string) *VendorUpdateOne {
+	_u.mutation.SetSteckbriefimage(v)
+	return _u
+}
+
+// SetNillableSteckbriefimage sets the "steckbriefimage" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableSteckbriefimage(v *string) *VendorUpdateOne {
+	if v != nil {
+		_u.SetSteckbriefimage(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefdescription sets the "steckbriefdescription" field.
+func (_u *VendorUpdateOne) SetSteckbriefdescription(v string) *VendorUpdateOne {
+	_u.mutation.SetSteckbriefdescription(v)
+	return _u
+}
+
+// SetNillableSteckbriefdescription sets the "steckbriefdescription" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableSteckbriefdescription(v *string) *VendorUpdateOne {
+	if v != nil {
+		_u.SetSteckbriefdescription(*v)
+	}
+	return _u
+}
+
+// SetSteckbrieffamily sets the "steckbrieffamily" field.
+func (_u *VendorUpdateOne) SetSteckbrieffamily(v string) *VendorUpdateOne {
+	_u.mutation.SetSteckbrieffamily(v)
+	return _u
+}
+
+// SetNillableSteckbrieffamily sets the "steckbrieffamily" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableSteckbrieffamily(v *string) *VendorUpdateOne {
+	if v != nil {
+		_u.SetSteckbrieffamily(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefresidence sets the "steckbriefresidence" field.
+func (_u *VendorUpdateOne) SetSteckbriefresidence(v string) *VendorUpdateOne {
+	_u.mutation.SetSteckbriefresidence(v)
+	return _u
+}
+
+// SetNillableSteckbriefresidence sets the "steckbriefresidence" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableSteckbriefresidence(v *string) *VendorUpdateOne {
+	if v != nil {
+		_u.SetSteckbriefresidence(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefeducation sets the "steckbriefeducation" field.
+func (_u *VendorUpdateOne) SetSteckbriefeducation(v string) *VendorUpdateOne {
+	_u.mutation.SetSteckbriefeducation(v)
+	return _u
+}
+
+// SetNillableSteckbriefeducation sets the "steckbriefeducation" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableSteckbriefeducation(v *string) *VendorUpdateOne {
+	if v != nil {
+		_u.SetSteckbriefeducation(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefcareergoal sets the "steckbriefcareergoal" field.
+func (_u *VendorUpdateOne) SetSteckbriefcareergoal(v string) *VendorUpdateOne {
+	_u.mutation.SetSteckbriefcareergoal(v)
+	return _u
+}
+
+// SetNillableSteckbriefcareergoal sets the "steckbriefcareergoal" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableSteckbriefcareergoal(v *string) *VendorUpdateOne {
+	if v != nil {
+		_u.SetSteckbriefcareergoal(*v)
+	}
+	return _u
+}
+
+// SetSteckbriefsupport sets the "steckbriefsupport" field.
+func (_u *VendorUpdateOne) SetSteckbriefsupport(v string) *VendorUpdateOne {
+	_u.mutation.SetSteckbriefsupport(v)
+	return _u
+}
+
+// SetNillableSteckbriefsupport sets the "steckbriefsupport" field if the given value is not nil.
+func (_u *VendorUpdateOne) SetNillableSteckbriefsupport(v *string) *VendorUpdateOne {
+	if v != nil {
+		_u.SetSteckbriefsupport(*v)
+	}
+	return _u
+}
+
 // AddLocationIDs adds the "locations" edge to the Location entity by IDs.
 func (_u *VendorUpdateOne) AddLocationIDs(ids ...int) *VendorUpdateOne {
 	_u.mutation.AddLocationIDs(ids...)
@@ -1279,6 +1496,27 @@ func (_u *VendorUpdateOne) sqlSave(ctx context.Context) (_node *Vendor, err erro
 	}
 	if _u.mutation.LastidscanCleared() {
 		_spec.ClearField(vendor.FieldLastidscan, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Steckbriefimage(); ok {
+		_spec.SetField(vendor.FieldSteckbriefimage, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefdescription(); ok {
+		_spec.SetField(vendor.FieldSteckbriefdescription, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbrieffamily(); ok {
+		_spec.SetField(vendor.FieldSteckbrieffamily, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefresidence(); ok {
+		_spec.SetField(vendor.FieldSteckbriefresidence, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefeducation(); ok {
+		_spec.SetField(vendor.FieldSteckbriefeducation, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefcareergoal(); ok {
+		_spec.SetField(vendor.FieldSteckbriefcareergoal, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steckbriefsupport(); ok {
+		_spec.SetField(vendor.FieldSteckbriefsupport, field.TypeString, value)
 	}
 	if _u.mutation.LocationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
