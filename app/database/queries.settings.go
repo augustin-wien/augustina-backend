@@ -167,7 +167,10 @@ func (db *Database) UpdateSettings(settings *ent.Settings) (err error) {
 		SetOdooWebhookURL(settings.OdooWebhookURL).
 		SetOdooWebhookToken(settings.OdooWebhookToken).
 		SetOdooDBFilter(settings.OdooDBFilter).
-		SetAccountingReportEmail(settings.AccountingReportEmail)
+		SetAccountingReportEmail(settings.AccountingReportEmail).
+		SetSalesAnonymizationEnabled(settings.SalesAnonymizationEnabled).
+		SetVendorAnonymizationEnabled(settings.VendorAnonymizationEnabled).
+		SetAnonymizationRetentionDays(settings.AnonymizationRetentionDays)
 
 	// Update main item if present
 	if settings.Edges.MainItem != nil {

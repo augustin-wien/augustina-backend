@@ -123,6 +123,12 @@ type Settings struct {
 	OdooDBFilter string `json:"OdooDBFilter"`
 	// AccountingReportEmail holds the value of the "AccountingReportEmail" field.
 	AccountingReportEmail string `json:"AccountingReportEmail"`
+	// SalesAnonymizationEnabled holds the value of the "SalesAnonymizationEnabled" field.
+	SalesAnonymizationEnabled bool `json:"SalesAnonymizationEnabled"`
+	// VendorAnonymizationEnabled holds the value of the "VendorAnonymizationEnabled" field.
+	VendorAnonymizationEnabled bool `json:"VendorAnonymizationEnabled"`
+	// AnonymizationRetentionDays holds the value of the "AnonymizationRetentionDays" field.
+	AnonymizationRetentionDays int `json:"AnonymizationRetentionDays"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SettingsQuery when eager-loading is set.
 	Edges        SettingsEdges `json:"edges"`
@@ -155,11 +161,11 @@ func (*Settings) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldVoucherEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled, settings.FieldNewsletterEnabled, settings.FieldIDScanEnabled, settings.FieldNextcloudEnabled, settings.FieldSteckbriefEnabled:
+		case settings.FieldOrgaCoversTransactionCosts, settings.FieldWebshopIsClosed, settings.FieldUseVendorLicenseIdInShop, settings.FieldQRCodeEnableLogo, settings.FieldUseTipInsteadOfDonation, settings.FieldShopLanding, settings.FieldAbonementEnabled, settings.FieldVoucherEnabled, settings.FieldPOSEnabled, settings.FieldDonationTrackingEnabled, settings.FieldAGBRequired, settings.FieldDonationPageEnabled, settings.FieldMatomoTrackCart, settings.FieldFeedbackEnabled, settings.FieldNewsletterEnabled, settings.FieldIDScanEnabled, settings.FieldNextcloudEnabled, settings.FieldSteckbriefEnabled, settings.FieldSalesAnonymizationEnabled, settings.FieldVendorAnonymizationEnabled:
 			values[i] = new(sql.NullBool)
 		case settings.FieldMapCenterLat, settings.FieldMapCenterLong:
 			values[i] = new(sql.NullFloat64)
-		case settings.FieldID, settings.FieldMaxOrderAmount, settings.FieldWordPressInviteTTL:
+		case settings.FieldID, settings.FieldMaxOrderAmount, settings.FieldWordPressInviteTTL, settings.FieldAnonymizationRetentionDays:
 			values[i] = new(sql.NullInt64)
 		case settings.FieldAGBUrl, settings.FieldColor, settings.FieldFontColor, settings.FieldLogo, settings.FieldVendorNotFoundHelpUrl, settings.FieldMaintainanceModeHelpUrl, settings.FieldVendorEmailPostfix, settings.FieldNewspaperName, settings.FieldQRCodeUrl, settings.FieldQRCodeLogoImgUrl, settings.FieldFavicon, settings.FieldQRCodeSettings, settings.FieldDigitalItemsUrl, settings.FieldAbonementUrl, settings.FieldWordPressInviteURL, settings.FieldWordPressInviteAPIKey, settings.FieldPrivacyPolicyUrl, settings.FieldMatomoUrl, settings.FieldMatomoSiteId, settings.FieldOnlinePaperUrl, settings.FieldMailSenderName, settings.FieldFeedbackEmail, settings.FieldNextcloudURL, settings.FieldNextcloudPublicURL, settings.FieldNextcloudUsername, settings.FieldNextcloudAppPassword, settings.FieldNextcloudVendorRoot, settings.FieldOdooWebhookURL, settings.FieldOdooWebhookToken, settings.FieldOdooDBFilter, settings.FieldAccountingReportEmail:
 			values[i] = new(sql.NullString)
@@ -504,6 +510,24 @@ func (_m *Settings) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.AccountingReportEmail = value.String
 			}
+		case settings.FieldSalesAnonymizationEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field SalesAnonymizationEnabled", values[i])
+			} else if value.Valid {
+				_m.SalesAnonymizationEnabled = value.Bool
+			}
+		case settings.FieldVendorAnonymizationEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field VendorAnonymizationEnabled", values[i])
+			} else if value.Valid {
+				_m.VendorAnonymizationEnabled = value.Bool
+			}
+		case settings.FieldAnonymizationRetentionDays:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field AnonymizationRetentionDays", values[i])
+			} else if value.Valid {
+				_m.AnonymizationRetentionDays = int(value.Int64)
+			}
 		case settings.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field mainitem", value)
@@ -710,6 +734,15 @@ func (_m *Settings) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("AccountingReportEmail=")
 	builder.WriteString(_m.AccountingReportEmail)
+	builder.WriteString(", ")
+	builder.WriteString("SalesAnonymizationEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SalesAnonymizationEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("VendorAnonymizationEnabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.VendorAnonymizationEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("AnonymizationRetentionDays=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AnonymizationRetentionDays))
 	builder.WriteByte(')')
 	return builder.String()
 }

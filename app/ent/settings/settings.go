@@ -118,6 +118,12 @@ const (
 	FieldOdooDBFilter = "odoodbfilter"
 	// FieldAccountingReportEmail holds the string denoting the accountingreportemail field in the database.
 	FieldAccountingReportEmail = "accountingreportemail"
+	// FieldSalesAnonymizationEnabled holds the string denoting the salesanonymizationenabled field in the database.
+	FieldSalesAnonymizationEnabled = "salesanonymizationenabled"
+	// FieldVendorAnonymizationEnabled holds the string denoting the vendoranonymizationenabled field in the database.
+	FieldVendorAnonymizationEnabled = "vendoranonymizationenabled"
+	// FieldAnonymizationRetentionDays holds the string denoting the anonymizationretentiondays field in the database.
+	FieldAnonymizationRetentionDays = "anonymizationretentiondays"
 	// EdgeMainItem holds the string denoting the mainitem edge name in mutations.
 	EdgeMainItem = "MainItem"
 	// Table holds the table name of the settings in the database.
@@ -187,6 +193,9 @@ var Columns = []string{
 	FieldOdooWebhookToken,
 	FieldOdooDBFilter,
 	FieldAccountingReportEmail,
+	FieldSalesAnonymizationEnabled,
+	FieldVendorAnonymizationEnabled,
+	FieldAnonymizationRetentionDays,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "settings"
@@ -317,6 +326,12 @@ var (
 	DefaultOdooDBFilter string
 	// DefaultAccountingReportEmail holds the default value on creation for the "AccountingReportEmail" field.
 	DefaultAccountingReportEmail string
+	// DefaultSalesAnonymizationEnabled holds the default value on creation for the "SalesAnonymizationEnabled" field.
+	DefaultSalesAnonymizationEnabled bool
+	// DefaultVendorAnonymizationEnabled holds the default value on creation for the "VendorAnonymizationEnabled" field.
+	DefaultVendorAnonymizationEnabled bool
+	// DefaultAnonymizationRetentionDays holds the default value on creation for the "AnonymizationRetentionDays" field.
+	DefaultAnonymizationRetentionDays int
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -592,6 +607,21 @@ func ByOdooDBFilter(opts ...sql.OrderTermOption) OrderOption {
 // ByAccountingReportEmail orders the results by the AccountingReportEmail field.
 func ByAccountingReportEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAccountingReportEmail, opts...).ToFunc()
+}
+
+// BySalesAnonymizationEnabled orders the results by the SalesAnonymizationEnabled field.
+func BySalesAnonymizationEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSalesAnonymizationEnabled, opts...).ToFunc()
+}
+
+// ByVendorAnonymizationEnabled orders the results by the VendorAnonymizationEnabled field.
+func ByVendorAnonymizationEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVendorAnonymizationEnabled, opts...).ToFunc()
+}
+
+// ByAnonymizationRetentionDays orders the results by the AnonymizationRetentionDays field.
+func ByAnonymizationRetentionDays(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAnonymizationRetentionDays, opts...).ToFunc()
 }
 
 // ByMainItemField orders the results by MainItem field.

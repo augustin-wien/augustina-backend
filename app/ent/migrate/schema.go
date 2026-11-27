@@ -527,6 +527,9 @@ var (
 		{Name: "odoowebhooktoken", Type: field.TypeString, Default: ""},
 		{Name: "odoodbfilter", Type: field.TypeString, Default: ""},
 		{Name: "accountingreportemail", Type: field.TypeString, Default: ""},
+		{Name: "salesanonymizationenabled", Type: field.TypeBool, Default: false},
+		{Name: "vendoranonymizationenabled", Type: field.TypeBool, Default: false},
+		{Name: "anonymizationretentiondays", Type: field.TypeInt, Default: 90},
 		{Name: "mainitem", Type: field.TypeInt, Nullable: true},
 	}
 	// SettingsTable holds the schema information for the "settings" table.
@@ -537,7 +540,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "settings_item_MainItem",
-				Columns:    []*schema.Column{SettingsColumns[54]},
+				Columns:    []*schema.Column{SettingsColumns[57]},
 				RefColumns: []*schema.Column{ItemColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

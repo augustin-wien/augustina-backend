@@ -318,6 +318,21 @@ func AccountingReportEmail(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAccountingReportEmail, v))
 }
 
+// SalesAnonymizationEnabled applies equality check predicate on the "SalesAnonymizationEnabled" field. It's identical to SalesAnonymizationEnabledEQ.
+func SalesAnonymizationEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldSalesAnonymizationEnabled, v))
+}
+
+// VendorAnonymizationEnabled applies equality check predicate on the "VendorAnonymizationEnabled" field. It's identical to VendorAnonymizationEnabledEQ.
+func VendorAnonymizationEnabled(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldVendorAnonymizationEnabled, v))
+}
+
+// AnonymizationRetentionDays applies equality check predicate on the "AnonymizationRetentionDays" field. It's identical to AnonymizationRetentionDaysEQ.
+func AnonymizationRetentionDays(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAnonymizationRetentionDays, v))
+}
+
 // AGBUrlEQ applies the EQ predicate on the "AGBUrl" field.
 func AGBUrlEQ(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldEQ(FieldAGBUrl, v))
@@ -2671,6 +2686,66 @@ func AccountingReportEmailEqualFold(v string) predicate.Settings {
 // AccountingReportEmailContainsFold applies the ContainsFold predicate on the "AccountingReportEmail" field.
 func AccountingReportEmailContainsFold(v string) predicate.Settings {
 	return predicate.Settings(sql.FieldContainsFold(FieldAccountingReportEmail, v))
+}
+
+// SalesAnonymizationEnabledEQ applies the EQ predicate on the "SalesAnonymizationEnabled" field.
+func SalesAnonymizationEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldSalesAnonymizationEnabled, v))
+}
+
+// SalesAnonymizationEnabledNEQ applies the NEQ predicate on the "SalesAnonymizationEnabled" field.
+func SalesAnonymizationEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldSalesAnonymizationEnabled, v))
+}
+
+// VendorAnonymizationEnabledEQ applies the EQ predicate on the "VendorAnonymizationEnabled" field.
+func VendorAnonymizationEnabledEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldVendorAnonymizationEnabled, v))
+}
+
+// VendorAnonymizationEnabledNEQ applies the NEQ predicate on the "VendorAnonymizationEnabled" field.
+func VendorAnonymizationEnabledNEQ(v bool) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldVendorAnonymizationEnabled, v))
+}
+
+// AnonymizationRetentionDaysEQ applies the EQ predicate on the "AnonymizationRetentionDays" field.
+func AnonymizationRetentionDaysEQ(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldEQ(FieldAnonymizationRetentionDays, v))
+}
+
+// AnonymizationRetentionDaysNEQ applies the NEQ predicate on the "AnonymizationRetentionDays" field.
+func AnonymizationRetentionDaysNEQ(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldNEQ(FieldAnonymizationRetentionDays, v))
+}
+
+// AnonymizationRetentionDaysIn applies the In predicate on the "AnonymizationRetentionDays" field.
+func AnonymizationRetentionDaysIn(vs ...int) predicate.Settings {
+	return predicate.Settings(sql.FieldIn(FieldAnonymizationRetentionDays, vs...))
+}
+
+// AnonymizationRetentionDaysNotIn applies the NotIn predicate on the "AnonymizationRetentionDays" field.
+func AnonymizationRetentionDaysNotIn(vs ...int) predicate.Settings {
+	return predicate.Settings(sql.FieldNotIn(FieldAnonymizationRetentionDays, vs...))
+}
+
+// AnonymizationRetentionDaysGT applies the GT predicate on the "AnonymizationRetentionDays" field.
+func AnonymizationRetentionDaysGT(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldGT(FieldAnonymizationRetentionDays, v))
+}
+
+// AnonymizationRetentionDaysGTE applies the GTE predicate on the "AnonymizationRetentionDays" field.
+func AnonymizationRetentionDaysGTE(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldGTE(FieldAnonymizationRetentionDays, v))
+}
+
+// AnonymizationRetentionDaysLT applies the LT predicate on the "AnonymizationRetentionDays" field.
+func AnonymizationRetentionDaysLT(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldLT(FieldAnonymizationRetentionDays, v))
+}
+
+// AnonymizationRetentionDaysLTE applies the LTE predicate on the "AnonymizationRetentionDays" field.
+func AnonymizationRetentionDaysLTE(v int) predicate.Settings {
+	return predicate.Settings(sql.FieldLTE(FieldAnonymizationRetentionDays, v))
 }
 
 // HasMainItem applies the HasEdge predicate on the "MainItem" edge.

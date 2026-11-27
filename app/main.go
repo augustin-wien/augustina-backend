@@ -107,6 +107,7 @@ func main() {
 	jobs.StartMailQueue()
 	jobs.StartOrderReconciliation()
 	jobs.StartMonthlyAccountingReport()
+	jobs.StartSalesAnonymization()
 
 	// Initialize server with graceful shutdown
 	srv := &http.Server{

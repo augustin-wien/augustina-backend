@@ -574,6 +574,18 @@ func init() {
 	settingsDescAccountingReportEmail := settingsFields[53].Descriptor()
 	// settings.DefaultAccountingReportEmail holds the default value on creation for the AccountingReportEmail field.
 	settings.DefaultAccountingReportEmail = settingsDescAccountingReportEmail.Default.(string)
+	// settingsDescSalesAnonymizationEnabled is the schema descriptor for SalesAnonymizationEnabled field.
+	settingsDescSalesAnonymizationEnabled := settingsFields[54].Descriptor()
+	// settings.DefaultSalesAnonymizationEnabled holds the default value on creation for the SalesAnonymizationEnabled field.
+	settings.DefaultSalesAnonymizationEnabled = settingsDescSalesAnonymizationEnabled.Default.(bool)
+	// settingsDescVendorAnonymizationEnabled is the schema descriptor for VendorAnonymizationEnabled field.
+	settingsDescVendorAnonymizationEnabled := settingsFields[55].Descriptor()
+	// settings.DefaultVendorAnonymizationEnabled holds the default value on creation for the VendorAnonymizationEnabled field.
+	settings.DefaultVendorAnonymizationEnabled = settingsDescVendorAnonymizationEnabled.Default.(bool)
+	// settingsDescAnonymizationRetentionDays is the schema descriptor for AnonymizationRetentionDays field.
+	settingsDescAnonymizationRetentionDays := settingsFields[56].Descriptor()
+	// settings.DefaultAnonymizationRetentionDays holds the default value on creation for the AnonymizationRetentionDays field.
+	settings.DefaultAnonymizationRetentionDays = settingsDescAnonymizationRetentionDays.Default.(int)
 	// settingsDescID is the schema descriptor for id field.
 	settingsDescID := settingsFields[0].Descriptor()
 	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.
