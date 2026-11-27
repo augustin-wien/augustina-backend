@@ -9,6 +9,7 @@ import (
 	"github.com/augustin-wien/augustina-backend/ent"
 	entaccount "github.com/augustin-wien/augustina-backend/ent/account"
 	entpayment "github.com/augustin-wien/augustina-backend/ent/payment"
+	entvendor "github.com/augustin-wien/augustina-backend/ent/vendor"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -31,8 +32,17 @@ func (db *Database) AccountEntIntoAccount(a *ent.Account) Account {
 
 // CreateSingleAccount creates an account in the database
 func (db *Database) CreateSpecialVendorAccount(vendor Vendor) (vendorID int, err error) {
+	existing, err := db.EntClient.Vendor.Query().
+		Where(entvendor.Licenseid(vendor.LicenseID.String)).
+		Only(context.Background())
+	if err == nil {
+		return existing.ID, nil
+	}
+	if !ent.IsNotFound(err) {
+		log.Errorf("CreateSpecialVendor: lookup vendor %s %+v", vendor.Email, err)
+		return 0, err
+	}
 
-	// Create a new vendor account
 	v, err := db.EntClient.Vendor.Create().
 		SetKeycloakid("").
 		SetUrlid("").
