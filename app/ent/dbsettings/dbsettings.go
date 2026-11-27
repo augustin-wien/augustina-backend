@@ -15,6 +15,8 @@ const (
 	FieldIsInitialized = "is_initialized"
 	// FieldAccountingReportSentMonth holds the string denoting the accounting_report_sent_month field in the database.
 	FieldAccountingReportSentMonth = "accounting_report_sent_month"
+	// FieldAccountingReportLastTo holds the string denoting the accounting_report_last_to field in the database.
+	FieldAccountingReportLastTo = "accounting_report_last_to"
 	// Table holds the table name of the dbsettings in the database.
 	Table = "db_settings"
 )
@@ -24,6 +26,7 @@ var Columns = []string{
 	FieldID,
 	FieldIsInitialized,
 	FieldAccountingReportSentMonth,
+	FieldAccountingReportLastTo,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -39,6 +42,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultAccountingReportSentMonth holds the default value on creation for the "accounting_report_sent_month" field.
 	DefaultAccountingReportSentMonth string
+	// DefaultAccountingReportLastTo holds the default value on creation for the "accounting_report_last_to" field.
+	DefaultAccountingReportLastTo string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -59,4 +64,9 @@ func ByIsInitialized(opts ...sql.OrderTermOption) OrderOption {
 // ByAccountingReportSentMonth orders the results by the accounting_report_sent_month field.
 func ByAccountingReportSentMonth(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAccountingReportSentMonth, opts...).ToFunc()
+}
+
+// ByAccountingReportLastTo orders the results by the accounting_report_last_to field.
+func ByAccountingReportLastTo(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccountingReportLastTo, opts...).ToFunc()
 }

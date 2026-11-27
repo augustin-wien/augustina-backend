@@ -6,20 +6,41 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-pdf/fpdf"
 )
 
 var monthNames = [...]string{"Jänner", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"}
 
-// MonthName returns the month of the report in German, e.g. "Oktober 2026"
-func (r MonthlyReport) MonthName() string {
-	return fmt.Sprintf("%s %d", monthNames[r.From.In(Location).Month()-1], r.From.In(Location).Year())
+// PeriodName returns the period of the report in German, e.g. "Oktober 2026" or "01.10.2026 – 25.11.2026"
+func (r MonthlyReport) PeriodName() string {
+	from := r.From.In(Location)
+	if r.Month != "" {
+		return fmt.Sprintf("%s %d", monthNames[from.Month()-1], from.Year())
+	}
+	return from.Format("02.01.2006") + " – " + r.LastDay().Format("02.01.2006")
+}
+
+// Kind returns "Monatsbericht" for a report of one month and "Bericht" otherwise
+func (r MonthlyReport) Kind() string {
+	if r.Month != "" {
+		return "Monatsbericht"
+	}
+	return "Bericht"
+}
+
+// Title returns the heading of the report, e.g. "Monatsbericht Oktober 2026"
+func (r MonthlyReport) Title() string {
+	return r.Kind() + " " + r.PeriodName()
 }
 
 // FileName returns the name of the exported file without extension
 func (r MonthlyReport) FileName() string {
-	return "monatsbericht_" + r.Month
+	if r.Month != "" {
+		return "monatsbericht_" + r.Month
+	}
+	return "bericht_" + r.From.In(Location).Format(time.DateOnly) + "_" + r.LastDay().Format(time.DateOnly)
 }
 
 // FormatEuro formats cents in the Austrian notation, e.g. 1.234,56 €
@@ -79,8 +100,8 @@ func (r MonthlyReport) CSV() ([]byte, error) {
 	w.Comma = ';'
 
 	rows := [][]string{
-		{"Monatsbericht", r.MonthName()},
-		{"Zeitraum", r.From.In(Location).Format("02.01.2006"), r.To.AddDate(0, 0, -1).In(Location).Format("02.01.2006")},
+		{r.Kind(), r.PeriodName()},
+		{"Zeitraum", r.From.In(Location).Format("02.01.2006"), r.LastDay().Format("02.01.2006")},
 		{},
 		{"Position", "Betrag (EUR)", "Anzahl"},
 	}
@@ -103,7 +124,7 @@ func (r MonthlyReport) PDF(newspaperName string) ([]byte, error) {
 	pdf.SetMargins(20, 20, 20)
 	pdf.SetAutoPageBreak(true, 20)
 	tr := pdf.UnicodeTranslatorFromDescriptor("cp1252")
-	pdf.SetTitle(tr("Monatsbericht "+r.MonthName()), false)
+	pdf.SetTitle(tr(r.Title()), false)
 	pdf.AddPage()
 
 	pageWidth, _ := pdf.GetPageSize()
@@ -114,14 +135,14 @@ func (r MonthlyReport) PDF(newspaperName string) ([]byte, error) {
 	labelWidth := width - amountWidth - countWidth
 
 	pdf.SetFont("Helvetica", "B", 18)
-	title := "Monatsbericht " + r.MonthName()
+	title := r.Title()
 	if newspaperName != "" {
 		title = newspaperName + " – " + title
 	}
 	pdf.MultiCell(width, 9, tr(title), "", "L", false)
 	pdf.SetFont("Helvetica", "", 10)
 	pdf.SetTextColor(90, 90, 90)
-	period := fmt.Sprintf("Zeitraum %s – %s", r.From.In(Location).Format("02.01.2006"), r.To.AddDate(0, 0, -1).In(Location).Format("02.01.2006"))
+	period := fmt.Sprintf("Zeitraum %s – %s", r.From.In(Location).Format("02.01.2006"), r.LastDay().Format("02.01.2006"))
 	pdf.CellFormat(width, 6, tr(period), "", 1, "L", false, 0, "")
 	if !r.GeneratedAt.IsZero() {
 		pdf.CellFormat(width, 6, tr("Erstellt am "+r.GeneratedAt.In(Location).Format("02.01.2006 15:04")), "", 1, "L", false, 0, "")

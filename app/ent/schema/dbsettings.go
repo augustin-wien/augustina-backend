@@ -21,6 +21,9 @@ func (DBSettings) Fields() []ent.Field {
 		// Month (YYYY-MM) of the last accounting report mail, so a restart does not send it twice
 		field.String("accounting_report_sent_month").
 			Default(""),
+		// Last day (YYYY-MM-DD) of the last report exported or sent in the backoffice
+		field.String("accounting_report_last_to").
+			Default(""),
 	}
 }
 

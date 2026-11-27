@@ -50,6 +50,10 @@ func TestHandlersRejectInvalidInput(t *testing.T) {
 		{"GET", "/api/reports/monthly/abc/csv/", ""},
 		{"GET", "/api/reports/monthly/abc/pdf/", ""},
 		{"POST", "/api/reports/monthly/abc/send/", ""},
+		{"GET", "/api/reports/period/?from=2026-10-01", ""},
+		{"GET", "/api/reports/period/csv/?from=abc&to=2026-10-31", ""},
+		{"GET", "/api/reports/period/pdf/?from=2026-10-31&to=2026-10-01", ""},
+		{"POST", "/api/reports/period/send/?from=2026-10-01&to=2026-02-30", ""},
 		// Malformed bodies
 		{"POST", "/api/abonements/", badJSON},
 		{"PUT", "/api/abonements/1/", badJSON},

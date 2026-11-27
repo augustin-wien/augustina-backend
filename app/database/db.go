@@ -120,6 +120,7 @@ func (db *Database) InitEmptyTestDb() (err error) {
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "odoodbfilter" VARCHAR NOT NULL DEFAULT '';`,
 		`ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "accountingreportemail" VARCHAR NOT NULL DEFAULT '';`,
 		`ALTER TABLE "db_settings" ADD COLUMN IF NOT EXISTS "accounting_report_sent_month" VARCHAR NOT NULL DEFAULT '';`,
+		`ALTER TABLE "db_settings" ADD COLUMN IF NOT EXISTS "accounting_report_last_to" VARCHAR NOT NULL DEFAULT '';`,
 		`ALTER TABLE "locations" ADD COLUMN IF NOT EXISTS "market_number" TEXT NOT NULL DEFAULT '';`,
 		`ALTER TABLE "vendor" ADD COLUMN IF NOT EXISTS "lastidscan" TIMESTAMPTZ;`,
 		`ALTER TABLE "paymentorder" ADD COLUMN IF NOT EXISTS "newsletter" BOOLEAN NOT NULL DEFAULT FALSE;`,

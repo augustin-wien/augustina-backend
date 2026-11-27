@@ -97,6 +97,45 @@ func TestParseMonth(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestParsePeriod(t *testing.T) {
+	from, to, err := ParsePeriod("2026-10-01", "2026-11-25")
+	require.NoError(t, err)
+	require.Equal(t, time.Date(2026, 10, 1, 0, 0, 0, 0, Location), from)
+	require.Equal(t, time.Date(2026, 11, 26, 0, 0, 0, 0, Location), to)
+
+	from, to, err = ParsePeriod("2026-10-05", "2026-10-05")
+	require.NoError(t, err)
+	require.Equal(t, from.AddDate(0, 0, 1), to)
+
+	_, _, err = ParsePeriod("2026-10-05", "2026-10-04")
+	require.Error(t, err)
+	_, _, err = ParsePeriod("2026-10", "2026-10-04")
+	require.Error(t, err)
+	_, _, err = ParsePeriod("2026-10-01", "")
+	require.Error(t, err)
+}
+
+func TestPeriodReport(t *testing.T) {
+	from, to, err := ParsePeriod("2026-10-01", "2026-11-25")
+	require.NoError(t, err)
+	r := build(from, to, nil, nil, nil, nil)
+	require.Empty(t, r.Month)
+	require.Equal(t, "Bericht 01.10.2026 – 25.11.2026", r.Title())
+	require.Equal(t, "bericht_2026-10-01_2026-11-25", r.FileName())
+
+	data, err := r.CSV()
+	require.NoError(t, err)
+	require.Contains(t, string(data), "Bericht;01.10.2026 – 25.11.2026\n")
+	require.Contains(t, string(data), "Zeitraum;01.10.2026;25.11.2026\n")
+
+	// A whole month picked as period is a monthly report
+	from, to, err = ParsePeriod("2026-02-01", "2026-02-28")
+	require.NoError(t, err)
+	r = build(from, to, nil, nil, nil, nil)
+	require.Equal(t, "2026-02", r.Month)
+	require.Equal(t, "Monatsbericht Februar 2026", r.Title())
+}
+
 func TestPreviousMonth(t *testing.T) {
 	require.Equal(t, "2026-12", PreviousMonth(time.Date(2027, 1, 1, 0, 30, 0, 0, Location)))
 	// 23:30 UTC on Oct 31 is already November in Vienna

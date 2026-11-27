@@ -55,6 +55,20 @@ func (_u *DBSettingsUpdate) SetNillableAccountingReportSentMonth(v *string) *DBS
 	return _u
 }
 
+// SetAccountingReportLastTo sets the "accounting_report_last_to" field.
+func (_u *DBSettingsUpdate) SetAccountingReportLastTo(v string) *DBSettingsUpdate {
+	_u.mutation.SetAccountingReportLastTo(v)
+	return _u
+}
+
+// SetNillableAccountingReportLastTo sets the "accounting_report_last_to" field if the given value is not nil.
+func (_u *DBSettingsUpdate) SetNillableAccountingReportLastTo(v *string) *DBSettingsUpdate {
+	if v != nil {
+		_u.SetAccountingReportLastTo(*v)
+	}
+	return _u
+}
+
 // Mutation returns the DBSettingsMutation object of the builder.
 func (_u *DBSettingsUpdate) Mutation() *DBSettingsMutation {
 	return _u.mutation
@@ -102,6 +116,9 @@ func (_u *DBSettingsUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.AccountingReportSentMonth(); ok {
 		_spec.SetField(dbsettings.FieldAccountingReportSentMonth, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.AccountingReportLastTo(); ok {
+		_spec.SetField(dbsettings.FieldAccountingReportLastTo, field.TypeString, value)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{dbsettings.Label}
@@ -146,6 +163,20 @@ func (_u *DBSettingsUpdateOne) SetAccountingReportSentMonth(v string) *DBSetting
 func (_u *DBSettingsUpdateOne) SetNillableAccountingReportSentMonth(v *string) *DBSettingsUpdateOne {
 	if v != nil {
 		_u.SetAccountingReportSentMonth(*v)
+	}
+	return _u
+}
+
+// SetAccountingReportLastTo sets the "accounting_report_last_to" field.
+func (_u *DBSettingsUpdateOne) SetAccountingReportLastTo(v string) *DBSettingsUpdateOne {
+	_u.mutation.SetAccountingReportLastTo(v)
+	return _u
+}
+
+// SetNillableAccountingReportLastTo sets the "accounting_report_last_to" field if the given value is not nil.
+func (_u *DBSettingsUpdateOne) SetNillableAccountingReportLastTo(v *string) *DBSettingsUpdateOne {
+	if v != nil {
+		_u.SetAccountingReportLastTo(*v)
 	}
 	return _u
 }
@@ -226,6 +257,9 @@ func (_u *DBSettingsUpdateOne) sqlSave(ctx context.Context) (_node *DBSettings, 
 	}
 	if value, ok := _u.mutation.AccountingReportSentMonth(); ok {
 		_spec.SetField(dbsettings.FieldAccountingReportSentMonth, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AccountingReportLastTo(); ok {
+		_spec.SetField(dbsettings.FieldAccountingReportLastTo, field.TypeString, value)
 	}
 	_node = &DBSettings{config: _u.config}
 	_spec.Assign = _node.assignValues

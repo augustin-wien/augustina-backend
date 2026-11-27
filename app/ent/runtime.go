@@ -144,6 +144,10 @@ func init() {
 	dbsettingsDescAccountingReportSentMonth := dbsettingsFields[2].Descriptor()
 	// dbsettings.DefaultAccountingReportSentMonth holds the default value on creation for the accounting_report_sent_month field.
 	dbsettings.DefaultAccountingReportSentMonth = dbsettingsDescAccountingReportSentMonth.Default.(string)
+	// dbsettingsDescAccountingReportLastTo is the schema descriptor for accounting_report_last_to field.
+	dbsettingsDescAccountingReportLastTo := dbsettingsFields[3].Descriptor()
+	// dbsettings.DefaultAccountingReportLastTo holds the default value on creation for the accounting_report_last_to field.
+	dbsettings.DefaultAccountingReportLastTo = dbsettingsDescAccountingReportLastTo.Default.(string)
 	// dbsettingsDescID is the schema descriptor for id field.
 	dbsettingsDescID := dbsettingsFields[0].Descriptor()
 	// dbsettings.IDValidator is a validator for the "id" field. It is called by the builders before save.

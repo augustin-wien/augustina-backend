@@ -174,6 +174,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "is_initialized", Type: field.TypeBool},
 		{Name: "accounting_report_sent_month", Type: field.TypeString, Default: ""},
+		{Name: "accounting_report_last_to", Type: field.TypeString, Default: ""},
 	}
 	// DbSettingsTable holds the schema information for the "db_settings" table.
 	DbSettingsTable = &schema.Table{
