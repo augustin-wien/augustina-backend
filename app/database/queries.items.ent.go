@@ -84,7 +84,7 @@ func (db *Database) ListLicenseGroups() ([]string, error) {
 }
 
 func (db *Database) ListItemsShop() ([]Item, error) {
-	var out []Item
+	out := []Item{}
 	ctx := context.Background()
 	ents, err := db.EntClient.Item.Query().Where(entitem.ArchivedEQ(false), entitem.DisabledEQ(false)).Order(ent.Desc(entitem.FieldItemOrder)).WithLicenseItem().WithPDF().All(ctx)
 	if err != nil {
